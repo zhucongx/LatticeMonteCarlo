@@ -1,0 +1,12 @@
+build/
+bin/
+lib/
+cmake-build-*/
+test/
+out/
+.idea/
+.vs/
+.vscode/
+
+CMakeSettings.json
+**/.DS_Store
