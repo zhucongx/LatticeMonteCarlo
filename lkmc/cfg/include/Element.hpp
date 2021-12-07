@@ -27,20 +27,27 @@ class Element {
 
     constexpr explicit operator ElementType() const { return element_type_; }
     explicit operator bool() = delete;
-
-    constexpr bool operator==(Element element) const {
-      return element_type_ == element.element_type_;
+    constexpr bool operator==(Element rhs) const {
+      return element_type_ == rhs.element_type_;
     }
-    constexpr bool operator!=(Element element) const {
-      return element_type_ != element.element_type_;
+    constexpr bool operator!=(Element rhs) const {
+      return element_type_ != rhs.element_type_;
     }
-    constexpr bool operator==(ElementType element_type) const {
-      return element_type_ == element_type;
+    constexpr bool operator==(ElementType rhs) const {
+      return element_type_ == rhs;
     }
-    constexpr bool operator!=(ElementType element_type) const {
-      return element_type_ != element_type;
+    constexpr bool operator!=(ElementType rhs) const {
+      return element_type_ != rhs;
     }
-
+    bool operator<(Element rhs) const {
+      return GetString() < rhs.GetString();
+    }
+    bool operator<(const ElementType rhs) const {
+      return GetString() < Element(rhs).GetString();
+    }
+    friend size_t hash_value(Element element) {
+      return static_cast<std::size_t>(element.element_type_);
+    }
     [[nodiscard]] std::string GetString() const {
       switch (element_type_) {
         case ElementType::X : return "X";

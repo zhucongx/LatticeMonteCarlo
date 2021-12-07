@@ -1,10 +1,9 @@
 #include "ClusterExpansionPredictor.h"
 
 namespace pred {
-using Singlet_MMM_t = cfg::LatticeClusterMMM<1>;
-using Pair_MMM_t = cfg::LatticeClusterMMM<2>;
-using Triplet_MMM_t = cfg::LatticeClusterMMM<3>;
-using Quadruplet_MMM_t = cfg::LatticeClusterMMM<4>;
+using Singlet_MMM_t = LatticeClusterMMM<1>;
+using Pair_MMM_t = LatticeClusterMMM<2>;
+using Triplet_MMM_t = LatticeClusterMMM<3>;
 static bool LatticeSortCompare(const cfg::Lattice &lhs,
                                const cfg::Lattice &rhs) {
   const auto &relative_position_lhs = lhs.GetRelativePosition();
@@ -21,8 +20,8 @@ static bool LatticeSortCompare(const cfg::Lattice &lhs,
 }
 
 template<size_t DataSize>
-static bool IsClusterSmallerSymmetrically(const cfg::LatticeClusterMMM<DataSize> &lhs,
-                                          const cfg::LatticeClusterMMM<DataSize> &rhs) {
+static bool IsClusterSmallerSymmetrically(const LatticeClusterMMM<DataSize> &lhs,
+                                          const LatticeClusterMMM<DataSize> &rhs) {
   for (size_t i = 0; i < DataSize; ++i) {
     const auto &lhs_lattice = lhs.GetLatticeAt(i);
     const auto &rhs_lattice = rhs.GetLatticeAt(i);
@@ -36,7 +35,7 @@ static bool IsClusterSmallerSymmetrically(const cfg::LatticeClusterMMM<DataSize>
 }
 
 // Returns forward and backward sorted lattice lists
-static std::vector<cfg::Lattice> GetSymmetricallySortedLatticeVector(
+std::vector<cfg::Lattice> GetSymmetricallySortedLatticeVectorMMM(
     const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) {
   // The number of first-, second-, and third-nearest neighbors of the jump pairs
   constexpr size_t kNumOfSites = 60;
@@ -85,7 +84,7 @@ static std::vector<cfg::Lattice> GetSymmetricallySortedLatticeVector(
 
 template<size_t DataSize>
 static void GetAverageParametersMappingFromLatticeClusterVectorHelper(
-    std::vector<cfg::LatticeClusterMMM<DataSize> > &&cluster_vector,
+    std::vector<LatticeClusterMMM<DataSize> > &&cluster_vector,
     std::vector<std::vector<std::vector<size_t> > > &cluster_mapping) {
   // sort clusters
   std::sort(cluster_vector.begin(), cluster_vector.end(),
@@ -93,7 +92,7 @@ static void GetAverageParametersMappingFromLatticeClusterVectorHelper(
               return IsClusterSmallerSymmetrically(lhs, rhs);
             });
   // start to point at Cluster in the first range
-  typename std::vector<cfg::LatticeClusterMMM<DataSize> >::const_iterator lower_it, upper_it;
+  typename std::vector<LatticeClusterMMM<DataSize> >::const_iterator lower_it, upper_it;
   lower_it = cluster_vector.cbegin();
   do {
     upper_it = std::upper_bound(lower_it, cluster_vector.cend(),
@@ -113,8 +112,10 @@ static void GetAverageParametersMappingFromLatticeClusterVectorHelper(
 }
 
 std::vector<std::vector<std::vector<size_t> > > GetAverageClusterParametersMappingMMM(
-    const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) {
-  const auto lattice_vector = GetSymmetricallySortedLatticeVector(config, lattice_id_jump_pair);
+    const cfg::Config &config) {
+  const std::pair<size_t, size_t>
+      lattice_id_jump_pair = {0, config.GetFirstNeighborsAdjacencyList()[0][0]};
+  const auto lattice_vector = GetSymmetricallySortedLatticeVectorMMM(config, lattice_id_jump_pair);
   std::vector<std::vector<std::vector<size_t> > > cluster_mapping{};
   /// singlets
   std::vector<Singlet_MMM_t> singlet_vector;

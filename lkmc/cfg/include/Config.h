@@ -3,7 +3,6 @@
 #include <vector>
 #include <unordered_set>
 #include <unordered_map>
-// #include <boost/graph/adjacency_list.hpp>
 #include "Atom.hpp"
 #include "Lattice.hpp"
 // using Graph = boost::adjacency_list<boost::vecS, boost::vecS>;
@@ -16,7 +15,7 @@ class Config {
            std::vector<Lattice> lattice_vector,
            std::vector<Atom> atom_vector);
     /// Getter
-    [[nodiscard]]  size_t GetNumAtoms() const;
+    [[nodiscard]] size_t GetNumAtoms() const;
     [[nodiscard]] const Matrix_t &GetBasis() const;
     [[nodiscard]] const std::vector<Lattice> &GetLatticeVector() const;
     [[nodiscard]] const std::vector<Atom> &GetAtomVector() const;
@@ -25,6 +24,7 @@ class Config {
     [[nodiscard]] const std::vector<std::vector<size_t> > &GetThirdNeighborsAdjacencyList() const;
     [[nodiscard]] size_t GetAtomIdFromLatticeID(size_t lattice_id) const;
     [[nodiscard]] size_t GetLatticeIdFromAtomId(size_t atom_id) const;
+    [[nodiscard]] Element GetElementAtLatticeID(size_t lattice_id) const;
     /// Modify config
     void AtomsJump(const std::pair<size_t, size_t> &atom_id_jump_pair);
     /// IO

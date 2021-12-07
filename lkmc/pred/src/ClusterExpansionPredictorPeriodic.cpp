@@ -1,10 +1,9 @@
 #include "ClusterExpansionPredictor.h"
 
 namespace pred {
-using Singlet_Periodic_t = cfg::LatticeClusterPeriodic<1>;
-using Pair_Periodic_t = cfg::LatticeClusterPeriodic<2>;
-using Triplet_Periodic_t = cfg::LatticeClusterPeriodic<3>;
-using Quadruplet_Periodic_t = cfg::LatticeClusterPeriodic<4>;
+using Singlet_Periodic_t = LatticeClusterPeriodic<1>;
+using Pair_Periodic_t = LatticeClusterPeriodic<2>;
+using Triplet_Periodic_t = LatticeClusterPeriodic<3>;
 static bool LatticeSortCompare(const cfg::Lattice &lhs,
                                const cfg::Lattice &rhs) {
   const auto &relative_position_lhs = lhs.GetRelativePosition();
@@ -19,8 +18,8 @@ static bool LatticeSortCompare(const cfg::Lattice &lhs,
   return diff_z < -kEpsilon;
 }
 template<size_t DataSize>
-static bool IsClusterSmallerSymmetrically(const cfg::LatticeClusterPeriodic<DataSize> &lhs,
-                                          const cfg::LatticeClusterPeriodic<DataSize> &rhs) {
+static bool IsClusterSmallerSymmetrically(const LatticeClusterPeriodic<DataSize> &lhs,
+                                          const LatticeClusterPeriodic<DataSize> &rhs) {
   for (size_t i = 0; i < DataSize; ++i) {
     const auto &lhs_lattice = lhs.GetLatticeAt(i);
     const auto &rhs_lattice = rhs.GetLatticeAt(i);
@@ -34,9 +33,8 @@ static bool IsClusterSmallerSymmetrically(const cfg::LatticeClusterPeriodic<Data
 }
 
 // Returns forward and backward sorted lattice lists
-static std::vector<cfg::Lattice> GetSortedLatticeVector(
+std::vector<cfg::Lattice> GetSortedLatticeVectorPeriodic(
     const cfg::Config &config, size_t lattice_id) {
-
   constexpr size_t kNumOfSites = 42;
   auto lattice_id_hashset =
       GetFirstAndSecondThirdNeighborsLatticeIdSetOfLattice(config, lattice_id);
@@ -63,18 +61,19 @@ static std::vector<cfg::Lattice> GetSortedLatticeVector(
 
 template<size_t DataSize>
 static void GetAverageParametersMappingFromLatticeClusterVectorHelper(
-    std::vector<cfg::LatticeClusterPeriodic<DataSize> > &&cluster_vector,
+    std::vector<LatticeClusterPeriodic<DataSize> > &&cluster_vector,
     std::vector<std::vector<std::vector<size_t> > > &cluster_mapping) {
   std::vector<std::vector<size_t> > cluster_index_vector;
-  for (auto cluster: cluster_vector) {
+  for (const auto& cluster: cluster_vector) {
     auto cluster_index = cluster.GetIndexVector();
     cluster_index_vector.push_back(cluster_index);
   }
   cluster_mapping.push_back(cluster_index_vector);
 }
 std::vector<std::vector<std::vector<size_t> > > GetAverageClusterParametersMappingPeriodic(
-    const cfg::Config &config, size_t lattice_id) {
-  const auto lattice_vector = GetSortedLatticeVector(config, lattice_id);
+    const cfg::Config &config) {
+  const size_t lattice_id = 0;
+  const auto lattice_vector = GetSortedLatticeVectorPeriodic(config, lattice_id);
   std::vector<std::vector<std::vector<size_t> > > cluster_mapping{};
   /// singlets
   std::vector<Singlet_Periodic_t> singlet_vector;
