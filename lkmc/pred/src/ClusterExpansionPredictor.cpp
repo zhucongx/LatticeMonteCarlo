@@ -63,7 +63,7 @@ double ClusterExpansionPredictor::GetE0(const cfg::Config &config,
   std::vector<Element> ele_vector{};
   ele_vector.reserve(lattice_id_vector_mmm.size());
   for (auto index: lattice_id_vector_mmm) {
-    auto this_element = config.GetElementAtLatticeID(index);
+    auto this_element = config.GetElementAtLatticeId(index);
     if (this_element == ElementType::X) {
       ele_vector.push_back(migration_element);
       continue;
@@ -111,7 +111,7 @@ double ClusterExpansionPredictor::GetE(const cfg::Config &config,
   std::vector<Element> ele_vector{};
   ele_vector.reserve(lattice_id_vector_periodic.size());
   for (auto index: lattice_id_vector_periodic) {
-    auto this_element = config.GetElementAtLatticeID(index);
+    auto this_element = config.GetElementAtLatticeId(index);
     if (this_element == ElementType::X) {
       ele_vector.push_back(migration_element);
       continue;
@@ -144,10 +144,10 @@ double ClusterExpansionPredictor::GetE(const cfg::Config &config,
   e += mu_y;
   return e;
 }
-std::pair<double, double> ClusterExpansionPredictor::GetBarrierAndDiff(
+std::pair<double, double> ClusterExpansionPredictor::GetBarrierAndDiffFromLatticeIdPair(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
-  auto migration_element = config.GetElementAtLatticeID(lattice_id_jump_pair.second);
+  auto migration_element = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
   auto e01 = GetE0(config,
                    lattice_id_jump_pair,
                    migration_element);
@@ -159,7 +159,14 @@ std::pair<double, double> ClusterExpansionPredictor::GetBarrierAndDiff(
   auto dE = GetE(config, lattice_id_jump_pair.second, migration_element)
       - GetE(config, lattice_id_jump_pair.first, migration_element);
 
-  return {e0+dE / 2, dE};
+  return {e0 + dE / 2, dE};
 }
+std::pair<double, double> ClusterExpansionPredictor::GetBarrierAndDiffFromAtomIdPair(
+    const cfg::Config &config,
+    const std::pair<size_t, size_t> &atom_id_jump_pair) const {
 
+  return GetBarrierAndDiffFromLatticeIdPair(config,
+                                         {config.GetLatticeIdFromAtomId(atom_id_jump_pair.first),
+                                          config.GetLatticeIdFromAtomId(atom_id_jump_pair.second)});
+}
 } // namespace pred

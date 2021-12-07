@@ -42,8 +42,10 @@ class ClusterExpansionPredictor {
                               const cfg::Config &reference_config,
                               const std::set<Element> &type_set);
     virtual ~ClusterExpansionPredictor();
-
-    [[nodiscard]]  std::pair<double, double> GetBarrierAndDiff(
+    [[nodiscard]]  std::pair<double, double> GetBarrierAndDiffFromAtomIdPair(
+        const cfg::Config &config,
+        const std::pair<size_t, size_t> &atom_id_jump_pair) const;
+    [[nodiscard]]  std::pair<double, double> GetBarrierAndDiffFromLatticeIdPair(
         const cfg::Config &config,
         const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
   protected:

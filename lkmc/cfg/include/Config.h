@@ -22,9 +22,15 @@ class Config {
     [[nodiscard]] const std::vector<std::vector<size_t> > &GetFirstNeighborsAdjacencyList() const;
     [[nodiscard]] const std::vector<std::vector<size_t> > &GetSecondNeighborsAdjacencyList() const;
     [[nodiscard]] const std::vector<std::vector<size_t> > &GetThirdNeighborsAdjacencyList() const;
-    [[nodiscard]] size_t GetAtomIdFromLatticeID(size_t lattice_id) const;
+    [[nodiscard]] std::vector<size_t> GetFirstNeighborsAtomIdVectorOfAtom(
+        size_t atom_id) const;
+    [[nodiscard]] std::vector<size_t> GetSecondNeighborsAtomIdVectorOfAtom(
+        size_t atom_id) const;
+    [[nodiscard]] std::vector<size_t> GetThirdNeighborsAtomIdVectorOfAtom(
+        size_t atom_id) const;
+    [[nodiscard]] size_t GetAtomIdFromLatticeId(size_t lattice_id) const;
     [[nodiscard]] size_t GetLatticeIdFromAtomId(size_t atom_id) const;
-    [[nodiscard]] Element GetElementAtLatticeID(size_t lattice_id) const;
+    [[nodiscard]] Element GetElementAtLatticeId(size_t lattice_id) const;
     /// Modify config
     void AtomsJump(const std::pair<size_t, size_t> &atom_id_jump_pair);
     /// IO
@@ -56,7 +62,7 @@ Vector_t GetLatticePairCenter(const Config &config,
 Matrix_t GetLatticePairRotationMatrix(const Config &config,
                                       const std::pair<size_t, size_t> &lattice_id_jump_pair);
 void RotateLatticeVector(std::vector<Lattice> &lattice_list, const Matrix_t &rotation_matrix);
-
+size_t GetVacancyAtomIndex(const Config &config);
 size_t GetVacancyLatticeIndex(const Config &config);
 std::unordered_set<size_t> GetFirstAndSecondThirdNeighborsLatticeIdSetOfJumpPair(
     const Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair);

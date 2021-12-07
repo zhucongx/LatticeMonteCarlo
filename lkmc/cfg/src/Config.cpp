@@ -48,13 +48,40 @@ const std::vector<std::vector<size_t> > &Config::GetSecondNeighborsAdjacencyList
 const std::vector<std::vector<size_t> > &Config::GetThirdNeighborsAdjacencyList() const {
   return third_neighbors_adjacency_list_;
 }
-size_t Config::GetAtomIdFromLatticeID(size_t lattice_id) const {
+std::vector<size_t> Config::GetFirstNeighborsAtomIdVectorOfAtom(size_t atom_id) const {
+  auto lattice_id = atom_to_lattice_hashmap_.at(atom_id);
+  std::vector<size_t> first_neighbors_atom_id_vector;
+  first_neighbors_atom_id_vector.reserve(constants::kNumFirstNearestNeighbors);
+  for (auto neighbor_lattice_id: first_neighbors_adjacency_list_[lattice_id]) {
+    first_neighbors_atom_id_vector.push_back(lattice_to_atom_hashmap_.at(neighbor_lattice_id));
+  }
+  return first_neighbors_atom_id_vector;
+}
+std::vector<size_t> Config::GetSecondNeighborsAtomIdVectorOfAtom(size_t atom_id) const {
+  auto lattice_id = atom_to_lattice_hashmap_.at(atom_id);
+  std::vector<size_t> second_neighbors_atom_id_vector;
+  second_neighbors_atom_id_vector.reserve(constants::kNumSecondNearestNeighbors);
+  for (auto neighbor_lattice_id: second_neighbors_adjacency_list_[lattice_id]) {
+    second_neighbors_atom_id_vector.push_back(lattice_to_atom_hashmap_.at(neighbor_lattice_id));
+  }
+  return second_neighbors_atom_id_vector;
+}
+std::vector<size_t> Config::GetThirdNeighborsAtomIdVectorOfAtom(size_t atom_id) const {
+  auto lattice_id = atom_to_lattice_hashmap_.at(atom_id);
+  std::vector<size_t> third_neighbors_atom_id_vector;
+  third_neighbors_atom_id_vector.reserve(constants::kNumThirdNearestNeighbors);
+  for (auto neighbor_lattice_id: third_neighbors_adjacency_list_[lattice_id]) {
+    third_neighbors_atom_id_vector.push_back(lattice_to_atom_hashmap_.at(neighbor_lattice_id));
+  }
+  return third_neighbors_atom_id_vector;
+}
+size_t Config::GetAtomIdFromLatticeId(size_t lattice_id) const {
   return lattice_to_atom_hashmap_.at(lattice_id);
 }
 size_t Config::GetLatticeIdFromAtomId(size_t atom_id) const {
   return atom_to_lattice_hashmap_.at(atom_id);
 }
-Element Config::GetElementAtLatticeID(size_t lattice_id) const{
+Element Config::GetElementAtLatticeId(size_t lattice_id) const {
   auto atom_id = lattice_to_atom_hashmap_.at(lattice_id);
   return atom_vector_[atom_id].GetElement();
 }
@@ -289,6 +316,10 @@ void RotateLatticeVector(std::vector<Lattice> &lattice_list,
     lattice.SetRelativePosition(relative_position);
   }
 }
+size_t GetVacancyAtomIndex(const Config &config) {
+  return config.GetAtomIdFromLatticeId(GetVacancyLatticeIndex(config));
+}
+
 size_t GetVacancyLatticeIndex(const Config &config) {
   const auto &atom_vector = config.GetAtomVector();
   auto it = std::find_if(atom_vector.cbegin(),

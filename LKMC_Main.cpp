@@ -5,15 +5,28 @@
 #include "LatticeCluster.hpp"
 #include "Config.h"
 #include "ClusterExpansionPredictor.h"
+#include "KmcEvent.h"
+#include "ChainKmcSimulation.h"
 
 int main() {
-  std::set<Element> ele_set{Element("Al"), Element("Mg"), Element("Zn")};
-  cfg::Config config = cfg::Config::ReadCfg("start.cfg");
-  pred::ClusterExpansionPredictor a("./kmc_parameters.json", config, ele_set);
 
-  auto[e0, dE] = a.GetBarrierAndDiff(config, {82, 83});
-  std::cout << e0 << std::endl;
-  std::cout << dE << std::endl;
+  std::set<Element> ele_set{Element("Al"), Element("Mg"), Element("Zn")};
+  auto conf = cfg::Config::ReadCfg("start.cfg");
+  kmc::ChainKMCSimulation a(conf,
+                            1e3,
+                            1e5,
+                            1e10,
+                            ele_set,
+                            0, 0, 0,
+                            "kmc_parameters.json");
+  a.Simulate();
+
+  // cfg::Config config = cfg::Config::ReadCfg("start.cfg");
+  // pred::ClusterExpansionPredictor a("./kmc_parameters.json", config, ele_set);
+  //
+  // auto[e0, dE] = a.GetBarrierAndDiff(config, {82, 83});
+  // std::cout << e0 << std::endl;
+  // std::cout << dE << std::endl;
 
   // auto map1 = pred::GetAverageClusterParametersMappingMMM(config);
   // auto map2 = pred::GetAverageClusterParametersMappingPeriodic(config);
