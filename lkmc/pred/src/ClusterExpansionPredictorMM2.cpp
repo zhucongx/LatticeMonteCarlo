@@ -1,4 +1,4 @@
-#include "ClusterExpansionPredictor.h"
+#include "ClusterExpansionPredictorE0DE.h"
 
 namespace pred {
 using Singlet_MM2_t = LatticeClusterMM2<1>;
@@ -39,7 +39,7 @@ std::vector<cfg::Lattice> GetSymmetricallySortedLatticeVectorMM2(
   // The number of first-, second-, and third-nearest neighbors of the jump pairs
   constexpr size_t kNumOfSites = 60;
   auto lattice_id_hashset =
-      GetFirstAndSecondThirdNeighborsLatticeIdSetOfJumpPair(config, lattice_id_jump_pair);
+      GetFirstAndSecondNeighborsLatticeIdSetOfJumpPair(config, lattice_id_jump_pair);
   const auto move_distance = Vector_t{0.5, 0.5, 0.5}
       - GetLatticePairCenter(config, lattice_id_jump_pair);
   std::vector<cfg::Lattice> lattice_list;
@@ -114,7 +114,6 @@ std::vector<std::vector<std::vector<size_t> > > GetAverageClusterParametersMappi
     const cfg::Config &config) {
   const std::pair<size_t, size_t>
       lattice_id_jump_pair = {0, config.GetFirstNeighborsAdjacencyList()[0][0]};
-
   const auto lattice_vector = GetSymmetricallySortedLatticeVectorMM2(config, lattice_id_jump_pair);
   std::vector<std::vector<std::vector<size_t> > > cluster_mapping{};
   /// singlets
@@ -183,45 +182,45 @@ std::vector<std::vector<std::vector<size_t> > > GetAverageClusterParametersMappi
   GetAverageParametersMappingFromLatticeClusterVectorHelper(
       std::vector<Pair_MM2_t>(third_pair_set.begin(),
                               third_pair_set.end()), cluster_mapping);
-  /// triplets
-  std::unordered_set<Triplet_MM2_t, boost::hash<Triplet_MM2_t> > first_first_first_triplets_set;
-  for (auto it1 = lattice_vector.cbegin(); it1 < lattice_vector.cend(); ++it1) {
-    const auto lattice1_index = it1->GetId();
-    const auto index1 = static_cast<size_t>(std::distance(lattice_vector.begin(), it1));
-    for (const auto &lattice2_index: config.GetFirstNeighborsAdjacencyList()[lattice1_index]) {
-      auto it2 = std::find_if(lattice_vector.begin(),
-                              lattice_vector.end(),
-                              [lattice2_index](const auto &lattice) {
-                                return lattice.GetId() == lattice2_index;
-                              });
-      if (it2 == lattice_vector.end()) { continue; }
-      const auto index2 = static_cast<size_t>(std::distance(lattice_vector.begin(), it2));
-      for (const size_t lattice3_index: config.GetFirstNeighborsAdjacencyList()[lattice2_index]) {
-        if (lattice3_index == lattice1_index) { continue; }
-        if (lattice3_index == lattice2_index) { continue; }
-        if (std::find(config.GetFirstNeighborsAdjacencyList()[lattice1_index].begin(),
-                      config.GetFirstNeighborsAdjacencyList()[lattice1_index].end(),
-                      lattice3_index) ==
-            config.GetFirstNeighborsAdjacencyList()[lattice1_index].end()) { continue; }
-        auto it3 = std::find_if(lattice_vector.begin(),
-                                lattice_vector.end(),
-                                [lattice3_index](const auto &lattice) {
-                                  return lattice.GetId() == lattice3_index;
-                                });
-        if (it3 == lattice_vector.end()) { continue; }
-        const auto index3 = static_cast<size_t>(std::distance(lattice_vector.begin(), it3));
-        cfg::Lattice lattice1(*it1), lattice2(*it2), lattice3(*it3);
-        lattice1.SetId(index1);
-        lattice2.SetId(index2);
-        lattice3.SetId(index3);
-        first_first_first_triplets_set.emplace(
-            std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
-      }
-    }
-  }
-  GetAverageParametersMappingFromLatticeClusterVectorHelper(
-      std::vector<Triplet_MM2_t>(first_first_first_triplets_set.begin(),
-                                 first_first_first_triplets_set.end()), cluster_mapping);
+  // /// triplets
+  // std::unordered_set<Triplet_MM2_t, boost::hash<Triplet_MM2_t> > first_first_first_triplets_set;
+  // for (auto it1 = lattice_vector.cbegin(); it1 < lattice_vector.cend(); ++it1) {
+  //   const auto lattice1_index = it1->GetId();
+  //   const auto index1 = static_cast<size_t>(std::distance(lattice_vector.begin(), it1));
+  //   for (const auto &lattice2_index: config.GetFirstNeighborsAdjacencyList()[lattice1_index]) {
+  //     auto it2 = std::find_if(lattice_vector.begin(),
+  //                             lattice_vector.end(),
+  //                             [lattice2_index](const auto &lattice) {
+  //                               return lattice.GetId() == lattice2_index;
+  //                             });
+  //     if (it2 == lattice_vector.end()) { continue; }
+  //     const auto index2 = static_cast<size_t>(std::distance(lattice_vector.begin(), it2));
+  //     for (const size_t lattice3_index: config.GetFirstNeighborsAdjacencyList()[lattice2_index]) {
+  //       if (lattice3_index == lattice1_index) { continue; }
+  //       if (lattice3_index == lattice2_index) { continue; }
+  //       if (std::find(config.GetFirstNeighborsAdjacencyList()[lattice1_index].begin(),
+  //                     config.GetFirstNeighborsAdjacencyList()[lattice1_index].end(),
+  //                     lattice3_index) ==
+  //           config.GetFirstNeighborsAdjacencyList()[lattice1_index].end()) { continue; }
+  //       auto it3 = std::find_if(lattice_vector.begin(),
+  //                               lattice_vector.end(),
+  //                               [lattice3_index](const auto &lattice) {
+  //                                 return lattice.GetId() == lattice3_index;
+  //                               });
+  //       if (it3 == lattice_vector.end()) { continue; }
+  //       const auto index3 = static_cast<size_t>(std::distance(lattice_vector.begin(), it3));
+  //       cfg::Lattice lattice1(*it1), lattice2(*it2), lattice3(*it3);
+  //       lattice1.SetId(index1);
+  //       lattice2.SetId(index2);
+  //       lattice3.SetId(index3);
+  //       first_first_first_triplets_set.emplace(
+  //           std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
+  //     }
+  //   }
+  // }
+  // GetAverageParametersMappingFromLatticeClusterVectorHelper(
+  //     std::vector<Triplet_MM2_t>(first_first_first_triplets_set.begin(),
+  //                                first_first_first_triplets_set.end()), cluster_mapping);
 
   return cluster_mapping;
 }

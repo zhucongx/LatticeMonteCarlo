@@ -1,4 +1,4 @@
-#include "ClusterExpansionPredictor.h"
+#include "ClusterExpansionPredictorE0DE.h"
 
 namespace pred {
 using Singlet_Periodic_t = LatticeClusterPeriodic<1>;
@@ -37,7 +37,7 @@ std::vector<cfg::Lattice> GetSortedLatticeVectorPeriodic(
     const cfg::Config &config, size_t lattice_id) {
   constexpr size_t kNumOfSites = 42;
   auto lattice_id_hashset =
-      GetFirstAndSecondThirdNeighborsLatticeIdSetOfLattice(config, lattice_id);
+      GetFirstAndSecondNeighborsLatticeIdSetOfLattice(config, lattice_id);
   const auto move_distance = Vector_t{0.5, 0.5, 0.5} -
       config.GetLatticeVector()[lattice_id].GetRelativePosition();
   std::vector<cfg::Lattice> lattice_list;
@@ -141,207 +141,207 @@ std::vector<std::vector<std::vector<size_t> > > GetAverageClusterParametersMappi
   GetAverageParametersMappingFromLatticeClusterVectorHelper(
       std::vector<Pair_Periodic_t>(third_pair_set.begin(),
                                    third_pair_set.end()), cluster_mapping);
-  /// triplets
-  std::unordered_set<Triplet_Periodic_t, boost::hash<Triplet_Periodic_t> >
-      first_first_first_triplets_set;
-  std::unordered_set<Triplet_Periodic_t, boost::hash<Triplet_Periodic_t> >
-      first_first_second_triplets_set;
-  std::unordered_set<Triplet_Periodic_t, boost::hash<Triplet_Periodic_t> >
-      first_first_third_triplets_set;
-  std::unordered_set<Triplet_Periodic_t, boost::hash<Triplet_Periodic_t> >
-      first_second_third_triplets_set;
-  std::unordered_set<Triplet_Periodic_t, boost::hash<Triplet_Periodic_t> >
-      first_third_third_triplets_set;
-  std::unordered_set<Triplet_Periodic_t, boost::hash<Triplet_Periodic_t> >
-      second_third_third_triplets_set;
-  std::unordered_set<Triplet_Periodic_t, boost::hash<Triplet_Periodic_t> >
-      third_third_third_triplets_set;
-  for (auto it1 = lattice_vector.cbegin(); it1 < lattice_vector.cend(); ++it1) {
-    const auto lattice1_index = it1->GetId();
-    const auto index1 = static_cast<size_t>(std::distance(lattice_vector.begin(), it1));
-    for (const auto &lattice2_index: config.GetFirstNeighborsAdjacencyList()[lattice1_index]) {
-      auto it2 = std::find_if(lattice_vector.begin(),
-                              lattice_vector.end(),
-                              [lattice2_index](const auto &lattice) {
-                                return lattice.GetId() == lattice2_index;
-                              });
-      if (it2 == lattice_vector.end()) { continue; }
-      const auto index2 = static_cast<size_t>(std::distance(lattice_vector.begin(), it2));
-      for (const size_t lattice3_index: config.GetFirstNeighborsAdjacencyList()[lattice2_index]) {
-        if (lattice3_index == lattice1_index) { continue; }
-        if (lattice3_index == lattice2_index) { continue; }
-        auto it3 = std::find_if(lattice_vector.begin(),
-                                lattice_vector.end(),
-                                [lattice3_index](const auto &lattice) {
-                                  return lattice.GetId() == lattice3_index;
-                                });
-        if (it3 == lattice_vector.end()) { continue; }
-        if (std::find(config.GetFirstNeighborsAdjacencyList()[lattice1_index].begin(),
-                      config.GetFirstNeighborsAdjacencyList()[lattice1_index].end(),
-                      lattice3_index) !=
-            config.GetFirstNeighborsAdjacencyList()[lattice1_index].end()) {
-          const auto index3 = static_cast<size_t>(std::distance(lattice_vector.begin(), it3));
-          cfg::Lattice lattice1(*it1), lattice2(*it2), lattice3(*it3);
-          lattice1.SetId(index1);
-          lattice2.SetId(index2);
-          lattice3.SetId(index3);
-          first_first_first_triplets_set.emplace(
-              std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
-        }
-        if (std::find(config.GetSecondNeighborsAdjacencyList()[lattice1_index].begin(),
-                      config.GetSecondNeighborsAdjacencyList()[lattice1_index].end(),
-                      lattice3_index) !=
-            config.GetSecondNeighborsAdjacencyList()[lattice1_index].end()) {
-          const auto index3 = static_cast<size_t>(std::distance(lattice_vector.begin(), it3));
-          cfg::Lattice lattice1(*it1), lattice2(*it2), lattice3(*it3);
-          lattice1.SetId(index1);
-          lattice2.SetId(index2);
-          lattice3.SetId(index3);
-          first_first_second_triplets_set.emplace(
-              std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
-        }
-        if (std::find(config.GetThirdNeighborsAdjacencyList()[lattice1_index].begin(),
-                      config.GetThirdNeighborsAdjacencyList()[lattice1_index].end(),
-                      lattice3_index) !=
-            config.GetThirdNeighborsAdjacencyList()[lattice1_index].end()) {
-          const auto index3 = static_cast<size_t>(std::distance(lattice_vector.begin(), it3));
-          cfg::Lattice lattice1(*it1), lattice2(*it2), lattice3(*it3);
-          lattice1.SetId(index1);
-          lattice2.SetId(index2);
-          lattice3.SetId(index3);
-          first_first_third_triplets_set.emplace(
-              std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
-        }
-      }
-      for (const size_t lattice3_index: config.GetSecondNeighborsAdjacencyList()[lattice2_index]) {
-        if (lattice3_index == lattice1_index) { continue; }
-        if (lattice3_index == lattice2_index) { continue; }
-        auto it3 = std::find_if(lattice_vector.begin(),
-                                lattice_vector.end(),
-                                [lattice3_index](const auto &lattice) {
-                                  return lattice.GetId() == lattice3_index;
-                                });
-        if (it3 == lattice_vector.end()) { continue; }
-        if (std::find(config.GetThirdNeighborsAdjacencyList()[lattice1_index].begin(),
-                      config.GetThirdNeighborsAdjacencyList()[lattice1_index].end(),
-                      lattice3_index) !=
-            config.GetThirdNeighborsAdjacencyList()[lattice1_index].end()) {
-          const auto index3 = static_cast<size_t>(std::distance(lattice_vector.begin(), it3));
-          cfg::Lattice lattice1(*it1), lattice2(*it2), lattice3(*it3);
-          lattice1.SetId(index1);
-          lattice2.SetId(index2);
-          lattice3.SetId(index3);
-          first_second_third_triplets_set.emplace(
-              std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
-        }
-      }
-      for (const size_t lattice3_index: config.GetThirdNeighborsAdjacencyList()[lattice2_index]) {
-        if (lattice3_index == lattice1_index) { continue; }
-        if (lattice3_index == lattice2_index) { continue; }
-        auto it3 = std::find_if(lattice_vector.begin(),
-                                lattice_vector.end(),
-                                [lattice3_index](const auto &lattice) {
-                                  return lattice.GetId() == lattice3_index;
-                                });
-        if (it3 == lattice_vector.end()) { continue; }
-        if (std::find(config.GetThirdNeighborsAdjacencyList()[lattice1_index].begin(),
-                      config.GetThirdNeighborsAdjacencyList()[lattice1_index].end(),
-                      lattice3_index) !=
-            config.GetThirdNeighborsAdjacencyList()[lattice1_index].end()) {
-          const auto index3 = static_cast<size_t>(std::distance(lattice_vector.begin(), it3));
-          cfg::Lattice lattice1(*it1), lattice2(*it2), lattice3(*it3);
-          lattice1.SetId(index1);
-          lattice2.SetId(index2);
-          lattice3.SetId(index3);
-          first_third_third_triplets_set.emplace(
-              std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
-        }
-      }
-    }
-    for (const auto &lattice2_index: config.GetSecondNeighborsAdjacencyList()[lattice1_index]) {
-      auto it2 = std::find_if(lattice_vector.begin(),
-                              lattice_vector.end(),
-                              [lattice2_index](const auto &lattice) {
-                                return lattice.GetId() == lattice2_index;
-                              });
-      if (it2 == lattice_vector.end()) { continue; }
-      const auto index2 = static_cast<size_t>(std::distance(lattice_vector.begin(), it2));
-      for (const size_t lattice3_index: config.GetThirdNeighborsAdjacencyList()[lattice2_index]) {
-        if (lattice3_index == lattice1_index) { continue; }
-        if (lattice3_index == lattice2_index) { continue; }
-        auto it3 = std::find_if(lattice_vector.begin(),
-                                lattice_vector.end(),
-                                [lattice3_index](const auto &lattice) {
-                                  return lattice.GetId() == lattice3_index;
-                                });
-        if (it3 == lattice_vector.end()) { continue; }
-        if (std::find(config.GetThirdNeighborsAdjacencyList()[lattice1_index].begin(),
-                      config.GetThirdNeighborsAdjacencyList()[lattice1_index].end(),
-                      lattice3_index) !=
-            config.GetThirdNeighborsAdjacencyList()[lattice1_index].end()) {
-          const auto index3 = static_cast<size_t>(std::distance(lattice_vector.begin(), it3));
-          cfg::Lattice lattice1(*it1), lattice2(*it2), lattice3(*it3);
-          lattice1.SetId(index1);
-          lattice2.SetId(index2);
-          lattice3.SetId(index3);
-          second_third_third_triplets_set.emplace(
-              std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
-        }
-      }
-    }
-    for (const auto &lattice2_index: config.GetThirdNeighborsAdjacencyList()[lattice1_index]) {
-      auto it2 = std::find_if(lattice_vector.begin(),
-                              lattice_vector.end(),
-                              [lattice2_index](const auto &lattice) {
-                                return lattice.GetId() == lattice2_index;
-                              });
-      if (it2 == lattice_vector.end()) { continue; }
-      const auto index2 = static_cast<size_t>(std::distance(lattice_vector.begin(), it2));
-      for (const size_t lattice3_index: config.GetThirdNeighborsAdjacencyList()[lattice2_index]) {
-        if (lattice3_index == lattice1_index) { continue; }
-        if (lattice3_index == lattice2_index) { continue; }
-        auto it3 = std::find_if(lattice_vector.begin(),
-                                lattice_vector.end(),
-                                [lattice3_index](const auto &lattice) {
-                                  return lattice.GetId() == lattice3_index;
-                                });
-        if (it3 == lattice_vector.end()) { continue; }
-        if (std::find(config.GetThirdNeighborsAdjacencyList()[lattice1_index].begin(),
-                      config.GetThirdNeighborsAdjacencyList()[lattice1_index].end(),
-                      lattice3_index) !=
-            config.GetThirdNeighborsAdjacencyList()[lattice1_index].end()) {
-          const auto index3 = static_cast<size_t>(std::distance(lattice_vector.begin(), it3));
-          cfg::Lattice lattice1(*it1), lattice2(*it2), lattice3(*it3);
-          lattice1.SetId(index1);
-          lattice2.SetId(index2);
-          lattice3.SetId(index3);
-          third_third_third_triplets_set.emplace(
-              std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
-        }
-      }
-    }
-  }
-  GetAverageParametersMappingFromLatticeClusterVectorHelper(
-      std::vector<Triplet_Periodic_t>(first_first_first_triplets_set.begin(),
-                                      first_first_first_triplets_set.end()), cluster_mapping);
-  GetAverageParametersMappingFromLatticeClusterVectorHelper(
-      std::vector<Triplet_Periodic_t>(first_first_second_triplets_set.begin(),
-                                      first_first_second_triplets_set.end()), cluster_mapping);
-  GetAverageParametersMappingFromLatticeClusterVectorHelper(
-      std::vector<Triplet_Periodic_t>(first_first_third_triplets_set.begin(),
-                                      first_first_third_triplets_set.end()), cluster_mapping);
-  GetAverageParametersMappingFromLatticeClusterVectorHelper(
-      std::vector<Triplet_Periodic_t>(first_second_third_triplets_set.begin(),
-                                      first_second_third_triplets_set.end()), cluster_mapping);
-  GetAverageParametersMappingFromLatticeClusterVectorHelper(
-      std::vector<Triplet_Periodic_t>(first_third_third_triplets_set.begin(),
-                                      first_third_third_triplets_set.end()), cluster_mapping);
-  GetAverageParametersMappingFromLatticeClusterVectorHelper(
-      std::vector<Triplet_Periodic_t>(second_third_third_triplets_set.begin(),
-                                      second_third_third_triplets_set.end()), cluster_mapping);
-  GetAverageParametersMappingFromLatticeClusterVectorHelper(
-      std::vector<Triplet_Periodic_t>(third_third_third_triplets_set.begin(),
-                                      third_third_third_triplets_set.end()), cluster_mapping);
+  // /// triplets
+  // std::unordered_set<Triplet_Periodic_t, boost::hash<Triplet_Periodic_t> >
+  //     first_first_first_triplets_set;
+  // std::unordered_set<Triplet_Periodic_t, boost::hash<Triplet_Periodic_t> >
+  //     first_first_second_triplets_set;
+  // std::unordered_set<Triplet_Periodic_t, boost::hash<Triplet_Periodic_t> >
+  //     first_first_third_triplets_set;
+  // std::unordered_set<Triplet_Periodic_t, boost::hash<Triplet_Periodic_t> >
+  //     first_second_third_triplets_set;
+  // std::unordered_set<Triplet_Periodic_t, boost::hash<Triplet_Periodic_t> >
+  //     first_third_third_triplets_set;
+  // std::unordered_set<Triplet_Periodic_t, boost::hash<Triplet_Periodic_t> >
+  //     second_third_third_triplets_set;
+  // std::unordered_set<Triplet_Periodic_t, boost::hash<Triplet_Periodic_t> >
+  //     third_third_third_triplets_set;
+  // for (auto it1 = lattice_vector.cbegin(); it1 < lattice_vector.cend(); ++it1) {
+  //   const auto lattice1_index = it1->GetId();
+  //   const auto index1 = static_cast<size_t>(std::distance(lattice_vector.begin(), it1));
+  //   for (const auto &lattice2_index: config.GetFirstNeighborsAdjacencyList()[lattice1_index]) {
+  //     auto it2 = std::find_if(lattice_vector.begin(),
+  //                             lattice_vector.end(),
+  //                             [lattice2_index](const auto &lattice) {
+  //                               return lattice.GetId() == lattice2_index;
+  //                             });
+  //     if (it2 == lattice_vector.end()) { continue; }
+  //     const auto index2 = static_cast<size_t>(std::distance(lattice_vector.begin(), it2));
+  //     for (const size_t lattice3_index: config.GetFirstNeighborsAdjacencyList()[lattice2_index]) {
+  //       if (lattice3_index == lattice1_index) { continue; }
+  //       if (lattice3_index == lattice2_index) { continue; }
+  //       auto it3 = std::find_if(lattice_vector.begin(),
+  //                               lattice_vector.end(),
+  //                               [lattice3_index](const auto &lattice) {
+  //                                 return lattice.GetId() == lattice3_index;
+  //                               });
+  //       if (it3 == lattice_vector.end()) { continue; }
+  //       if (std::find(config.GetFirstNeighborsAdjacencyList()[lattice1_index].begin(),
+  //                     config.GetFirstNeighborsAdjacencyList()[lattice1_index].end(),
+  //                     lattice3_index) !=
+  //           config.GetFirstNeighborsAdjacencyList()[lattice1_index].end()) {
+  //         const auto index3 = static_cast<size_t>(std::distance(lattice_vector.begin(), it3));
+  //         cfg::Lattice lattice1(*it1), lattice2(*it2), lattice3(*it3);
+  //         lattice1.SetId(index1);
+  //         lattice2.SetId(index2);
+  //         lattice3.SetId(index3);
+  //         first_first_first_triplets_set.emplace(
+  //             std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
+  //       }
+  //       if (std::find(config.GetSecondNeighborsAdjacencyList()[lattice1_index].begin(),
+  //                     config.GetSecondNeighborsAdjacencyList()[lattice1_index].end(),
+  //                     lattice3_index) !=
+  //           config.GetSecondNeighborsAdjacencyList()[lattice1_index].end()) {
+  //         const auto index3 = static_cast<size_t>(std::distance(lattice_vector.begin(), it3));
+  //         cfg::Lattice lattice1(*it1), lattice2(*it2), lattice3(*it3);
+  //         lattice1.SetId(index1);
+  //         lattice2.SetId(index2);
+  //         lattice3.SetId(index3);
+  //         first_first_second_triplets_set.emplace(
+  //             std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
+  //       }
+  //       if (std::find(config.GetThirdNeighborsAdjacencyList()[lattice1_index].begin(),
+  //                     config.GetThirdNeighborsAdjacencyList()[lattice1_index].end(),
+  //                     lattice3_index) !=
+  //           config.GetThirdNeighborsAdjacencyList()[lattice1_index].end()) {
+  //         const auto index3 = static_cast<size_t>(std::distance(lattice_vector.begin(), it3));
+  //         cfg::Lattice lattice1(*it1), lattice2(*it2), lattice3(*it3);
+  //         lattice1.SetId(index1);
+  //         lattice2.SetId(index2);
+  //         lattice3.SetId(index3);
+  //         first_first_third_triplets_set.emplace(
+  //             std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
+  //       }
+  //     }
+  //     for (const size_t lattice3_index: config.GetSecondNeighborsAdjacencyList()[lattice2_index]) {
+  //       if (lattice3_index == lattice1_index) { continue; }
+  //       if (lattice3_index == lattice2_index) { continue; }
+  //       auto it3 = std::find_if(lattice_vector.begin(),
+  //                               lattice_vector.end(),
+  //                               [lattice3_index](const auto &lattice) {
+  //                                 return lattice.GetId() == lattice3_index;
+  //                               });
+  //       if (it3 == lattice_vector.end()) { continue; }
+  //       if (std::find(config.GetThirdNeighborsAdjacencyList()[lattice1_index].begin(),
+  //                     config.GetThirdNeighborsAdjacencyList()[lattice1_index].end(),
+  //                     lattice3_index) !=
+  //           config.GetThirdNeighborsAdjacencyList()[lattice1_index].end()) {
+  //         const auto index3 = static_cast<size_t>(std::distance(lattice_vector.begin(), it3));
+  //         cfg::Lattice lattice1(*it1), lattice2(*it2), lattice3(*it3);
+  //         lattice1.SetId(index1);
+  //         lattice2.SetId(index2);
+  //         lattice3.SetId(index3);
+  //         first_second_third_triplets_set.emplace(
+  //             std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
+  //       }
+  //     }
+  //     for (const size_t lattice3_index: config.GetThirdNeighborsAdjacencyList()[lattice2_index]) {
+  //       if (lattice3_index == lattice1_index) { continue; }
+  //       if (lattice3_index == lattice2_index) { continue; }
+  //       auto it3 = std::find_if(lattice_vector.begin(),
+  //                               lattice_vector.end(),
+  //                               [lattice3_index](const auto &lattice) {
+  //                                 return lattice.GetId() == lattice3_index;
+  //                               });
+  //       if (it3 == lattice_vector.end()) { continue; }
+  //       if (std::find(config.GetThirdNeighborsAdjacencyList()[lattice1_index].begin(),
+  //                     config.GetThirdNeighborsAdjacencyList()[lattice1_index].end(),
+  //                     lattice3_index) !=
+  //           config.GetThirdNeighborsAdjacencyList()[lattice1_index].end()) {
+  //         const auto index3 = static_cast<size_t>(std::distance(lattice_vector.begin(), it3));
+  //         cfg::Lattice lattice1(*it1), lattice2(*it2), lattice3(*it3);
+  //         lattice1.SetId(index1);
+  //         lattice2.SetId(index2);
+  //         lattice3.SetId(index3);
+  //         first_third_third_triplets_set.emplace(
+  //             std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
+  //       }
+  //     }
+  //   }
+  //   for (const auto &lattice2_index: config.GetSecondNeighborsAdjacencyList()[lattice1_index]) {
+  //     auto it2 = std::find_if(lattice_vector.begin(),
+  //                             lattice_vector.end(),
+  //                             [lattice2_index](const auto &lattice) {
+  //                               return lattice.GetId() == lattice2_index;
+  //                             });
+  //     if (it2 == lattice_vector.end()) { continue; }
+  //     const auto index2 = static_cast<size_t>(std::distance(lattice_vector.begin(), it2));
+  //     for (const size_t lattice3_index: config.GetThirdNeighborsAdjacencyList()[lattice2_index]) {
+  //       if (lattice3_index == lattice1_index) { continue; }
+  //       if (lattice3_index == lattice2_index) { continue; }
+  //       auto it3 = std::find_if(lattice_vector.begin(),
+  //                               lattice_vector.end(),
+  //                               [lattice3_index](const auto &lattice) {
+  //                                 return lattice.GetId() == lattice3_index;
+  //                               });
+  //       if (it3 == lattice_vector.end()) { continue; }
+  //       if (std::find(config.GetThirdNeighborsAdjacencyList()[lattice1_index].begin(),
+  //                     config.GetThirdNeighborsAdjacencyList()[lattice1_index].end(),
+  //                     lattice3_index) !=
+  //           config.GetThirdNeighborsAdjacencyList()[lattice1_index].end()) {
+  //         const auto index3 = static_cast<size_t>(std::distance(lattice_vector.begin(), it3));
+  //         cfg::Lattice lattice1(*it1), lattice2(*it2), lattice3(*it3);
+  //         lattice1.SetId(index1);
+  //         lattice2.SetId(index2);
+  //         lattice3.SetId(index3);
+  //         second_third_third_triplets_set.emplace(
+  //             std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
+  //       }
+  //     }
+  //   }
+  //   for (const auto &lattice2_index: config.GetThirdNeighborsAdjacencyList()[lattice1_index]) {
+  //     auto it2 = std::find_if(lattice_vector.begin(),
+  //                             lattice_vector.end(),
+  //                             [lattice2_index](const auto &lattice) {
+  //                               return lattice.GetId() == lattice2_index;
+  //                             });
+  //     if (it2 == lattice_vector.end()) { continue; }
+  //     const auto index2 = static_cast<size_t>(std::distance(lattice_vector.begin(), it2));
+  //     for (const size_t lattice3_index: config.GetThirdNeighborsAdjacencyList()[lattice2_index]) {
+  //       if (lattice3_index == lattice1_index) { continue; }
+  //       if (lattice3_index == lattice2_index) { continue; }
+  //       auto it3 = std::find_if(lattice_vector.begin(),
+  //                               lattice_vector.end(),
+  //                               [lattice3_index](const auto &lattice) {
+  //                                 return lattice.GetId() == lattice3_index;
+  //                               });
+  //       if (it3 == lattice_vector.end()) { continue; }
+  //       if (std::find(config.GetThirdNeighborsAdjacencyList()[lattice1_index].begin(),
+  //                     config.GetThirdNeighborsAdjacencyList()[lattice1_index].end(),
+  //                     lattice3_index) !=
+  //           config.GetThirdNeighborsAdjacencyList()[lattice1_index].end()) {
+  //         const auto index3 = static_cast<size_t>(std::distance(lattice_vector.begin(), it3));
+  //         cfg::Lattice lattice1(*it1), lattice2(*it2), lattice3(*it3);
+  //         lattice1.SetId(index1);
+  //         lattice2.SetId(index2);
+  //         lattice3.SetId(index3);
+  //         third_third_third_triplets_set.emplace(
+  //             std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
+  //       }
+  //     }
+  //   }
+  // }
+  // GetAverageParametersMappingFromLatticeClusterVectorHelper(
+  //     std::vector<Triplet_Periodic_t>(first_first_first_triplets_set.begin(),
+  //                                     first_first_first_triplets_set.end()), cluster_mapping);
+  // GetAverageParametersMappingFromLatticeClusterVectorHelper(
+  //     std::vector<Triplet_Periodic_t>(first_first_second_triplets_set.begin(),
+  //                                     first_first_second_triplets_set.end()), cluster_mapping);
+  // GetAverageParametersMappingFromLatticeClusterVectorHelper(
+  //     std::vector<Triplet_Periodic_t>(first_first_third_triplets_set.begin(),
+  //                                     first_first_third_triplets_set.end()), cluster_mapping);
+  // GetAverageParametersMappingFromLatticeClusterVectorHelper(
+  //     std::vector<Triplet_Periodic_t>(first_second_third_triplets_set.begin(),
+  //                                     first_second_third_triplets_set.end()), cluster_mapping);
+  // GetAverageParametersMappingFromLatticeClusterVectorHelper(
+  //     std::vector<Triplet_Periodic_t>(first_third_third_triplets_set.begin(),
+  //                                     first_third_third_triplets_set.end()), cluster_mapping);
+  // GetAverageParametersMappingFromLatticeClusterVectorHelper(
+  //     std::vector<Triplet_Periodic_t>(second_third_third_triplets_set.begin(),
+  //                                     second_third_third_triplets_set.end()), cluster_mapping);
+  // GetAverageParametersMappingFromLatticeClusterVectorHelper(
+  //     std::vector<Triplet_Periodic_t>(third_third_third_triplets_set.begin(),
+  //                                     third_third_third_triplets_set.end()), cluster_mapping);
   return cluster_mapping;
 }
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-if [[ "$1" == [[Rr] ]]; then
+if [[ "$1" == [Rr] ]]; then
     mode=R
 elif [[ "$1" == [Dd] ]]; then
     mode=D

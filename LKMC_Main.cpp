@@ -4,7 +4,7 @@
 #include "Atom.hpp"
 #include "LatticeCluster.hpp"
 #include "Config.h"
-#include "ClusterExpansionPredictor.h"
+#include "ClusterExpansionPredictorQuartic.h"
 #include "KmcEvent.h"
 #include "ChainKmcSimulation.h"
 
@@ -18,14 +18,14 @@ int main() {
                             1e10,
                             ele_set,
                             0, 0, 0,
-                            "kmc_parameters.json");
+                            "kmc_parameters_quartic.json");
   a.Simulate();
 
   // cfg::Config config = cfg::Config::ReadCfg("start.cfg");
-  // pred::ClusterExpansionPredictor a("./kmc_parameters.json", config, ele_set);
+  // pred::ClusterExpansionPredictorQuartic a("./kmc_parameters_quartic.json", config, ele_set);
   //
-  // auto[e0, dE] = a.GetBarrierAndDiff(config, {82, 83});
-  // std::cout << e0 << std::endl;
+  // auto[Ea, dE] = a.GetBarrierAndDiffFromAtomIdPair(config, {82, 83});
+  // std::cout << Ea << std::endl;
   // std::cout << dE << std::endl;
 
   // auto map1 = pred::GetAverageClusterParametersMappingMMM(config);
@@ -78,7 +78,7 @@ int main() {
   // size_t vacancy_site_index = cfg::GetVacancyLatticeIndex(config);
   // size_t neighbor_lattice_index = config.GetFirstNeighborsAdjacencyList()[vacancy_site_index][0];
   // std::cout << vacancy_site_index << '\t' << neighbor_lattice_index << '\n';
-  // auto set = cfg::GetFirstAndSecondThirdNeighborsLatticeIdSetOfJumpPair(
+  // auto set = cfg::GetFirstAndSecondNeighborsLatticeIdSetOfJumpPair(
   //     config, {vacancy_site_index, neighbor_lattice_index});
   //
   // std::cout << set.size() << '\n';

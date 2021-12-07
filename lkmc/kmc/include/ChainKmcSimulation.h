@@ -3,7 +3,7 @@
 #include <random>
 #include <mpi.h>
 
-#include "ClusterExpansionPredictor.h"
+#include "ClusterExpansionPredictorQuartic.h"
 #include "KmcEvent.h"
 namespace kmc {
 //  j -> k -> i ->l
@@ -64,7 +64,7 @@ class ChainKMCSimulation {
     MPI_Comm first_comm_, second_comm_;
 
     std::vector<KMCEvent> event_list_{};
-    const pred::ClusterExpansionPredictor cluster_expansion_predictor_;
+  const pred::ClusterExpansionPredictorQuartic cluster_expansion_predictor_;
     mutable std::mt19937_64 generator_;
 };
 

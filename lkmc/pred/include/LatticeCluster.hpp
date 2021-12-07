@@ -4,11 +4,14 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <string>
 #include <unordered_set>
 #include <unordered_map>
 #include <type_traits>
 #include <boost/functional/hash.hpp>
 #include "Lattice.hpp"
+#include "Config.h"
+
 namespace pred {
 template<size_t DataSize>
 class LatticeCluster {
@@ -203,7 +206,7 @@ inline std::vector<double> GetOneHotParametersFromMap(
     const std::vector<std::vector<std::vector<size_t> > > &cluster_mapping){
 
   std::vector<double> res_encode;
-  res_encode.reserve(1881);
+  res_encode.reserve(354);
 
   for (const auto &cluster_vector: cluster_mapping) {
     std::vector<double> sum_of_list(
@@ -228,6 +231,20 @@ inline std::vector<double> GetOneHotParametersFromMap(
   }
   return res_encode;
 }
+std::vector<cfg::Lattice> GetSymmetricallySortedLatticeVectorMMM(
+    const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair);
+std::vector<std::vector<std::vector<size_t> > > GetAverageClusterParametersMappingMMM(
+    const cfg::Config &config);
+
+std::vector<std::vector<std::vector<size_t> > > GetAverageClusterParametersMappingMM2(
+    const cfg::Config &config);
+std::vector<cfg::Lattice> GetSymmetricallySortedLatticeVectorMM2(
+    const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair);
+
+std::vector<cfg::Lattice> GetSortedLatticeVectorPeriodic(
+    const cfg::Config &config, size_t lattice_id);
+std::vector<std::vector<std::vector<size_t> > > GetAverageClusterParametersMappingPeriodic(
+    const cfg::Config &config);
 } // namespace pred
 
 #endif //LKMC_LKMC_PRED_INCLUDE_LATTICECLUSTER_HPP_

@@ -1,11 +1,11 @@
-#include "ClusterExpansionPredictor.h"
+#include "ClusterExpansionPredictorE0DE.h"
 #include <utility>
 #include <boost/range/combine.hpp>
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
 namespace pred {
-ClusterExpansionPredictor::ClusterExpansionPredictor(const std::string &predictor_filename,
+ClusterExpansionPredictorE0DE::ClusterExpansionPredictorE0DE(const std::string &predictor_filename,
                                                      const cfg::Config &reference_config,
                                                      const std::set<Element> &type_set)
     : type_size_(type_set.size()),
@@ -18,7 +18,7 @@ ClusterExpansionPredictor::ClusterExpansionPredictor(const std::string &predicto
 
   for (const auto &[element, parameters]: all_parameters.items()) {
     if (element == "dE") {
-      parameters_dE_ = Parameters_dE{
+      parameters_dE_ = ParametersDE{
           parameters.at("mu_x"),
           parameters.at("sigma_x"),
           parameters.at("mu_y"),
@@ -26,7 +26,7 @@ ClusterExpansionPredictor::ClusterExpansionPredictor(const std::string &predicto
           parameters.at("theta")};
       continue;
     }
-    element_parameters_hashmap_[Element(element)] = Parameters_E0{
+    element_parameters_hashmap_[Element(element)] = ParametersE0{
         parameters.at("mu_x"),
         parameters.at("sigma_x"),
         parameters.at("mu_y"),
@@ -54,9 +54,9 @@ ClusterExpansionPredictor::ClusterExpansionPredictor(const std::string &predicto
   }
 }
 
-ClusterExpansionPredictor::~ClusterExpansionPredictor() = default;
+ClusterExpansionPredictorE0DE::~ClusterExpansionPredictorE0DE() = default;
 
-double ClusterExpansionPredictor::GetE0(const cfg::Config &config,
+double ClusterExpansionPredictorE0DE::GetE0(const cfg::Config &config,
                                         const std::pair<size_t, size_t> &lattice_id_jump_pair,
                                         Element migration_element) const {
   auto lattice_id_vector_mmm = site_bond_cluster_mmm_hashmap_.at(lattice_id_jump_pair);
@@ -104,7 +104,7 @@ double ClusterExpansionPredictor::GetE0(const cfg::Config &config,
   e0 += mu_y;
   return e0;
 }
-double ClusterExpansionPredictor::GetE(const cfg::Config &config,
+double ClusterExpansionPredictorE0DE::GetE(const cfg::Config &config,
                                        size_t lattice_id,
                                        Element migration_element) const {
   auto lattice_id_vector_periodic = site_cluster_periodic_hashmap_.at(lattice_id);
@@ -144,7 +144,7 @@ double ClusterExpansionPredictor::GetE(const cfg::Config &config,
   e += mu_y;
   return e;
 }
-std::pair<double, double> ClusterExpansionPredictor::GetBarrierAndDiffFromLatticeIdPair(
+std::pair<double, double> ClusterExpansionPredictorE0DE::GetBarrierAndDiffFromLatticeIdPair(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
   auto migration_element = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
@@ -161,12 +161,12 @@ std::pair<double, double> ClusterExpansionPredictor::GetBarrierAndDiffFromLattic
 
   return {e0 + dE / 2, dE};
 }
-std::pair<double, double> ClusterExpansionPredictor::GetBarrierAndDiffFromAtomIdPair(
+std::pair<double, double> ClusterExpansionPredictorE0DE::GetBarrierAndDiffFromAtomIdPair(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &atom_id_jump_pair) const {
 
   return GetBarrierAndDiffFromLatticeIdPair(config,
-                                         {config.GetLatticeIdFromAtomId(atom_id_jump_pair.first),
-                                          config.GetLatticeIdFromAtomId(atom_id_jump_pair.second)});
+                                            {config.GetLatticeIdFromAtomId(atom_id_jump_pair.first),
+                                             config.GetLatticeIdFromAtomId(atom_id_jump_pair.second)});
 }
 } // namespace pred
