@@ -18,7 +18,7 @@ int main() {
                             1e10,
                             ele_set,
                             0, 0, 0,
-                            "kmc_parameters_quartic.json");
+                            "kmc_parameters.json");
   a.Simulate();
 
   // cfg::Config config = cfg::Config::ReadCfg("start.cfg");
