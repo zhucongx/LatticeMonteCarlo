@@ -78,7 +78,7 @@ int main() {
   // size_t vacancy_site_index = cfg::GetVacancyLatticeIndex(config);
   // size_t neighbor_lattice_index = config.GetFirstNeighborsAdjacencyList()[vacancy_site_index][0];
   // std::cout << vacancy_site_index << '\t' << neighbor_lattice_index << '\n';
-  // auto set = cfg::GetFirstAndSecondNeighborsLatticeIdSetOfJumpPair(
+  // auto set = cfg::GetFirstAndSecondThirdNeighborsLatticeIdSetOfJumpPair(
   //     config, {vacancy_site_index, neighbor_lattice_index});
   //
   // std::cout << set.size() << '\n';

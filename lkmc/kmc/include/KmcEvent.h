@@ -13,7 +13,7 @@ class KMCEvent {
     // using Event_Ctor_Pair_t = std::pair<std::pair<size_t, size_t>, std::pair<double, double> >;
 
     static constexpr double kBoltzmannConstant = 8.617333262145e-5;
-    static constexpr double kTemperature = 300;
+    static constexpr double kTemperature = 600;
     static constexpr double
         kBoltzmannConstantTimesTemperatureInv = 1 / kTemperature / kBoltzmannConstant;
     static constexpr double kPrefactor = 1e14;

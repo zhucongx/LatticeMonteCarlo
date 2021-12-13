@@ -64,9 +64,9 @@ Matrix_t GetLatticePairRotationMatrix(const Config &config,
 void RotateLatticeVector(std::vector<Lattice> &lattice_list, const Matrix_t &rotation_matrix);
 size_t GetVacancyAtomIndex(const Config &config);
 size_t GetVacancyLatticeIndex(const Config &config);
-std::unordered_set<size_t> GetFirstAndSecondNeighborsLatticeIdSetOfJumpPair(
+std::unordered_set<size_t> GetFirstAndSecondThirdNeighborsLatticeIdSetOfJumpPair(
     const Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair);
-std::unordered_set<size_t> GetFirstAndSecondNeighborsLatticeIdSetOfLattice(
+std::unordered_set<size_t> GetFirstAndSecondThirdNeighborsLatticeIdSetOfLattice(
     const Config &config, size_t lattice_id);
 std::unordered_set<size_t> GetFirstAndSecondThirdNeighborsLatticeIdSetOfJumpPair(
     const Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair);
