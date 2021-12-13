@@ -367,7 +367,7 @@ size_t GetVacancyLatticeIndex(const Config &config) {
   return 0;
 }
 
-std::unordered_set<size_t> GetFirstAndSecondThirdNeighborsLatticeIdSetOfLattice(
+std::unordered_set<size_t> GetNeighborsLatticeIdSetOfLattice(
     const Config &config, size_t lattice_id) {
   std::unordered_set<size_t> near_neighbors_hashset;
   std::copy(config.GetFirstNeighborsAdjacencyList().at(lattice_id).begin(),
@@ -378,13 +378,13 @@ std::unordered_set<size_t> GetFirstAndSecondThirdNeighborsLatticeIdSetOfLattice(
             config.GetSecondNeighborsAdjacencyList().at(lattice_id).end(),
             std::inserter(near_neighbors_hashset,
                           near_neighbors_hashset.begin()));
-  std::copy(config.GetThirdNeighborsAdjacencyList().at(lattice_id).begin(),
-            config.GetThirdNeighborsAdjacencyList().at(lattice_id).end(),
-            std::inserter(near_neighbors_hashset,
-                          near_neighbors_hashset.begin()));
+  // std::copy(config.GetThirdNeighborsAdjacencyList().at(lattice_id).begin(),
+  //           config.GetThirdNeighborsAdjacencyList().at(lattice_id).end(),
+  //           std::inserter(near_neighbors_hashset,
+  //                         near_neighbors_hashset.begin()));
   return near_neighbors_hashset;
 }
-std::unordered_set<size_t> GetFirstAndSecondThirdNeighborsLatticeIdSetOfJumpPair(
+std::unordered_set<size_t> GetNeighborsLatticeIdSetOfJumpPair(
     const Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) {
 
   std::unordered_set<size_t> near_neighbors_hashset;
@@ -397,10 +397,10 @@ std::unordered_set<size_t> GetFirstAndSecondThirdNeighborsLatticeIdSetOfJumpPair
               config.GetSecondNeighborsAdjacencyList().at(lattice_id).end(),
               std::inserter(near_neighbors_hashset,
                             near_neighbors_hashset.begin()));
-    std::copy(config.GetThirdNeighborsAdjacencyList().at(lattice_id).begin(),
-              config.GetThirdNeighborsAdjacencyList().at(lattice_id).end(),
-              std::inserter(near_neighbors_hashset,
-                            near_neighbors_hashset.begin()));
+    // std::copy(config.GetThirdNeighborsAdjacencyList().at(lattice_id).begin(),
+    //           config.GetThirdNeighborsAdjacencyList().at(lattice_id).end(),
+    //           std::inserter(near_neighbors_hashset,
+    //                         near_neighbors_hashset.begin()));
   }
   return near_neighbors_hashset;
 }

@@ -39,7 +39,7 @@ std::vector<cfg::Lattice> GetSymmetricallySortedLatticeVectorMM2(
   // The number of first-, second-, and third-nearest neighbors of the jump pairs
   constexpr size_t kNumOfSites = 60;
   auto lattice_id_hashset =
-      GetFirstAndSecondThirdNeighborsLatticeIdSetOfJumpPair(config, lattice_id_jump_pair);
+      GetNeighborsLatticeIdSetOfJumpPair(config, lattice_id_jump_pair);
   const auto move_distance = Vector_t{0.5, 0.5, 0.5}
       - GetLatticePairCenter(config, lattice_id_jump_pair);
   std::vector<cfg::Lattice> lattice_list;

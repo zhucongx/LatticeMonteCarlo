@@ -27,10 +27,6 @@ class ElementBond {
       return type2_;
     }
     /// Operators
-    friend std::ostream &operator<<(std::ostream &os, const ElementBond &bond) {
-      os << bond.label_ << bond.type1_.GetString() << "-" << bond.type2_.GetString();
-      return os;
-    }
     friend bool operator<(const ElementBond &lhs, const ElementBond &rhs) {
       if (lhs.label_ < rhs.label_)
         return true;
@@ -56,7 +52,6 @@ class ElementBond {
     size_t label_;
     Element type1_;
     Element type2_;
-
 };
 } // namespace pred
 

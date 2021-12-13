@@ -1,6 +1,8 @@
 #ifndef LKMC_LKMC_PRED_INCLUDE_ENERGYPREDICTORE0DEBOND_H_
 #define LKMC_LKMC_PRED_INCLUDE_ENERGYPREDICTORE0DEBOND_H_
 #include "EnergyPredictor.h"
+#include "ElementBond.hpp"
+
 namespace pred {
 
 class EnergyPredictorE0DEBond : public EnergyPredictor {
@@ -17,7 +19,7 @@ class EnergyPredictorE0DEBond : public EnergyPredictor {
                                const std::pair<size_t, size_t> &lattice_id_jump_pair,
                                Element migration_element) const;
     [[nodiscard]] double GetDE(const cfg::Config &config,
-                              const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
+                               const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
   private:
     const std::vector<std::vector<std::vector<size_t> > > mapping_mmm_{};
 
@@ -28,8 +30,9 @@ class EnergyPredictorE0DEBond : public EnergyPredictor {
     std::unordered_map<Element,
                        ParametersE0,
                        boost::hash<Element>> element_parameters_hashmap_;
-    std::vector<double> theta_bonds{};
-    const std::unordered_map<ElementBond, size_t, boost::hash<ElementBond> > initialized_hashmap_;
+    std::vector<double> theta_bond_{};
+    const std::unordered_map<ElementBond, size_t,
+                             boost::hash<ElementBond> > initialized_bond_hashmap_;
 
 };
 

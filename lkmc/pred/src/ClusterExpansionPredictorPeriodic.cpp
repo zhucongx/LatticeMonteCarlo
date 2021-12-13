@@ -37,7 +37,7 @@ std::vector<cfg::Lattice> GetSortedLatticeVectorPeriodic(
     const cfg::Config &config, size_t lattice_id) {
   constexpr size_t kNumOfSites = 42;
   auto lattice_id_hashset =
-      GetFirstAndSecondThirdNeighborsLatticeIdSetOfLattice(config, lattice_id);
+      GetNeighborsLatticeIdSetOfLattice(config, lattice_id);
   const auto move_distance = Vector_t{0.5, 0.5, 0.5} -
       config.GetLatticeVector()[lattice_id].GetRelativePosition();
   std::vector<cfg::Lattice> lattice_list;
@@ -51,7 +51,6 @@ std::vector<cfg::Lattice> GetSortedLatticeVectorPeriodic(
     lattice.SetRelativePosition(relative_position);
     lattice_list.push_back(lattice);
   }
-  //sort using mmm group point (mm2 if x mirror not applied)
   std::sort(lattice_list.begin(), lattice_list.end(),
             [](const cfg::Lattice &lhs, const cfg::Lattice &rhs) -> bool {
               return LatticeSortCompare(lhs, rhs);

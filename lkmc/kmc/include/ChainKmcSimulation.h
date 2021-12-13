@@ -5,6 +5,7 @@
 
 #include "EnergyPredictorE0DE.h"
 #include "EnergyPredictorE0DEBond.h"
+#include "EnergyPredictorE0DECluster.h"
 #include "KmcEvent.h"
 namespace kmc {
 //  j -> k -> i ->l

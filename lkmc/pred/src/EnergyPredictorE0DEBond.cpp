@@ -5,19 +5,95 @@
 using json = nlohmann::json;
 
 namespace pred {
+
+static std::unordered_map<ElementBond, size_t, boost::hash<ElementBond> > InitializeBondHashMap(
+    const std::set<Element> &type_set) {
+  std::unordered_map<ElementBond, size_t, boost::hash<ElementBond> > bond_count_hashmap;
+  for (size_t label = 1; label <= 7; ++label) {
+    for (const auto &element1: type_set) {
+      for (const auto &element2: type_set) {
+        bond_count_hashmap[ElementBond(label, element1, element2)] = 0;
+      }
+    }
+  }
+  return bond_count_hashmap;
+}
+static std::vector<double> GetBondChange(
+    const cfg::Config &config,
+    const std::pair<size_t, size_t> &lattice_id_jump_pair,
+    std::unordered_map<ElementBond, size_t, boost::hash<ElementBond> > initialized_hashmap) {
+  auto vacancy_lattice_id = lattice_id_jump_pair.first;
+  auto migration_atom_jump_id = lattice_id_jump_pair.second;
+  const Element type1 = config.GetElementAtLatticeId(migration_atom_jump_id);
+  // plus new bonds
+  for (auto lattice2_id: config.GetFirstNeighborsAdjacencyList()[vacancy_lattice_id]) {
+    if (lattice2_id == migration_atom_jump_id) { continue; }
+    initialized_hashmap[ElementBond{1, type1, config.GetElementAtLatticeId(lattice2_id)}]++;
+  }
+  for (auto lattice2_id: config.GetSecondNeighborsAdjacencyList()[vacancy_lattice_id]) {
+    initialized_hashmap[ElementBond{2, type1, config.GetElementAtLatticeId(lattice2_id)}]++;
+  }
+  for (auto lattice2_id: config.GetThirdNeighborsAdjacencyList()[vacancy_lattice_id]) {
+    initialized_hashmap[ElementBond{3, type1, config.GetElementAtLatticeId(lattice2_id)}]++;
+  }
+  for (auto lattice2_id: config.GetFourthNeighborsAdjacencyList()[vacancy_lattice_id]) {
+    initialized_hashmap[ElementBond{4, type1, config.GetElementAtLatticeId(lattice2_id)}]++;
+  }
+  for (auto lattice2_id: config.GetFifthNeighborsAdjacencyList()[vacancy_lattice_id]) {
+    initialized_hashmap[ElementBond{5, type1, config.GetElementAtLatticeId(lattice2_id)}]++;
+  }
+  for (auto lattice2_id: config.GetSixthNeighborsAdjacencyList()[vacancy_lattice_id]) {
+    initialized_hashmap[ElementBond{6, type1, config.GetElementAtLatticeId(lattice2_id)}]++;
+  }
+  for (auto lattice2_id: config.GetSeventhNeighborsAdjacencyList()[vacancy_lattice_id]) {
+    initialized_hashmap[ElementBond{7, type1, config.GetElementAtLatticeId(lattice2_id)}]++;
+  }
+  // minus old bonds
+  for (auto lattice2_id: config.GetFirstNeighborsAdjacencyList()[migration_atom_jump_id]) {
+    if (lattice2_id == vacancy_lattice_id) { continue; }
+    initialized_hashmap[ElementBond{1, type1, config.GetElementAtLatticeId(lattice2_id)}]--;
+  }
+  for (auto lattice2_id: config.GetSecondNeighborsAdjacencyList()[migration_atom_jump_id]) {
+    initialized_hashmap[ElementBond{2, type1, config.GetElementAtLatticeId(lattice2_id)}]--;
+  }
+  for (auto lattice2_id: config.GetThirdNeighborsAdjacencyList()[migration_atom_jump_id]) {
+    initialized_hashmap[ElementBond{3, type1, config.GetElementAtLatticeId(lattice2_id)}]--;
+  }
+  for (auto lattice2_id: config.GetFourthNeighborsAdjacencyList()[migration_atom_jump_id]) {
+    initialized_hashmap[ElementBond{4, type1, config.GetElementAtLatticeId(lattice2_id)}]--;
+  }
+  for (auto lattice2_id: config.GetFifthNeighborsAdjacencyList()[migration_atom_jump_id]) {
+    initialized_hashmap[ElementBond{5, type1, config.GetElementAtLatticeId(lattice2_id)}]--;
+  }
+  for (auto lattice2_id: config.GetSixthNeighborsAdjacencyList()[migration_atom_jump_id]) {
+    initialized_hashmap[ElementBond{6, type1, config.GetElementAtLatticeId(lattice2_id)}]--;
+  }
+  for (auto lattice2_id: config.GetSeventhNeighborsAdjacencyList()[migration_atom_jump_id]) {
+    initialized_hashmap[ElementBond{7, type1, config.GetElementAtLatticeId(lattice2_id)}]--;
+  }
+
+  std::map<ElementBond, int> ordered(initialized_hashmap.begin(), initialized_hashmap.end());
+  std::vector<double> res;
+  res.reserve(ordered.size());
+  for (const auto &bond_count: ordered) {
+    res.push_back(bond_count.second);
+  }
+  return res;
+}
+
 EnergyPredictorE0DEBond::EnergyPredictorE0DEBond(const std::string &predictor_filename,
                                                  const cfg::Config &reference_config,
                                                  const std::set<Element> &type_set)
     : EnergyPredictor(type_set),
       mapping_mmm_(GetAverageClusterParametersMappingMMM(reference_config)),
-      initialized_hashmap_(InitializeHashMap(type_set)) {
+      initialized_bond_hashmap_(InitializeBondHashMap(type_set_)) {
   std::ifstream ifs(predictor_filename, std::ifstream::in);
   json all_parameters;
   ifs >> all_parameters;
 
   for (const auto &[element, parameters]: all_parameters.items()) {
     if (element == "Bond") {
-      theta_bonds = std::vector<double>(parameters.at("theta"));
+      theta_bond_ = std::vector<double>(parameters.at("theta"));
       continue;
     }
     element_parameters_hashmap_[Element(element)] = ParametersE0{
@@ -94,11 +170,11 @@ double EnergyPredictorE0DEBond::GetE0(const cfg::Config &config,
 }
 double EnergyPredictorE0DEBond::GetDE(const cfg::Config &config,
                                       const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
-  auto bond_change_vector = GetBondChange(config, lattice_id_jump_pair, initialized_hashmap_);
-  const size_t bond_size = theta_bonds.size();
+  auto bond_change_vector = GetBondChange(config, lattice_id_jump_pair, initialized_bond_hashmap_);
+  const size_t bond_size = theta_bond_.size();
   double dE = 0;
   for (size_t i = 0; i < bond_size; ++i) {
-    dE += theta_bonds[i] * bond_change_vector[i];
+    dE += theta_bond_[i] * bond_change_vector[i];
   }
   return dE;
 }

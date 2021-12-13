@@ -5,7 +5,6 @@
 #include <boost/functional/hash.hpp>
 #include "Config.h"
 #include "ClusterExpansionPredictor.h"
-#include "BondCountingPredictor.h"
 namespace pred {
 struct ParametersE0 {
   std::vector<double> mu_x{};

@@ -17,15 +17,37 @@ int main() {
                             1e10,
                             ele_set,
                             0, 0, 0,
-                            "kmc_parameters_old.json");
+                            "kmc_parameters_bond.json");
   a.Simulate();
 
-  // cfg::Config config = cfg::Config::ReadCfg("start.cfg");
-  // pred::ClusterExpansionPredictorQuartic a("./kmc_parameters_quartic.json", config, ele_set);
+  // auto conf = cfg::Config::ReadCfg("forward.cfg");
+  // pred::EnergyPredictorE0DECluster a("./kmc_parameters_cluster.json", conf, ele_set);
+  // auto[Ea, dE] = a.GetBarrierAndDiffFromAtomIdPair(conf, {18, 23});
+  // std::cout <<  Ea << ',' << dE << ',' << std::endl;
+
+  // std::ifstream ifs("all_data_neb_results/barriers.txt", std::ifstream::in);
+  // if (!ifs.is_open()) {
+  //   std::cout << "Cannot open kmc_log.txt\n";
+  //   return 1;
+  // }
+  // ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
   //
-  // auto[Ea, dE] = a.GetBarrierAndDiffFromAtomIdPair(config, {82, 83});
-  // std::cout << Ea << std::endl;
-  // std::cout << dE << std::endl;
+  // size_t vacancy_index, jump_index;
+  // size_t ct = 0;
+  // while (true) {
+  //   if (ifs.eof() || ifs.bad()) {
+  //     break;
+  //   }
+  //   ifs >> vacancy_index >> jump_index;
+  //   ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+  //   std::string fn = "all_data_neb_results/config" + std::to_string(ct) + "/start.cfg";
+  //   cfg::Config config = cfg::Config::ReadCfg(fn);
+  //   pred::EnergyPredictorE0DEBond a("./kmc_parameters_bond.json", config, ele_set);
+  //   auto[Ea, dE] = a.GetBarrierAndDiffFromAtomIdPair(config, {vacancy_index, jump_index});
+  //   std::cout << ct << ',' << Ea << ',' << dE << ',' << std::endl;
+  //   ct++;
+  // }
+
 
   // auto map1 = pred::GetAverageClusterParametersMappingMMM(config);
   // auto map2 = pred::GetAverageClusterParametersMappingPeriodic(config);
@@ -77,7 +99,7 @@ int main() {
   // size_t vacancy_site_index = cfg::GetVacancyLatticeIndex(config);
   // size_t neighbor_lattice_index = config.GetFirstNeighborsAdjacencyList()[vacancy_site_index][0];
   // std::cout << vacancy_site_index << '\t' << neighbor_lattice_index << '\n';
-  // auto set = cfg::GetFirstAndSecondThirdNeighborsLatticeIdSetOfJumpPair(
+  // auto set = cfg::GetNeighborsLatticeIdSetOfJumpPair(
   //     config, {vacancy_site_index, neighbor_lattice_index});
   //
   // std::cout << set.size() << '\n';

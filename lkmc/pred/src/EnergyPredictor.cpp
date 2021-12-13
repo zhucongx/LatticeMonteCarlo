@@ -51,7 +51,7 @@ std::vector<double> GetOneHotParametersFromMap(
     const std::vector<std::vector<std::vector<size_t> > > &cluster_mapping) {
 
   std::vector<double> res_encode;
-  res_encode.reserve(882);
+  res_encode.reserve(354);
 
   for (const auto &cluster_vector: cluster_mapping) {
     std::vector<double> sum_of_list(
