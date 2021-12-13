@@ -1,4 +1,4 @@
-#include "ClusterExpansionPredictorE0DE.h"
+#include "ClusterExpansionPredictor.h"
 
 namespace pred {
 using Singlet_MM2_t = LatticeClusterMM2<1>;

@@ -1,4 +1,4 @@
-#include "ClusterExpansionPredictorQuartic.h"
+#include "EnergyPredictorQuartic.h"
 #include <utility>
 #include <boost/range/combine.hpp>
 #include <nlohmann/json.hpp>
@@ -6,11 +6,10 @@ using json = nlohmann::json;
 
 namespace pred {
 
-ClusterExpansionPredictorQuartic::ClusterExpansionPredictorQuartic(const std::string &predictor_filename,
-                                                                   const cfg::Config &reference_config,
-                                                                   const std::set<Element> &type_set)
-    : type_size_(type_set.size()),
-      one_hot_encode_hash_map_(GetOneHotEncodeHashmap(type_set)),
+EnergyPredictorQuartic::EnergyPredictorQuartic(const std::string &predictor_filename,
+                                               const cfg::Config &reference_config,
+                                               const std::set<Element> &type_set)
+    : EnergyPredictor(type_set),
       mapping_mmm_(GetAverageClusterParametersMappingMMM(reference_config)),
       mapping_mm2_(GetAverageClusterParametersMappingMM2(reference_config)) {
   std::ifstream ifs(predictor_filename, std::ifstream::in);
@@ -57,12 +56,12 @@ ClusterExpansionPredictorQuartic::ClusterExpansionPredictorQuartic(const std::st
   }
 }
 
-ClusterExpansionPredictorQuartic::~ClusterExpansionPredictorQuartic() = default;
+EnergyPredictorQuartic::~EnergyPredictorQuartic() = default;
 
-std::pair<double, double> ClusterExpansionPredictorQuartic::GetAAndC(const cfg::Config &config,
-                                                                     const std::pair<size_t,
-                                                                                     size_t> &lattice_id_jump_pair,
-                                                                     Element migration_element) const {
+std::pair<double, double> EnergyPredictorQuartic::GetAAndC(const cfg::Config &config,
+                                                           const std::pair<size_t,
+                                                                           size_t> &lattice_id_jump_pair,
+                                                           Element migration_element) const {
   auto lattice_id_vector_mmm = site_bond_cluster_mmm_hashmap_.at(lattice_id_jump_pair);
   std::vector<Element> ele_vector{};
   ele_vector.reserve(lattice_id_vector_mmm.size());
@@ -76,7 +75,7 @@ std::pair<double, double> ClusterExpansionPredictorQuartic::GetAAndC(const cfg::
   }
   auto encode_mmm = pred::GetOneHotParametersFromMap(ele_vector,
                                                      one_hot_encode_hash_map_,
-                                                     type_size_,
+                                                     type_set_.size(),
                                                      mapping_mmm_);
   const auto &element_parameters = element_parameters_hashmap_.at(migration_element);
 
@@ -114,10 +113,10 @@ std::pair<double, double> ClusterExpansionPredictorQuartic::GetAAndC(const cfg::
   c += mu_c;
   return {a, c};
 }
-double ClusterExpansionPredictorQuartic::GetB(const cfg::Config &config,
-                                              const std::pair<size_t,
-                                                              size_t> &lattice_id_jump_pair,
-                                              Element migration_element) const {
+double EnergyPredictorQuartic::GetB(const cfg::Config &config,
+                                    const std::pair<size_t,
+                                                    size_t> &lattice_id_jump_pair,
+                                    Element migration_element) const {
   auto lattice_id_vector_mm2 = site_bond_cluster_mm2_hashmap_.at(lattice_id_jump_pair);
   std::vector<Element> ele_vector{};
   ele_vector.reserve(lattice_id_vector_mm2.size());
@@ -131,7 +130,7 @@ double ClusterExpansionPredictorQuartic::GetB(const cfg::Config &config,
   }
   auto encode_mm2 = pred::GetOneHotParametersFromMap(ele_vector,
                                                      one_hot_encode_hash_map_,
-                                                     type_size_,
+                                                     type_set_.size(),
                                                      mapping_mm2_);
   const auto &element_parameters = element_parameters_hashmap_.at(migration_element);
 
@@ -161,7 +160,7 @@ double ClusterExpansionPredictorQuartic::GetB(const cfg::Config &config,
   b += mu_b;
   return b;
 }
-std::pair<double, double> ClusterExpansionPredictorQuartic::GetBarrierAndDiffFromLatticeIdPair(
+std::pair<double, double> EnergyPredictorQuartic::GetBarrierAndDiffFromLatticeIdPair(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
   auto migration_element = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
@@ -187,14 +186,6 @@ std::pair<double, double> ClusterExpansionPredictorQuartic::GetBarrierAndDiffFro
   auto Ea = (3 * b + delta) * (3 * b + delta) * (3 * b * b - 16 * a * c + b * delta)
       / std::pow(a, 3) / 2048;
   return {Ea, dE};
-}
-std::pair<double, double> ClusterExpansionPredictorQuartic::GetBarrierAndDiffFromAtomIdPair(
-    const cfg::Config &config,
-    const std::pair<size_t, size_t> &atom_id_jump_pair) const {
-
-  return GetBarrierAndDiffFromLatticeIdPair(config,
-                                            {config.GetLatticeIdFromAtomId(atom_id_jump_pair.first),
-                                             config.GetLatticeIdFromAtomId(atom_id_jump_pair.second)});
 }
 
 } // namespace pred

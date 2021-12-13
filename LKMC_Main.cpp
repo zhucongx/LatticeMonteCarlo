@@ -4,7 +4,6 @@
 #include "Atom.hpp"
 #include "LatticeCluster.hpp"
 #include "Config.h"
-#include "ClusterExpansionPredictorQuartic.h"
 #include "KmcEvent.h"
 #include "ChainKmcSimulation.h"
 
@@ -18,7 +17,7 @@ int main() {
                             1e10,
                             ele_set,
                             0, 0, 0,
-                            "kmc_parameters.json");
+                            "kmc_parameters_old.json");
   a.Simulate();
 
   // cfg::Config config = cfg::Config::ReadCfg("start.cfg");

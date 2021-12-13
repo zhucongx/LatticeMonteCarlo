@@ -8,7 +8,6 @@
 #include <iomanip>
 
 #include "Constants.hpp"
-// TODO use size_t
 constexpr size_t kDimension = 3;
 
 enum Dimension { kXDimension, kYDimension, kZDimension };
@@ -102,12 +101,10 @@ inline Vector_t operator-(const Vector_t &lhs, const Vector_t &rhs) {
   Vector_t temp(lhs);
   return (temp -= rhs);
 }
-
 inline Vector_t operator+(const Vector_t &lhs, double rhs) {
   Vector_t temp{rhs, rhs, rhs};
   return (lhs + temp);
 }
-
 inline Vector_t operator-(const Vector_t &lhs, double rhs) {
   Vector_t temp{rhs, rhs, rhs};
   return (lhs - temp);
@@ -284,36 +281,27 @@ inline Matrix_t InverseMatrix(const Matrix_t &input) {
       {
           {
               (input[kYDimension][kYDimension] * input[kZDimension][kZDimension]
-                  - input[kYDimension][kZDimension]
-                      * input[kZDimension][kYDimension]) / det,
+                  - input[kYDimension][kZDimension] * input[kZDimension][kYDimension]) / det,
               (input[kXDimension][kZDimension] * input[kZDimension][kYDimension]
-                  - input[kXDimension][kYDimension]
-                      * input[kZDimension][kZDimension]) / det,
+                  - input[kXDimension][kYDimension] * input[kZDimension][kZDimension]) / det,
               (input[kXDimension][kYDimension] * input[kYDimension][kZDimension]
-                  - input[kXDimension][kZDimension]
-                      * input[kYDimension][kYDimension]) / det
+                  - input[kXDimension][kZDimension] * input[kYDimension][kYDimension]) / det
           },
           {
               (input[kYDimension][kZDimension] * input[kZDimension][kXDimension]
-                  - input[kYDimension][kXDimension]
-                      * input[kZDimension][kZDimension]) / det,
+                  - input[kYDimension][kXDimension] * input[kZDimension][kZDimension]) / det,
               (input[kXDimension][kXDimension] * input[kZDimension][kZDimension]
-                  - input[kXDimension][kZDimension]
-                      * input[kZDimension][kXDimension]) / det,
+                  - input[kXDimension][kZDimension] * input[kZDimension][kXDimension]) / det,
               (input[kXDimension][kZDimension] * input[kYDimension][kXDimension]
-                  - input[kXDimension][kXDimension]
-                      * input[kYDimension][kZDimension]) / det
+                  - input[kXDimension][kXDimension] * input[kYDimension][kZDimension]) / det
           },
           {
               (input[kYDimension][kXDimension] * input[kZDimension][kYDimension]
-                  - input[kYDimension][kYDimension]
-                      * input[kZDimension][kXDimension]) / det,
+                  - input[kYDimension][kYDimension] * input[kZDimension][kXDimension]) / det,
               (input[kXDimension][kYDimension] * input[kZDimension][kXDimension]
-                  - input[kXDimension][kXDimension]
-                      * input[kZDimension][kYDimension]) / det,
+                  - input[kXDimension][kXDimension] * input[kZDimension][kYDimension]) / det,
               (input[kXDimension][kXDimension] * input[kYDimension][kYDimension]
-                  - input[kXDimension][kYDimension]
-                      * input[kYDimension][kXDimension]) / det
+                  - input[kXDimension][kYDimension] * input[kYDimension][kXDimension]) / det
           }
       }
   };

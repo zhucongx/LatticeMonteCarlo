@@ -1,4 +1,4 @@
-#include "ClusterExpansionPredictorE0DE.h"
+#include "ClusterExpansionPredictor.h"
 
 namespace pred {
 using Singlet_MMM_t = LatticeClusterMMM<1>;
@@ -14,9 +14,9 @@ static bool LatticeSortCompare(const cfg::Lattice &lhs,
     return true;
   if (diff_norm > kEpsilon)
     return false;
-  const double diff_x = std::abs(relative_position_lhs[kXDimension] - 0.5)
+  const double diff_x_sym = std::abs(relative_position_lhs[kXDimension] - 0.5)
       - std::abs(relative_position_rhs[kXDimension] - 0.5);
-  return diff_x < -kEpsilon;
+  return diff_x_sym < -kEpsilon;
 }
 
 template<size_t DataSize>
@@ -25,10 +25,8 @@ static bool IsClusterSmallerSymmetrically(const LatticeClusterMMM<DataSize> &lhs
   for (size_t i = 0; i < DataSize; ++i) {
     const auto &lhs_lattice = lhs.GetLatticeAt(i);
     const auto &rhs_lattice = rhs.GetLatticeAt(i);
-    if (LatticeSortCompare(lhs_lattice, rhs_lattice))
-      return true;
-    if (LatticeSortCompare(rhs_lattice, lhs_lattice))
-      return false;
+    if (LatticeSortCompare(lhs_lattice, rhs_lattice)) { return true; }
+    if (LatticeSortCompare(rhs_lattice, lhs_lattice)) { return false; }
   }
   // if it reaches here, it means that the clusters are same symmetrically. Returns false.
   return false;

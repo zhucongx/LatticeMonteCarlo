@@ -23,8 +23,8 @@ ChainKMCSimulation::ChainKMCSimulation(cfg::Config config,
       time_(time),
       vacancy_index_(cfg::GetVacancyAtomIndex(config_)),
       previous_j_(config_.GetFirstNeighborsAtomIdVectorOfAtom(vacancy_index_)[0]),
-      cluster_expansion_predictor_(json_parameters_filename,
-                                   config_, type_set),
+      energy_predictor_(json_parameters_filename,
+                        config_, type_set),
       generator_(static_cast<unsigned long long int>(
                      std::chrono::system_clock::now().time_since_epoch().count())) {
   event_list_.resize(kFirstEventListSize);
@@ -94,8 +94,8 @@ KMCEvent ChainKMCSimulation::GetEventI() {
 
     event_i = KMCEvent(
         {vacancy_index_, i_index},
-        cluster_expansion_predictor_.GetBarrierAndDiffFromAtomIdPair(config_,
-                                                                     {vacancy_index_, i_index}));
+        energy_predictor_.GetBarrierAndDiffFromAtomIdPair(config_,
+                                                          {vacancy_index_, i_index}));
 
     const double first_rate = event_i.GetForwardRate();
     MPI_Allreduce(&first_rate, &total_rate_k_, 1, MPI_DOUBLE, MPI_SUM, first_comm_);
@@ -140,8 +140,8 @@ double ChainKMCSimulation::BuildEventListParallel() {
   const auto l_index = l_indexes[static_cast<size_t>(second_group_rank_)];
   KMCEvent event_i_l
       ({vacancy_index_, l_index},
-       cluster_expansion_predictor_.GetBarrierAndDiffFromAtomIdPair(config_,
-                                                                    {vacancy_index_, l_index}));
+       energy_predictor_.GetBarrierAndDiffFromAtomIdPair(config_,
+                                                         {vacancy_index_, l_index}));
   config_.AtomsJump(event_k_i.GetAtomIdJumpPair());
 
   // get sum r_{k to l}

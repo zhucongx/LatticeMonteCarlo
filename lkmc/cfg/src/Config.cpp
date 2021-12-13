@@ -48,6 +48,18 @@ const std::vector<std::vector<size_t> > &Config::GetSecondNeighborsAdjacencyList
 const std::vector<std::vector<size_t> > &Config::GetThirdNeighborsAdjacencyList() const {
   return third_neighbors_adjacency_list_;
 }
+const std::vector<std::vector<size_t>> &Config::GetFourthNeighborsAdjacencyList() const {
+  return fourth_neighbors_adjacency_list_;
+}
+const std::vector<std::vector<size_t>> &Config::GetFifthNeighborsAdjacencyList() const {
+  return fifth_neighbors_adjacency_list_;
+}
+const std::vector<std::vector<size_t>> &Config::GetSixthNeighborsAdjacencyList() const {
+  return sixth_neighbors_adjacency_list_;
+}
+const std::vector<std::vector<size_t>> &Config::GetSeventhNeighborsAdjacencyList() const {
+  return seventh_neighbors_adjacency_list_;
+}
 std::vector<size_t> Config::GetFirstNeighborsAtomIdVectorOfAtom(size_t atom_id) const {
   auto lattice_id = atom_to_lattice_hashmap_.at(atom_id);
   std::vector<size_t> first_neighbors_atom_id_vector;
@@ -56,24 +68,6 @@ std::vector<size_t> Config::GetFirstNeighborsAtomIdVectorOfAtom(size_t atom_id) 
     first_neighbors_atom_id_vector.push_back(lattice_to_atom_hashmap_.at(neighbor_lattice_id));
   }
   return first_neighbors_atom_id_vector;
-}
-std::vector<size_t> Config::GetSecondNeighborsAtomIdVectorOfAtom(size_t atom_id) const {
-  auto lattice_id = atom_to_lattice_hashmap_.at(atom_id);
-  std::vector<size_t> second_neighbors_atom_id_vector;
-  second_neighbors_atom_id_vector.reserve(constants::kNumSecondNearestNeighbors);
-  for (auto neighbor_lattice_id: second_neighbors_adjacency_list_[lattice_id]) {
-    second_neighbors_atom_id_vector.push_back(lattice_to_atom_hashmap_.at(neighbor_lattice_id));
-  }
-  return second_neighbors_atom_id_vector;
-}
-std::vector<size_t> Config::GetThirdNeighborsAtomIdVectorOfAtom(size_t atom_id) const {
-  auto lattice_id = atom_to_lattice_hashmap_.at(atom_id);
-  std::vector<size_t> third_neighbors_atom_id_vector;
-  third_neighbors_atom_id_vector.reserve(constants::kNumThirdNearestNeighbors);
-  for (auto neighbor_lattice_id: third_neighbors_adjacency_list_[lattice_id]) {
-    third_neighbors_atom_id_vector.push_back(lattice_to_atom_hashmap_.at(neighbor_lattice_id));
-  }
-  return third_neighbors_atom_id_vector;
 }
 size_t Config::GetAtomIdFromLatticeId(size_t lattice_id) const {
   return lattice_to_atom_hashmap_.at(lattice_id);
@@ -90,10 +84,10 @@ void Config::AtomsJump(const std::pair<size_t, size_t> &atom_id_jump_pair) {
   const auto lattice_id_lhs = atom_to_lattice_hashmap_.at(atom_id_lhs);
   const auto lattice_id_rhs = atom_to_lattice_hashmap_.at(atom_id_rhs);
 
-  std::swap(atom_to_lattice_hashmap_.at(atom_id_lhs),
-            atom_to_lattice_hashmap_.at(atom_id_rhs));
-  std::swap(lattice_to_atom_hashmap_.at(lattice_id_lhs),
-            lattice_to_atom_hashmap_.at(lattice_id_rhs));
+  atom_to_lattice_hashmap_.at(atom_id_lhs) = lattice_id_rhs;
+  atom_to_lattice_hashmap_.at(atom_id_rhs) = lattice_id_lhs;
+  lattice_to_atom_hashmap_.at(lattice_id_lhs) = atom_id_rhs;
+  lattice_to_atom_hashmap_.at(lattice_id_rhs) = atom_id_lhs;
 }
 Config Config::ReadCfg(const std::string &filename) {
   std::ifstream ifs(filename, std::ifstream::in);
@@ -225,14 +219,36 @@ void Config::InitializeNeighborsList(size_t num_atoms) {
     neighbor_list.clear();
     neighbor_list.reserve(constants::kNumThirdNearestNeighbors);
   }
+  fourth_neighbors_adjacency_list_.resize(num_atoms);
+  for (auto &neighbor_list: fourth_neighbors_adjacency_list_) {
+    neighbor_list.clear();
+    neighbor_list.reserve(constants::kNumFourthNearestNeighbors);
+  }
+  fifth_neighbors_adjacency_list_.resize(num_atoms);
+  for (auto &neighbor_list: fifth_neighbors_adjacency_list_) {
+    neighbor_list.clear();
+    neighbor_list.reserve(constants::kNumFifthNearestNeighbors);
+  }
+  sixth_neighbors_adjacency_list_.resize(num_atoms);
+  for (auto &neighbor_list: sixth_neighbors_adjacency_list_) {
+    neighbor_list.clear();
+    neighbor_list.reserve(constants::kNumSixthNearestNeighbors);
+  }
+  seventh_neighbors_adjacency_list_.resize(num_atoms);
+  for (auto &neighbor_list: seventh_neighbors_adjacency_list_) {
+    neighbor_list.clear();
+    neighbor_list.reserve(constants::kNumSeventhNearestNeighbors);
+  }
 }
-void Config::UpdateNeighbors(double first_r_cutoff,
-                             double second_r_cutoff,
-                             double third_r_cutoff) {
+void Config::UpdateNeighbors() {
   InitializeNeighborsList(GetNumAtoms());
-  const double first_r_cutoff_square = first_r_cutoff * first_r_cutoff;
-  const double second_r_cutoff_square = second_r_cutoff * second_r_cutoff;
-  const double third_r_cutoff_square = third_r_cutoff * third_r_cutoff;
+  const double first_r_cutoff_square = std::pow(constants::kFirstNearestNeighborsCutoff, 2);
+  const double second_r_cutoff_square = std::pow(constants::kSecondNearestNeighborsCutoff, 2);
+  const double third_r_cutoff_square = std::pow(constants::kThirdNearestNeighborsCutoff, 2);
+  const double fourth_r_cutoff_square = std::pow(constants::kFourthNearestNeighborsCutoff, 2);
+  const double fifth_r_cutoff_square = std::pow(constants::kFifthNearestNeighborsCutoff, 2);
+  const double sixth_r_cutoff_square = std::pow(constants::kSixthNearestNeighborsCutoff, 2);
+  const double seventh_r_cutoff_square = std::pow(constants::kSeventhNearestNeighborsCutoff, 2);
 
   for (auto it1 = atom_vector_.begin(); it1 != atom_vector_.end(); ++it1) {
     for (auto it2 = atom_vector_.begin(); it2 != it1; ++it2) {
@@ -241,9 +257,12 @@ void Config::UpdateNeighbors(double first_r_cutoff,
       Vector_t absolute_distance_vector =
           GetRelativeDistanceVectorLattice(lattice_vector_[first_lattice_id],
                                            lattice_vector_[second_lattice_id]) * basis_;
-      if (std::abs(absolute_distance_vector[kXDimension]) > third_r_cutoff) { continue; }
-      if (std::abs(absolute_distance_vector[kYDimension]) > third_r_cutoff) { continue; }
-      if (std::abs(absolute_distance_vector[kZDimension]) > third_r_cutoff) { continue; }
+      if (std::abs(absolute_distance_vector[kXDimension])
+          > constants::kSeventhNearestNeighborsCutoff) { continue; }
+      if (std::abs(absolute_distance_vector[kYDimension])
+          > constants::kSeventhNearestNeighborsCutoff) { continue; }
+      if (std::abs(absolute_distance_vector[kZDimension])
+          > constants::kSeventhNearestNeighborsCutoff) { continue; }
       const double absolute_distance_square = Inner(absolute_distance_vector);
       if (absolute_distance_square < first_r_cutoff_square) {
         first_neighbors_adjacency_list_[first_lattice_id].push_back(second_lattice_id);
@@ -254,10 +273,23 @@ void Config::UpdateNeighbors(double first_r_cutoff,
       } else if (absolute_distance_square < third_r_cutoff_square) {
         third_neighbors_adjacency_list_[first_lattice_id].push_back(second_lattice_id);
         third_neighbors_adjacency_list_[second_lattice_id].push_back(first_lattice_id);
+      } else if (absolute_distance_square < fourth_r_cutoff_square) {
+        fourth_neighbors_adjacency_list_[first_lattice_id].push_back(second_lattice_id);
+        fourth_neighbors_adjacency_list_[second_lattice_id].push_back(first_lattice_id);
+      } else if (absolute_distance_square < fifth_r_cutoff_square) {
+        fifth_neighbors_adjacency_list_[first_lattice_id].push_back(second_lattice_id);
+        fifth_neighbors_adjacency_list_[second_lattice_id].push_back(first_lattice_id);
+      } else if (absolute_distance_square < sixth_r_cutoff_square) {
+        sixth_neighbors_adjacency_list_[first_lattice_id].push_back(second_lattice_id);
+        sixth_neighbors_adjacency_list_[second_lattice_id].push_back(first_lattice_id);
+      } else if (absolute_distance_square < seventh_r_cutoff_square) {
+        seventh_neighbors_adjacency_list_[first_lattice_id].push_back(second_lattice_id);
+        seventh_neighbors_adjacency_list_[second_lattice_id].push_back(first_lattice_id);
       }
     }
   }
 }
+
 
 Vector_t GetLatticePairCenter(const Config &config,
                               const std::pair<size_t, size_t> &lattice_id_jump_pair) {

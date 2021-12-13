@@ -1,15 +1,17 @@
-#include "ClusterExpansionPredictorE0DE.h"
+#include "EnergyPredictorE0DE.h"
 #include <utility>
 #include <boost/range/combine.hpp>
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
 namespace pred {
-ClusterExpansionPredictorE0DE::ClusterExpansionPredictorE0DE(const std::string &predictor_filename,
-                                                     const cfg::Config &reference_config,
-                                                     const std::set<Element> &type_set)
-    : type_size_(type_set.size()),
-      one_hot_encode_hash_map_(GetOneHotEncodeHashmap(type_set)),
+
+
+
+EnergyPredictorE0DE::EnergyPredictorE0DE(const std::string &predictor_filename,
+                                         const cfg::Config &reference_config,
+                                         const std::set<Element> &type_set)
+    : EnergyPredictor(type_set),
       mapping_mmm_(GetAverageClusterParametersMappingMMM(reference_config)),
       mapping_periodic_(GetAverageClusterParametersMappingPeriodic(reference_config)) {
   std::ifstream ifs(predictor_filename, std::ifstream::in);
@@ -23,7 +25,8 @@ ClusterExpansionPredictorE0DE::ClusterExpansionPredictorE0DE(const std::string &
           parameters.at("sigma_x"),
           parameters.at("mu_y"),
           parameters.at("sigma_y"),
-          parameters.at("theta")};
+          parameters.at("theta"),
+      };
       continue;
     }
     element_parameters_hashmap_[Element(element)] = ParametersE0{
@@ -32,7 +35,8 @@ ClusterExpansionPredictorE0DE::ClusterExpansionPredictorE0DE(const std::string &
         parameters.at("mu_y"),
         parameters.at("sigma_y"),
         parameters.at("U"),
-        parameters.at("theta")};
+        parameters.at("theta"),
+    };
 
   }
   for (size_t i = 0; i < reference_config.GetNumAtoms(); ++i) {
@@ -54,11 +58,11 @@ ClusterExpansionPredictorE0DE::ClusterExpansionPredictorE0DE(const std::string &
   }
 }
 
-ClusterExpansionPredictorE0DE::~ClusterExpansionPredictorE0DE() = default;
+EnergyPredictorE0DE::~EnergyPredictorE0DE() = default;
 
-double ClusterExpansionPredictorE0DE::GetE0(const cfg::Config &config,
-                                        const std::pair<size_t, size_t> &lattice_id_jump_pair,
-                                        Element migration_element) const {
+double EnergyPredictorE0DE::GetE0(const cfg::Config &config,
+                                  const std::pair<size_t, size_t> &lattice_id_jump_pair,
+                                  Element migration_element) const {
   auto lattice_id_vector_mmm = site_bond_cluster_mmm_hashmap_.at(lattice_id_jump_pair);
   std::vector<Element> ele_vector{};
   ele_vector.reserve(lattice_id_vector_mmm.size());
@@ -72,10 +76,9 @@ double ClusterExpansionPredictorE0DE::GetE0(const cfg::Config &config,
   }
   auto encode = pred::GetOneHotParametersFromMap(ele_vector,
                                                  one_hot_encode_hash_map_,
-                                                 type_size_,
+                                                 type_set_.size(),
                                                  mapping_mmm_);
-  const auto &element_parameters =
-      element_parameters_hashmap_.at(migration_element);
+  const auto &element_parameters = element_parameters_hashmap_.at(migration_element);
 
   const auto &mu_x = element_parameters.mu_x;
   const auto &sigma_x = element_parameters.sigma_x;
@@ -104,9 +107,9 @@ double ClusterExpansionPredictorE0DE::GetE0(const cfg::Config &config,
   e0 += mu_y;
   return e0;
 }
-double ClusterExpansionPredictorE0DE::GetE(const cfg::Config &config,
-                                       size_t lattice_id,
-                                       Element migration_element) const {
+double EnergyPredictorE0DE::GetE(const cfg::Config &config,
+                                 size_t lattice_id,
+                                 Element migration_element) const {
   auto lattice_id_vector_periodic = site_cluster_periodic_hashmap_.at(lattice_id);
   std::vector<Element> ele_vector{};
   ele_vector.reserve(lattice_id_vector_periodic.size());
@@ -120,7 +123,7 @@ double ClusterExpansionPredictorE0DE::GetE(const cfg::Config &config,
   }
   auto encode = pred::GetOneHotParametersFromMap(ele_vector,
                                                  one_hot_encode_hash_map_,
-                                                 type_size_,
+                                                 type_set_.size(),
                                                  mapping_periodic_);
 
   const auto &mu_x = parameters_dE_.mu_x;
@@ -144,7 +147,7 @@ double ClusterExpansionPredictorE0DE::GetE(const cfg::Config &config,
   e += mu_y;
   return e;
 }
-std::pair<double, double> ClusterExpansionPredictorE0DE::GetBarrierAndDiffFromLatticeIdPair(
+std::pair<double, double> EnergyPredictorE0DE::GetBarrierAndDiffFromLatticeIdPair(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
   auto migration_element = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
@@ -161,12 +164,5 @@ std::pair<double, double> ClusterExpansionPredictorE0DE::GetBarrierAndDiffFromLa
 
   return {e0 + dE / 2, dE};
 }
-std::pair<double, double> ClusterExpansionPredictorE0DE::GetBarrierAndDiffFromAtomIdPair(
-    const cfg::Config &config,
-    const std::pair<size_t, size_t> &atom_id_jump_pair) const {
 
-  return GetBarrierAndDiffFromLatticeIdPair(config,
-                                            {config.GetLatticeIdFromAtomId(atom_id_jump_pair.first),
-                                             config.GetLatticeIdFromAtomId(atom_id_jump_pair.second)});
-}
 } // namespace pred

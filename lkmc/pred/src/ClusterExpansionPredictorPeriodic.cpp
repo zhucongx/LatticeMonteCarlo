@@ -1,4 +1,4 @@
-#include "ClusterExpansionPredictorE0DE.h"
+#include "ClusterExpansionPredictor.h"
 
 namespace pred {
 using Singlet_Periodic_t = LatticeClusterPeriodic<1>;
