@@ -20,6 +20,10 @@ std::vector<cfg::Lattice> GetSortedLatticeVectorPeriodic(
     const cfg::Config &config, size_t lattice_id);
 std::vector<std::vector<std::vector<size_t> > > GetAverageClusterParametersMappingPeriodic(
     const cfg::Config &config);
+std::vector<double> GetOneHotParametersFromMapPeriodic(
+    const cfg::Config &config,
+    const std::set<Element>& type_set,
+    const std::vector<std::vector<std::vector<size_t> > > &cluster_mapping);
 
 std::unordered_map<std::string, std::vector<double> > GetOneHotEncodeHashmap(
     const std::set<Element> &type_set);

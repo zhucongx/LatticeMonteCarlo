@@ -63,7 +63,7 @@ static void GetAverageParametersMappingFromLatticeClusterVectorHelper(
     std::vector<LatticeClusterPeriodic<DataSize> > &&cluster_vector,
     std::vector<std::vector<std::vector<size_t> > > &cluster_mapping) {
   std::vector<std::vector<size_t> > cluster_index_vector;
-  for (const auto& cluster: cluster_vector) {
+  for (const auto &cluster: cluster_vector) {
     auto cluster_index = cluster.GetIndexVector();
     cluster_index_vector.push_back(cluster_index);
   }
@@ -343,5 +343,43 @@ std::vector<std::vector<std::vector<size_t> > > GetAverageClusterParametersMappi
                                       third_third_third_triplets_set.end()), cluster_mapping);
   return cluster_mapping;
 }
+std::vector<double> GetOneHotParametersFromMapPeriodic(
+    const cfg::Config &config,
+    const std::set<Element> &type_set,
+    const std::vector<std::vector<std::vector<size_t> > > &cluster_mapping) {
+  auto one_hot_encode_hashmap = GetOneHotEncodeHashmap(type_set);
 
+  auto sorted_lattice_vector_periodic = GetSortedLatticeVectorPeriodic(
+      config, cfg::GetVacancyLatticeIndex(config));
+  // for (auto o: sorted_lattice_vector_periodic) {
+  //   std::cerr << config.GetElementAtLatticeId(o.GetId()).GetString() << ' ';
+  // }
+  const size_t num_of_elements = type_set.size();
+  std::vector<double> res_encode;
+  res_encode.reserve(354);
+  for (const auto &cluster_vector: cluster_mapping) {
+    std::vector<double> sum_of_list(
+        static_cast<size_t>(std::pow(num_of_elements, cluster_vector[0].size())), 0);
+    for (const auto &cluster: cluster_vector) {
+      std::string cluster_type;
+      for (auto index: cluster) {
+        cluster_type += config.GetElementAtLatticeId(
+            sorted_lattice_vector_periodic[index].GetId()).GetString();
+      }
+      const auto &cluster_one_hot_encode = one_hot_encode_hashmap.at(cluster_type);
+      std::transform(sum_of_list.begin(), sum_of_list.end(),
+                     cluster_one_hot_encode.begin(),
+                     sum_of_list.begin(),
+                     std::plus<>());
+    }
+    auto cluster_vector_size = static_cast<double>( cluster_vector.size());
+    std::for_each(sum_of_list.begin(),
+                  sum_of_list.end(),
+                  [cluster_vector_size](auto &n) { n /= cluster_vector_size; });
+
+    std::move(sum_of_list.begin(), sum_of_list.end(), std::back_inserter(res_encode));
+  }
+  return res_encode;
+
+}
 } // namespace pred

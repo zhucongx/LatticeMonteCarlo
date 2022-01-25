@@ -12,12 +12,12 @@ int main() {
   std::set<Element> ele_set{Element("Al"), Element("Mg"), Element("Zn")};
   auto conf = cfg::Config::ReadCfg("start.cfg");
   kmc::ChainKMCSimulation a(conf,
-                            1e3,
-                            1e5,
+                            1e2,
+                            1e4,
                             1e10,
                             ele_set,
                             0, 0, 0,
-                            "kmc_parameters_bond.json");
+                            "kmc_parameters.json");
   a.Simulate();
 
   // auto conf = cfg::Config::ReadCfg("forward.cfg");
@@ -48,9 +48,10 @@ int main() {
   //   ct++;
   // }
 
+  // auto conf = cfg::Config::ReadCfg("forward.cfg");
 
-  // auto map1 = pred::GetAverageClusterParametersMappingMMM(config);
-  // auto map2 = pred::GetAverageClusterParametersMappingPeriodic(config);
+  // auto map1 = pred::GetAverageClusterParametersMappingMMM(conf);
+  // auto map2 = pred::GetAverageClusterParametersMappingPeriodic(conf);
   // // auto index_list = pred::GetSymmetricallySortedLatticeVectorMMM(config, {18, 23});
   // auto index_list = pred::GetSortedLatticeVectorPeriodic(config, 18);
   //
@@ -58,29 +59,28 @@ int main() {
   // for (auto index: index_list) {
   //   ele_vector.push_back(config.GetElementAtLatticeID(index.GetId()));
   // }
-  // auto res = pred::GetOneHotParametersFromMap(ele_vector, pred::GetOneHotEncodeHashmap(
-  // ), 3, map2);
-
-  // std::cout << '[';
+  //
+  // auto res = pred::GetOneHotParametersFromMapPeriodic(conf, ele_set, map2);
+  //
+  // // std::cout << '[';
   // for (auto i: res) {
   //   std::cout << i << ", ";
   // }
   // std::cout << ']';
   // cfg::Config config2 = cfg::Config::ReadCfg("backward.cfg");
   // auto map2 = pred::GetAverageClusterParametersMappingMMM(config2);
-  // for (auto &i: map1) {
+  // for (auto &i: map2) {
   //   for (auto &j: i) {
   //     std::sort(j.begin(), j.end());
   //   }
   //   std::sort(i.begin(), i.end());
   // }
-  // for (const auto &i: map1) {
+  // for (const auto &i: map2) {
   //   for (const auto& j: i) {
-  //     std::cout << '[';
   //     for (auto k: j) {
-  //       std::cout << k << ' ';
+  //       std::cout << k << ',';
   //     }
-  //     std::cout << "]\n";
+  //     std::cout << "\n";
   //   }
   // }
   // std::cout << std::endl;

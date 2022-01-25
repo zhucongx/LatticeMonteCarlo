@@ -37,7 +37,6 @@ EnergyPredictorE0DE::EnergyPredictorE0DE(const std::string &predictor_filename,
         parameters.at("U"),
         parameters.at("theta"),
     };
-
   }
   for (size_t i = 0; i < reference_config.GetNumAtoms(); ++i) {
     for (auto j: reference_config.GetFirstNeighborsAdjacencyList()[i]) {
