@@ -19,6 +19,7 @@ struct ParametersDE {
   std::vector<double> sigma_x{};
   double mu_y{};
   double sigma_y{};
+  std::vector<std::vector<double> > U{};
   std::vector<double> theta{};
 };
 struct ParametersQuartic {

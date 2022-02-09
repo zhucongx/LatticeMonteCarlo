@@ -11,8 +11,8 @@ namespace pred {
 class EnergyPredictorE0DE : public EnergyPredictor {
   public:
     EnergyPredictorE0DE(const std::string &predictor_filename,
-                    const cfg::Config &reference_config,
-                    const std::set<Element> &type_set);
+                        const cfg::Config &reference_config,
+                        const std::set<Element> &type_set);
     ~EnergyPredictorE0DE() override;
   protected:
     [[nodiscard]] std::pair<double, double> GetBarrierAndDiffFromLatticeIdPair(
@@ -22,22 +22,24 @@ class EnergyPredictorE0DE : public EnergyPredictor {
                                const std::pair<size_t, size_t> &lattice_id_jump_pair,
                                Element migration_element) const;
     [[nodiscard]] double GetE(const cfg::Config &config,
-                              size_t lattice_id,
-                              Element migration_element) const;
+                               const std::pair<size_t, size_t> &lattice_id_jump_pair,
+                               Element migration_element) const;
   private:
     const std::vector<std::vector<std::vector<size_t> > > mapping_mmm_{};
-    const std::vector<std::vector<std::vector<size_t> > > mapping_periodic_{};
+    const std::vector<std::vector<std::vector<size_t> > > mapping_mm2_{};
 
     std::unordered_map<std::pair<size_t, size_t>,
                        std::vector<size_t>,
                        boost::hash<std::pair<size_t, size_t> > > site_bond_cluster_mmm_hashmap_;
-    std::unordered_map<size_t,
-                       std::vector<size_t> > site_cluster_periodic_hashmap_;
-
+    std::unordered_map<std::pair<size_t, size_t>,
+                       std::vector<size_t>,
+                       boost::hash<std::pair<size_t, size_t> > > site_bond_cluster_mm2_hashmap_;
     std::unordered_map<Element,
                        ParametersE0,
-                       boost::hash<Element>> element_parameters_hashmap_;
-    ParametersDE parameters_dE_;
+                       boost::hash<Element>> e0_element_parameters_hashmap_;
+    std::unordered_map<Element,
+                       ParametersDE,
+                       boost::hash<Element>> dE_element_parameters_hashmap_;
 };
 
 } // namespace pred

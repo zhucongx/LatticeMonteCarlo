@@ -17,7 +17,7 @@ int main() {
                             1e10,
                             ele_set,
                             0, 0, 0,
-                            "kmc_parameters_bond.json");
+                            "kmc_parameters_symmetry.json");
   a.Simulate();
 
   // auto conf = cfg::Config::ReadCfg("forward.cfg");
@@ -49,10 +49,55 @@ int main() {
   // }
 
   // auto conf = cfg::Config::ReadCfg("forward.cfg");
-
-  // auto map1 = pred::GetAverageClusterParametersMappingMMM(conf);
-  // auto map2 = pred::GetAverageClusterParametersMappingPeriodic(conf);
-  // // auto index_list = pred::GetSymmetricallySortedLatticeVectorMMM(config, {18, 23});
+  //
+  // // auto map1 = pred::GetAverageClusterParametersMappingMMM(conf);
+  // auto mapping_periodic_ = pred::GetAverageClusterParametersMappingPeriodic(conf);
+  //
+  // auto one_hot_encode_hashmap = pred::InitializeClusterHashMap(ele_set);
+  //
+  // auto s_sorted_lattice_vector_periodic = pred::GetSortedLatticeVectorPeriodic(conf, 18);
+  // std::vector<size_t> s_lattice_id_vector;
+  // std::transform(s_sorted_lattice_vector_periodic.begin(), s_sorted_lattice_vector_periodic.end(),
+  //                std::back_inserter(s_lattice_id_vector),
+  //                [](const auto &lattice) { return lattice.GetId(); });
+  // auto e_sorted_lattice_vector_periodic = pred::GetSortedLatticeVectorPeriodic(conf, 23);
+  // std::vector<size_t> e_lattice_id_vector;
+  // std::transform(e_sorted_lattice_vector_periodic.begin(), e_sorted_lattice_vector_periodic.end(),
+  //                std::back_inserter(e_lattice_id_vector),
+  //                [](const auto &lattice) { return lattice.GetId(); });
+  //
+  // std::vector<Element> element_vector_start{}, element_vector_end{};
+  // for (auto index: s_lattice_id_vector) {
+  //   auto this_element = conf.GetElementAtLatticeId(index);
+  //   if (this_element == ElementType::X) {
+  //     element_vector_start.push_back(conf.GetElementAtLatticeId(23));
+  //     continue;
+  //   }
+  //   element_vector_start.push_back(this_element);
+  // }
+  // auto start_encode = pred::GetClusterEncode(element_vector_start,
+  //                                      mapping_periodic_,
+  //                                            one_hot_encode_hashmap);
+  //
+  //
+  // for (auto index: e_lattice_id_vector) {
+  //   auto this_element = conf.GetElementAtLatticeId(index);
+  //   if (this_element == ElementType::X) {
+  //     element_vector_end.push_back(conf.GetElementAtLatticeId(23));
+  //     continue;
+  //   }
+  //   element_vector_end.push_back(this_element);
+  // }
+  // auto end_encode = GetClusterEncode(element_vector_end,
+  //                                    mapping_periodic_,
+  //                                    one_hot_encode_hashmap);
+  //
+  // for (size_t i = 0; i < end_encode.size(); ++i) {
+  //   std::cout << end_encode[i] - start_encode[i] << ", ";
+  // }
+  // std::cout << "\n";
+  //
+  // auto index_list = pred::GetSymmetricallySortedLatticeVectorMMM(config, {18, 23});
   // auto index_list = pred::GetSortedLatticeVectorPeriodic(config, 18);
   //
   // std::vector<Element> ele_vector{};

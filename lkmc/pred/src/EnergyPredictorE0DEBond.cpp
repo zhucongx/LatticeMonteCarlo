@@ -24,52 +24,52 @@ static std::vector<double> GetBondChange(
     std::unordered_map<ElementBond, size_t, boost::hash<ElementBond> > initialized_hashmap) {
   auto vacancy_lattice_id = lattice_id_jump_pair.first;
   auto migration_atom_jump_id = lattice_id_jump_pair.second;
-  const Element type1 = config.GetElementAtLatticeId(migration_atom_jump_id);
+  const Element migration_type = config.GetElementAtLatticeId(migration_atom_jump_id);
   // plus new bonds
   for (auto lattice2_id: config.GetFirstNeighborsAdjacencyList()[vacancy_lattice_id]) {
     if (lattice2_id == migration_atom_jump_id) { continue; }
-    initialized_hashmap[ElementBond{1, type1, config.GetElementAtLatticeId(lattice2_id)}]++;
+    initialized_hashmap[ElementBond{1, migration_type, config.GetElementAtLatticeId(lattice2_id)}]++;
   }
   for (auto lattice2_id: config.GetSecondNeighborsAdjacencyList()[vacancy_lattice_id]) {
-    initialized_hashmap[ElementBond{2, type1, config.GetElementAtLatticeId(lattice2_id)}]++;
+    initialized_hashmap[ElementBond{2, migration_type, config.GetElementAtLatticeId(lattice2_id)}]++;
   }
   for (auto lattice2_id: config.GetThirdNeighborsAdjacencyList()[vacancy_lattice_id]) {
-    initialized_hashmap[ElementBond{3, type1, config.GetElementAtLatticeId(lattice2_id)}]++;
+    initialized_hashmap[ElementBond{3, migration_type, config.GetElementAtLatticeId(lattice2_id)}]++;
   }
   for (auto lattice2_id: config.GetFourthNeighborsAdjacencyList()[vacancy_lattice_id]) {
-    initialized_hashmap[ElementBond{4, type1, config.GetElementAtLatticeId(lattice2_id)}]++;
+    initialized_hashmap[ElementBond{4, migration_type, config.GetElementAtLatticeId(lattice2_id)}]++;
   }
   for (auto lattice2_id: config.GetFifthNeighborsAdjacencyList()[vacancy_lattice_id]) {
-    initialized_hashmap[ElementBond{5, type1, config.GetElementAtLatticeId(lattice2_id)}]++;
+    initialized_hashmap[ElementBond{5, migration_type, config.GetElementAtLatticeId(lattice2_id)}]++;
   }
   for (auto lattice2_id: config.GetSixthNeighborsAdjacencyList()[vacancy_lattice_id]) {
-    initialized_hashmap[ElementBond{6, type1, config.GetElementAtLatticeId(lattice2_id)}]++;
+    initialized_hashmap[ElementBond{6, migration_type, config.GetElementAtLatticeId(lattice2_id)}]++;
   }
   for (auto lattice2_id: config.GetSeventhNeighborsAdjacencyList()[vacancy_lattice_id]) {
-    initialized_hashmap[ElementBond{7, type1, config.GetElementAtLatticeId(lattice2_id)}]++;
+    initialized_hashmap[ElementBond{7, migration_type, config.GetElementAtLatticeId(lattice2_id)}]++;
   }
   // minus old bonds
   for (auto lattice2_id: config.GetFirstNeighborsAdjacencyList()[migration_atom_jump_id]) {
     if (lattice2_id == vacancy_lattice_id) { continue; }
-    initialized_hashmap[ElementBond{1, type1, config.GetElementAtLatticeId(lattice2_id)}]--;
+    initialized_hashmap[ElementBond{1, migration_type, config.GetElementAtLatticeId(lattice2_id)}]--;
   }
   for (auto lattice2_id: config.GetSecondNeighborsAdjacencyList()[migration_atom_jump_id]) {
-    initialized_hashmap[ElementBond{2, type1, config.GetElementAtLatticeId(lattice2_id)}]--;
+    initialized_hashmap[ElementBond{2, migration_type, config.GetElementAtLatticeId(lattice2_id)}]--;
   }
   for (auto lattice2_id: config.GetThirdNeighborsAdjacencyList()[migration_atom_jump_id]) {
-    initialized_hashmap[ElementBond{3, type1, config.GetElementAtLatticeId(lattice2_id)}]--;
+    initialized_hashmap[ElementBond{3, migration_type, config.GetElementAtLatticeId(lattice2_id)}]--;
   }
   for (auto lattice2_id: config.GetFourthNeighborsAdjacencyList()[migration_atom_jump_id]) {
-    initialized_hashmap[ElementBond{4, type1, config.GetElementAtLatticeId(lattice2_id)}]--;
+    initialized_hashmap[ElementBond{4, migration_type, config.GetElementAtLatticeId(lattice2_id)}]--;
   }
   for (auto lattice2_id: config.GetFifthNeighborsAdjacencyList()[migration_atom_jump_id]) {
-    initialized_hashmap[ElementBond{5, type1, config.GetElementAtLatticeId(lattice2_id)}]--;
+    initialized_hashmap[ElementBond{5, migration_type, config.GetElementAtLatticeId(lattice2_id)}]--;
   }
   for (auto lattice2_id: config.GetSixthNeighborsAdjacencyList()[migration_atom_jump_id]) {
-    initialized_hashmap[ElementBond{6, type1, config.GetElementAtLatticeId(lattice2_id)}]--;
+    initialized_hashmap[ElementBond{6, migration_type, config.GetElementAtLatticeId(lattice2_id)}]--;
   }
   for (auto lattice2_id: config.GetSeventhNeighborsAdjacencyList()[migration_atom_jump_id]) {
-    initialized_hashmap[ElementBond{7, type1, config.GetElementAtLatticeId(lattice2_id)}]--;
+    initialized_hashmap[ElementBond{7, migration_type, config.GetElementAtLatticeId(lattice2_id)}]--;
   }
 
   std::map<ElementBond, int> ordered(initialized_hashmap.begin(), initialized_hashmap.end());
