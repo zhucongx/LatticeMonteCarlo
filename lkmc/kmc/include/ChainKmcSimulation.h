@@ -3,7 +3,7 @@
 #include <random>
 #include <mpi.h>
 
-#include "EnergyPredictorE0DE.h"
+#include "EnergyPredictorE0DESymmetry.h"
 #include "EnergyPredictorE0DEBond.h"
 #include "EnergyPredictorE0DECluster.h"
 #include "KmcEvent.h"
@@ -66,7 +66,7 @@ class ChainKMCSimulation {
     MPI_Comm first_comm_, second_comm_;
 
     std::vector<KMCEvent> event_list_{};
-    const pred::EnergyPredictorE0DE energy_predictor_;
+    const pred::EnergyPredictorE0DESymmetry energy_predictor_;
     mutable std::mt19937_64 generator_;
 };
 

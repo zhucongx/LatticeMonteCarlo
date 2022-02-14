@@ -1,5 +1,5 @@
-#ifndef LKMC_LKMC_PRED_INCLUDE_ENERGYPREDICTORE0DE_H_
-#define LKMC_LKMC_PRED_INCLUDE_ENERGYPREDICTORE0DE_H_
+#ifndef LKMC_LKMC_PRED_INCLUDE_ENERGYPREDICTORE0DESYMMETRY_H_
+#define LKMC_LKMC_PRED_INCLUDE_ENERGYPREDICTORE0DESYMMETRY_H_
 #include <string>
 #include <set>
 #include <boost/functional/hash.hpp>
@@ -8,12 +8,12 @@
 #include "EnergyPredictor.h"
 namespace pred {
 
-class EnergyPredictorE0DE : public EnergyPredictor {
+class EnergyPredictorE0DESymmetry : public EnergyPredictor {
   public:
-    EnergyPredictorE0DE(const std::string &predictor_filename,
-                        const cfg::Config &reference_config,
-                        const std::set<Element> &type_set);
-    ~EnergyPredictorE0DE() override;
+    EnergyPredictorE0DESymmetry(const std::string &predictor_filename,
+                                const cfg::Config &reference_config,
+                                const std::set<Element> &type_set);
+    ~EnergyPredictorE0DESymmetry() override;
   protected:
     [[nodiscard]] std::pair<double, double> GetBarrierAndDiffFromLatticeIdPair(
         const cfg::Config &config,
@@ -43,4 +43,4 @@ class EnergyPredictorE0DE : public EnergyPredictor {
 };
 
 } // namespace pred
-#endif //LKMC_LKMC_PRED_INCLUDE_ENERGYPREDICTORE0DE_H_
+#endif //LKMC_LKMC_PRED_INCLUDE_ENERGYPREDICTORE0DESYMMETRY_H_

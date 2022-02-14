@@ -1,4 +1,4 @@
-#include "EnergyPredictorE0DE.h"
+#include "EnergyPredictorE0DESymmetry.h"
 #include <utility>
 #include <boost/range/combine.hpp>
 #include <nlohmann/json.hpp>
@@ -6,9 +6,9 @@ using json = nlohmann::json;
 
 namespace pred {
 
-EnergyPredictorE0DE::EnergyPredictorE0DE(const std::string &predictor_filename,
-                                         const cfg::Config &reference_config,
-                                         const std::set<Element> &type_set)
+EnergyPredictorE0DESymmetry::EnergyPredictorE0DESymmetry(const std::string &predictor_filename,
+                                                         const cfg::Config &reference_config,
+                                                         const std::set<Element> &type_set)
     : EnergyPredictor(type_set),
       mapping_mmm_(GetAverageClusterParametersMappingMMM(reference_config)),
       mapping_mm2_(GetAverageClusterParametersMappingMM2(reference_config)) {
@@ -55,11 +55,11 @@ EnergyPredictorE0DE::EnergyPredictorE0DE(const std::string &predictor_filename,
   }
 }
 
-EnergyPredictorE0DE::~EnergyPredictorE0DE() = default;
+EnergyPredictorE0DESymmetry::~EnergyPredictorE0DESymmetry() = default;
 
-double EnergyPredictorE0DE::GetE0(const cfg::Config &config,
-                                  const std::pair<size_t, size_t> &lattice_id_jump_pair,
-                                  Element migration_element) const {
+double EnergyPredictorE0DESymmetry::GetE0(const cfg::Config &config,
+                                          const std::pair<size_t, size_t> &lattice_id_jump_pair,
+                                          Element migration_element) const {
   auto lattice_id_vector_mmm = site_bond_cluster_mmm_hashmap_.at(lattice_id_jump_pair);
   std::vector<Element> ele_vector{};
   ele_vector.reserve(lattice_id_vector_mmm.size());
@@ -104,9 +104,9 @@ double EnergyPredictorE0DE::GetE0(const cfg::Config &config,
   e0 += mu_y;
   return e0;
 }
-double EnergyPredictorE0DE::GetE(const cfg::Config &config,
-                                 const std::pair<size_t, size_t> &lattice_id_jump_pair,
-                                 Element migration_element) const {
+double EnergyPredictorE0DESymmetry::GetE(const cfg::Config &config,
+                                         const std::pair<size_t, size_t> &lattice_id_jump_pair,
+                                         Element migration_element) const {
   auto lattice_id_vector_mm2 = site_bond_cluster_mm2_hashmap_.at(lattice_id_jump_pair);
   std::vector<Element> ele_vector{};
   ele_vector.reserve(lattice_id_vector_mm2.size());
@@ -151,7 +151,7 @@ double EnergyPredictorE0DE::GetE(const cfg::Config &config,
   e += mu_y;
   return e;
 }
-std::pair<double, double> EnergyPredictorE0DE::GetBarrierAndDiffFromLatticeIdPair(
+std::pair<double, double> EnergyPredictorE0DESymmetry::GetBarrierAndDiffFromLatticeIdPair(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
   auto migration_element = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
