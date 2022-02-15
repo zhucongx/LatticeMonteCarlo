@@ -10,6 +10,7 @@ EnergyPredictorE0DESymmetry::EnergyPredictorE0DESymmetry(const std::string &pred
                                                          const cfg::Config &reference_config,
                                                          const std::set<Element> &type_set)
     : EnergyPredictor(type_set),
+      one_hot_encode_hash_map_(GetOneHotEncodeHashmap(type_set)),
       mapping_mmm_(GetAverageClusterParametersMappingMMM(reference_config)),
       mapping_mm2_(GetAverageClusterParametersMappingMM2(reference_config)) {
   std::ifstream ifs(predictor_filename, std::ifstream::in);

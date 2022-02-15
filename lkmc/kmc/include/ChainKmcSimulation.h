@@ -6,6 +6,7 @@
 #include "EnergyPredictorE0DESymmetry.h"
 #include "EnergyPredictorE0DEBond.h"
 #include "EnergyPredictorE0DECluster.h"
+#include "EnergyPredictorE0DEState.h"
 #include "KmcEvent.h"
 namespace kmc {
 //  j -> k -> i ->l
@@ -66,7 +67,7 @@ class ChainKMCSimulation {
     MPI_Comm first_comm_, second_comm_;
 
     std::vector<KMCEvent> event_list_{};
-    const pred::EnergyPredictorE0DECluster energy_predictor_;
+    const pred::EnergyPredictorE0DEState energy_predictor_;
     mutable std::mt19937_64 generator_;
 };
 

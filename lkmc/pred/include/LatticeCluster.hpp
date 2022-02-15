@@ -56,6 +56,18 @@ class LatticeCluster {
 };
 
 template<size_t DataSize>
+class LatticeClusterState : public LatticeCluster<DataSize> {
+  public:
+    explicit LatticeClusterState(const std::array<cfg::Lattice, DataSize> &lattice_array)
+        : LatticeCluster<DataSize>(lattice_array) {
+      Sort();
+    }
+    ~LatticeClusterState() override = default;
+  private:
+    void Sort() override {}
+};
+
+template<size_t DataSize>
 class LatticeClusterMM2 : public LatticeCluster<DataSize> {
   public:
     explicit LatticeClusterMM2(const std::array<cfg::Lattice, DataSize> &lattice_array)

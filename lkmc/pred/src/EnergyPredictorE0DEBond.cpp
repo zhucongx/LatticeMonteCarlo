@@ -6,18 +6,6 @@ using json = nlohmann::json;
 
 namespace pred {
 
-static std::unordered_map<ElementBond, int, boost::hash<ElementBond> > InitializeBondHashMap(
-    const std::set<Element> &type_set) {
-  std::unordered_map<ElementBond, int, boost::hash<ElementBond> > bond_count_hashmap;
-  for (size_t label = 1; label <= 7; ++label) {
-    for (const auto &element1: type_set) {
-      for (const auto &element2: type_set) {
-        bond_count_hashmap[ElementBond(label, element1, element2)] = 0;
-      }
-    }
-  }
-  return bond_count_hashmap;
-}
 static std::vector<double> GetBondChange(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &lattice_id_jump_pair,
@@ -99,6 +87,7 @@ EnergyPredictorE0DEBond::EnergyPredictorE0DEBond(const std::string &predictor_fi
                                                  const cfg::Config &reference_config,
                                                  const std::set<Element> &type_set)
     : EnergyPredictor(type_set),
+      one_hot_encode_hash_map_(GetOneHotEncodeHashmap(type_set)),
       mapping_mmm_(GetAverageClusterParametersMappingMMM(reference_config)),
       initialized_bond_hashmap_(InitializeBondHashMap(type_set_)) {
   std::ifstream ifs(predictor_filename, std::ifstream::in);

@@ -6,37 +6,7 @@ using json = nlohmann::json;
 
 namespace pred {
 
-static std::unordered_map<ElementCluster,
-                          int,
-                          boost::hash<ElementCluster> > InitializeClusterHashMap(
-    const std::set<Element> &type_set) {
-  std::unordered_map<ElementCluster, int,
-                     boost::hash<ElementCluster> > initialized_cluster_hashmap;
 
-  for (const auto &element1: type_set) {
-    initialized_cluster_hashmap[ElementCluster(0, element1)] = 0;
-    for (const auto &element2: type_set) {
-      if (element2 == Element("X")) {
-        continue;
-      }
-      if (element1 == Element("X") && element2.GetString()[0] == 'p') {
-        continue;
-      }
-      for (size_t label = 1; label <= 3; ++label) {
-        initialized_cluster_hashmap[ElementCluster(label, element1, element2)] = 0;
-      }
-      for (const auto &element3: type_set) {
-        if (element3 == Element("X") || element3.GetString()[0] == 'p') {
-          continue;
-        }
-        for (size_t label = 4; label < 11; ++label) {
-          initialized_cluster_hashmap[ElementCluster(label, element1, element2, element3)] = 0;
-        }
-      }
-    }
-  }
-  return initialized_cluster_hashmap;
-}
 static std::unordered_map<ElementCluster, int,
                           boost::hash<ElementCluster> > GetClusterEncode(
     const cfg::Config &config,
@@ -191,6 +161,7 @@ EnergyPredictorE0DECluster::EnergyPredictorE0DECluster(const std::string &predic
                                                        const cfg::Config &reference_config,
                                                        const std::set<Element> &type_set)
     : EnergyPredictor(type_set),
+      one_hot_encode_hash_map_(GetOneHotEncodeHashmap(type_set)),
       mapping_mmm_(GetAverageClusterParametersMappingMMM(reference_config)) {
   auto type_set_copy = type_set;
   type_set_copy.emplace("X");
@@ -282,9 +253,9 @@ double EnergyPredictorE0DECluster::GetDE(const cfg::Config &config,
                                                          size_t> &lattice_id_jump_pair) const {
   auto cluster_change_vector =
       GetClusterChange(config, lattice_id_jump_pair, initialized_cluster_hashmap_);
-  const size_t bond_size = theta_cluster_.size();
+  const size_t cluster_size = theta_cluster_.size();
   double dE = 0;
-  for (size_t i = 0; i < bond_size; ++i) {
+  for (size_t i = 0; i < cluster_size; ++i) {
     dE += theta_cluster_[i] * cluster_change_vector[i];
   }
   return dE;

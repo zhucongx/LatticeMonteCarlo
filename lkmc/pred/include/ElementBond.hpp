@@ -53,6 +53,18 @@ class ElementBond {
     Element type1_;
     Element type2_;
 };
+inline std::unordered_map<ElementBond, int, boost::hash<ElementBond> > InitializeBondHashMap(
+    const std::set<Element> &type_set) {
+  std::unordered_map<ElementBond, int, boost::hash<ElementBond> > bond_count_hashmap;
+  for (size_t label = 1; label <= 7; ++label) {
+    for (const auto &element1: type_set) {
+      for (const auto &element2: type_set) {
+        bond_count_hashmap[ElementBond(label, element1, element2)] = 0;
+      }
+    }
+  }
+  return bond_count_hashmap;
+}
 } // namespace pred
 
 #endif //LKMC_LKMC_PRED_INCLUDE_ELEMENTBOND_HPP_

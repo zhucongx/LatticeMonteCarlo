@@ -77,9 +77,8 @@ std::vector<double> GetOneHotParametersFromMap(
   return res_encode;
 }
 
-EnergyPredictor::EnergyPredictor(const std::set<Element> &type_set)
-    : type_set_(type_set),
-      one_hot_encode_hash_map_(GetOneHotEncodeHashmap(type_set)) {}
+EnergyPredictor::EnergyPredictor(std::set<Element> type_set)
+    : type_set_(std::move(type_set)){}
 EnergyPredictor::~EnergyPredictor() = default;
 std::pair<double, double> EnergyPredictor::GetBarrierAndDiffFromAtomIdPair(
     const cfg::Config &config,

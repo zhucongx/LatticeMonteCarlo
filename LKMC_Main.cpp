@@ -17,12 +17,12 @@ int main() {
                             1e10,
                             ele_set,
                             0, 0, 0,
-                            "kmc_parameters_cluster.json");
+                            "kmc_parameters_state.json");
   a.Simulate();
 
-  // auto conf = cfg::Config::ReadCfg("forward.cfg");
-  // pred::EnergyPredictorE0DECluster a("./kmc_parameters_cluster.json", conf, ele_set);
-  // auto[Ea, dE] = a.GetBarrierAndDiffFromAtomIdPair(conf, {18, 23});
+  // auto conf = cfg::Config::ReadCfg("start.cfg");
+  // pred::EnergyPredictorE0DEState a("./kmc_parameters_state.json", conf, ele_set);
+  // auto[Ea, dE] = a.GetBarrierAndDiffFromAtomIdPair(conf, {82, 83});
   // std::cout <<  Ea << ", " << dE <<  std::endl;
   //
   // std::ifstream ifs("all_data_neb_results/barriers.txt", std::ifstream::in);
@@ -47,12 +47,22 @@ int main() {
   //   std::cout << ct << ',' << Ea << ',' << dE << ',' << std::endl;
   //   ct++;
   // }
+  // std::set<Element> ele_set1{Element("Al"),
+  //                           Element("Mg"),
+  //                           Element("Zn"),
+  //                           Element("X"),
+  //                           Element("pZn"),
+  //
+  // };
+  //
+  // auto conf1 = cfg::Config::ReadCfg("forward.cfg");
+  //
+  // auto mapping_state_ = pred::GetClusterParametersMappingState(conf1);
+  // auto ea = pred::GetEncodesFromMapState(conf1, {18, 23}, pred::InitializeClusterHashMap(ele_set1),
+  //                                        mapping_state_);
+  //
+  //
 
-  // auto conf = cfg::Config::ReadCfg("forward.cfg");
-  //
-  // // auto map1 = pred::GetAverageClusterParametersMappingMMM(conf);
-  // auto mapping_periodic_ = pred::GetAverageClusterParametersMappingPeriodic(conf);
-  //
   // auto one_hot_encode_hashmap = pred::InitializeClusterHashMap(ele_set);
   //
   // auto s_sorted_lattice_vector_periodic = pred::GetSortedLatticeVectorPeriodic(conf, 18);

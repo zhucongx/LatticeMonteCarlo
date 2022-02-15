@@ -76,5 +76,37 @@ class ElementCluster {
     size_t label_;
     std::vector<Element> element_vector_;
 };
+
+inline std::unordered_map<
+    ElementCluster, int, boost::hash<ElementCluster> > InitializeClusterHashMap(
+    const std::set<Element> &type_set) {
+  std::unordered_map<ElementCluster, int,
+                     boost::hash<ElementCluster> > initialized_cluster_hashmap;
+
+  for (const auto &element1: type_set) {
+    initialized_cluster_hashmap[ElementCluster(0, element1)] = 0;
+    for (const auto &element2: type_set) {
+      if (element2 == Element("X")) {
+        continue;
+      }
+      if (element1 == Element("X") && element2.GetString()[0] == 'p') {
+        continue;
+      }
+      for (size_t label = 1; label <= 3; ++label) {
+        initialized_cluster_hashmap[ElementCluster(label, element1, element2)] = 0;
+      }
+      for (const auto &element3: type_set) {
+        if (element3 == Element("X") || element3.GetString()[0] == 'p') {
+          continue;
+        }
+        for (size_t label = 4; label < 11; ++label) {
+          initialized_cluster_hashmap[ElementCluster(label, element1, element2, element3)] = 0;
+        }
+      }
+    }
+  }
+  return initialized_cluster_hashmap;
+}
+
 } // namespace pred
 #endif //LKMC_LKMC_PRED_INCLUDE_ELEMENTCLUSTER_HPP_

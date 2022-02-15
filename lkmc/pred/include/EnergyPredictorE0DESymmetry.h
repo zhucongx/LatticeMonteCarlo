@@ -25,6 +25,7 @@ class EnergyPredictorE0DESymmetry : public EnergyPredictor {
                               const std::pair<size_t, size_t> &lattice_id_jump_pair,
                               Element migration_element) const;
   private:
+    const std::unordered_map<std::string, std::vector<double> > one_hot_encode_hash_map_;
     const std::vector<std::vector<std::vector<size_t> > > mapping_mmm_{};
     const std::vector<std::vector<std::vector<size_t> > > mapping_mm2_{};
 
@@ -40,6 +41,7 @@ class EnergyPredictorE0DESymmetry : public EnergyPredictor {
     std::unordered_map<Element,
                        ParametersDE,
                        boost::hash<Element>> dE_element_parameters_hashmap_;
+
 };
 
 } // namespace pred
