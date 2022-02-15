@@ -31,9 +31,8 @@ class EnergyPredictorE0DEBond : public EnergyPredictor {
                        ParametersE0,
                        boost::hash<Element>> element_parameters_hashmap_;
     std::vector<double> theta_bond_{};
-    const std::unordered_map<ElementBond, size_t,
+    const std::unordered_map<ElementBond, int,
                              boost::hash<ElementBond> > initialized_bond_hashmap_;
-
 };
 
 } // namespace pred

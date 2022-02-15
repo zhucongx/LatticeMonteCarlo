@@ -32,7 +32,8 @@ class Config {
     [[nodiscard]] size_t GetLatticeIdFromAtomId(size_t atom_id) const;
     [[nodiscard]] Element GetElementAtLatticeId(size_t lattice_id) const;
     /// Modify config
-    void AtomsJump(const std::pair<size_t, size_t> &atom_id_jump_pair);
+    void AtomJump(const std::pair<size_t, size_t> &atom_id_jump_pair);
+    void LatticeJump(const std::pair<size_t, size_t> &lattice_id_jump_pair);
     /// IO
     static Config ReadCfg(const std::string &filename);
     void WriteCfg(const std::string &filename, bool neighbors_info) const;
@@ -70,9 +71,7 @@ std::unordered_set<size_t> GetNeighborsLatticeIdSetOfJumpPair(
     const Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair);
 std::unordered_set<size_t> GetNeighborsLatticeIdSetOfLattice(
     const Config &config, size_t lattice_id);
-std::unordered_set<size_t> GetNeighborsLatticeIdSetOfJumpPair(
+Config GetNeighborsConfigSetOfJumpPair(
     const Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair);
-std::unordered_set<size_t> GetNeighborsLatticeIdSetOfLattice(
-    const Config &config, size_t lattice_id);
 } // namespace cfg
 #endif //LKMC_LKMC_CFG_INCLUDE_CONFIG_H_

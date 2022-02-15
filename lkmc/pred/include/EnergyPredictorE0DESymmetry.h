@@ -22,8 +22,8 @@ class EnergyPredictorE0DESymmetry : public EnergyPredictor {
                                const std::pair<size_t, size_t> &lattice_id_jump_pair,
                                Element migration_element) const;
     [[nodiscard]] double GetE(const cfg::Config &config,
-                               const std::pair<size_t, size_t> &lattice_id_jump_pair,
-                               Element migration_element) const;
+                              const std::pair<size_t, size_t> &lattice_id_jump_pair,
+                              Element migration_element) const;
   private:
     const std::vector<std::vector<std::vector<size_t> > > mapping_mmm_{};
     const std::vector<std::vector<std::vector<size_t> > > mapping_mm2_{};

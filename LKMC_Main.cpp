@@ -21,10 +21,10 @@ int main() {
   a.Simulate();
 
   // auto conf = cfg::Config::ReadCfg("forward.cfg");
-  // pred::EnergyPredictorE0DECluster a("./kmc_parameters_cluster.json", conf, ele_set);
+  // pred::EnergyPredictorE0DESymmetry a("./kmc_parameters_symmetry.json", conf, ele_set);
   // auto[Ea, dE] = a.GetBarrierAndDiffFromAtomIdPair(conf, {18, 23});
-  // std::cout <<  Ea << ',' << dE << ',' << std::endl;
-
+  // std::cout <<  Ea << ", " << dE <<  std::endl;
+  //
   // std::ifstream ifs("all_data_neb_results/barriers.txt", std::ifstream::in);
   // if (!ifs.is_open()) {
   //   std::cout << "Cannot open kmc_log.txt\n";

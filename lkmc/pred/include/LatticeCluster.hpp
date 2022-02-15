@@ -128,37 +128,6 @@ class LatticeClusterMMM : public LatticeCluster<DataSize> {
                 });
     }
 };
-
-template<size_t DataSize>
-class LatticeClusterPeriodic : public LatticeCluster<DataSize> {
-  public:
-    explicit LatticeClusterPeriodic(const std::array<cfg::Lattice, DataSize> &lattice_array)
-        : LatticeCluster<DataSize>(lattice_array) {
-      Sort();
-    }
-    ~LatticeClusterPeriodic() override = default;
-  private:
-    void Sort() override {
-      std::sort(this->lattice_array_.begin(), this->lattice_array_.end(),
-                [](const auto &lhs, const auto &rhs) {
-                  const auto &relative_position_lhs = lhs.GetRelativePosition();
-                  const auto &relative_position_rhs = rhs.GetRelativePosition();
-                  const double diff_x =
-                      relative_position_lhs[kXDimension] - relative_position_rhs[kXDimension];
-                  const double diff_y =
-                      relative_position_lhs[kYDimension] - relative_position_rhs[kYDimension];
-                  const double diff_z =
-                      relative_position_lhs[kZDimension] - relative_position_rhs[kZDimension];
-                  if (diff_x < -kEpsilon) { return true; }
-                  if (diff_x > kEpsilon) { return false; }
-                  if (diff_y < -kEpsilon) { return true; }
-                  if (diff_y > kEpsilon) { return false; }
-                  if (diff_z < -kEpsilon) { return true; }
-                  if (diff_z > kEpsilon) { return false; }
-                  return lhs.GetId() < rhs.GetId();
-                });
-    }
-};
 } // namespace pred
 
 #endif //LKMC_LKMC_PRED_INCLUDE_LATTICECLUSTER_HPP_

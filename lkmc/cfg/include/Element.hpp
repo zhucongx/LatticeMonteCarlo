@@ -5,21 +5,26 @@
 #include <map>
 
 enum class ElementType {
-  X, Al, Mg, Zn, Cu, Sn
+  X, Al, Mg, Zn, Cu, Sn, pAl, pMg, pZn, pCu, pSn
 };
 
 class Element {
   public:
     Element() = default;
     constexpr explicit Element(ElementType element_type) : element_type_(element_type) {}
-    explicit Element(const std::string& element_string) {
-       const std::map<std::string, ElementType> ElementStrings{
+    explicit Element(const std::string &element_string) {
+      const std::map<std::string, ElementType> ElementStrings{
           {"X", ElementType::X},
           {"Al", ElementType::Al},
           {"Mg", ElementType::Mg},
           {"Zn", ElementType::Zn},
           {"Cu", ElementType::Cu},
-          {"Sn", ElementType::Sn}
+          {"Sn", ElementType::Sn},
+          { "pAl", ElementType::pAl },
+          { "pMg", ElementType::pMg },
+          { "pZn", ElementType::pZn },
+          { "pCu", ElementType::pCu },
+          { "pSn", ElementType::pSn }
       };
       auto it = ElementStrings.find(element_string);
       element_type_ = it == ElementStrings.end() ? ElementType::X : it->second;
@@ -56,11 +61,16 @@ class Element {
         case ElementType::Zn: return "Zn";
         case ElementType::Cu: return "Cu";
         case ElementType::Sn: return "Sn";
+        case ElementType::pAl: return "pAl";
+        case ElementType::pMg: return "pMg";
+        case ElementType::pZn: return "pZn";
+        case ElementType::pCu: return "pCu";
+        case ElementType::pSn: return "pSn";
           // default: return "undefined error";
           // omit default case to trigger compiler warning for missing cases
       }
     }
-    [[nodiscard]] double GetMass() const{
+    [[nodiscard]] double GetMass() const {
       switch (element_type_) {
         case ElementType::X : return 0.00;
         case ElementType::Al: return 26.98;
@@ -68,6 +78,11 @@ class Element {
         case ElementType::Zn: return 65.38;
         case ElementType::Cu: return 63.55;
         case ElementType::Sn: return 118.71;
+        case ElementType::pAl: return 26.98;
+        case ElementType::pMg: return 24.31;
+        case ElementType::pZn: return 65.38;
+        case ElementType::pCu: return 63.55;
+        case ElementType::pSn: return 118.71;
           // default return std::numeric_limits<double>::infinity
           // omit default case to trigger compiler warning for missing cases
       }

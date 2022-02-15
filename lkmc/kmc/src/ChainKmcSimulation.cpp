@@ -135,14 +135,14 @@ double ChainKMCSimulation::BuildEventListParallel() {
   auto event_k_i = GetEventI();
   const auto l_indexes = GetLIndexes();
   const auto probability_k_i = event_k_i.GetProbability();
-  config_.AtomsJump(event_k_i.GetAtomIdJumpPair());
+  config_.AtomJump(event_k_i.GetAtomIdJumpPair());
   total_rate_i_ = 0.0;
   const auto l_index = l_indexes[static_cast<size_t>(second_group_rank_)];
   KMCEvent event_i_l
       ({vacancy_index_, l_index},
        energy_predictor_.GetBarrierAndDiffFromAtomIdPair(config_,
                                                          {vacancy_index_, l_index}));
-  config_.AtomsJump(event_k_i.GetAtomIdJumpPair());
+  config_.AtomJump(event_k_i.GetAtomIdJumpPair());
 
   // get sum r_{k to l}
   const double r_i_l = event_i_l.GetForwardRate();
@@ -268,7 +268,7 @@ void ChainKMCSimulation::Simulate() {
       energy_ += one_step_energy_change_;
       one_step_barrier_ = selected_event.GetForwardBarrier();
 
-      config_.AtomsJump(atom_id_jump_pair_);
+      config_.AtomJump(atom_id_jump_pair_);
       previous_j_ = atom_id_jump_pair_.second;
     }
     ++steps_;
