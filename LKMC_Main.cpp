@@ -17,7 +17,7 @@ int main() {
                             1e10,
                             ele_set,
                             0, 0, 0,
-                            "kmc_parameters_state.json");
+                            "kmc_parameters_cluster.json");
   a.Simulate();
 
   // auto conf = cfg::Config::ReadCfg("start.cfg");
