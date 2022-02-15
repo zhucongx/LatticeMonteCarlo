@@ -17,11 +17,11 @@ int main() {
                             1e10,
                             ele_set,
                             0, 0, 0,
-                            "kmc_parameters_symmetry.json");
+                            "kmc_parameters_cluster.json");
   a.Simulate();
 
   // auto conf = cfg::Config::ReadCfg("forward.cfg");
-  // pred::EnergyPredictorE0DESymmetry a("./kmc_parameters_symmetry.json", conf, ele_set);
+  // pred::EnergyPredictorE0DECluster a("./kmc_parameters_cluster.json", conf, ele_set);
   // auto[Ea, dE] = a.GetBarrierAndDiffFromAtomIdPair(conf, {18, 23});
   // std::cout <<  Ea << ", " << dE <<  std::endl;
   //
