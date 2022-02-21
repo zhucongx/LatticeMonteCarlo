@@ -312,7 +312,7 @@ std::array<std::vector<double>, 2> GetEncodesFromMapState(
     auto start = static_cast<double>(start_hashmap.at(cluster));
     auto end = static_cast<double>(end_hashmap.at(cluster));
     auto transition = static_cast<double>(transition_hashmap.at(cluster));
-    double total_bond;
+    double total_bond{};
     switch (cluster.GetLabel()) {
       case 0:total_bond = 256;
         break;
