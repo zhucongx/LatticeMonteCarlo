@@ -16,6 +16,10 @@ EnergyPredictorE0DEState::EnergyPredictorE0DEState(const std::string &predictor_
   ifs >> all_parameters;
 
   for (const auto &[element, parameters]: all_parameters.items()) {
+    if (element == "Base") {
+      base_theta_ = std::vector<double>(parameters.at("theta"));
+      continue;
+    }
     element_theta_[Element(element)] = std::vector<double>(parameters.at("theta"));
   }
   for (const auto &element: type_set) {
@@ -41,9 +45,9 @@ std::pair<double, double> EnergyPredictorE0DEState::GetBarrierAndDiffFromLattice
     const cfg::Config &config,
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
   auto migration_element = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
-  auto lattice_id_vector = site_bond_cluster_hashmap_.at(lattice_id_jump_pair);
-  const auto
-      initialized_cluster_hashmap = element_initialized_cluster_hashmap_.at(migration_element);
+  const auto &lattice_id_vector = site_bond_cluster_hashmap_.at(lattice_id_jump_pair);
+  const auto &initialized_cluster_hashmap
+      = element_initialized_cluster_hashmap_.at(migration_element);
 
   auto start_hashmap(initialized_cluster_hashmap);
   auto end_hashmap(initialized_cluster_hashmap);
@@ -116,13 +120,13 @@ std::pair<double, double> EnergyPredictorE0DEState::GetBarrierAndDiffFromLattice
     e0_encode.push_back((transition - 0.5 * (end + start)) / total_bond);
   }
 
-  const auto theta = element_theta_.at(migration_element);
-  double dE = 0, e0 = 0;
+  const auto &theta_element = element_theta_.at(migration_element);
+  double e0 = 0, dE = 0;
 
-  const size_t cluster_size = theta.size();
+  const size_t cluster_size = theta_element.size();
   for (size_t i = 0; i < cluster_size; ++i) {
-    dE += theta[i] * de_encode[i];
-    e0 += theta[i] * e0_encode[i];
+    dE += base_theta_[i] * de_encode[i];
+    e0 += theta_element[i] * e0_encode[i];
   }
 
   return {e0 + dE / 2, dE};
