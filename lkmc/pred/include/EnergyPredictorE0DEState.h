@@ -16,13 +16,12 @@ class EnergyPredictorE0DEState : public EnergyPredictor {
         const std::pair<size_t, size_t> &lattice_id_jump_pair) const override;
 
   private:
-    const std::vector<std::vector<std::vector<size_t> > > cluster_mapping_{};
     std::unordered_map<std::pair<size_t, size_t>,
-                       std::vector<size_t>,
-                       boost::hash<std::pair<size_t, size_t> > > site_bond_cluster_hashmap_;
+                       std::vector<std::vector<std::vector<size_t> > >,
+                       boost::hash<std::pair<size_t, size_t> > > site_bond_mapping_hashmap_;
     std::unordered_map<Element,
                        std::vector<double>,
-                       boost::hash<Element> > element_theta_{};
+                       boost::hash<Element> > element_theta_;
     std::unordered_map<Element,
                        std::unordered_map<ElementCluster, int,
                                           boost::hash<ElementCluster> >,

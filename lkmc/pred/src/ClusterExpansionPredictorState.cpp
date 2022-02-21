@@ -62,17 +62,13 @@ static void GetParametersMappingFromLatticeClusterVectorHelper(
   cluster_mapping.push_back(cluster_index_vector);
 }
 std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState(
-    const cfg::Config &config) {
-  const std::pair<size_t, size_t>
-      lattice_id_jump_pair = {0, config.GetFirstNeighborsAdjacencyList()[0][0]};
+    const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) {
   const auto lattice_vector = GetSortedLatticeVectorState(config, lattice_id_jump_pair);
   std::vector<std::vector<std::vector<size_t> > > cluster_mapping{};
   /// singlets
   std::vector<Singlet_State_t> singlet_vector;
   for (auto it1 = lattice_vector.cbegin(); it1 < lattice_vector.cend(); ++it1) {
-    const auto index1 = static_cast<size_t>(std::distance(lattice_vector.begin(), it1));
     cfg::Lattice lattice1(*it1);
-    lattice1.SetId(index1);
     singlet_vector.emplace_back(std::array<cfg::Lattice, 1>{lattice1});
   }
   GetParametersMappingFromLatticeClusterVectorHelper(
@@ -83,7 +79,6 @@ std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState
   std::vector<Pair_State_t> third_pair_vector;
   for (auto it1 = lattice_vector.cbegin(); it1 < lattice_vector.cend(); ++it1) {
     const auto lattice1_index = it1->GetId();
-    const auto index1 = static_cast<size_t>(std::distance(lattice_vector.begin(), it1));
     for (const auto &lattice2_index: config.GetFirstNeighborsAdjacencyList()[lattice1_index]) {
       auto it2 = std::find_if(lattice_vector.begin(),
                               lattice_vector.end(),
@@ -91,10 +86,7 @@ std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState
                                 return lattice.GetId() == lattice2_index;
                               });
       if (it2 == lattice_vector.end()) { continue; }
-      const auto index2 = static_cast<size_t>(std::distance(lattice_vector.begin(), it2));
       cfg::Lattice lattice1(*it1), lattice2(*it2);
-      lattice1.SetId(index1);
-      lattice2.SetId(index2);
       first_pair_vector.emplace_back(std::array<cfg::Lattice, 2>{lattice1, lattice2});
     }
     for (const auto &lattice2_index: config.GetSecondNeighborsAdjacencyList()[lattice1_index]) {
@@ -104,10 +96,7 @@ std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState
                                 return lattice.GetId() == lattice2_index;
                               });
       if (it2 == lattice_vector.end()) { continue; }
-      const auto index2 = static_cast<size_t>(std::distance(lattice_vector.begin(), it2));
       cfg::Lattice lattice1(*it1), lattice2(*it2);
-      lattice1.SetId(index1);
-      lattice2.SetId(index2);
       second_pair_vector.emplace_back(std::array<cfg::Lattice, 2>{lattice1, lattice2});
     }
     for (const auto &lattice2_index: config.GetThirdNeighborsAdjacencyList()[lattice1_index]) {
@@ -117,10 +106,7 @@ std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState
                                 return lattice.GetId() == lattice2_index;
                               });
       if (it2 == lattice_vector.end()) { continue; }
-      const auto index2 = static_cast<size_t>(std::distance(lattice_vector.begin(), it2));
       cfg::Lattice lattice1(*it1), lattice2(*it2);
-      lattice1.SetId(index1);
-      lattice2.SetId(index2);
       third_pair_vector.emplace_back(std::array<cfg::Lattice, 2>{lattice1, lattice2});
     }
   }
@@ -140,7 +126,6 @@ std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState
   std::vector<Triplet_State_t> third_third_third_triplets_vector;
   for (auto it1 = lattice_vector.cbegin(); it1 < lattice_vector.cend(); ++it1) {
     const auto lattice1_index = it1->GetId();
-    const auto index1 = static_cast<size_t>(std::distance(lattice_vector.begin(), it1));
     for (const auto &lattice2_index: config.GetFirstNeighborsAdjacencyList()[lattice1_index]) {
       auto it2 = std::find_if(lattice_vector.begin(),
                               lattice_vector.end(),
@@ -148,7 +133,6 @@ std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState
                                 return lattice.GetId() == lattice2_index;
                               });
       if (it2 == lattice_vector.end()) { continue; }
-      const auto index2 = static_cast<size_t>(std::distance(lattice_vector.begin(), it2));
       for (const size_t lattice3_index: config.GetFirstNeighborsAdjacencyList()[lattice2_index]) {
         if (lattice3_index == lattice1_index) { continue; }
         if (lattice3_index == lattice2_index) { continue; }
@@ -162,37 +146,22 @@ std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState
                       config.GetFirstNeighborsAdjacencyList()[lattice1_index].end(),
                       lattice3_index) !=
             config.GetFirstNeighborsAdjacencyList()[lattice1_index].end()) {
-          const auto index3 = static_cast<size_t>(std::distance(lattice_vector.begin(), it3));
-          cfg::Lattice lattice1(*it1), lattice2(*it2), lattice3(*it3);
-          lattice1.SetId(index1);
-          lattice2.SetId(index2);
-          lattice3.SetId(index3);
           first_first_first_triplets_vector.emplace_back(
-              std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
+              std::array<cfg::Lattice, 3>{*it1, *it2, *it3});
         }
         if (std::find(config.GetSecondNeighborsAdjacencyList()[lattice1_index].begin(),
                       config.GetSecondNeighborsAdjacencyList()[lattice1_index].end(),
                       lattice3_index) !=
             config.GetSecondNeighborsAdjacencyList()[lattice1_index].end()) {
-          const auto index3 = static_cast<size_t>(std::distance(lattice_vector.begin(), it3));
-          cfg::Lattice lattice1(*it1), lattice2(*it2), lattice3(*it3);
-          lattice1.SetId(index1);
-          lattice2.SetId(index2);
-          lattice3.SetId(index3);
           first_first_second_triplets_vector.emplace_back(
-              std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
+              std::array<cfg::Lattice, 3>{*it1, *it2, *it3});
         }
         if (std::find(config.GetThirdNeighborsAdjacencyList()[lattice1_index].begin(),
                       config.GetThirdNeighborsAdjacencyList()[lattice1_index].end(),
                       lattice3_index) !=
             config.GetThirdNeighborsAdjacencyList()[lattice1_index].end()) {
-          const auto index3 = static_cast<size_t>(std::distance(lattice_vector.begin(), it3));
-          cfg::Lattice lattice1(*it1), lattice2(*it2), lattice3(*it3);
-          lattice1.SetId(index1);
-          lattice2.SetId(index2);
-          lattice3.SetId(index3);
           first_first_third_triplets_vector.emplace_back(
-              std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
+              std::array<cfg::Lattice, 3>{*it1, *it2, *it3});
         }
       }
       for (const size_t lattice3_index: config.GetSecondNeighborsAdjacencyList()[lattice2_index]) {
@@ -208,13 +177,8 @@ std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState
                       config.GetThirdNeighborsAdjacencyList()[lattice1_index].end(),
                       lattice3_index) !=
             config.GetThirdNeighborsAdjacencyList()[lattice1_index].end()) {
-          const auto index3 = static_cast<size_t>(std::distance(lattice_vector.begin(), it3));
-          cfg::Lattice lattice1(*it1), lattice2(*it2), lattice3(*it3);
-          lattice1.SetId(index1);
-          lattice2.SetId(index2);
-          lattice3.SetId(index3);
           first_second_third_triplets_vector.emplace_back(
-              std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
+              std::array<cfg::Lattice, 3>{*it1, *it2, *it3});
         }
       }
       for (const size_t lattice3_index: config.GetThirdNeighborsAdjacencyList()[lattice2_index]) {
@@ -230,13 +194,8 @@ std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState
                       config.GetThirdNeighborsAdjacencyList()[lattice1_index].end(),
                       lattice3_index) !=
             config.GetThirdNeighborsAdjacencyList()[lattice1_index].end()) {
-          const auto index3 = static_cast<size_t>(std::distance(lattice_vector.begin(), it3));
-          cfg::Lattice lattice1(*it1), lattice2(*it2), lattice3(*it3);
-          lattice1.SetId(index1);
-          lattice2.SetId(index2);
-          lattice3.SetId(index3);
           first_third_third_triplets_vector.emplace_back(
-              std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
+              std::array<cfg::Lattice, 3>{*it1, *it2, *it3});
         }
       }
     }
@@ -247,7 +206,6 @@ std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState
                                 return lattice.GetId() == lattice2_index;
                               });
       if (it2 == lattice_vector.end()) { continue; }
-      const auto index2 = static_cast<size_t>(std::distance(lattice_vector.begin(), it2));
       for (const size_t lattice3_index: config.GetThirdNeighborsAdjacencyList()[lattice2_index]) {
         if (lattice3_index == lattice1_index) { continue; }
         if (lattice3_index == lattice2_index) { continue; }
@@ -261,13 +219,8 @@ std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState
                       config.GetThirdNeighborsAdjacencyList()[lattice1_index].end(),
                       lattice3_index) !=
             config.GetThirdNeighborsAdjacencyList()[lattice1_index].end()) {
-          const auto index3 = static_cast<size_t>(std::distance(lattice_vector.begin(), it3));
-          cfg::Lattice lattice1(*it1), lattice2(*it2), lattice3(*it3);
-          lattice1.SetId(index1);
-          lattice2.SetId(index2);
-          lattice3.SetId(index3);
           second_third_third_triplets_vector.emplace_back(
-              std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
+              std::array<cfg::Lattice, 3>{*it1, *it2, *it3});
         }
       }
     }
@@ -278,7 +231,6 @@ std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState
                                 return lattice.GetId() == lattice2_index;
                               });
       if (it2 == lattice_vector.end()) { continue; }
-      const auto index2 = static_cast<size_t>(std::distance(lattice_vector.begin(), it2));
       for (const size_t lattice3_index: config.GetThirdNeighborsAdjacencyList()[lattice2_index]) {
         if (lattice3_index == lattice1_index) { continue; }
         if (lattice3_index == lattice2_index) { continue; }
@@ -292,13 +244,8 @@ std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState
                       config.GetThirdNeighborsAdjacencyList()[lattice1_index].end(),
                       lattice3_index) !=
             config.GetThirdNeighborsAdjacencyList()[lattice1_index].end()) {
-          const auto index3 = static_cast<size_t>(std::distance(lattice_vector.begin(), it3));
-          cfg::Lattice lattice1(*it1), lattice2(*it2), lattice3(*it3);
-          lattice1.SetId(index1);
-          lattice2.SetId(index2);
-          lattice3.SetId(index3);
           third_third_third_triplets_vector.emplace_back(
-              std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
+              std::array<cfg::Lattice, 3>{*it1, *it2, *it3});
         }
       }
     }
@@ -340,16 +287,15 @@ std::array<std::vector<double>, 2> GetEncodesFromMapState(
       element_vector_start.reserve(cluster.size());
       element_vector_end.reserve(cluster.size());
       element_vector_transition.reserve(cluster.size());
-      for (auto index: cluster) {
-        size_t lattice_id = lattice_vector[index].GetId();
+      for (auto lattice_id: cluster) {
         element_vector_start.push_back(config.GetElementAtLatticeId(lattice_id));
         if (lattice_id == lattice_id_jump_pair.first) {
           element_vector_end.push_back(migration_element);
-          element_vector_transition.emplace_back("p" + migration_element.GetString());
+          element_vector_transition.push_back(migration_element.GetPseudo());
           continue;
         } else if (lattice_id == lattice_id_jump_pair.second) {
-          element_vector_end.emplace_back("X");
-          element_vector_transition.emplace_back("p" + migration_element.GetString());
+          element_vector_end.emplace_back(ElementType::X);
+          element_vector_transition.push_back(migration_element.GetPseudo());
           continue;
         }
         element_vector_end.push_back(config.GetElementAtLatticeId(lattice_id));
@@ -366,12 +312,10 @@ std::array<std::vector<double>, 2> GetEncodesFromMapState(
   std::vector<double> de_encode, e0_encode;
   de_encode.reserve(ordered.size());
   e0_encode.reserve(ordered.size());
-  for (const auto &cluster_count: ordered) {
-    const auto &cluster = cluster_count.first;
+  for (const auto &[cluster, count]: ordered) {
     auto start = static_cast<double>(start_hashmap.at(cluster));
     auto end = static_cast<double>(end_hashmap.at(cluster));
     auto transition = static_cast<double>(transition_hashmap.at(cluster));
-
     double total_bond;
     switch (cluster.GetLabel()) {
       case 0:total_bond = 256;
@@ -398,10 +342,8 @@ std::array<std::vector<double>, 2> GetEncodesFromMapState(
         break;
     }
     de_encode.push_back((end - start) / total_bond);
-    std::cerr << transition - 0.5 * (end + start) << ",";
-    e0_encode.push_back(transition - 0.5 * (end + start) / total_bond);
+    e0_encode.push_back((transition - 0.5 * (end + start)) / total_bond);
   }
-
   return {de_encode, e0_encode};
 
 }

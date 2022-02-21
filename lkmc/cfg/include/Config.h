@@ -22,10 +22,6 @@ class Config {
     [[nodiscard]] const std::vector<std::vector<size_t> > &GetFirstNeighborsAdjacencyList() const;
     [[nodiscard]] const std::vector<std::vector<size_t> > &GetSecondNeighborsAdjacencyList() const;
     [[nodiscard]] const std::vector<std::vector<size_t> > &GetThirdNeighborsAdjacencyList() const;
-    [[nodiscard]] const std::vector<std::vector<size_t>> &GetFourthNeighborsAdjacencyList() const;
-    [[nodiscard]] const std::vector<std::vector<size_t>> &GetFifthNeighborsAdjacencyList() const;
-    [[nodiscard]] const std::vector<std::vector<size_t>> &GetSixthNeighborsAdjacencyList() const;
-    [[nodiscard]] const std::vector<std::vector<size_t>> &GetSeventhNeighborsAdjacencyList() const;
     [[nodiscard]] std::vector<size_t> GetFirstNeighborsAtomIdVectorOfAtom(
         size_t atom_id) const;
     [[nodiscard]] size_t GetAtomIdFromLatticeId(size_t lattice_id) const;
@@ -55,10 +51,10 @@ class Config {
     std::vector<std::vector<size_t> > first_neighbors_adjacency_list_{};
     std::vector<std::vector<size_t> > second_neighbors_adjacency_list_{};
     std::vector<std::vector<size_t> > third_neighbors_adjacency_list_{};
-    std::vector<std::vector<size_t> > fourth_neighbors_adjacency_list_{};
-    std::vector<std::vector<size_t> > fifth_neighbors_adjacency_list_{};
-    std::vector<std::vector<size_t> > sixth_neighbors_adjacency_list_{};
-    std::vector<std::vector<size_t> > seventh_neighbors_adjacency_list_{};
+    // std::vector<std::vector<size_t> > fourth_neighbors_adjacency_list_{};
+    // std::vector<std::vector<size_t> > fifth_neighbors_adjacency_list_{};
+    // std::vector<std::vector<size_t> > sixth_neighbors_adjacency_list_{};
+    // std::vector<std::vector<size_t> > seventh_neighbors_adjacency_list_{};
 };
 Vector_t GetLatticePairCenter(const Config &config,
                               const std::pair<size_t, size_t> &lattice_id_jump_pair);
