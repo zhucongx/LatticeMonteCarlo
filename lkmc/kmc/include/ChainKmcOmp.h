@@ -1,31 +1,26 @@
-#ifndef LKMC_LKMC_KMC_INCLUDE_CHAINKMCSIMULATION_H_
-#define LKMC_LKMC_KMC_INCLUDE_CHAINKMCSIMULATION_H_
+#ifndef LKMC_LKMC_KMC_INCLUDE_CHAINKMCOPENMP_H_
+#define LKMC_LKMC_KMC_INCLUDE_CHAINKMCOPENMP_H_
 #include <random>
-#include <mpi.h>
+#include <omp.h>
 
-// #include "EnergyPredictorE0DESymmetry.h"
-// #include "EnergyPredictorE0DEBond.h"
-// #include "EnergyPredictorE0DECluster.h"
 #include "EnergyPredictorE0DEState.h"
 #include "KmcEvent.h"
 namespace kmc {
 //  j -> k -> i ->l
 //       |
 // current position
-class ChainKMCSimulation {
+class ChainKmcOmp {
   public:
-    ChainKMCSimulation(cfg::Config config,
-                       unsigned long long int log_dump_steps,
-                       unsigned long long int config_dump_steps,
-                       unsigned long long int maximum_number,
-                       const std::set<Element> &type_set,
-                       unsigned long long int steps,
-                       double energy,
-                       double time,
-                       const std::string &json_parameters_filename);
-    virtual ~ChainKMCSimulation();
-    virtual void Simulate();
-
+    ChainKmcOmp(cfg::Config config,
+                unsigned long long int log_dump_steps,
+                unsigned long long int config_dump_steps,
+                unsigned long long int maximum_number,
+                const std::set<Element> &type_set,
+                unsigned long long int steps,
+                double energy,
+                double time,
+                const std::string &json_parameters_filename);
+    virtual ~ChainKmcOmp();
   protected:
     virtual bool CheckAndSolveEquilibrium(std::ofstream &ofs) { return false; }
     inline void Dump(std::ofstream &ofs);
@@ -63,9 +58,6 @@ class ChainKMCSimulation {
     std::pair<size_t, size_t> atom_id_jump_pair_;
     size_t previous_j_;
 
-    MPI_Group world_group_, first_group_, second_group_;
-    MPI_Comm first_comm_, second_comm_;
-
     std::vector<KMCEvent> event_list_{};
     const pred::EnergyPredictorE0DEState energy_predictor_;
     mutable std::mt19937_64 generator_;
@@ -73,5 +65,4 @@ class ChainKMCSimulation {
 
 } // namespace kmc
 
-
-#endif //LKMC_LKMC_KMC_INCLUDE_CHAINKMCSIMULATION_H_
+#endif //LKMC_LKMC_KMC_INCLUDE_CHAINKMCOPENMP_H_

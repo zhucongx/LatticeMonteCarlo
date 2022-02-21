@@ -5,19 +5,20 @@
 #include "LatticeCluster.hpp"
 #include "Config.h"
 #include "KmcEvent.h"
-#include "ChainKmcSimulation.h"
+#include "ChainKmcMpi.h"
+#include "ChainKmcOmp.h"
 
 int main() {
 
   std::set<Element> ele_set{Element("Al"), Element("Mg"), Element("Zn")};
   auto conf = cfg::Config::ReadCfg("start.cfg");
-  kmc::ChainKMCSimulation a(conf,
-                            1e2,
-                            1e4,
-                            1e10,
-                            ele_set,
-                            0, 0, 0,
-                            "kmc_parameters_state.json");
+  kmc::ChainKmcMpi a(conf,
+                     1e2,
+                     1e4,
+                     1e10,
+                     ele_set,
+                     0, 0, 0,
+                     "kmc_parameters_state.json");
   a.Simulate();
 
   // auto conf = cfg::Config::ReadCfg("start.cfg");

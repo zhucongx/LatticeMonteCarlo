@@ -105,31 +105,11 @@ if(NOT json_POPULATED)
 endif()
 target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
 ############################################### MPI ################################################
-#find_package(MPI REQUIRED)
-## include directories
-#target_include_directories(${PROJECT_NAME} INTERFACE
-#        ${MPI_C_INCLUDE_DIRS} ${MPI_CXX_INCLUDE_DIRS})
-## link libraries
-#target_link_libraries(${PROJECT_NAME} INTERFACE
-#        ${MPI_C_LIBRARIES} ${MPI_CXX_LIBRARIES})
-## set interface target compile options
-#target_compile_options(${PROJECT_NAME} INTERFACE
-#        "${MPI_C_COMPILE_DEFINITIONS} ${MPI_CXX_COMPILE_DEFINITIONS}")
-#target_compile_options(${PROJECT_NAME} INTERFACE
-#        "${MPI_C_COMPILE_OPTIONS} ${MPI_CXX_COMPILE_OPTIONS}")
-#set_target_properties(${PROJECT_NAME} PROPERTIES
-#        INTERFACE_LINK_OPTIONS "${MPI_C_LINK_FLAGS} ${MPI_CXX_LINK_FLAGS}")
+find_package(MPI REQUIRED)
+target_link_libraries(${PROJECT_NAME} PUBLIC MPI::MPI_CXX)
 ############################################## OPENMP ##############################################
-#find_package(OpenMP REQUIRED)
-## include directories
-#target_include_directories(${PROJECT_NAME} INTERFACE
-#        ${OpenMP_C_INCLUDE_DIRS} ${OpenMP_CXX_INCLUDE_DIRS})
-## link libraries
-#target_link_libraries(${PROJECT_NAME} INTERFACE
-#        ${OpenMP_C_LIBRARIES} ${OpenMP_CXX_LIBRARIES})
-## set interface target compile options
-#target_compile_options(${PROJECT_NAME} INTERFACE
-#        "${OpenMP_C_FLAGS} ${OpenMP_CXX_FLAGS}")
+find_package(OpenMP REQUIRED)
+target_link_libraries(${PROJECT_NAME} PUBLIC OpenMP::OpenMP_CXX)
 ############################################ ARMADILLO #############################################
 #find_package(ARMADILLO REQUIRED)
 #target_include_directories(${PROJECT_NAME} PUBLIC
