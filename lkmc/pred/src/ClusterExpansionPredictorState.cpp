@@ -68,8 +68,7 @@ std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState
   /// singlets
   std::vector<Singlet_State_t> singlet_vector;
   for (auto it1 = lattice_vector.cbegin(); it1 < lattice_vector.cend(); ++it1) {
-    cfg::Lattice lattice1(*it1);
-    singlet_vector.emplace_back(std::array<cfg::Lattice, 1>{lattice1});
+    singlet_vector.emplace_back(std::array<cfg::Lattice, 1>{*it1});
   }
   GetParametersMappingFromLatticeClusterVectorHelper(
       std::move(singlet_vector), cluster_mapping);
@@ -86,8 +85,7 @@ std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState
                                 return lattice.GetId() == lattice2_index;
                               });
       if (it2 == lattice_vector.end()) { continue; }
-      cfg::Lattice lattice1(*it1), lattice2(*it2);
-      first_pair_vector.emplace_back(std::array<cfg::Lattice, 2>{lattice1, lattice2});
+      first_pair_vector.emplace_back(std::array<cfg::Lattice, 2>{*it1, *it2});
     }
     for (const auto &lattice2_index: config.GetSecondNeighborsAdjacencyList()[lattice1_index]) {
       auto it2 = std::find_if(lattice_vector.begin(),
@@ -96,8 +94,7 @@ std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState
                                 return lattice.GetId() == lattice2_index;
                               });
       if (it2 == lattice_vector.end()) { continue; }
-      cfg::Lattice lattice1(*it1), lattice2(*it2);
-      second_pair_vector.emplace_back(std::array<cfg::Lattice, 2>{lattice1, lattice2});
+      second_pair_vector.emplace_back(std::array<cfg::Lattice, 2>{*it1, *it2});
     }
     for (const auto &lattice2_index: config.GetThirdNeighborsAdjacencyList()[lattice1_index]) {
       auto it2 = std::find_if(lattice_vector.begin(),
@@ -106,8 +103,7 @@ std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState
                                 return lattice.GetId() == lattice2_index;
                               });
       if (it2 == lattice_vector.end()) { continue; }
-      cfg::Lattice lattice1(*it1), lattice2(*it2);
-      third_pair_vector.emplace_back(std::array<cfg::Lattice, 2>{lattice1, lattice2});
+      third_pair_vector.emplace_back(std::array<cfg::Lattice, 2>{*it1, *it2});
     }
   }
   GetParametersMappingFromLatticeClusterVectorHelper(

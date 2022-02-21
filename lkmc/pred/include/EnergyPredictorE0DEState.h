@@ -19,6 +19,7 @@ class EnergyPredictorE0DEState : public EnergyPredictor {
     std::unordered_map<std::pair<size_t, size_t>,
                        std::vector<std::vector<std::vector<size_t> > >,
                        boost::hash<std::pair<size_t, size_t> > > site_bond_mapping_hashmap_;
+    std::vector<double> base_theta_{};
     std::unordered_map<Element,
                        std::vector<double>,
                        boost::hash<Element> > element_theta_;
