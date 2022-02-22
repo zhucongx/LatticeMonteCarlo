@@ -67,7 +67,8 @@ class Element {
         case ElementType::pZn: return "pZn";
         case ElementType::pCu: return "pCu";
         case ElementType::pSn: return "pSn";
-          // default: return "undefined error";
+        default: std::cerr << "Unexpected pseudo element" << std::endl;
+          return "undefined element";
           // omit default case to trigger compiler warning for missing cases
       }
     }
@@ -84,7 +85,8 @@ class Element {
         case ElementType::pZn: return 65.38;
         case ElementType::pCu: return 63.55;
         case ElementType::pSn: return 118.71;
-          // default return std::numeric_limits<double>::infinity
+        default: std::cerr << "Unexpected pseudo element" << std::endl;
+          return 0;
           // omit default case to trigger compiler warning for missing cases
       }
     }
@@ -96,7 +98,7 @@ class Element {
         case ElementType::Cu: return Element(ElementType::pCu);
         case ElementType::Sn: return Element(ElementType::pSn);
           // omit default case to trigger compiler warning for missing cases
-        default:std::cerr << "Unexpected pseudo element" << std::endl;
+        default: std::cerr << "Unexpected pseudo element" << std::endl;
           return Element(ElementType::X);
       }
     }

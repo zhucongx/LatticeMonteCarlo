@@ -84,6 +84,12 @@ set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "lkmc.exe")
 find_package(Boost REQUIRED)
 target_include_directories(${PROJECT_NAME} PRIVATE ${Boost_INCLUDE_DIR})
 target_link_libraries(${PROJECT_NAME} PRIVATE ${Boost_LIBRARIES})
+############################################### MPI ################################################
+find_package(MPI REQUIRED)
+target_link_libraries(${PROJECT_NAME} PUBLIC MPI::MPI_CXX)
+############################################## OPENMP ##############################################
+find_package(OpenMP REQUIRED)
+target_link_libraries(${PROJECT_NAME} PUBLIC OpenMP::OpenMP_CXX)
 ############################################### JSON ###############################################
 # Typically you don't care so much for a third party library's tests to be
 # run from your own project's code.
@@ -104,12 +110,6 @@ if(NOT json_POPULATED)
     add_subdirectory(${json_SOURCE_DIR} ${json_BINARY_DIR} EXCLUDE_FROM_ALL)
 endif()
 target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
-############################################### MPI ################################################
-find_package(MPI REQUIRED)
-target_link_libraries(${PROJECT_NAME} PUBLIC MPI::MPI_CXX)
-############################################## OPENMP ##############################################
-find_package(OpenMP REQUIRED)
-target_link_libraries(${PROJECT_NAME} PUBLIC OpenMP::OpenMP_CXX)
 ############################################ ARMADILLO #############################################
 #find_package(ARMADILLO REQUIRED)
 #target_include_directories(${PROJECT_NAME} PUBLIC
