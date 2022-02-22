@@ -28,13 +28,16 @@ EnergyPredictorE0DEState::EnergyPredictorE0DEState(const std::string &predictor_
     element_initialized_cluster_hashmap_[element] = InitializeClusterHashMap(type_set_copy);
   }
   const auto num_atoms = reference_config.GetNumAtoms();
-#pragma omp parallel  default(none) shared(num_atoms, reference_config, site_bond_mapping_hashmap_)
+#pragma omp parallel default(none) shared(num_atoms, reference_config)
   {
 #pragma omp for
     for (size_t i = 0; i < num_atoms; ++i) {
       for (auto j: reference_config.GetFirstNeighborsAdjacencyList()[i]) {
-        site_bond_mapping_hashmap_[{i, j}] =
-            GetClusterParametersMappingState(reference_config, {i, j});
+        auto i_j_mapping = GetClusterParametersMappingState(reference_config, {i, j});
+#pragma omp critical
+        {
+          site_bond_mapping_hashmap_[{i, j}] = std::move(i_j_mapping);
+        }
       }
     }
   }

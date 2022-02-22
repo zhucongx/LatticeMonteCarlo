@@ -11,20 +11,21 @@
 int main() {
 
   std::set<Element> ele_set{Element("Al"), Element("Mg"), Element("Zn")};
-  auto conf = cfg::Config::ReadCfg("start.cfg");
-  kmc::ChainKmcMpi a(conf,
-                     1e2,
-                     1e4,
-                     1e10,
-                     ele_set,
-                     0, 0, 0,
-                     "kmc_parameters_state.json");
-  a.Simulate();
-
   // auto conf = cfg::Config::ReadCfg("start.cfg");
-  // pred::EnergyPredictorE0DEState a("./kmc_parameters_state.json", conf, ele_set);
-  // auto[Ea, dE] = a.GetBarrierAndDiffFromAtomIdPair(conf, {82, 83});
-  // std::cout <<  Ea << ", " << dE <<  std::endl;
+  // kmc::ChainKmcOmp a(conf,
+  //                    1e2,
+  //                    1e4,
+  //                    1e10,
+  //                    300,
+  //                    ele_set,
+  //                    0, 0, 0,
+  //                    "kmc_parameters_state.json");
+  // a.Simulate();
+
+  auto conf = cfg::Config::ReadCfg("start.cfg");
+  pred::EnergyPredictorE0DEState a("./kmc_parameters_state.json", conf, ele_set);
+  auto[Ea, dE] = a.GetBarrierAndDiffFromAtomIdPair(conf, {82, 83});
+  std::cout <<  Ea << ", " << dE <<  std::endl;
   //
   // std::ifstream ifs("all_data_neb_results/barriers.txt", std::ifstream::in);
   // if (!ifs.is_open()) {

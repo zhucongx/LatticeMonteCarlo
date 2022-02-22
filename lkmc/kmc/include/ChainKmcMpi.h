@@ -6,7 +6,7 @@
 #include "EnergyPredictorE0DEState.h"
 #include "KmcEvent.h"
 namespace kmc {
-//  j -> k -> i ->l
+//  j -> k -> i -> l
 //       |
 // current position
 class ChainKmcMpi {

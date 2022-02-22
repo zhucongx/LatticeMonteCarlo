@@ -9,7 +9,7 @@ KMCEvent::KMCEvent(std::pair<size_t, size_t> atom_id_jump_pair,
                    std::pair<double, double> barrier_and_diff)
     : atom_id_jump_pair_(std::move(atom_id_jump_pair)),
       barrier_(barrier_and_diff.first),
-      rate_(std::exp(
+      forward_rate_(std::exp(
           -barrier_and_diff.first * kBoltzmannConstantTimesTemperatureInv)),
       energy_change_(barrier_and_diff.second) {}
 // KMCEvent::KMCEvent(const Event_Ctor_Pair_t &event_ctor_pair)
@@ -25,7 +25,7 @@ double KMCEvent::GetForwardBarrier() const {
   return barrier_;
 }
 double KMCEvent::GetForwardRate() const {
-  return rate_;
+  return forward_rate_;
 }
 double KMCEvent::GetBackwardBarrier() const {
   return barrier_-energy_change_;
@@ -55,7 +55,7 @@ void KMCEvent::SetBarrier(double barrier) {
 }
 
 void KMCEvent::SetRate(double rate) {
-  rate_ = rate;
+  forward_rate_ = rate;
 }
 
 void KMCEvent::SetEnergyChange(double energy_change) {
@@ -71,7 +71,7 @@ void KMCEvent::SetCumulativeProvability(double cumulative_provability) {
 }
 
 void KMCEvent::CalculateProbability(double total_rates) {
-  probability_ = rate_ / total_rates;
+  probability_ = forward_rate_ / total_rates;
 }
 
 } // namespace kmc

@@ -48,7 +48,7 @@ class KMCEvent {
     // void serialize(Archive &ar, [[maybe_unused]] const size_t version) {
     //   ar & atom_id_jump_pair_;
     //   ar & barrier_;
-    //   ar & rate_;
+    //   ar & forward_rate_;
     //   ar & energy_change_;
     //   ar & probability_;
     //   ar & cumulative_probability_;
@@ -56,7 +56,7 @@ class KMCEvent {
   protected:
     std::pair<size_t, size_t> atom_id_jump_pair_{};
     double barrier_{};
-    double rate_{};
+    double forward_rate_{};
     double energy_change_{};
     double probability_{};
     double cumulative_probability_{};
