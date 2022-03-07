@@ -24,8 +24,8 @@ EnergyPredictorE0DEState::EnergyPredictorE0DEState(const std::string &predictor_
   }
   for (const auto &element: type_set) {
     auto type_set_copy(type_set);
-    type_set_copy.emplace("X");
-    type_set_copy.emplace("p" + element.GetString());
+    type_set_copy.emplace(ElementType::X);
+    type_set_copy.insert(element.GetPseudo());
     element_initialized_cluster_hashmap_[element] = InitializeClusterHashMap(type_set_copy);
   }
 
@@ -64,11 +64,11 @@ std::pair<double, double> EnergyPredictorE0DEState::GetBarrierAndDiffFromLattice
         element_vector_start.push_back(config.GetElementAtLatticeId(lattice_id));
         if (lattice_id == lattice_id_jump_pair.first) {
           element_vector_end.push_back(migration_element);
-          element_vector_transition.emplace_back("p" + migration_element.GetString());
+          element_vector_transition.push_back(migration_element.GetPseudo());
           continue;
         } else if (lattice_id == lattice_id_jump_pair.second) {
-          element_vector_end.emplace_back("X");
-          element_vector_transition.emplace_back("p" + migration_element.GetString());
+          element_vector_end.emplace_back(ElementType::X);
+          element_vector_transition.push_back(migration_element.GetPseudo());
           continue;
         }
         element_vector_end.push_back(config.GetElementAtLatticeId(lattice_id));

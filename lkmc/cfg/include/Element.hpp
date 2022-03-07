@@ -3,11 +3,11 @@
 #include <cmath>
 #include <string>
 #include <map>
+#include <iostream>
 
 enum class ElementType {
   X, Al, Mg, Zn, Cu, Sn, pAl, pMg, pZn, pCu, pSn
 };
-
 class Element {
   public:
     Element() = default;
@@ -20,11 +20,11 @@ class Element {
           {"Zn", ElementType::Zn},
           {"Cu", ElementType::Cu},
           {"Sn", ElementType::Sn},
-          { "pAl", ElementType::pAl },
-          { "pMg", ElementType::pMg },
-          { "pZn", ElementType::pZn },
-          { "pCu", ElementType::pCu },
-          { "pSn", ElementType::pSn }
+          {"pAl", ElementType::pAl},
+          {"pMg", ElementType::pMg},
+          {"pZn", ElementType::pZn},
+          {"pCu", ElementType::pCu},
+          {"pSn", ElementType::pSn}
       };
       auto it = ElementStrings.find(element_string);
       element_type_ = it == ElementStrings.end() ? ElementType::X : it->second;
@@ -66,7 +66,8 @@ class Element {
         case ElementType::pZn: return "pZn";
         case ElementType::pCu: return "pCu";
         case ElementType::pSn: return "pSn";
-          // default: return "undefined error";
+        default: std::cerr << "Unexpected pseudo element" << std::endl;
+          return "undefined element";
           // omit default case to trigger compiler warning for missing cases
       }
     }
@@ -83,8 +84,21 @@ class Element {
         case ElementType::pZn: return 65.38;
         case ElementType::pCu: return 63.55;
         case ElementType::pSn: return 118.71;
-          // default return std::numeric_limits<double>::infinity
+        default: std::cerr << "Unexpected pseudo element" << std::endl;
+          return 0;
           // omit default case to trigger compiler warning for missing cases
+      }
+    }
+    [[nodiscard]] Element GetPseudo() const {
+      switch (element_type_) {
+        case ElementType::Al : return Element(ElementType::pAl);
+        case ElementType::Mg: return Element(ElementType::pMg);
+        case ElementType::Zn: return Element(ElementType::pZn);
+        case ElementType::Cu: return Element(ElementType::pCu);
+        case ElementType::Sn: return Element(ElementType::pSn);
+          // omit default case to trigger compiler warning for missing cases
+        default: std::cerr << "Unexpected pseudo element" << std::endl;
+          return Element(ElementType::X);
       }
     }
   private:
