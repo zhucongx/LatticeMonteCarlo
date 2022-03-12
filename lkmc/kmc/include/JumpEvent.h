@@ -9,7 +9,7 @@ class JumpEvent {
     JumpEvent();
     JumpEvent(std::pair<size_t, size_t> atom_id_jump_pair,
               const std::pair<double, double> &barrier_and_diff,
-              double coefficient);
+              double beta);
     /// Getter
     [[nodiscard]] const std::pair<size_t, size_t> &GetAtomIdJumpPair() const;
     [[nodiscard]] double GetForwardBarrier() const;
@@ -24,7 +24,7 @@ class JumpEvent {
     void SetCumulativeProvability(double cumulative_provability);
     void CalculateProbability(double total_rates);
   private:
-    double coefficient_{};
+    double beta_{};
     std::pair<size_t, size_t> atom_id_jump_pair_{};
     double barrier_{};
     double energy_change_{};

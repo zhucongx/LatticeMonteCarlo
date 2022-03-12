@@ -13,6 +13,9 @@ constexpr double kThirdNearestNeighborsCutoff = 5.3;
 // constexpr double kSeventhNearestNeighborsCutoff = 7.6;
 constexpr double kNearNeighborsCutoff = kThirdNearestNeighborsCutoff;
 
+
+constexpr size_t kNumThirdNearestSetSize = 60;
+
 constexpr size_t kNumFirstNearestNeighbors = 12;
 constexpr size_t kNumSecondNearestNeighbors = 6;
 constexpr size_t kNumThirdNearestNeighbors = 24;

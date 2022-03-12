@@ -3,7 +3,7 @@
 #include <random>
 #include <mpi.h>
 
-#include "EnergyPredictorE0DEState.h"
+#include "EnergyPredictorLru.h"
 #include "KmcEvent.h"
 namespace kmc {
 //  j -> k -> i -> l
@@ -64,7 +64,7 @@ class ChainKmcMpi {
     MPI_Comm first_comm_, second_comm_;
 
     std::vector<KMCEvent> event_list_{};
-    const pred::EnergyPredictorE0DEState energy_predictor_;
+    const pred::EnergyPredictor energy_predictor_;
     mutable std::mt19937_64 generator_;
 };
 

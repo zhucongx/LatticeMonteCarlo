@@ -271,7 +271,6 @@ std::array<std::vector<double>, 2> GetEncodesFromMapState(
                              boost::hash<ElementCluster> > &initialized_cluster_hashmap,
     const std::vector<std::vector<std::vector<size_t> > > &cluster_mapping) {
   auto migration_element = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
-  auto lattice_vector = GetSortedLatticeVectorState(config, lattice_id_jump_pair);
   auto start_hashmap(initialized_cluster_hashmap);
   auto end_hashmap(initialized_cluster_hashmap);
   auto transition_hashmap(initialized_cluster_hashmap);

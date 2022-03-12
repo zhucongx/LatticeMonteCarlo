@@ -23,9 +23,23 @@ int main() {
   // a.Simulate();
 
   auto conf = cfg::Config::ReadCfg("start.cfg");
-  pred::EnergyPredictorE0DEState a("./kmc_parameters_state.json", conf, ele_set);
+  pred::EnergyPredictorLru a("./kmc_parameters_state.json", conf, ele_set, 1000);
+  auto t1 = std::chrono::high_resolution_clock::now();
   auto[Ea, dE] = a.GetBarrierAndDiffFromAtomIdPair(conf, {82, 83});
-  std::cout <<  Ea << ", " << dE <<  std::endl;
+  auto t2 = std::chrono::high_resolution_clock::now();
+  std::cout << std::setprecision(8)
+            << std::chrono::duration_cast<std::chrono::seconds>(t2 - t1).count() << ", " << Ea
+            << ", " << dE << std::endl;
+
+  for (int i = 0; i < 10000; ++i) {
+    auto pair = a.GetBarrierAndDiffFromAtomIdPair(conf, {82, 83});
+    Ea = pair.first;
+    dE = pair.second;
+  }
+  auto t3 = std::chrono::high_resolution_clock::now();
+  std::cout << std::setprecision(8)
+            << std::chrono::duration_cast<std::chrono::seconds>(t3 - t2).count() << ", " << Ea
+            << ", " << dE << std::endl;
   //
   // std::ifstream ifs("all_data_neb_results/barriers.txt", std::ifstream::in);
   // if (!ifs.is_open()) {

@@ -5,12 +5,12 @@ namespace kmc {
 JumpEvent::JumpEvent() = default;
 JumpEvent::JumpEvent(std::pair<size_t, size_t> atom_id_jump_pair,
                      const std::pair<double, double> &barrier_and_diff,
-                     double coefficient)
-    : coefficient_(coefficient),
+                     double beta)
+    : beta_(beta),
       atom_id_jump_pair_(std::move(atom_id_jump_pair)),
       barrier_(barrier_and_diff.first),
       energy_change_(barrier_and_diff.second),
-      forward_rate_(std::exp(-barrier_ * coefficient_)) {}
+      forward_rate_(std::exp(-barrier_ * beta_)) {}
 const std::pair<size_t, size_t> &JumpEvent::GetAtomIdJumpPair() const {
   return atom_id_jump_pair_;
 }
@@ -24,7 +24,7 @@ double JumpEvent::GetBackwardBarrier() const {
   return barrier_ - energy_change_;
 }
 double JumpEvent::GetBackwardRate() const {
-  return std::exp((energy_change_ - barrier_) * coefficient_);
+  return std::exp((energy_change_ - barrier_) * beta_);
 }
 double JumpEvent::GetEnergyChange() const {
   return energy_change_;
