@@ -54,8 +54,9 @@ void ChainKmcOmp::Dump(std::ofstream &ofs) {
 void ChainKmcOmp::BuildFirstEventList() {
   total_rate_k_ = 0;
   const auto i_indexes = config_list_[0].GetFirstNeighborsAtomIdVectorOfAtom(vacancy_index_);
-#pragma omp parallel for default(none) shared(i_indexes) reduction(+: total_rate_k_)
+#pragma omp parallel default(none) shared(i_indexes) reduction(+: total_rate_k_)
   {
+#pragma omp for
     for (size_t it = 0; it < kFirstEventListSize; ++it) {
       const auto i_index = i_indexes[it];
       auto event_k_i = JumpEvent(
