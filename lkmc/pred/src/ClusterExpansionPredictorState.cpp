@@ -507,18 +507,18 @@ std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState
   }
   GetParametersMappingFromLatticeClusterVectorHelper(
       std::move(first_first_first_triplets_vector), cluster_mapping);
-  // GetParametersMappingFromLatticeClusterVectorHelper(
-  //     std::move(first_first_second_triplets_vector), cluster_mapping);
-  // GetParametersMappingFromLatticeClusterVectorHelper(
-  //     std::move(first_first_third_triplets_vector), cluster_mapping);
-  // GetParametersMappingFromLatticeClusterVectorHelper(
-  //     std::move(first_second_third_triplets_vector), cluster_mapping);
-  // GetParametersMappingFromLatticeClusterVectorHelper(
-  //     std::move(first_third_third_triplets_vector), cluster_mapping);
-  // GetParametersMappingFromLatticeClusterVectorHelper(
-  //     std::move(second_third_third_triplets_vector), cluster_mapping);
-  // GetParametersMappingFromLatticeClusterVectorHelper(
-  //     std::move(third_third_third_triplets_vector), cluster_mapping);
+  GetParametersMappingFromLatticeClusterVectorHelper(
+      std::move(first_first_second_triplets_vector), cluster_mapping);
+  GetParametersMappingFromLatticeClusterVectorHelper(
+      std::move(first_first_third_triplets_vector), cluster_mapping);
+  GetParametersMappingFromLatticeClusterVectorHelper(
+      std::move(first_second_third_triplets_vector), cluster_mapping);
+  GetParametersMappingFromLatticeClusterVectorHelper(
+      std::move(first_third_third_triplets_vector), cluster_mapping);
+  GetParametersMappingFromLatticeClusterVectorHelper(
+      std::move(second_third_third_triplets_vector), cluster_mapping);
+  GetParametersMappingFromLatticeClusterVectorHelper(
+      std::move(third_third_third_triplets_vector), cluster_mapping);
   return cluster_mapping;
 }
 

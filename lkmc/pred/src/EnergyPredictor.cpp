@@ -30,7 +30,6 @@ EnergyPredictor::EnergyPredictor(const std::string &predictor_filename,
     type_set_copy.insert(element.GetPseudo());
     element_initialized_cluster_hashmap_[element] = InitializeClusterHashMap(type_set_copy);
   }
-  const auto num_atoms = reference_config.GetNumAtoms();
 
   for (size_t i = 0; i < reference_config.GetNumAtoms(); ++i) {
     for (auto j: reference_config.GetFirstNeighborsAdjacencyList()[i]) {

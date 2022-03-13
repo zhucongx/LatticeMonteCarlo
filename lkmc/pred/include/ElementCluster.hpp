@@ -99,7 +99,7 @@ inline std::unordered_map<
         if (element3 == ElementType::X || element3.GetString()[0] == 'p') {
           continue;
         }
-        for (size_t label = 4; label < 5; ++label) {
+        for (size_t label = 4; label < 11; ++label) {
           initialized_cluster_hashmap[ElementCluster(label, element1, element2, element3)] = 0;
         }
       }
