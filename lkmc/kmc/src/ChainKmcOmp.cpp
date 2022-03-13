@@ -169,12 +169,12 @@ double ChainKmcOmp::CalculateTime() {
     cumulative_provability += event.GetProbability();
     event.SetCumulativeProvability(cumulative_provability);
   }
-  double t = 1 / total_rate_k_ / KMCEvent::kPrefactor;
+  double t = 1 / total_rate_k_ / kPrefactor;
   double ts_numerator = 0.0, ts_j_numerator = 0.0;
   for (size_t it = 0; it < kFirstEventListSize; ++it) {
     const auto &event_k_i = first_event_list_.at(it);
     const auto total_rate_i = total_rate_i_list_[it];
-    double t_i = 1 / total_rate_i / KMCEvent::kPrefactor;
+    double t_i = 1 / total_rate_i / kPrefactor;
     double ts_numerator_helper = (t + t_i) * beta_bar_k_i_list[it];
     ts_numerator += ts_numerator_helper;
 

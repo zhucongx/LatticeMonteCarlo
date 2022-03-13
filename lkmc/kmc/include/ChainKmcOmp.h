@@ -5,7 +5,6 @@
 
 #include "EnergyPredictorLru.h"
 #include "JumpEvent.h"
-#include "KmcEvent.h"
 namespace kmc {
 //  j -> k -> i ->l
 //       |

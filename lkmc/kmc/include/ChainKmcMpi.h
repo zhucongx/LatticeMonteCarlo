@@ -4,17 +4,21 @@
 #include <mpi.h>
 
 #include "EnergyPredictorLru.h"
-#include "KmcEvent.h"
+#include "JumpEvent.h"
 namespace kmc {
 //  j -> k -> i -> l
 //       |
 // current position
 class ChainKmcMpi {
   public:
+    static constexpr double kBoltzmannConstant = 8.617333262145e-5;
+    static constexpr double kPrefactor = 1e14;
+
     ChainKmcMpi(cfg::Config config,
                 unsigned long long int log_dump_steps,
                 unsigned long long int config_dump_steps,
                 unsigned long long int maximum_number,
+                double temperature,
                 const std::set<Element> &type_set,
                 unsigned long long int steps,
                 double energy,
@@ -26,7 +30,7 @@ class ChainKmcMpi {
   protected:
     virtual bool CheckAndSolveEquilibrium(std::ofstream &ofs) { return false; }
     inline void Dump(std::ofstream &ofs);
-    KMCEvent GetEventI();
+    JumpEvent GetEventI();
     [[nodiscard]] double BuildEventListParallel();
 
     std::vector<size_t> GetLIndexes();
@@ -41,6 +45,7 @@ class ChainKmcMpi {
     const unsigned long long int log_dump_steps_;
     const unsigned long long int config_dump_steps_;
     const unsigned long long int maximum_number_;
+    const double beta_;
 
     // simulation statistics
     unsigned long long int steps_;
@@ -63,7 +68,7 @@ class ChainKmcMpi {
     MPI_Group world_group_, first_group_, second_group_;
     MPI_Comm first_comm_, second_comm_;
 
-    std::vector<KMCEvent> event_list_{};
+    std::vector<JumpEvent> event_list_{};
     const pred::EnergyPredictor energy_predictor_;
     mutable std::mt19937_64 generator_;
 };

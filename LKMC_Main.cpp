@@ -4,7 +4,6 @@
 #include "Atom.hpp"
 #include "LatticeCluster.hpp"
 #include "Config.h"
-#include "KmcEvent.h"
 #include "ChainKmcMpi.h"
 #include "ChainKmcOmp.h"
 
@@ -12,7 +11,7 @@ int main() {
 
   std::set<Element> ele_set{Element("Al"), Element("Mg"), Element("Zn")};
   auto conf = cfg::Config::ReadCfg("start.cfg");
-  kmc::ChainKmcOmp a(conf,
+  kmc::ChainKmcMpi a(conf,
                      1,
                      1e4,
                      1e10,
