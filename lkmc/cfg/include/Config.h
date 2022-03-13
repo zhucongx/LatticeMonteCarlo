@@ -27,6 +27,7 @@ class Config {
     [[nodiscard]] size_t GetAtomIdFromLatticeId(size_t lattice_id) const;
     [[nodiscard]] size_t GetLatticeIdFromAtomId(size_t atom_id) const;
     [[nodiscard]] Element GetElementAtLatticeId(size_t lattice_id) const;
+    [[nodiscard]] size_t GetStateHash() const;
     /// Modify config
     void AtomJump(const std::pair<size_t, size_t> &atom_id_jump_pair);
     void LatticeJump(const std::pair<size_t, size_t> &lattice_id_jump_pair);

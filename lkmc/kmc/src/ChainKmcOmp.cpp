@@ -112,7 +112,6 @@ void ChainKmcOmp::BuildSecondEventList() {
   }
 }
 
-
 double ChainKmcOmp::CalculateTime() {
   BuildFirstEventList();
   BuildSecondEventList();

@@ -1,6 +1,8 @@
 #include "Config.h"
 
 #include <utility>
+#include <boost/functional/hash.hpp>
+
 namespace cfg {
 Config::Config() = default;
 Config::Config(const Matrix_t &basis,
@@ -66,6 +68,13 @@ size_t Config::GetLatticeIdFromAtomId(size_t atom_id) const {
 Element Config::GetElementAtLatticeId(size_t lattice_id) const {
   auto atom_id = lattice_to_atom_hashmap_.at(lattice_id);
   return atom_vector_[atom_id].GetElement();
+}
+size_t Config::GetStateHash() const {
+  size_t seed = 0;
+  for (size_t i = 0; i < GetNumAtoms(); ++i) {
+    boost::hash_combine(seed, lattice_to_atom_hashmap_.at(i));
+  }
+  return seed;
 }
 void Config::AtomJump(const std::pair<size_t, size_t> &atom_id_jump_pair) {
   const auto[atom_id_lhs, atom_id_rhs] = atom_id_jump_pair;
@@ -250,7 +259,6 @@ void Config::UpdateNeighbors() {
     }
   }
 }
-
 
 Vector_t GetLatticePairCenter(const Config &config,
                               const std::pair<size_t, size_t> &lattice_id_jump_pair) {
