@@ -30,8 +30,9 @@ EnergyPredictor::EnergyPredictor(const std::string &predictor_filename,
     element_initialized_cluster_hashmap_[element] = InitializeClusterHashMap(type_set_copy);
   }
   const auto num_atoms = reference_config.GetNumAtoms();
-#pragma omp parallel for default(none)  shared(num_atoms, reference_config)
+#pragma omp parallel default(none)  shared(num_atoms, reference_config)
   {
+#pragma omp for
     for (size_t i = 0; i < num_atoms; ++i) {
       for (auto j: reference_config.GetFirstNeighborsAdjacencyList()[i]) {
 // #pragma omp critical
@@ -59,7 +60,7 @@ std::pair<double, double> EnergyPredictor::GetBarrierAndDiffFromLatticeIdPair(
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
   const auto &migration_element = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
   const auto &cluster_mapping = site_bond_mapping_hashmap_.at(lattice_id_jump_pair);
-  
+
   const auto &initialized_cluster_hashmap
       = element_initialized_cluster_hashmap_.at(migration_element);
 

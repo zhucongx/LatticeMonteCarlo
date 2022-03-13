@@ -3,7 +3,7 @@
 #include <random>
 #include <omp.h>
 
-#include "EnergyPredictor.h"
+#include "EnergyPredictorLru.h"
 #include "JumpEvent.h"
 #include "KmcEvent.h"
 namespace kmc {
@@ -16,7 +16,7 @@ class ChainKmcOmp {
     static constexpr double kBoltzmannConstant = 8.617333262145e-5;
     static constexpr double kPrefactor = 1e14;
 
-    ChainKmcOmp(cfg::Config config,
+    ChainKmcOmp(const cfg::Config &config,
                 unsigned long long int log_dump_steps,
                 unsigned long long int config_dump_steps,
                 unsigned long long int maximum_number,
@@ -30,12 +30,10 @@ class ChainKmcOmp {
     virtual void Simulate();
 
   protected:
-    virtual bool CheckAndSolveEquilibrium(std::ofstream &ofs) { return false; }
     inline void Dump(std::ofstream &ofs);
-    void BuildEventList();
-    [[nodiscard]] double BuildEventListParallel();
-
-    std::vector<size_t> GetLIndexes();
+    void BuildFirstEventList();
+    void BuildSecondEventList();
+    double CalculateTime();
     size_t SelectEvent() const;
 
     // constants
@@ -43,11 +41,11 @@ class ChainKmcOmp {
     static constexpr size_t kSecondEventListSize = 11;
 
     // simulation parameters
-    cfg::Config config_;
+
     const unsigned long long int log_dump_steps_;
     const unsigned long long int config_dump_steps_;
     const unsigned long long int maximum_number_;
-    const double coefficient_;
+    const double beta_;
 
     // simulation statistics
     unsigned long long int steps_;
@@ -62,14 +60,14 @@ class ChainKmcOmp {
     double one_step_time_change_{0.0};
 
     // helpful properties
-    double total_rate_k_{0.0}, total_rate_i_{0.0};
-    int world_rank_{-1}, first_group_rank_{-1}, second_group_rank_{-1};
-    // double rij{0}, pij{0};
-    std::pair<size_t, size_t> atom_id_jump_pair_;
+    std::array<cfg::Config, kFirstEventListSize * kSecondEventListSize> config_list_;
+    std::array<double, kFirstEventListSize> total_rate_i_list_{};
+    std::array<size_t, kFirstEventListSize * kSecondEventListSize> l_index_list_{};
+    double total_rate_k_{0.0};
     size_t previous_j_;
 
-    std::array<JumpEvent, kFirstEventListSize> event_list_{};
-    const pred::EnergyPredictor energy_predictor_;
+    std::array<JumpEvent, kFirstEventListSize> first_event_list_{};
+    const pred::EnergyPredictorLru energy_predictor_;
     mutable std::mt19937_64 generator_;
 };
 

@@ -145,7 +145,7 @@ double ChainKmcMpi::BuildEventListParallel() {
   config_.AtomJump(event_k_i.GetAtomIdJumpPair());
 
   // get sum r_{k to l}
-  const double r_i_l = event_i_l.GetForwardRate();
+  const auto r_i_l = event_i_l.GetForwardRate();
   MPI_Allreduce(&r_i_l, &total_rate_i_, 1, MPI_DOUBLE, MPI_SUM, second_comm_);
   const auto r_i_k = event_k_i.GetBackwardRate();
   total_rate_i_ += r_i_k;
