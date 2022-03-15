@@ -27,7 +27,7 @@ EnergyPredictor::EnergyPredictor(const std::string &predictor_filename,
   }
   for (const auto &element: type_set) {
     auto type_set_copy(type_set);
-    type_set_copy.emplace(ElementType::X);
+    type_set_copy.emplace(ElementName::X);
     type_set_copy.insert(element.GetPseudo());
     element_initialized_cluster_hashmap_[element] = InitializeClusterHashMap(type_set_copy);
   }
@@ -82,7 +82,7 @@ std::pair<double, double> EnergyPredictor::GetBarrierAndDiffFromLatticeIdPair(
           element_vector_transition.push_back(migration_element.GetPseudo());
           continue;
         } else if (lattice_id == lattice_id_jump_pair.second) {
-          element_vector_end.emplace_back(ElementType::X);
+          element_vector_end.emplace_back(ElementName::X);
           element_vector_transition.push_back(migration_element.GetPseudo());
           continue;
         }

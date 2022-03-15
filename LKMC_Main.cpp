@@ -6,7 +6,7 @@
 #include "Config.h"
 #include "ChainKmcMpi.h"
 #include "ChainKmcOmp.h"
-
+#include "ClustersFinder.h"
 int main() {
 
   std::set<Element> ele_set{Element("Al"), Element("Mg"), Element("Zn")};
@@ -20,6 +20,8 @@ int main() {
                      0, 0, 0,
                      "kmc_parameters_state.json");
   a.Simulate();
+
+
   // auto t1 = std::chrono::high_resolution_clock::now();
   // auto conf = cfg::Config::ReadCfg("start.cfg");
   // pred::EnergyPredictorLru a("./kmc_parameters_state.json", conf, ele_set, 1000);
@@ -97,7 +99,7 @@ int main() {
   // std::vector<Element> element_vector_start{}, element_vector_end{};
   // for (auto index: s_lattice_id_vector) {
   //   auto this_element = conf.GetElementAtLatticeId(index);
-  //   if (this_element == ElementType::X) {
+  //   if (this_element == ElementName::X) {
   //     element_vector_start.push_back(conf.GetElementAtLatticeId(23));
   //     continue;
   //   }
@@ -110,7 +112,7 @@ int main() {
   //
   // for (auto index: e_lattice_id_vector) {
   //   auto this_element = conf.GetElementAtLatticeId(index);
-  //   if (this_element == ElementType::X) {
+  //   if (this_element == ElementName::X) {
   //     element_vector_end.push_back(conf.GetElementAtLatticeId(23));
   //     continue;
   //   }

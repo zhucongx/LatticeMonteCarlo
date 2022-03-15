@@ -12,17 +12,17 @@ std::unordered_map<
   for (const auto &element1: type_set) {
     initialized_cluster_hashmap[cfg::ElementCluster(0, element1)] = 0;
     for (const auto &element2: type_set) {
-      if (element2 == ElementType::X) {
+      if (element2 == ElementName::X) {
         continue;
       }
-      if (element1 == ElementType::X && element2.GetString()[0] == 'p') {
+      if (element1 == ElementName::X && element2.GetString()[0] == 'p') {
         continue;
       }
       for (size_t label = 1; label <= 3; ++label) {
         initialized_cluster_hashmap[cfg::ElementCluster(label, element1, element2)] = 0;
       }
       for (const auto &element3: type_set) {
-        if (element3 == ElementType::X || element3.GetString()[0] == 'p') {
+        if (element3 == ElementName::X || element3.GetString()[0] == 'p') {
           continue;
         }
         for (size_t label = 4; label < 11; ++label) {
@@ -578,7 +578,7 @@ std::array<std::vector<double>, 2> GetEncodesFromMapState(
           element_vector_transition.push_back(migration_element.GetPseudo());
           continue;
         } else if (lattice_id == lattice_id_jump_pair.second) {
-          element_vector_end.emplace_back(ElementType::X);
+          element_vector_end.emplace_back(ElementName::X);
           element_vector_transition.push_back(migration_element.GetPseudo());
           continue;
         }

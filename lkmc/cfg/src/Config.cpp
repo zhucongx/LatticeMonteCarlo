@@ -326,7 +326,7 @@ size_t GetVacancyLatticeIndex(const Config &config) {
   auto it = std::find_if(atom_vector.cbegin(),
                          atom_vector.cend(),
                          [](const auto &atom) {
-                           return atom.GetElement() == ElementType::X;
+                           return atom.GetElement() == ElementName::X;
                          });
   if (it != atom_vector.end()) {
     return config.GetLatticeIdFromAtomId(it->GetId());
