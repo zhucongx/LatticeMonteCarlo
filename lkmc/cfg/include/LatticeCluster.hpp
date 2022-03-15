@@ -1,5 +1,5 @@
-#ifndef LKMC_LKMC_PRED_INCLUDE_LATTICECLUSTER_HPP_
-#define LKMC_LKMC_PRED_INCLUDE_LATTICECLUSTER_HPP_
+#ifndef LKMC_LKMC_CFG_INCLUDE_LATTICECLUSTER_HPP_
+#define LKMC_LKMC_CFG_INCLUDE_LATTICECLUSTER_HPP_
 #include <utility>
 #include <vector>
 #include <map>
@@ -12,7 +12,7 @@
 #include "Lattice.hpp"
 #include "Config.h"
 
-namespace pred {
+namespace cfg {
 template<size_t DataSize>
 class LatticeCluster {
   public:
@@ -50,22 +50,20 @@ class LatticeCluster {
       }
       return seed;
     }
-    virtual void Sort() = 0;
   protected:
     std::array<cfg::Lattice, DataSize> lattice_array_;
 };
 
-template<size_t DataSize>
-class LatticeClusterState : public LatticeCluster<DataSize> {
-  public:
-    explicit LatticeClusterState(const std::array<cfg::Lattice, DataSize> &lattice_array)
-        : LatticeCluster<DataSize>(lattice_array) {
-      Sort();
-    }
-    ~LatticeClusterState() override = default;
-  private:
-    void Sort() override {}
-};
-} // namespace pred
+// template<size_t DataSize>
+// class LatticeClusterState : public LatticeCluster<DataSize> {
+//   public:
+//     explicit LatticeClusterState(const std::array<cfg::Lattice, DataSize> &lattice_array)
+//         : LatticeCluster<DataSize>(lattice_array) {
+//     }
+//     ~LatticeClusterState() override = default;
+//   private:
+//     void Sort() override {}
+// };
+} // namespace cfg
 
-#endif //LKMC_LKMC_PRED_INCLUDE_LATTICECLUSTER_HPP_
+#endif //LKMC_LKMC_CFG_INCLUDE_LATTICECLUSTER_HPP_

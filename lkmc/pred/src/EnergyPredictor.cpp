@@ -10,6 +10,7 @@ using json = nlohmann::json;
 
 namespace pred {
 
+
 EnergyPredictor::EnergyPredictor(const std::string &predictor_filename,
                                  const cfg::Config &reference_config,
                                  const std::set<Element> &type_set):
@@ -88,14 +89,14 @@ std::pair<double, double> EnergyPredictor::GetBarrierAndDiffFromLatticeIdPair(
         element_vector_end.push_back(config.GetElementAtLatticeId(lattice_id));
         element_vector_transition.push_back(config.GetElementAtLatticeId(lattice_id));
       }
-      start_hashmap[ElementCluster(label, element_vector_start)]++;
-      end_hashmap[ElementCluster(label, element_vector_end)]++;
-      transition_hashmap[ElementCluster(label, element_vector_transition)]++;
+      start_hashmap[cfg::ElementCluster(label, element_vector_start)]++;
+      end_hashmap[cfg::ElementCluster(label, element_vector_end)]++;
+      transition_hashmap[cfg::ElementCluster(label, element_vector_transition)]++;
     }
     label++;
   }
 
-  std::map<ElementCluster, int>
+  std::map<cfg::ElementCluster, int>
       ordered(initialized_cluster_hashmap.begin(), initialized_cluster_hashmap.end());
   std::vector<double> de_encode, e0_encode;
   de_encode.reserve(ordered.size());

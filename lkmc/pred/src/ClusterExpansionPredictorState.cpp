@@ -1,9 +1,39 @@
-#include "ClusterExpansionPredictor.h"
-#include "ElementCluster.hpp"
+#include "EnergyPredictor.h"
 namespace pred {
-using Singlet_State_t = LatticeClusterState<1>;
-using Pair_State_t = LatticeClusterState<2>;
-using Triplet_State_t = LatticeClusterState<3>;
+using Singlet_State_t = cfg::LatticeCluster<1>;
+using Pair_State_t = cfg::LatticeCluster<2>;
+using Triplet_State_t = cfg::LatticeCluster<3>;
+std::unordered_map<
+    cfg::ElementCluster, int, boost::hash<cfg::ElementCluster> > InitializeClusterHashMap(
+    const std::set<Element> &type_set) {
+  std::unordered_map<cfg::ElementCluster, int,
+                     boost::hash<cfg::ElementCluster> > initialized_cluster_hashmap;
+
+  for (const auto &element1: type_set) {
+    initialized_cluster_hashmap[cfg::ElementCluster(0, element1)] = 0;
+    for (const auto &element2: type_set) {
+      if (element2 == ElementType::X) {
+        continue;
+      }
+      if (element1 == ElementType::X && element2.GetString()[0] == 'p') {
+        continue;
+      }
+      for (size_t label = 1; label <= 3; ++label) {
+        initialized_cluster_hashmap[cfg::ElementCluster(label, element1, element2)] = 0;
+      }
+      for (const auto &element3: type_set) {
+        if (element3 == ElementType::X || element3.GetString()[0] == 'p') {
+          continue;
+        }
+        for (size_t label = 4; label < 11; ++label) {
+          initialized_cluster_hashmap[cfg::ElementCluster(label, element1, element2, element3)] = 0;
+        }
+      }
+    }
+  }
+  return initialized_cluster_hashmap;
+}
+
 static bool LatticeSortCompare(const cfg::Lattice &lhs,
                                const cfg::Lattice &rhs) {
   const auto &relative_position_lhs = lhs.GetRelativePosition();
@@ -51,7 +81,7 @@ std::vector<cfg::Lattice> GetSortedLatticeVectorState(
 
 template<size_t DataSize>
 static void GetParametersMappingFromLatticeClusterVectorHelper(
-    std::vector<LatticeClusterState<DataSize>> &&cluster_vector,
+    std::vector<cfg::LatticeCluster<DataSize>> &&cluster_vector,
     std::vector<std::vector<std::vector<size_t> > > &cluster_mapping
 ) {
   std::vector<std::vector<size_t> > cluster_index_vector;
@@ -525,9 +555,9 @@ std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState
 std::array<std::vector<double>, 2> GetEncodesFromMapState(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &lattice_id_jump_pair,
-    const std::unordered_map<ElementCluster,
+    const std::unordered_map<cfg::ElementCluster,
                              int,
-                             boost::hash<ElementCluster> > &initialized_cluster_hashmap,
+                             boost::hash<cfg::ElementCluster> > &initialized_cluster_hashmap,
     const std::vector<std::vector<std::vector<size_t> > > &cluster_mapping) {
   auto migration_element = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
   auto start_hashmap(initialized_cluster_hashmap);
@@ -555,13 +585,13 @@ std::array<std::vector<double>, 2> GetEncodesFromMapState(
         element_vector_end.push_back(config.GetElementAtLatticeId(lattice_id));
         element_vector_transition.push_back(config.GetElementAtLatticeId(lattice_id));
       }
-      start_hashmap[ElementCluster(label, element_vector_start)]++;
-      end_hashmap[ElementCluster(label, element_vector_end)]++;
-      transition_hashmap[ElementCluster(label, element_vector_transition)]++;
+      start_hashmap[cfg::ElementCluster(label, element_vector_start)]++;
+      end_hashmap[cfg::ElementCluster(label, element_vector_end)]++;
+      transition_hashmap[cfg::ElementCluster(label, element_vector_transition)]++;
     }
     label++;
   }
-  std::map<ElementCluster, int>
+  std::map<cfg::ElementCluster, int>
       ordered(initialized_cluster_hashmap.begin(), initialized_cluster_hashmap.end());
   std::vector<double> de_encode, e0_encode;
   de_encode.reserve(ordered.size());

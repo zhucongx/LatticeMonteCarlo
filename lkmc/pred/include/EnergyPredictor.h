@@ -4,9 +4,25 @@
 #include <set>
 #include <boost/functional/hash.hpp>
 #include "Config.h"
-#include "ClusterExpansionPredictor.h"
+#include "LatticeCluster.hpp"
 #include "ElementCluster.hpp"
 namespace pred {
+std::unordered_map<
+    cfg::ElementCluster, int, boost::hash<cfg::ElementCluster> > InitializeClusterHashMap(
+    const std::set<Element> &type_set);
+std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState(
+    const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair);
+std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState(
+    const cfg::Config &config);
+std::vector<cfg::Lattice> GetSortedLatticeVectorState(
+    const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair);
+std::array<std::vector<double>, 2> GetEncodesFromMapState(
+    const cfg::Config &config,
+    const std::pair<size_t, size_t> &lattice_id_jump_pair,
+    const std::unordered_map<cfg::ElementCluster,
+                             int,
+                             boost::hash<cfg::ElementCluster> > &initialized_cluster_hashmap,
+    const std::vector<std::vector<std::vector<size_t> > > &cluster_mapping);
 
 class EnergyPredictor {
   public:
@@ -30,8 +46,8 @@ class EnergyPredictor {
                        std::vector<double>,
                        boost::hash<Element> > element_theta_;
     std::unordered_map<Element,
-                       std::unordered_map<ElementCluster, int,
-                                          boost::hash<ElementCluster> >,
+                       std::unordered_map<cfg::ElementCluster, int,
+                                          boost::hash<cfg::ElementCluster> >,
                        boost::hash<Element> > element_initialized_cluster_hashmap_;
 };
 } // namespace pred
