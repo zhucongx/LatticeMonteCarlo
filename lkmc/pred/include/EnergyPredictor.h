@@ -21,9 +21,10 @@ class EnergyPredictor {
     [[nodiscard]] virtual std::pair<double, double> GetBarrierAndDiffFromLatticeIdPair(
         const cfg::Config &config,
         const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
+    const std::vector<std::vector<std::vector<size_t> > > cluster_mapping_{};
     std::unordered_map<std::pair<size_t, size_t>,
-                       std::vector<std::vector<std::vector<size_t> > >,
-                       boost::hash<std::pair<size_t, size_t> > > site_bond_mapping_hashmap_;
+                       std::vector<size_t>,
+                       boost::hash<std::pair<size_t, size_t> > > site_bond_cluster_hashmap_;
     std::vector<double> base_theta_{};
     std::unordered_map<Element,
                        std::vector<double>,

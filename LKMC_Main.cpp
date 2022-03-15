@@ -12,8 +12,8 @@ int main() {
   std::set<Element> ele_set{Element("Al"), Element("Mg"), Element("Zn")};
   auto conf = cfg::Config::ReadCfg("start.cfg");
   kmc::ChainKmcMpi a(conf,
-                     1,
-                     1e4,
+                     1e3,
+                     1e5,
                      1e10,
                      300,
                      ele_set,
@@ -29,7 +29,7 @@ int main() {
   //           << std::chrono::duration_cast<std::chrono::seconds>(t2 - t1).count() << ", " << Ea
   //           << ", " << dE << std::endl;
   //
-  // for (int i = 0; i < 10000; ++i) {
+  // for (int i = 0; i < 1000000; ++i) {
   //   auto pair = a.GetBarrierAndDiffFromAtomIdPair(conf, {82, 83});
   //   Ea = pair.first;
   //   dE = pair.second;
@@ -38,7 +38,11 @@ int main() {
   // std::cout << std::setprecision(8)
   //           << std::chrono::duration_cast<std::chrono::seconds>(t3 - t2).count() << ", " << Ea
   //           << ", " << dE << std::endl;
-  // //
+  //
+  //
+
+
+
   // std::ifstream ifs("all_data_neb_results/barriers.txt", std::ifstream::in);
   // if (!ifs.is_open()) {
   //   std::cout << "Cannot open kmc_log.txt\n";

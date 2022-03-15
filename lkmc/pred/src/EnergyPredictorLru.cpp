@@ -25,10 +25,10 @@ std::pair<double, double> EnergyPredictorLru::GetBarrierAndDiffFromLatticeIdPair
 size_t EnergyPredictorLru::GetHashFromConfigAndLatticeIdPair(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
-  const auto &cluster_mapping = site_bond_mapping_hashmap_.at(lattice_id_jump_pair);
+  const auto &lattice_id_list = site_bond_cluster_hashmap_.at(lattice_id_jump_pair);
   size_t seed = 0;
   for (size_t i = 0; i < constants::kNumThirdNearestSetSize; i++) {
-    boost::hash_combine(seed, config.GetAtomIdFromLatticeId(cluster_mapping[0][i][0]));
+    boost::hash_combine(seed, config.GetAtomIdFromLatticeId(lattice_id_list[i]));
   }
   return seed;
 }

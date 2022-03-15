@@ -86,17 +86,17 @@ inline std::unordered_map<
   for (const auto &element1: type_set) {
     initialized_cluster_hashmap[ElementCluster(0, element1)] = 0;
     for (const auto &element2: type_set) {
-      if (element2 == Element("X")) {
+      if (element2 == ElementType::X) {
         continue;
       }
-      if (element1 == Element("X") && element2.GetString()[0] == 'p') {
+      if (element1 == ElementType::X && element2.GetString()[0] == 'p') {
         continue;
       }
       for (size_t label = 1; label <= 3; ++label) {
         initialized_cluster_hashmap[ElementCluster(label, element1, element2)] = 0;
       }
       for (const auto &element3: type_set) {
-        if (element3 == Element("X") || element3.GetString()[0] == 'p') {
+        if (element3 == ElementType::X || element3.GetString()[0] == 'p') {
           continue;
         }
         for (size_t label = 4; label < 11; ++label) {
