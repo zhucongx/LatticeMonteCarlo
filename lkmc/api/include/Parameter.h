@@ -5,6 +5,7 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include <iterator>
 namespace api {
 struct Parameter {
   public:
