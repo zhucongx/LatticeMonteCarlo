@@ -69,6 +69,14 @@ Element Config::GetElementAtLatticeId(size_t lattice_id) const {
   auto atom_id = lattice_to_atom_hashmap_.at(lattice_id);
   return atom_vector_[atom_id].GetElement();
 }
+std::set<Element> Config::GetElementSetWithoutVacancy() const {
+  std::set<Element> res;
+  for (const auto &atom: atom_vector_) {
+    if (atom.GetElement() == ElementName::X) { continue; }
+    res.insert(atom.GetElement());
+  }
+  return res;
+}
 size_t Config::GetStateHash() const {
   size_t seed = 0;
   for (size_t i = 0; i < GetNumAtoms(); ++i) {

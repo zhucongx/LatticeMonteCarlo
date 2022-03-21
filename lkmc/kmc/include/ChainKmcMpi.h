@@ -20,9 +20,9 @@ class ChainKmcMpi {
                 unsigned long long int maximum_number,
                 double temperature,
                 const std::set<Element> &type_set,
-                unsigned long long int steps,
-                double energy,
-                double time,
+                unsigned long long int restart_steps,
+                double restart_energy,
+                double restart_time,
                 const std::string &json_parameters_filename);
     virtual ~ChainKmcMpi();
     virtual void Simulate();

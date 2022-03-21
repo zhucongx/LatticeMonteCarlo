@@ -1,6 +1,7 @@
 #ifndef LKMC_LKMC_CFG_INCLUDE_CONFIG_H_
 #define LKMC_LKMC_CFG_INCLUDE_CONFIG_H_
 #include <vector>
+#include <set>
 #include <unordered_set>
 #include <unordered_map>
 #include "Atom.hpp"
@@ -27,6 +28,7 @@ class Config {
     [[nodiscard]] size_t GetAtomIdFromLatticeId(size_t lattice_id) const;
     [[nodiscard]] size_t GetLatticeIdFromAtomId(size_t atom_id) const;
     [[nodiscard]] Element GetElementAtLatticeId(size_t lattice_id) const;
+    [[nodiscard]] std::set<Element> GetElementSetWithoutVacancy() const;
     [[nodiscard]] size_t GetStateHash() const;
     /// Modify config
     void AtomJump(const std::pair<size_t, size_t> &atom_id_jump_pair);

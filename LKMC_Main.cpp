@@ -1,24 +1,16 @@
-#include "Constants.hpp"
-#include "VectorMatrix.hpp"
-#include "Lattice.hpp"
-#include "Atom.hpp"
-#include "LatticeCluster.hpp"
-#include "Config.h"
-#include "ChainKmcMpi.h"
-#include "ChainKmcOmp.h"
-#include "ClustersFinder.h"
-int main() {
+#include "Home.h"
+int main(int argc, char *argv[]) {
+  api::Parameter parameter;
 
-  std::set<Element> ele_set{Element("Al"), Element("Mg"), Element("Zn")};
-  auto conf = cfg::Config::ReadCfg("start.cfg");
-  kmc::ChainKmcMpi a(conf,
-                     1e3,
-                     1e5,
-                     1e10,
-                     300,
-                     ele_set,
-                     0, 0, 0,
-                     "kmc_parameters_state.json");
+  if (argc == 1) {
+    std::cout << "No input parameter filename. Opening kmc.param" << std::endl;
+    parameter = api::Parameter("kmc.param");
+  } else {
+    parameter = api::Parameter(argc, argv);
+  }
+  parameter.PrintParameters();
+
+  kmc::ChainKmcMpi a = api::BuildKmcMpiFromParameter(parameter);
   a.Simulate();
 
 

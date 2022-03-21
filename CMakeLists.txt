@@ -58,11 +58,13 @@ file(GLOB PROJECT_SRC
         ${PROJECT_SOURCE_DIR}/lkmc/cfg/src/*.cpp
         ${PROJECT_SOURCE_DIR}/lkmc/pred/src/*.cpp
         ${PROJECT_SOURCE_DIR}/lkmc/kmc/src/*.cpp
+        ${PROJECT_SOURCE_DIR}/lkmc/api/src/*.cpp
         )
 set(PROJECT_INCLUDE
         ${PROJECT_SOURCE_DIR}/lkmc/cfg/include
         ${PROJECT_SOURCE_DIR}/lkmc/pred/include
         ${PROJECT_SOURCE_DIR}/lkmc/kmc/include
+        ${PROJECT_SOURCE_DIR}/lkmc/api/include
         )
 
 add_executable(${PROJECT_NAME} LKMC_Main.cpp ${PROJECT_SRC})
