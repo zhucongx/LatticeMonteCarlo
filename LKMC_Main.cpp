@@ -1,27 +1,25 @@
 #include "Home.h"
 int main(int argc, char *argv[]) {
-  api::Parameter parameter;
-
-  if (argc == 1) {
-    std::cout << "No input parameter filename. Opening kmc.param" << std::endl;
-    parameter = api::Parameter("kmc.param");
-  } else {
-    parameter = api::Parameter(argc, argv);
-  }
-  parameter.PrintParameters();
-
-  kmc::ChainKmcMpi a = api::BuildKmcMpiFromParameter(parameter);
-  a.Simulate();
-
-
-  // auto t1 = std::chrono::high_resolution_clock::now();
-  // auto conf = cfg::Config::ReadCfg("start.cfg");
-  // pred::EnergyPredictorLru a("./kmc_parameters_state.json", conf, ele_set, 1000);
-  // auto[Ea, dE] = a.GetBarrierAndDiffFromAtomIdPair(conf, {82, 83});
-  // auto t2 = std::chrono::high_resolution_clock::now();
-  // std::cout << std::setprecision(8)
-  //           << std::chrono::duration_cast<std::chrono::seconds>(t2 - t1).count() << ", " << Ea
-  //           << ", " << dE << std::endl;
+  // api::Parameter parameter;
+  // if (argc == 1) {
+  //   std::cout << "No input parameter filename. Opening kmc.param" << std::endl;
+  //   parameter = api::Parameter("kmc.param");
+  // } else {
+  //   parameter = api::Parameter(argc, argv);
+  // }
+  // parameter.PrintParameters();
+  //
+  // kmc::ChainKmcMpi a = api::BuildKmcMpiFromParameter(parameter);
+  // a.Simulate();
+  std::set<Element> ele_set{Element("Al"), Element("Mg"), Element("Zn")};
+  auto conf = cfg::Config::ReadCfg("start.cfg");
+  pred::EnergyPredictorLru a("./kmc_parameters_state.json", conf, ele_set, 1000);
+  auto t1 = std::chrono::high_resolution_clock::now();
+  auto[Ea, dE] = a.GetBarrierAndDiffFromAtomIdPair(conf, {82, 83});
+  auto t2 = std::chrono::high_resolution_clock::now();
+  std::cout << std::setprecision(8)
+            << std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() << ", " << Ea
+            << ", " << dE << std::endl;
   //
   // for (int i = 0; i < 1000000; ++i) {
   //   auto pair = a.GetBarrierAndDiffFromAtomIdPair(conf, {82, 83});
