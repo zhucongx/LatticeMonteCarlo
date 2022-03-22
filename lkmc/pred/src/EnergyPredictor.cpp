@@ -110,25 +110,25 @@ std::pair<double, double> EnergyPredictor::GetBarrierAndDiffFromLatticeIdPair(
     switch (cluster.GetLabel()) {
       case 0:total_bond = 256;
         break;
-      case 1: total_bond = 3072;
+      case 1: total_bond = 1536;
         break;
-      case 2: total_bond = 1536;
+      case 2: total_bond = 768;
         break;
-      case 3: total_bond = 6144;
+      case 3: total_bond = 3072;
         break;
-      case 4: total_bond = 12288;
+      case 4: total_bond = 2048;
         break;
-      case 5: total_bond = 6144;
+      case 5: total_bond = 3072;
         break;
-      case 6: total_bond = 12288;
+      case 6: total_bond = 6144;
         break;
       case 7: total_bond = 6144;
         break;
-      case 8: total_bond = 12288;
+      case 8: total_bond = 6144;
         break;
-      case 9: total_bond = 12288;
+      case 9: total_bond = 6144;
         break;
-      case 10: total_bond = 12288;
+      case 10: total_bond = 2048;
         break;
     }
     de_encode.push_back((end - start) / total_bond);

@@ -16,13 +16,6 @@ std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState
     const cfg::Config &config);
 std::vector<cfg::Lattice> GetSortedLatticeVectorState(
     const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair);
-std::array<std::vector<double>, 2> GetEncodesFromMapState(
-    const cfg::Config &config,
-    const std::pair<size_t, size_t> &lattice_id_jump_pair,
-    const std::unordered_map<cfg::ElementCluster,
-                             int,
-                             boost::hash<cfg::ElementCluster> > &initialized_cluster_hashmap,
-    const std::vector<std::vector<std::vector<size_t> > > &cluster_mapping);
 
 class EnergyPredictor {
   public:

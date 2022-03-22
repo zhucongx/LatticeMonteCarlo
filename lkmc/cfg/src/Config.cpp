@@ -400,7 +400,7 @@ int FindDistanceLabelBetween_Lattice(size_t index1, size_t index2, const Config 
                 index2) != third_neighbors_adjacency_list.end()) {
     return 3;
   }
-  return 0;
+  return -1;
 
 }
 
