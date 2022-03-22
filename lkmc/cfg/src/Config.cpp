@@ -381,4 +381,27 @@ std::unordered_set<size_t> GetNeighborsLatticeIdSetOfJumpPair(
   }
   return near_neighbors_hashset;
 }
+int FindDistanceLabelBetween_Lattice(size_t index1, size_t index2, const Config &config) {
+  const auto &first_neighbors_adjacency_list = config.GetFirstNeighborsAdjacencyList()[index1];
+  const auto &second_neighbors_adjacency_list = config.GetSecondNeighborsAdjacencyList()[index1];
+  const auto &third_neighbors_adjacency_list = config.GetThirdNeighborsAdjacencyList()[index1];
+  if (std::find(first_neighbors_adjacency_list.begin(),
+                first_neighbors_adjacency_list.end(),
+                index2) != first_neighbors_adjacency_list.end()) {
+    return 1;
+  }
+  if (std::find(second_neighbors_adjacency_list.begin(),
+                second_neighbors_adjacency_list.end(),
+                index2) != second_neighbors_adjacency_list.end()) {
+    return 2;
+  }
+  if (std::find(third_neighbors_adjacency_list.begin(),
+                third_neighbors_adjacency_list.end(),
+                index2) != third_neighbors_adjacency_list.end()) {
+    return 3;
+  }
+  return 0;
+
+}
+
 } // namespace cfg

@@ -12,10 +12,11 @@ int main(int argc, char *argv[]) {
   // kmc::ChainKmcMpi a = api::BuildKmcMpiFromParameter(parameter);
   // a.Simulate();
   std::set<Element> ele_set{Element("Al"), Element("Mg"), Element("Zn")};
-  auto conf = cfg::Config::ReadCfg("start.cfg");
-  pred::EnergyPredictorLru a("./kmc_parameters_state.json", conf, ele_set, 1000);
+  auto conf1 = cfg::Config::ReadCfg("start.cfg");
+  auto conf2 = cfg::Config::ReadCfg("forward.cfg");
+  pred::EnergyPredictorLru a("./kmc_parameters_state.json", conf1, ele_set, 1000);
   auto t1 = std::chrono::high_resolution_clock::now();
-  auto[Ea, dE] = a.GetBarrierAndDiffFromAtomIdPair(conf, {82, 83});
+  auto[Ea, dE] = a.GetBarrierAndDiffFromAtomIdPair(conf2, {18, 23});
   auto t2 = std::chrono::high_resolution_clock::now();
   std::cout << std::setprecision(8)
             << std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() << ", " << Ea

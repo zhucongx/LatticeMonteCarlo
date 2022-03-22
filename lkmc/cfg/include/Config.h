@@ -72,5 +72,6 @@ std::unordered_set<size_t> GetNeighborsLatticeIdSetOfLattice(
     const Config &config, size_t lattice_id);
 Config GetNeighborsConfigSetOfJumpPair(
     const Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair);
+int FindDistanceLabelBetween_Lattice(size_t index1, size_t index2, const Config &config);
 } // namespace cfg
 #endif //LKMC_LKMC_CFG_INCLUDE_CONFIG_H_
