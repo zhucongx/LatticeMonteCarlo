@@ -354,55 +354,62 @@ std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState
     cfg::Lattice lattice1(lattice_vector[index1]);
     const size_t id1 = lattice1.GetId();
     lattice1.SetId(index1);
-    singlet_vector.emplace_back(std::array<cfg::Lattice, 1>{lattice1});
+    if (id1 == lattice_id_jump_pair.first || id1 == lattice_id_jump_pair.second) {
+      singlet_vector.emplace_back(std::array<cfg::Lattice, 1>{lattice1});
+    }
     for (size_t index2 = 0; index2 < index1; ++index2) {
       cfg::Lattice lattice2(lattice_vector[index2]);
       const size_t id2 = lattice2.GetId();
       lattice2.SetId(index2);
-      switch (GetLabel({id1, id2}, config)) {
-        case 1: first_pair_vector.emplace_back(std::array<cfg::Lattice, 2>{lattice1, lattice2});
-          break;
-        case 2: second_pair_vector.emplace_back(std::array<cfg::Lattice, 2>{lattice1, lattice2});
-          break;
-        case 3: third_pair_vector.emplace_back(std::array<cfg::Lattice, 2>{lattice1, lattice2});
-          break;
-        default:
-          continue;
-
+      if (id1 == lattice_id_jump_pair.first || id1 == lattice_id_jump_pair.second
+          || id2 == lattice_id_jump_pair.first || id2 == lattice_id_jump_pair.second) {
+        switch (GetLabel({id1, id2}, config)) {
+          case 1: first_pair_vector.emplace_back(std::array<cfg::Lattice, 2>{lattice1, lattice2});
+            break;
+          case 2: second_pair_vector.emplace_back(std::array<cfg::Lattice, 2>{lattice1, lattice2});
+            break;
+          case 3: third_pair_vector.emplace_back(std::array<cfg::Lattice, 2>{lattice1, lattice2});
+            break;
+          default:continue;
+        }
       }
       for (size_t index3 = 0; index3 < index2; ++index3) {
         cfg::Lattice lattice3(lattice_vector[index3]);
         const size_t id3 = lattice3.GetId();
         lattice3.SetId(index3);
-        switch (GetLabel({id1, id2, id3}, config)) {
-          case 4:
-            first_first_first_triplets_vector.emplace_back(
-                std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
-            break;
-          case 5:
-            first_first_second_triplets_vector.emplace_back(
-                std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
-            break;
-          case 6:
-            first_first_third_triplets_vector.emplace_back(
-                std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
-            break;
-          case 7:
-            first_second_third_triplets_vector.emplace_back(
-                std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
-            break;
-          case 8:
-            first_third_third_triplets_vector.emplace_back(
-                std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
-            break;
-          case 9:
-            second_third_third_triplets_vector.emplace_back(
-                std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
-            break;
-          case 10:
-            third_third_third_triplets_vector.emplace_back(
-                std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
-            break;
+        if (id1 == lattice_id_jump_pair.first || id1 == lattice_id_jump_pair.second
+            || id2 == lattice_id_jump_pair.first || id2 == lattice_id_jump_pair.second
+            || id3 == lattice_id_jump_pair.first || id3 == lattice_id_jump_pair.second) {
+          switch (GetLabel({id1, id2, id3}, config)) {
+            case 4:
+              first_first_first_triplets_vector.emplace_back(
+                  std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
+              break;
+            case 5:
+              first_first_second_triplets_vector.emplace_back(
+                  std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
+              break;
+            case 6:
+              first_first_third_triplets_vector.emplace_back(
+                  std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
+              break;
+            case 7:
+              first_second_third_triplets_vector.emplace_back(
+                  std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
+              break;
+            case 8:
+              first_third_third_triplets_vector.emplace_back(
+                  std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
+              break;
+            case 9:
+              second_third_third_triplets_vector.emplace_back(
+                  std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
+              break;
+            case 10:
+              third_third_third_triplets_vector.emplace_back(
+                  std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
+              break;
+          }
         }
       }
     }
