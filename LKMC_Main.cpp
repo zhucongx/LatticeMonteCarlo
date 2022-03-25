@@ -15,7 +15,7 @@ int main(int argc, char *argv[]) {
   a.Simulate();
   // std::set<Element> ele_set{Element("Al"), Element("Mg"), Element("Zn")};
   // auto conf = cfg::Config::ReadCfg("start.cfg");
-  // pred::EnergyPredictorLru a("./kmc_parameters_state.json",
+  // pred::EnergyPredictorLru a("./kmc_parameters_state_4.json",
   //                            conf, ele_set, 1000);
   // auto t1 = std::chrono::high_resolution_clock::now();
   // auto[Ea, dE] = a.GetBarrierAndDiffFromAtomIdPair(conf, {82, 83});
@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
   // std::cout << std::setprecision(8)
   //           << std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() << ", " << Ea
   //           << ", " << dE << std::endl;
-  //
+
   // for (int i = 0; i < 1000000; ++i) {
   //   auto pair = a.GetBarrierAndDiffFromAtomIdPair(conf, {82, 83});
   //   Ea = pair.first;
