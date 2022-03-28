@@ -10,11 +10,10 @@ using json = nlohmann::json;
 
 namespace pred {
 
-
 EnergyPredictor::EnergyPredictor(const std::string &predictor_filename,
                                  const cfg::Config &reference_config,
-                                 const std::set<Element> &type_set):
-    cluster_mapping_(GetClusterParametersMappingState(reference_config)){
+                                 const std::set<Element> &type_set)
+    : cluster_mapping_(GetClusterParametersMappingState(reference_config)) {
   std::ifstream ifs(predictor_filename, std::ifstream::in);
   json all_parameters;
   ifs >> all_parameters;

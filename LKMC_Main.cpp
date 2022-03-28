@@ -13,9 +13,10 @@ int main(int argc, char *argv[]) {
 
   kmc::ChainKmcMpi a = api::BuildKmcMpiFromParameter(parameter);
   a.Simulate();
-  // std::set<Element> ele_set{Element("Al"), Element("Mg"), Element("Zn")};
+  // std::set<Element> ele_set{Element("Al"), Element("Mg"),
+  //                           Element("Sn"), Element("Zn")};
   // auto conf = cfg::Config::ReadCfg("start.cfg");
-  // pred::EnergyPredictorLru a("./kmc_parameters_state_4.json",
+  // pred::EnergyPredictorLru a("./kmc_parameters_AlMgSnZn_4.json",
   //                            conf, ele_set, 1000);
   // auto t1 = std::chrono::high_resolution_clock::now();
   // auto[Ea, dE] = a.GetBarrierAndDiffFromAtomIdPair(conf, {82, 83});
