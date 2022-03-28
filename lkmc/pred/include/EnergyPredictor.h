@@ -4,18 +4,8 @@
 #include <set>
 #include <boost/functional/hash.hpp>
 #include "Config.h"
-#include "LatticeCluster.hpp"
 #include "ElementCluster.hpp"
 namespace pred {
-std::unordered_map<
-    cfg::ElementCluster, int, boost::hash<cfg::ElementCluster> > InitializeClusterHashMap(
-    const std::set<Element> &type_set);
-std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState(
-    const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair);
-std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState(
-    const cfg::Config &config);
-std::vector<cfg::Lattice> GetSortedLatticeVectorState(
-    const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair);
 
 class EnergyPredictor {
   public:
