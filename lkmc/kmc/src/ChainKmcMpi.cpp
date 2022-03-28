@@ -262,16 +262,16 @@ void ChainKmcMpi::Simulate() {
 
     atom_id_jump_pair_ = selected_event.GetAtomIdJumpPair();
 
-    if (!CheckAndSolveEquilibrium(ofs)) {
-      // update time and energy
-      time_ += one_step_time_change_;
-      one_step_energy_change_ = selected_event.GetEnergyChange();
-      energy_ += one_step_energy_change_;
-      one_step_barrier_ = selected_event.GetForwardBarrier();
+    // if (!CheckAndSolveEquilibrium(ofs)) {
+    // update time and energy
+    time_ += one_step_time_change_;
+    one_step_energy_change_ = selected_event.GetEnergyChange();
+    energy_ += one_step_energy_change_;
+    one_step_barrier_ = selected_event.GetForwardBarrier();
 
-      config_.AtomJump(atom_id_jump_pair_);
-      previous_j_ = atom_id_jump_pair_.second;
-    }
+    config_.AtomJump(atom_id_jump_pair_);
+    previous_j_ = atom_id_jump_pair_.second;
+    // }
     ++steps_;
   }
 }
