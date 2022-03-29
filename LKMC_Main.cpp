@@ -14,16 +14,16 @@ int main(int argc, char *argv[]) {
   kmc::ChainKmcMpi a = api::BuildKmcMpiFromParameter(parameter);
   a.Simulate();
   // std::set<Element> ele_set{Element("Al"), Element("Mg"),
-  //                           Element("Sn"), Element("Zn")};
-  // auto conf = cfg::Config::ReadCfg("start_sn.cfg");
-  // pred::EnergyPredictorLru a("./kmc_parameters_AlMgSnZn_4.json",
-  //                            conf, ele_set, 1000);
+  //                           Element("Zn")};
+  // auto conf = cfg::Config::ReadCfg("start.cfg");
+  // pred::EnergyPredictorSymmetry a("./kmc_parameters_symmetry.json",
+  //                                 conf, ele_set);
   // auto t1 = std::chrono::high_resolution_clock::now();
-  // auto[Ea, dE] = a.GetBarrierAndDiffFromAtomIdPair(conf, {250, 166});
+  // auto[Ea, dE] = a.GetBarrierAndDiffFromAtomIdPair(conf, {82, 83});
   // auto t2 = std::chrono::high_resolution_clock::now();
   // std::cout << std::setprecision(8)
-  //           << std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() << ", " << Ea-0.5*dE
-  //           << ", " << dE << std::endl;
+  //           << std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() << ", "
+  //           << Ea << ", " << dE << std::endl;
 
   // for (int i = 0; i < 1000000; ++i) {
   //   auto pair = a.GetBarrierAndDiffFromAtomIdPair(conf, {82, 83});

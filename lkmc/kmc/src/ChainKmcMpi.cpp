@@ -26,7 +26,7 @@ ChainKmcMpi::ChainKmcMpi(cfg::Config config,
       vacancy_index_(cfg::GetVacancyAtomIndex(config_)),
       previous_j_(config_.GetFirstNeighborsAtomIdVectorOfAtom(vacancy_index_)[0]),
       energy_predictor_(json_parameters_filename,
-                        config_, type_set, 1000),
+                        config_, type_set),
       generator_(static_cast<unsigned long long int>(
                      std::chrono::system_clock::now().time_since_epoch().count())) {
   event_list_.resize(kFirstEventListSize);

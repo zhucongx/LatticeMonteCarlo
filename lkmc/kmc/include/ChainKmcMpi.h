@@ -2,7 +2,7 @@
 #define LKMC_LKMC_KMC_INCLUDE_CHAINKMCMPI_H_
 #include <random>
 #include <mpi.h>
-
+#include "EnergyPredictorSymmetry.h"
 #include "EnergyPredictorLru.h"
 #include "JumpEvent.h"
 namespace kmc {
@@ -69,7 +69,7 @@ class ChainKmcMpi {
     MPI_Comm first_comm_, second_comm_;
 
     std::vector<JumpEvent> event_list_{};
-    const pred::EnergyPredictorLru energy_predictor_;
+    const pred::EnergyPredictorSymmetry energy_predictor_;
     mutable std::mt19937_64 generator_;
 };
 
