@@ -69,7 +69,7 @@ class ChainKmcMpi {
     MPI_Comm first_comm_, second_comm_;
 
     std::vector<JumpEvent> event_list_{};
-    const pred::EnergyPredictorSymmetry energy_predictor_;
+    const pred::EnergyPredictorLru energy_predictor_;
     mutable std::mt19937_64 generator_;
 };
 
