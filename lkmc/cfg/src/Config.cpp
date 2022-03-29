@@ -381,7 +381,7 @@ std::unordered_set<size_t> GetNeighborsLatticeIdSetOfJumpPair(
   }
   return near_neighbors_hashset;
 }
-int FindDistanceLabelBetween_Lattice(size_t index1, size_t index2, const Config &config) {
+int FindDistanceLabelBetweenLattice(size_t index1, size_t index2, const Config &config) {
   const auto &first_neighbors_adjacency_list = config.GetFirstNeighborsAdjacencyList()[index1];
   const auto &second_neighbors_adjacency_list = config.GetSecondNeighborsAdjacencyList()[index1];
   const auto &third_neighbors_adjacency_list = config.GetThirdNeighborsAdjacencyList()[index1];

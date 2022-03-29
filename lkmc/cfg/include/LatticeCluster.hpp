@@ -63,7 +63,7 @@ class LatticeClusterMM2 : public LatticeCluster<DataSize> {
     }
     ~LatticeClusterMM2() override = default;
   private:
-    void Sort() override {
+    void Sort() {
       std::sort(this->lattice_array_.begin(), this->lattice_array_.end(),
                 [](const auto &lhs, const auto &rhs) {
                   const auto &relative_position_lhs = lhs.GetRelativePosition();
@@ -98,7 +98,7 @@ class LatticeClusterMMM : public LatticeCluster<DataSize> {
     }
     ~LatticeClusterMMM() override = default;
   private:
-    void Sort() override {
+    void Sort() {
       std::sort(this->lattice_array_.begin(), this->lattice_array_.end(),
                 [](const auto &lhs, const auto &rhs) {
                   const auto &relative_position_lhs = lhs.GetRelativePosition();

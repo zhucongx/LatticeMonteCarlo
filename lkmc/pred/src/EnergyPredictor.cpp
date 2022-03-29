@@ -95,21 +95,21 @@ static int GetLabel(const std::vector<size_t> &lattice_index_list, const cfg::Co
     return 0;
   }
   if (lattice_index_list.size() == 2) {
-    return cfg::FindDistanceLabelBetween_Lattice(lattice_index_list[0],
-                                                 lattice_index_list[1],
-                                                 config);
+    return cfg::FindDistanceLabelBetweenLattice(lattice_index_list[0],
+                                                lattice_index_list[1],
+                                                config);
   }
   if (lattice_index_list.size() == 3) {
     std::vector<int>
-        bond_label_list{cfg::FindDistanceLabelBetween_Lattice(lattice_index_list[0],
-                                                              lattice_index_list[1],
-                                                              config),
-                        cfg::FindDistanceLabelBetween_Lattice(lattice_index_list[1],
-                                                              lattice_index_list[2],
-                                                              config),
-                        cfg::FindDistanceLabelBetween_Lattice(lattice_index_list[2],
-                                                              lattice_index_list[0],
-                                                              config)};
+        bond_label_list{cfg::FindDistanceLabelBetweenLattice(lattice_index_list[0],
+                                                             lattice_index_list[1],
+                                                             config),
+                        cfg::FindDistanceLabelBetweenLattice(lattice_index_list[1],
+                                                             lattice_index_list[2],
+                                                             config),
+                        cfg::FindDistanceLabelBetweenLattice(lattice_index_list[2],
+                                                             lattice_index_list[0],
+                                                             config)};
     std::sort(bond_label_list.begin(), bond_label_list.end());
     if (bond_label_list[0] == 1 && bond_label_list[1] == 1 && bond_label_list[2] == 1) {
       return 4;
