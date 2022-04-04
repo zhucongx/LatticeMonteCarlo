@@ -120,7 +120,8 @@ static std::vector<cfg::Lattice> GetSymmetricallySortedLatticeVectorMMM(
     relative_position += move_distance;
     relative_position -= ElementFloor(relative_position);
     lattice.SetRelativePosition(relative_position);
-    if (lattice.GetId() == lattice_id_jump_pair.first)
+    if (lattice.GetId() == lattice_id_jump_pair.first
+        || lattice.GetId() == lattice_id_jump_pair.second)
       continue;
     lattice_list.push_back(lattice);
   }
@@ -166,7 +167,8 @@ static std::vector<cfg::Lattice> GetSymmetricallySortedLatticeVectorMM2(
     relative_position += move_distance;
     relative_position -= ElementFloor(relative_position);
     lattice.SetRelativePosition(relative_position);
-    if (lattice.GetId() == lattice_id_jump_pair.first)
+    if (lattice.GetId() == lattice_id_jump_pair.first
+        || lattice.GetId() == lattice_id_jump_pair.second)
       continue;
     lattice_list.push_back(lattice);
   }
@@ -444,6 +446,7 @@ std::pair<double, double> EnergyPredictorSymmetry::GetBarrierAndDiffFromLatticeI
   auto e02 = GetE0(config,
                    {lattice_id_jump_pair.second, lattice_id_jump_pair.first},
                    migration_element);
+  std::cerr << e01 << ", " << e02 << std::endl;
   auto e0 = (e01 + e02) / 2;
   auto ef = GetE(config,
                  lattice_id_jump_pair,

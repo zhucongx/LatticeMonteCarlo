@@ -12,7 +12,7 @@ namespace kmc {
 class ChainKmcMpi {
   public:
     static constexpr double kBoltzmannConstant = 8.617333262145e-5;
-    static constexpr double kPrefactor = 1e14;
+    static constexpr double kPrefactor = 1e13;
 
     ChainKmcMpi(cfg::Config config,
                 unsigned long long int log_dump_steps,
@@ -57,6 +57,7 @@ class ChainKmcMpi {
     double one_step_barrier_{0.0};
     double one_step_energy_change_{0.0};
     double one_step_time_change_{0.0};
+    Element migrating_element_{};
 
     // helpful properties
     double total_rate_k_{0.0}, total_rate_i_{0.0};

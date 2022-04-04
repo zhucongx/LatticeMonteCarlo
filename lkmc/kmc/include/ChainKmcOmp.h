@@ -13,7 +13,7 @@ class ChainKmcOmp {
   public:
 
     static constexpr double kBoltzmannConstant = 8.617333262145e-5;
-    static constexpr double kPrefactor = 1e14;
+    static constexpr double kPrefactor = 1e13;
 
     ChainKmcOmp(const cfg::Config &config,
                 unsigned long long int log_dump_steps,

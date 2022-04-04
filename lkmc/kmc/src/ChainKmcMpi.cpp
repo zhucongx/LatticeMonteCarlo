@@ -76,7 +76,7 @@ ChainKmcMpi::~ChainKmcMpi() {
 void ChainKmcMpi::Dump(std::ofstream &ofs) {
   if (steps_ % log_dump_steps_ == 0) {
     ofs << steps_ << '\t' << time_ << '\t' << energy_ << '\t' << one_step_barrier_ << '\t'
-        << one_step_energy_change_ << std::endl;
+        << one_step_energy_change_ << '\t' << migrating_element_.GetString() << std::endl;
   }
   if (steps_ % config_dump_steps_ == 0) {
     config_.WriteCfg(std::to_string(steps_) + ".cfg", true);
@@ -243,7 +243,7 @@ size_t ChainKmcMpi::SelectEvent() const {
 void ChainKmcMpi::Simulate() {
   std::ofstream ofs("kmc_log.txt", std::ofstream::out | std::ofstream::app);
   if (world_rank_ == 0) {
-    ofs << "steps\ttime\tenergy\tEa\tdE\n";
+    ofs << "steps\ttime\tenergy\tEa\tdE\ttype\n";
     ofs.precision(8);
   }
 
@@ -268,7 +268,7 @@ void ChainKmcMpi::Simulate() {
     one_step_energy_change_ = selected_event.GetEnergyChange();
     energy_ += one_step_energy_change_;
     one_step_barrier_ = selected_event.GetForwardBarrier();
-
+    migrating_element_ =  config_.GetAtomVector().at(atom_id_jump_pair_.second).GetElement();
     config_.AtomJump(atom_id_jump_pair_);
     previous_j_ = atom_id_jump_pair_.second;
     // }
