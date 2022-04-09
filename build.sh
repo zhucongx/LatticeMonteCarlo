@@ -32,5 +32,5 @@ if [[ $mode == "Test" ]]; then
 else
   cmake -DCMAKE_BUILD_TYPE="$mode" -S ..
 fi
-make -j 8
+make -j 12
 cd ..
