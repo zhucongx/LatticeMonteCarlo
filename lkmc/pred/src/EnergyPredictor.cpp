@@ -382,7 +382,7 @@ std::pair<double, double> EnergyPredictor::GetBarrierAndDiffFromLatticeIdPair(
     dE += base_theta_[i] * de_encode[i];
     e0 += theta_element[i] * e0_encode[i];
   }
-
+  e0 = std::exp(e0);
   return {e0 + dE / 2, dE};
 }
 } // namespace pred
