@@ -1,16 +1,16 @@
-#ifndef LKMC_LKMC_PRED_INCLUDE_ENERGYPREDICTORLRU_H_
-#define LKMC_LKMC_PRED_INCLUDE_ENERGYPREDICTORLRU_H_
+#ifndef LKMC_LKMC_PRED_INCLUDE_ENERGYPREDICTORSTATELRU_H_
+#define LKMC_LKMC_PRED_INCLUDE_ENERGYPREDICTORSTATELRU_H_
 #include <list>
-#include "EnergyPredictor.h"
+#include "EnergyPredictorState.h"
 namespace pred {
 
-class EnergyPredictorLru : public EnergyPredictor {
+class EnergyPredictorStateLru : public EnergyPredictorState {
   public:
-    EnergyPredictorLru(const std::string &predictor_filename,
+    EnergyPredictorStateLru(const std::string &predictor_filename,
                        const cfg::Config &reference_config,
                        const std::set<Element> &type_set,
                        size_t cache_size);
-    ~EnergyPredictorLru() override;
+    ~EnergyPredictorStateLru() override;
   private:
     [[nodiscard]] std::pair<double, double> GetBarrierAndDiffFromLatticeIdPair(
         const cfg::Config &config,
@@ -29,4 +29,4 @@ class EnergyPredictorLru : public EnergyPredictor {
 };
 } // namespace pred
 
-#endif //LKMC_LKMC_PRED_INCLUDE_ENERGYPREDICTORLRU_H_
+#endif //LKMC_LKMC_PRED_INCLUDE_ENERGYPREDICTORSTATELRU_H_

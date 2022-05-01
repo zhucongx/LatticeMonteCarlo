@@ -1,5 +1,5 @@
-#ifndef LKMC_LKMC_PRED_INCLUDE_ENERGYPREDICTOR_H_
-#define LKMC_LKMC_PRED_INCLUDE_ENERGYPREDICTOR_H_
+#ifndef LKMC_LKMC_PRED_INCLUDE_ENERGYPREDICTORSTATE_H_
+#define LKMC_LKMC_PRED_INCLUDE_ENERGYPREDICTORSTATE_H_
 #include <string>
 #include <set>
 #include <boost/functional/hash.hpp>
@@ -7,12 +7,12 @@
 #include "ElementCluster.hpp"
 namespace pred {
 
-class EnergyPredictor {
+class EnergyPredictorState {
   public:
-    EnergyPredictor(const std::string &predictor_filename,
+    EnergyPredictorState(const std::string &predictor_filename,
                     const cfg::Config &reference_config,
                     const std::set<Element> &type_set);
-    virtual ~EnergyPredictor();
+    virtual ~EnergyPredictorState();
     [[nodiscard]] std::pair<double, double> GetBarrierAndDiffFromAtomIdPair(
         const cfg::Config &config,
         const std::pair<size_t, size_t> &atom_id_jump_pair) const;
@@ -35,4 +35,4 @@ class EnergyPredictor {
 };
 } // namespace pred
 
-#endif //LKMC_LKMC_PRED_INCLUDE_ENERGYPREDICTOR_H_
+#endif //LKMC_LKMC_PRED_INCLUDE_ENERGYPREDICTORSTATE_H_

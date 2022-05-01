@@ -1,20 +1,20 @@
-#include "EnergyPredictorLru.h"
+#include "EnergyPredictorStateLru.h"
 
 namespace pred {
-pred::EnergyPredictorLru::EnergyPredictorLru(const std::string &predictor_filename,
+pred::EnergyPredictorStateLru::EnergyPredictorStateLru(const std::string &predictor_filename,
                                              const cfg::Config &reference_config,
                                              const std::set<Element> &type_set,
                                              size_t cache_size)
-    : EnergyPredictor(predictor_filename, reference_config, type_set), cache_size_(cache_size) {}
-EnergyPredictorLru::~EnergyPredictorLru() = default;
-std::pair<double, double> EnergyPredictorLru::GetBarrierAndDiffFromLatticeIdPair(
+    : EnergyPredictorState(predictor_filename, reference_config, type_set), cache_size_(cache_size) {}
+EnergyPredictorStateLru::~EnergyPredictorStateLru() = default;
+std::pair<double, double> EnergyPredictorStateLru::GetBarrierAndDiffFromLatticeIdPair(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
   auto hash_value = GetHashFromConfigAndLatticeIdPair(config, lattice_id_jump_pair);
   std::pair<double, double> value;
   auto it = hashmap_.find(hash_value);
   if (it == hashmap_.end()) {
-    value = EnergyPredictor::GetBarrierAndDiffFromLatticeIdPair(config, lattice_id_jump_pair);
+    value = EnergyPredictorState::GetBarrierAndDiffFromLatticeIdPair(config, lattice_id_jump_pair);
     Add(hash_value, value);
   } else {
     cache_list_.splice(cache_list_.begin(), cache_list_, it->second);
@@ -22,7 +22,7 @@ std::pair<double, double> EnergyPredictorLru::GetBarrierAndDiffFromLatticeIdPair
   }
   return value;
 }
-size_t EnergyPredictorLru::GetHashFromConfigAndLatticeIdPair(
+size_t EnergyPredictorStateLru::GetHashFromConfigAndLatticeIdPair(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
   const auto &lattice_id_list = site_bond_cluster_hashmap_.at(lattice_id_jump_pair);
@@ -32,7 +32,7 @@ size_t EnergyPredictorLru::GetHashFromConfigAndLatticeIdPair(
   }
   return seed;
 }
-void EnergyPredictorLru::Add(size_t key, std::pair<double, double> value) const {
+void EnergyPredictorStateLru::Add(size_t key, std::pair<double, double> value) const {
   auto it = hashmap_.find(key);
   if (it != hashmap_.end()) {
     cache_list_.erase(it->second);

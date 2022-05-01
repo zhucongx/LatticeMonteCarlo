@@ -1,4 +1,4 @@
-#include "EnergyPredictor.h"
+#include "EnergyPredictorState.h"
 #include <utility>
 #include <boost/range/combine.hpp>
 #include <boost/functional/hash.hpp>
@@ -250,7 +250,7 @@ static std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappi
   return cluster_mapping;
 }
 
-EnergyPredictor::EnergyPredictor(const std::string &predictor_filename,
+EnergyPredictorState::EnergyPredictorState(const std::string &predictor_filename,
                                  const cfg::Config &reference_config,
                                  const std::set<Element> &type_set)
     : cluster_mapping_(GetClusterParametersMappingState(reference_config)) {
@@ -284,8 +284,8 @@ EnergyPredictor::EnergyPredictor(const std::string &predictor_filename,
   }
 }
 
-EnergyPredictor::~EnergyPredictor() = default;
-std::pair<double, double> EnergyPredictor::GetBarrierAndDiffFromAtomIdPair(
+EnergyPredictorState::~EnergyPredictorState() = default;
+std::pair<double, double> EnergyPredictorState::GetBarrierAndDiffFromAtomIdPair(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &atom_id_jump_pair) const {
 
@@ -295,7 +295,7 @@ std::pair<double, double> EnergyPredictor::GetBarrierAndDiffFromAtomIdPair(
        config.GetLatticeIdFromAtomId(atom_id_jump_pair.second)});
 }
 
-std::pair<double, double> EnergyPredictor::GetBarrierAndDiffFromLatticeIdPair(
+std::pair<double, double> EnergyPredictorState::GetBarrierAndDiffFromLatticeIdPair(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
   auto migration_element = config.GetElementAtLatticeId(lattice_id_jump_pair.second);

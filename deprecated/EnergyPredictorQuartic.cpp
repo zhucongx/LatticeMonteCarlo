@@ -4,7 +4,7 @@
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
-namespace pred {
+namespace preds {
 
 EnergyPredictorQuartic::EnergyPredictorQuartic(const std::string &predictor_filename,
                                                const cfg::Config &reference_config,

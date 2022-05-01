@@ -3,7 +3,7 @@
 #include <random>
 #include <omp.h>
 
-#include "EnergyPredictorLru.h"
+#include "EnergyPredictorStateLru.h"
 #include "JumpEvent.h"
 namespace kmc {
 //  j -> k -> i ->l
@@ -66,7 +66,7 @@ class ChainKmcOmp {
     size_t previous_j_;
 
     std::array<JumpEvent, kFirstEventListSize> first_event_list_{};
-    const pred::EnergyPredictorLru energy_predictor_;
+    const pred::EnergyPredictorStateLru energy_predictor_;
     mutable std::mt19937_64 generator_;
 };
 

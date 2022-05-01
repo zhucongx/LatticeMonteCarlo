@@ -1,7 +1,7 @@
 #ifndef LKMC_LKMC_PRED_INCLUDE_ENERGYPREDICTORQUARTIC_H_
 #define LKMC_LKMC_PRED_INCLUDE_ENERGYPREDICTORQUARTIC_H_
 #include "EnergyPredictor.h"
-namespace pred {
+namespace preds {
 struct ParametersQuartic {
   std::vector<double> mu_x_mmm{};
   std::vector<double> mu_x_mm2{};
@@ -50,6 +50,6 @@ class EnergyPredictorQuartic : public EnergyPredictor{
                        ParametersQuartic,
                        boost::hash<Element>> element_parameters_hashmap_;
 };
-} // namespace pred
+} // namespace preds
 
 #endif //LKMC_LKMC_PRED_INCLUDE_ENERGYPREDICTORQUARTIC_H_

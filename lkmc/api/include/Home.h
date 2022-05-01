@@ -2,7 +2,6 @@
 #define LKMC_LKMC_API_INCLUDE_HOME_H_
 #include "Parameter.h"
 #include "ChainKmcMpi.h"
-#include "ChainKmcOmp.h"
 namespace api {
 kmc::ChainKmcMpi BuildKmcMpiFromParameter(const Parameter &parameter);
 
