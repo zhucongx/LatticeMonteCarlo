@@ -121,6 +121,9 @@ static void GetAverageParametersMappingFromLatticeClusterVectorHelperMMM(
     std::vector<std::vector<size_t> > cluster_index_vector;
     for (auto it = lower_it; it != upper_it; ++it) {
       auto cluster_index = it->GetIndexVector();
+      if (it->IsSymmetryLabel()) {
+        cluster_index.insert(cluster_index.begin(), SIZE_MAX);
+      }
       cluster_index_vector.push_back(cluster_index);
     }
     cluster_mapping.push_back(cluster_index_vector);
@@ -149,6 +152,9 @@ static void GetAverageParametersMappingFromLatticeClusterVectorHelperMM2(
     std::vector<std::vector<size_t> > cluster_index_vector;
     for (auto it = lower_it; it != upper_it; ++it) {
       auto cluster_index = it->GetIndexVector();
+      if (it->IsSymmetryLabel()) {
+        cluster_index.insert(cluster_index.begin(), SIZE_MAX);
+      }
       cluster_index_vector.push_back(cluster_index);
     }
     cluster_mapping.push_back(cluster_index_vector);

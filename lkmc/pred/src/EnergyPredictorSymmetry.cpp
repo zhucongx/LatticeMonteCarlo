@@ -12,12 +12,35 @@ static std::vector<double> GetOneHotParametersFromMap(
   std::vector<double> res_encode;
   res_encode.reserve(1500); // Todo check this magic number
   for (const auto &cluster_vector: cluster_mapping) {
-    std::vector<double> sum_of_list(
-        static_cast<size_t>(std::pow(num_of_elements, cluster_vector[0].size())), 0);
+    size_t list_length;
+    if (cluster_vector[0][0] == SIZE_MAX) {
+      list_length = static_cast<size_t>(num_of_elements * (num_of_elements + 1) / 2);
+    } else {
+      list_length = static_cast<size_t>(std::pow(num_of_elements, cluster_vector[0].size()));
+    }
+    std::vector<double> sum_of_list(list_length, 0);
+
     for (const auto &cluster: cluster_vector) {
       std::string cluster_type;
-      for (auto index: cluster) {
-        cluster_type += encode[index].GetString();
+      if (cluster[0] == SIZE_MAX) {
+        std::vector<std::string> string_vector;
+        std::transform(std::next(cluster.begin()), cluster.end(),
+                       std::back_inserter(string_vector),
+                       [&encode](const auto &index) { return encode[index].GetString(); });
+        std::sort(string_vector.begin(), string_vector.end());
+        cluster_type = string_vector.empty() ? "" :
+                       std::accumulate(
+                           std::next(string_vector.begin()), string_vector.end(),
+                           *string_vector.begin(),
+                           [](auto &&a, auto &&b) -> auto & {
+                             a += '-';
+                             a += b;
+                             return a;
+                           });
+      } else {
+        for (auto index: cluster) {
+          cluster_type += encode[index].GetString();
+        }
       }
       const auto &cluster_one_hot_encode = one_hot_encode_hashmap.at(cluster_type);
       std::transform(sum_of_list.begin(), sum_of_list.end(),
@@ -98,14 +121,10 @@ std::pair<double, double> EnergyPredictorSymmetry::GetBarrierAndDiffFromLatticeI
     const cfg::Config &config,
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
   auto migration_element = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
-  auto e01 = GetE0(config,
+  auto e0 = GetE0(config,
                    lattice_id_jump_pair,
                    migration_element);
-  auto e02 = GetE0(config,
-                   {lattice_id_jump_pair.second, lattice_id_jump_pair.first},
-                   migration_element);
-  std::cerr << e01 << ", " << e02 << std::endl;
-  auto e0 = (e01 + e02) / 2;
+
   auto ef = GetE(config,
                  lattice_id_jump_pair,
                  migration_element);
@@ -160,7 +179,7 @@ double EnergyPredictorSymmetry::GetE0(const cfg::Config &config,
   }
   e0 *= sigma_y;
   e0 += mu_y;
-  return e0;
+  return std::exp(e0);
 }
 double EnergyPredictorSymmetry::GetE(const cfg::Config &config,
                                      const std::pair<size_t, size_t> &lattice_id_jump_pair,
