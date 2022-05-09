@@ -14,7 +14,8 @@ int main(int argc, char *argv[]) {
   kmc::ChainKmcMpi a = api::BuildKmcMpiFromParameter(parameter);
   a.Simulate();
 
-
+  // auto conf0 = cfg::Config::ReadCfg("start.cfg");
+  // conf0.WriteCfg("start1.cfg", false);
 
   // std::set<Element> ele_set{Element("Al"), Element("Mg"),
   //                           Element("Zn")};
@@ -27,7 +28,6 @@ int main(int argc, char *argv[]) {
   // std::cout << std::setprecision(16)
   //           << std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() << ", "
   //           << Ea << ", " << dE << std::endl;
-  //
   // // for (int i = 0; i < 1000000; ++i) {
   // //   auto pair = a.GetBarrierAndDiffFromAtomIdPair(conf, {82, 83});
   // //   Ea = pair.first;
@@ -37,8 +37,6 @@ int main(int argc, char *argv[]) {
   // std::cout << std::setprecision(16)
   //           << std::chrono::duration_cast<std::chrono::seconds>(t3 - t2).count() << ", "
   //           << Ea << ", " << dE << std::endl;
-
-
 
 
   // std::ifstream ifs("all_data_neb_results/barriers.txt", std::ifstream::in);

@@ -209,7 +209,7 @@ std::vector<std::vector<std::vector<size_t> > > GetAverageClusterParametersMappi
   return cluster_mapping;
 }
 std::vector<std::vector<std::vector<size_t> > > GetAverageClusterParametersMappingMMM(
-    const cfg::Config &config) {
+    const cfg::Config &config)  {
   const std::pair<size_t, size_t>
       lattice_id_jump_pair = {0, config.GetFirstNeighborsAdjacencyList()[0][0]};
   const auto lattice_vector = GetSymmetricallySortedLatticeVectorMMM(config, lattice_id_jump_pair);

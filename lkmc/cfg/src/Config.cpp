@@ -85,7 +85,7 @@ size_t Config::GetStateHash() const {
   return seed;
 }
 void Config::AtomJump(const std::pair<size_t, size_t> &atom_id_jump_pair) {
-  const auto[atom_id_lhs, atom_id_rhs] = atom_id_jump_pair;
+  const auto [atom_id_lhs, atom_id_rhs] = atom_id_jump_pair;
   const auto lattice_id_lhs = atom_to_lattice_hashmap_.at(atom_id_lhs);
   const auto lattice_id_rhs = atom_to_lattice_hashmap_.at(atom_id_rhs);
 
@@ -95,7 +95,7 @@ void Config::AtomJump(const std::pair<size_t, size_t> &atom_id_jump_pair) {
   lattice_to_atom_hashmap_.at(lattice_id_rhs) = atom_id_lhs;
 }
 void Config::LatticeJump(const std::pair<size_t, size_t> &lattice_id_jump_pair) {
-  const auto[lattice_id_lhs, lattice_id_rhs] = lattice_id_jump_pair;
+  const auto [lattice_id_lhs, lattice_id_rhs] = lattice_id_jump_pair;
   const auto atom_id_lhs = lattice_to_atom_hashmap_.at(lattice_id_lhs);
   const auto atom_id_rhs = lattice_to_atom_hashmap_.at(lattice_id_rhs);
 
