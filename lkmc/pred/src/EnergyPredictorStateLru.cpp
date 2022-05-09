@@ -2,10 +2,11 @@
 
 namespace pred {
 pred::EnergyPredictorStateLru::EnergyPredictorStateLru(const std::string &predictor_filename,
-                                             const cfg::Config &reference_config,
-                                             const std::set<Element> &type_set,
-                                             size_t cache_size)
-    : EnergyPredictorState(predictor_filename, reference_config, type_set), cache_size_(cache_size) {}
+                                                       const cfg::Config &reference_config,
+                                                       const std::set<Element> &type_set,
+                                                       size_t cache_size)
+    : EnergyPredictorState(predictor_filename, reference_config, type_set),
+      cache_size_(cache_size) {}
 EnergyPredictorStateLru::~EnergyPredictorStateLru() = default;
 std::pair<double, double> EnergyPredictorStateLru::GetBarrierAndDiffFromLatticeIdPair(
     const cfg::Config &config,
@@ -25,7 +26,7 @@ std::pair<double, double> EnergyPredictorStateLru::GetBarrierAndDiffFromLatticeI
 size_t EnergyPredictorStateLru::GetHashFromConfigAndLatticeIdPair(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
-  const auto &lattice_id_list = site_bond_cluster_hashmap_.at(lattice_id_jump_pair);
+  const auto &lattice_id_list = site_bond_cluster_state_hashmap_.at(lattice_id_jump_pair);
   size_t seed = 0;
   for (size_t i = 0; i < constants::kNumThirdNearestSetSize; i++) {
     boost::hash_combine(seed, config.GetAtomIdFromLatticeId(lattice_id_list[i]));

@@ -20,22 +20,22 @@ int main(int argc, char *argv[]) {
   // std::set<Element> ele_set{Element("Al"), Element("Mg"),
   //                           Element("Zn")};
   // auto conf = cfg::Config::ReadCfg("start.cfg");
-  // pred::EnergyPredictorSymmetry a("./kmc_parameters_symmetry.json",
-  //                                 conf, ele_set);
+  // pred::EnergyPredictorQuarticLru a("./kmc_parameters_quartic.json",
+  //                                 conf, ele_set, 100000);
   // auto t1 = std::chrono::high_resolution_clock::now();
   // auto [Ea, dE] = a.GetBarrierAndDiffFromAtomIdPair(conf, {82, 83});
   // auto t2 = std::chrono::high_resolution_clock::now();
   // std::cout << std::setprecision(16)
   //           << std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count() << ", "
   //           << Ea << ", " << dE << std::endl;
-  // // for (int i = 0; i < 1000000; ++i) {
-  // //   auto pair = a.GetBarrierAndDiffFromAtomIdPair(conf, {82, 83});
-  // //   Ea = pair.first;
-  // //   dE = pair.second;
-  // // }
+  // for (int i = 0; i < 1000; ++i) {
+  //   auto pair = a.GetBarrierAndDiffFromAtomIdPair(conf, {82, 83});
+  //   Ea = pair.first;
+  //   dE = pair.second;
+  // }
   // auto t3 = std::chrono::high_resolution_clock::now();
   // std::cout << std::setprecision(16)
-  //           << std::chrono::duration_cast<std::chrono::seconds>(t3 - t2).count() << ", "
+  //           << std::chrono::duration_cast<std::chrono::microseconds>(t3 - t2).count() << ", "
   //           << Ea << ", " << dE << std::endl;
 
 

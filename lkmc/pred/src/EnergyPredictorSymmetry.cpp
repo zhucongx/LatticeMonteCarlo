@@ -3,61 +3,6 @@
 using json = nlohmann::json;
 namespace pred {
 
-static std::vector<double> GetOneHotParametersFromMap(
-    const std::vector<Element> &encode,
-    const std::unordered_map<std::string, std::vector<double> > &one_hot_encode_hashmap,
-    size_t num_of_elements,
-    const std::vector<std::vector<std::vector<size_t> > > &cluster_mapping) {
-
-  std::vector<double> res_encode;
-  res_encode.reserve(1500); // Todo check this magic number
-  for (const auto &cluster_vector: cluster_mapping) {
-    size_t list_length;
-    if (cluster_vector[0][0] == SIZE_MAX) {
-      list_length = static_cast<size_t>(num_of_elements * (num_of_elements + 1) / 2);
-    } else {
-      list_length = static_cast<size_t>(std::pow(num_of_elements, cluster_vector[0].size()));
-    }
-    std::vector<double> sum_of_list(list_length, 0);
-
-    for (const auto &cluster: cluster_vector) {
-      std::string cluster_type;
-      if (cluster[0] == SIZE_MAX) {
-        std::vector<std::string> string_vector;
-        std::transform(std::next(cluster.begin()), cluster.end(),
-                       std::back_inserter(string_vector),
-                       [&encode](const auto &index) { return encode[index].GetString(); });
-        std::sort(string_vector.begin(), string_vector.end());
-        cluster_type = string_vector.empty() ? "" :
-                       std::accumulate(
-                           std::next(string_vector.begin()), string_vector.end(),
-                           *string_vector.begin(),
-                           [](auto &&a, auto &&b) -> auto & {
-                             a += '-';
-                             a += b;
-                             return a;
-                           });
-      } else {
-        for (auto index: cluster) {
-          cluster_type += encode[index].GetString();
-        }
-      }
-      const auto &cluster_one_hot_encode = one_hot_encode_hashmap.at(cluster_type);
-      std::transform(sum_of_list.begin(), sum_of_list.end(),
-                     cluster_one_hot_encode.begin(),
-                     sum_of_list.begin(),
-                     std::plus<>());
-    }
-    auto cluster_vector_size = static_cast<double>( cluster_vector.size());
-    std::for_each(sum_of_list.begin(),
-                  sum_of_list.end(),
-                  [cluster_vector_size](auto &n) { n /= cluster_vector_size; });
-
-    std::move(sum_of_list.begin(), sum_of_list.end(), std::back_inserter(res_encode));
-  }
-  return res_encode;
-}
-
 pred::EnergyPredictorSymmetry::EnergyPredictorSymmetry(const std::string &predictor_filename,
                                                        const cfg::Config &reference_config,
                                                        const std::set<Element> &type_set)
@@ -122,8 +67,8 @@ std::pair<double, double> EnergyPredictorSymmetry::GetBarrierAndDiffFromLatticeI
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
   auto migration_element = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
   auto e0 = GetE0(config,
-                   lattice_id_jump_pair,
-                   migration_element);
+                  lattice_id_jump_pair,
+                  migration_element);
 
   auto ef = GetE(config,
                  lattice_id_jump_pair,
@@ -148,10 +93,10 @@ double EnergyPredictorSymmetry::GetE0(const cfg::Config &config,
     }
     ele_vector.push_back(this_element);
   }
-  auto encode_mmm = pred::GetOneHotParametersFromMap(ele_vector,
-                                                     one_hot_encode_hash_map_,
-                                                     type_set_.size(),
-                                                     mapping_mmm_);
+  auto encode_mmm = GetOneHotParametersFromMap(ele_vector,
+                                               one_hot_encode_hash_map_,
+                                               type_set_.size(),
+                                               mapping_mmm_);
   const auto &element_parameters = e0_element_parameters_hashmap_.at(migration_element);
 
   const auto &mu_x = element_parameters.mu_x;
@@ -195,10 +140,10 @@ double EnergyPredictorSymmetry::GetE(const cfg::Config &config,
     }
     ele_vector.push_back(this_element);
   }
-  auto encode_mm2 = pred::GetOneHotParametersFromMap(ele_vector,
-                                                     one_hot_encode_hash_map_,
-                                                     type_set_.size(),
-                                                     mapping_mm2_);
+  auto encode_mm2 = GetOneHotParametersFromMap(ele_vector,
+                                               one_hot_encode_hash_map_,
+                                               type_set_.size(),
+                                               mapping_mm2_);
   const auto &element_parameters = dE_element_parameters_hashmap_.at(migration_element);
 
   const auto &mu_x = element_parameters.mu_x;

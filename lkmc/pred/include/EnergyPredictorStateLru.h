@@ -7,9 +7,9 @@ namespace pred {
 class EnergyPredictorStateLru : public EnergyPredictorState {
   public:
     EnergyPredictorStateLru(const std::string &predictor_filename,
-                       const cfg::Config &reference_config,
-                       const std::set<Element> &type_set,
-                       size_t cache_size);
+                            const cfg::Config &reference_config,
+                            const std::set<Element> &type_set,
+                            size_t cache_size);
     ~EnergyPredictorStateLru() override;
   private:
     [[nodiscard]] std::pair<double, double> GetBarrierAndDiffFromLatticeIdPair(

@@ -58,6 +58,19 @@ class LatticeCluster {
     bool symmetry_label_{false};
 };
 
+inline bool PositionCompareState(const cfg::Lattice &lhs,
+                                 const cfg::Lattice &rhs) {
+  const auto &relative_position_lhs = lhs.GetRelativePosition();
+  const auto &relative_position_rhs = rhs.GetRelativePosition();
+  const double diff_x = relative_position_lhs[kXDimension] - relative_position_rhs[kXDimension];
+  const double diff_y = relative_position_lhs[kYDimension] - relative_position_rhs[kYDimension];
+  const double diff_z = relative_position_lhs[kZDimension] - relative_position_rhs[kZDimension];
+  if (diff_x < -kEpsilon) { return true; }
+  if (diff_x > kEpsilon) { return false; }
+  if (diff_y < -kEpsilon) { return true; }
+  if (diff_y > kEpsilon) { return false; }
+  return diff_z < -kEpsilon;
+}
 
 inline bool GroupCompareMMM(const cfg::Lattice &lhs,
                             const cfg::Lattice &rhs) {

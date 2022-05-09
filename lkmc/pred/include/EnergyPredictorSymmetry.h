@@ -5,7 +5,7 @@
 #include <boost/functional/hash.hpp>
 #include "Config.h"
 #include "LatticeCluster.hpp"
-#include "EnergyPredictorUtility.hpp"
+#include "EnergyPredictorUtility.h"
 namespace pred {
 struct ParametersE0 {
   std::vector<double> mu_x{};

@@ -4,7 +4,10 @@
 #include <set>
 #include <boost/functional/hash.hpp>
 #include "Config.h"
+#include "LatticeCluster.hpp"
 #include "ElementCluster.hpp"
+#include "EnergyPredictorUtility.h"
+
 namespace pred {
 
 class EnergyPredictorState {
@@ -20,10 +23,10 @@ class EnergyPredictorState {
     [[nodiscard]] virtual std::pair<double, double> GetBarrierAndDiffFromLatticeIdPair(
         const cfg::Config &config,
         const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
-    const std::vector<std::vector<std::vector<size_t> > > cluster_mapping_{};
+    const std::vector<std::vector<std::vector<size_t> > > mapping_state_{};
     std::unordered_map<std::pair<size_t, size_t>,
                        std::vector<size_t>,
-                       boost::hash<std::pair<size_t, size_t> > > site_bond_cluster_hashmap_;
+                       boost::hash<std::pair<size_t, size_t> > > site_bond_cluster_state_hashmap_;
     std::vector<double> base_theta_{};
     std::unordered_map<Element,
                        std::vector<double>,
