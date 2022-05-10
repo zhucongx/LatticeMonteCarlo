@@ -26,7 +26,7 @@ ChainKmcMpi::ChainKmcMpi(cfg::Config config,
       vacancy_index_(cfg::GetVacancyAtomIndex(config_)),
       previous_j_(config_.GetFirstNeighborsAtomIdVectorOfAtom(vacancy_index_)[0]),
       energy_predictor_(json_parameters_filename,
-                        config_, type_set),
+                        config_, type_set, 100000),
       generator_(static_cast<unsigned long long int>(
                      std::chrono::system_clock::now().time_since_epoch().count())) {
   event_list_.resize(kFirstEventListSize);
@@ -268,7 +268,7 @@ void ChainKmcMpi::Simulate() {
     one_step_energy_change_ = selected_event.GetEnergyChange();
     energy_ += one_step_energy_change_;
     one_step_barrier_ = selected_event.GetForwardBarrier();
-    migrating_element_ =  config_.GetAtomVector().at(atom_id_jump_pair_.second).GetElement();
+    migrating_element_ = config_.GetAtomVector().at(atom_id_jump_pair_.second).GetElement();
     config_.AtomJump(atom_id_jump_pair_);
     previous_j_ = atom_id_jump_pair_.second;
     // }

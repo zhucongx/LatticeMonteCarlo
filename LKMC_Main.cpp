@@ -11,8 +11,8 @@ int main(int argc, char *argv[]) {
   }
   parameter.PrintParameters();
 
-  kmc::ChainKmcMpi a = api::BuildKmcMpiFromParameter(parameter);
-  a.Simulate();
+  kmc::ChainKmcMpi chain_kmc_mpi = api::BuildKmcMpiFromParameter(parameter);
+  chain_kmc_mpi.Simulate();
 
   // auto conf0 = cfg::Config::ReadCfg("start.cfg");
   // conf0.WriteCfg("start1.cfg", false);
