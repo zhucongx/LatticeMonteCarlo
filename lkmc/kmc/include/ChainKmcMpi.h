@@ -12,9 +12,6 @@ namespace kmc {
 // current position
 class ChainKmcMpi {
   public:
-    static constexpr double kBoltzmannConstant = 8.617333262145e-5;
-    static constexpr double kPrefactor = 1e13;
-
     ChainKmcMpi(cfg::Config config,
                 unsigned long long int log_dump_steps,
                 unsigned long long int config_dump_steps,
@@ -66,7 +63,6 @@ class ChainKmcMpi {
     // double rij{0}, pij{0};
     std::pair<size_t, size_t> atom_id_jump_pair_;
     size_t previous_j_;
-
     MPI_Group world_group_, first_group_, second_group_;
     MPI_Comm first_comm_, second_comm_;
 
