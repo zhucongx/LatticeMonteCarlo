@@ -1,8 +1,6 @@
 #include "ChainKmcMpi.h"
-
 #include <utility>
 #include <chrono>
-#include <utility>
 namespace kmc {
 
 ChainKmcMpi::ChainKmcMpi(cfg::Config config,
