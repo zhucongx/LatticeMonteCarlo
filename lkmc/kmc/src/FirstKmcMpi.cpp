@@ -71,7 +71,7 @@ void FirstKmcMpi::BuildEventListParallel() {
                 MPI_COMM_WORLD);
   MPI_Allreduce(&this_rate, &total_rate_, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
   double cumulative_probability = 0.0;
-  for (auto &event_it : event_list_) {
+  for (auto &event_it: event_list_) {
     event_it.CalculateProbability(total_rate_);
     cumulative_probability += event_it.GetProbability();
     event_it.SetCumulativeProbability(cumulative_probability);
@@ -116,6 +116,8 @@ void FirstKmcMpi::Simulate() {
 
     // if (!CheckAndSolveEquilibrium(ofs)) {
     // update time and energy
+    static std::uniform_real_distribution<double> distribution(0.0, 1.0);
+    one_step_time_change_ = -log(distribution(generator_)) / total_rate_ / kPrefactor;
     time_ += one_step_time_change_;
     one_step_energy_change_ = selected_event.GetEnergyChange();
     energy_ += one_step_energy_change_;
