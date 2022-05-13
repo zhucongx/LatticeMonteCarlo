@@ -14,7 +14,7 @@ ChainKmcMpi::ChainKmcMpi(cfg::Config config,
                          unsigned long long int restart_steps,
                          double restart_energy,
                          double restart_time,
-                         const std::string &json_parameters_filename)
+                         const std::string &json_coefficients_filename)
     : config_(std::move(config)),
       log_dump_steps_(log_dump_steps),
       config_dump_steps_(config_dump_steps),
@@ -25,7 +25,7 @@ ChainKmcMpi::ChainKmcMpi(cfg::Config config,
       time_(restart_time),
       vacancy_index_(cfg::GetVacancyAtomIndex(config_)),
       previous_j_(config_.GetFirstNeighborsAtomIdVectorOfAtom(vacancy_index_)[0]),
-      energy_predictor_(json_parameters_filename,
+      energy_predictor_(json_coefficients_filename,
                         config_, type_set, 100000),
       generator_(static_cast<unsigned long long int>(
                      std::chrono::system_clock::now().time_since_epoch().count())) {

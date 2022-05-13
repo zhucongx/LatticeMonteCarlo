@@ -1,9 +1,11 @@
 #ifndef LKMC_LKMC_API_INCLUDE_HOME_H_
 #define LKMC_LKMC_API_INCLUDE_HOME_H_
 #include "Parameter.h"
+#include "FirstKmcMpi.h"
 #include "ChainKmcMpi.h"
 namespace api {
-kmc::ChainKmcMpi BuildKmcMpiFromParameter(const Parameter &parameter);
+kmc::FirstKmcMpi BuildFirstKmcMpiFromParameter(const Parameter &parameter);
+kmc::ChainKmcMpi BuildChainKmcMpiFromParameter(const Parameter &parameter);
 
 } // namespace api
 

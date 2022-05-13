@@ -23,8 +23,9 @@ struct Parameter {
     void PrintParameters() const;
 
     std::string parameters_filename;
+    std::string simulation_method_;
     std::string config_filename_;
-    std::string json_parameters_filename_;
+    std::string json_coefficients_filename_;
     unsigned long long int log_dump_steps_;
     unsigned long long int config_dump_steps_;
     unsigned long long int maximum_number_;

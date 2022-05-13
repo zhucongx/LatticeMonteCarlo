@@ -1,18 +1,21 @@
-#include <algorithm>
-#include <chrono>
 #include "Home.h"
 int main(int argc, char *argv[]) {
   api::Parameter parameter;
   if (argc == 1) {
-    std::cout << "No input parameter filename. Opening kmc.param" << std::endl;
-    parameter = api::Parameter("kmc.param");
+    std::cout << "No input parameter filename. Opening kmc_param.txt" << std::endl;
+    parameter = api::Parameter("kmc_param.txt");
   } else {
     parameter = api::Parameter(argc, argv);
   }
   parameter.PrintParameters();
+  if (parameter.simulation_method_ == "First") {
+    auto kmc = api::BuildFirstKmcMpiFromParameter(parameter);
+    kmc.Simulate();
 
-  kmc::ChainKmcMpi chain_kmc_mpi = api::BuildKmcMpiFromParameter(parameter);
-  chain_kmc_mpi.Simulate();
+  } else if (parameter.simulation_method_ == "Chain") {
+    auto kmc = api::BuildChainKmcMpiFromParameter(parameter);
+    kmc.Simulate();
+  }
 
   // auto conf0 = cfg::Config::ReadCfg("start.cfg");
   // conf0.WriteCfg("start1.cfg", false);

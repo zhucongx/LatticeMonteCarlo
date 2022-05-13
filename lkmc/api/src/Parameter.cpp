@@ -28,10 +28,12 @@ void Parameter::ReadParam(const std::string &param_filename) {
       continue;
     }
     std::vector<std::string> segs(split(buffer, " "));
-    if (segs[0] == "config_filename") {
+    if (segs[0] == "simulation_method") {
+      simulation_method_ = segs[1];
+    } else if (segs[0] == "config_filename") {
       config_filename_ = segs[1];
-    } else if (segs[0] == "json_parameters_filename") {
-      json_parameters_filename_ = segs[1];
+    } else if (segs[0] == "json_coefficients_filename") {
+      json_coefficients_filename_ = segs[1];
     } else if (segs[0] == "log_dump_steps") {
       log_dump_steps_ = stoull(segs[1]);
     } else if (segs[0] == "config_dump_steps") {
@@ -56,8 +58,9 @@ void Parameter::ReadParam(const std::string &param_filename) {
 }
 void Parameter::PrintParameters() const {
   std::cout << "KMC Parameters" << std::endl;
+  std::cout << "simulation_method: " << simulation_method_ << std::endl;
   std::cout << "config_filename: " << config_filename_ << std::endl;
-  std::cout << "json_parameters_filename: " << json_parameters_filename_ << std::endl;
+  std::cout << "json_coefficients_filename: " << json_coefficients_filename_ << std::endl;
   std::cout << "log_dump_steps: " << log_dump_steps_ << std::endl;
   std::cout << "config_dump_steps: " << config_dump_steps_ << std::endl;
   std::cout << "maximum_number: " << maximum_number_ << std::endl;

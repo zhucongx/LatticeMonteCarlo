@@ -60,9 +60,9 @@ for T in [300, 400, 500, 600, 700, 800]:
             if step == last_step:
                 f2.flush()
                 break
-    with open(f'{T}K/kmc.param', 'w') as f4:
+    with open(f'{T}K/kmc_param.txt', 'w') as f4:
         f4.write(f"config_filename {last_step}.cfg\n")
-        f4.write(f"json_parameters_filename kmc_parameters_quartic.json\n")
+        f4.write(f"json_coefficients_filename kmc_parameters_quartic.json\n")
         f4.write(f"log_dump_steps 1\n")
         f4.write(f"config_dump_steps 100000\n")
         f4.write(f"maximum_number 10000000000\n")
