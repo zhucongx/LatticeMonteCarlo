@@ -74,7 +74,7 @@ void FirstKmcMpi::BuildEventListParallel() {
   for (auto &event_it : event_list_) {
     event_it.CalculateProbability(total_rate_);
     cumulative_probability += event_it.GetProbability();
-    event_it.SetCumulativeProvability(cumulative_probability);
+    event_it.SetCumulativeProbability(cumulative_probability);
   }
 }
 size_t FirstKmcMpi::SelectEvent() const {

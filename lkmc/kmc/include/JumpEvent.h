@@ -24,7 +24,7 @@ class JumpEvent {
     [[nodiscard]] double GetCumulativeProvability() const;
     /// Setter
     void SetProbability(double probability);
-    void SetCumulativeProvability(double cumulative_provability);
+    void SetCumulativeProbability(double cumulative_probability);
     void CalculateProbability(double total_rates);
   private:
     double beta_{};

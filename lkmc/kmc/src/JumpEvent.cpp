@@ -42,8 +42,8 @@ void JumpEvent::SetProbability(double probability) {
   probability_ = probability;
 }
 
-void JumpEvent::SetCumulativeProvability(double cumulative_provability) {
-  cumulative_probability_ = cumulative_provability;
+void JumpEvent::SetCumulativeProbability(double cumulative_probability) {
+  cumulative_probability_ = cumulative_probability;
 }
 
 void JumpEvent::CalculateProbability(double total_rates) {
