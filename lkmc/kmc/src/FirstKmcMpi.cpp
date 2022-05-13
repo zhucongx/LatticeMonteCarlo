@@ -70,6 +70,12 @@ void FirstKmcMpi::BuildEventListParallel() {
                 MPI_BYTE,
                 MPI_COMM_WORLD);
   MPI_Allreduce(&this_rate, &total_rate_, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+  double cumulative_probability = 0.0;
+  for (auto &event_it : event_list_) {
+    event_it.CalculateProbability(total_rate_);
+    cumulative_probability += event_it.GetProbability();
+    event_it.SetCumulativeProvability(cumulative_probability);
+  }
 }
 size_t FirstKmcMpi::SelectEvent() const {
   static std::uniform_real_distribution<double> distribution(0.0, 1.0);
