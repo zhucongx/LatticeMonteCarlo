@@ -3,9 +3,9 @@
 using json = nlohmann::json;
 namespace pred {
 
-pred::EnergyPredictorSymmetry::EnergyPredictorSymmetry(const std::string &predictor_filename,
-                                                       const cfg::Config &reference_config,
-                                                       const std::set<Element> &type_set)
+EnergyPredictorSymmetry::EnergyPredictorSymmetry(const std::string &predictor_filename,
+                                                 const cfg::Config &reference_config,
+                                                 const std::set<Element> &type_set)
     : one_hot_encode_hash_map_(GetOneHotEncodeHashmap(type_set)),
       mapping_mmm_(GetAverageClusterParametersMappingMMM(reference_config)),
       mapping_mm2_(GetAverageClusterParametersMappingMM2(reference_config)),

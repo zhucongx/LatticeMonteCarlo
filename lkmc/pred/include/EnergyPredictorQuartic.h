@@ -71,6 +71,5 @@ class EnergyPredictorQuartic {
                        boost::hash<cfg::ElementCluster> > initialized_cluster_hashmap_;
 
 };
-
 } // namespace pred
 #endif //LKMC_LKMC_PRED_INCLUDE_ENERGYPREDICTORQUARTIC_H_
