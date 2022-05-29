@@ -5,6 +5,7 @@
 #include "EnergyPredictorSymmetry.h"
 #include "EnergyPredictorStateLru.h"
 #include "EnergyPredictorQuarticLru.h"
+#include "EnergyPredictorHighT.h"
 #include "JumpEvent.h"
 namespace kmc {
 class FirstKmcMpi {
@@ -54,7 +55,7 @@ class FirstKmcMpi {
     std::pair<size_t, size_t> atom_id_jump_pair_;
 
     std::vector<JumpEvent> event_list_{};
-    const pred::EnergyPredictorQuarticLru energy_predictor_;
+    const pred::EnergyPredictorHighT energy_predictor_;
     mutable std::mt19937_64 generator_;
 };
 } // namespace kmc
