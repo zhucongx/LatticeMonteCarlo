@@ -22,7 +22,7 @@ FirstKmcMpi::FirstKmcMpi(cfg::Config config,
       time_(restart_time),
       vacancy_index_(cfg::GetVacancyAtomIndex(config_)),
       energy_predictor_(json_coefficients_filename,
-                        config_, type_set),
+                        config_, type_set, 100000),
       generator_(static_cast<unsigned long long int>(
                      std::chrono::system_clock::now().time_since_epoch().count())) {
   event_list_.resize(kEventListSize);
