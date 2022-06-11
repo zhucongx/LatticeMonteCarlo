@@ -148,7 +148,7 @@ Config Config::ReadCfg(const std::string &filename) {
   ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
   // "entry_count = 3"
   ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-  auto basis_ = Matrix_t{{{basis_xx, basis_xy, basis_xz},
+  auto basis = Matrix_t{{{basis_xx, basis_xy, basis_xz},
                           {basis_yx, basis_yy, basis_yz},
                           {basis_zx, basis_zy, basis_zz}}};
   std::vector<Atom> atom_vector;
@@ -164,10 +164,10 @@ Config Config::ReadCfg(const std::string &filename) {
     auto
         relative_position = Vector_t{relative_position_X, relative_position_Y, relative_position_Z};
     atom_vector.emplace_back(id, type);
-    lattice_vector.emplace_back(id, relative_position * basis_, relative_position);
+    lattice_vector.emplace_back(id, relative_position * basis, relative_position);
     ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
   }
-  return Config{basis_, lattice_vector, atom_vector};
+  return Config{basis, lattice_vector, atom_vector};
 }
 void Config::WriteCfg(const std::string &filename, bool neighbors_info) const {
   std::ofstream ofs(filename, std::ofstream::out);
