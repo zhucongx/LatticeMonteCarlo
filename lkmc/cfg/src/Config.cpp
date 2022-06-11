@@ -149,8 +149,8 @@ Config Config::ReadCfg(const std::string &filename) {
   // "entry_count = 3"
   ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
   auto basis = Matrix_t{{{basis_xx, basis_xy, basis_xz},
-                          {basis_yx, basis_yy, basis_yz},
-                          {basis_zx, basis_zy, basis_zz}}};
+                         {basis_yx, basis_yy, basis_yz},
+                         {basis_zx, basis_zy, basis_zz}}};
   std::vector<Atom> atom_vector;
   atom_vector.reserve(num_atoms);
   std::vector<Lattice> lattice_vector;
