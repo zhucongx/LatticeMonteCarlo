@@ -156,13 +156,11 @@ Config Config::ReadCfg(const std::string &filename) {
   std::vector<Lattice> lattice_vector;
   lattice_vector.reserve(num_atoms);
 
-  double mass, relative_position_X, relative_position_Y, relative_position_Z;
+  double mass;
   std::string type;
+  Vector_t relative_position;
   for (size_t id = 0; id < num_atoms; ++id) {
-    ifs >> mass >> type
-        >> relative_position_X >> relative_position_Y >> relative_position_Z;
-    auto
-        relative_position = Vector_t{relative_position_X, relative_position_Y, relative_position_Z};
+    ifs >> mass >> type >> relative_position;
     atom_vector.emplace_back(id, type);
     lattice_vector.emplace_back(id, relative_position * basis, relative_position);
     ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
@@ -205,6 +203,97 @@ void Config::WriteCfg(const std::string &filename, bool neighbors_info) const {
     }
     ofs << '\n';
     ofs << std::flush;
+  }
+}
+Config Config::ReadMap(const std::string &lattice_filename,
+                       const std::string &element_filename,
+                       const std::string &map_filename) {
+  Config config;
+  std::ifstream ifs_lattice(lattice_filename, std::ifstream::in);
+  size_t num_atoms;
+  ifs_lattice >> num_atoms;
+  ifs_lattice.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+  Matrix_t basis;
+  ifs_lattice >> basis;
+  config.basis_ = basis;
+  config.InitializeNeighborsList(num_atoms);
+
+  config.lattice_vector_.reserve(num_atoms);
+  Vector_t relative_position;
+  size_t neighbor_id;
+  for (size_t lattice_id = 0; lattice_id < num_atoms; ++lattice_id) {
+    ifs_lattice >> relative_position;
+    config.lattice_vector_.emplace_back(lattice_id, relative_position * basis, relative_position);
+    ifs_lattice.ignore(std::numeric_limits<std::streamsize>::max(), '#');
+    for (size_t i = 0; i < constants::kNumFirstNearestNeighbors; ++i) {
+      ifs_lattice >> neighbor_id;
+      config.first_neighbors_adjacency_list_[lattice_id].push_back(neighbor_id);
+    }
+    for (size_t i = 0; i < constants::kNumSecondNearestNeighbors; ++i) {
+      ifs_lattice >> neighbor_id;
+      config.second_neighbors_adjacency_list_[lattice_id].push_back(neighbor_id);
+    }
+    for (size_t i = 0; i < constants::kNumThirdNearestNeighbors; ++i) {
+      ifs_lattice >> neighbor_id;
+      config.third_neighbors_adjacency_list_[lattice_id].push_back(neighbor_id);
+    }
+    ifs_lattice.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+  }
+
+  std::ifstream ifs_element(element_filename, std::ifstream::in);
+  std::string type;
+  config.atom_vector_.reserve(num_atoms);
+  for (size_t atom_id = 0; atom_id < num_atoms; ++atom_id) {
+    ifs_element >> type;
+    config.atom_vector_.emplace_back(atom_id, type);
+    ifs_element.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+  }
+
+  std::ifstream ifs_map(map_filename, std::ifstream::in);
+  size_t lattice_id;
+  for (size_t atom_id = 0; atom_id < num_atoms; ++atom_id) {
+    ifs_map >> lattice_id;
+    config.lattice_to_atom_hashmap_.emplace(lattice_id, atom_id);
+    config.atom_to_lattice_hashmap_.emplace(atom_id, lattice_id);
+    ifs_map.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+  }
+
+  return config;
+}
+void Config::WriteLattice(const std::string &filename) const {
+  std::ofstream ofs(filename, std::ofstream::out);
+  ofs.precision(16);
+  ofs << GetNumAtoms() << " positions in total" << '\n';
+  ofs << basis_ << std::endl;
+  for (size_t i = 0; i < lattice_vector_.size(); ++i) {
+    ofs << lattice_vector_[i].GetRelativePosition();
+    ofs << " # ";
+    for (auto neighbor_lattice_index: first_neighbors_adjacency_list_[i]) {
+      ofs << lattice_to_atom_hashmap_.at(neighbor_lattice_index) << ' ';
+    }
+    for (auto neighbor_lattice_index: second_neighbors_adjacency_list_[i]) {
+      ofs << lattice_to_atom_hashmap_.at(neighbor_lattice_index) << ' ';
+    }
+    for (auto neighbor_lattice_index: third_neighbors_adjacency_list_[i]) {
+      ofs << lattice_to_atom_hashmap_.at(neighbor_lattice_index) << ' ';
+    }
+    ofs << std::endl;
+  }
+}
+void Config::WriteElement(const std::string &filename) const {
+  std::ofstream ofs(filename, std::ofstream::out);
+  ofs.precision(16);
+  for (const auto &atom: atom_vector_) {
+    ofs << atom.GetElementString() << std::endl;
+  }
+}
+void Config::WriteMap(const std::string &filename) const {
+  std::ofstream ofs(filename, std::ofstream::out);
+  ofs.precision(16);
+  for (const auto &atom: atom_vector_) {
+    size_t lattice_id = atom_to_lattice_hashmap_.at(atom.GetId());
+    ofs << lattice_id << std::endl;
   }
 }
 void Config::ConvertRelativeToCartesian() {
