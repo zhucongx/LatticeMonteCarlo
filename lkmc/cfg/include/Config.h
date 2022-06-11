@@ -37,8 +37,8 @@ class Config {
     static Config ReadCfg(const std::string &filename);
     void WriteCfg(const std::string &filename, bool neighbors_info) const;
     static Config ReadMap(const std::string &lattice_filename,
-                              const std::string &element_filename,
-                              const std::string &map_filename);
+                          const std::string &element_filename,
+                          const std::string &map_filename);
     void WriteLattice(const std::string &filename) const;
     void WriteElement(const std::string &filename) const;
     void WriteMap(const std::string &filename) const;
