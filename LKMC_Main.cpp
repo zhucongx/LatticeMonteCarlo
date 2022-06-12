@@ -8,17 +8,32 @@ int main(int argc, char *argv[]) {
     parameter = api::Parameter(argc, argv);
   }
   parameter.PrintParameters();
-  if (parameter.simulation_method_ == "First") {
+  if (parameter.method == "First") {
     auto kmc = api::BuildFirstKmcMpiFromParameter(parameter);
     kmc.Simulate();
 
-  } else if (parameter.simulation_method_ == "Chain") {
+  } else if (parameter.method == "Chain") {
     auto kmc = api::BuildChainKmcMpiFromParameter(parameter);
     kmc.Simulate();
+  } else if (parameter.method == "Cluster") {
+
   }
 
   // auto conf0 = cfg::Config::ReadCfg("start.cfg");
-  // conf0.WriteCfg("start1.cfg", false);
+  // conf0.WriteCfg("start1.cfg", true);
+  // std::cout << conf0.GetStateHash() << std::endl;
+  //
+  // auto conf1 = cfg::Config::ReadCfg("start1.cfg");
+  // conf1.WriteCfg("start2.cfg", true);
+  // std::cout << conf1.GetStateHash() << std::endl;
+  //
+  // conf1.WriteLattice("start_lattice.txt");
+  // conf1.WriteElement("start_element.txt");
+  // conf1.WriteMap("start_map.txt");
+  //
+  // auto conf2 = cfg::Config::ReadMap("start_lattice.txt", "start_element.txt", "start_map.txt");
+  // conf2.WriteCfg("start3.cfg", true);
+  // std::cout << conf2.GetStateHash() << std::endl;
 
   // std::set<Element> ele_set{Element("Al"), Element("Mg"),
   //                           Element("Zn")};

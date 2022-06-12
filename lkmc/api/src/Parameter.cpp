@@ -29,7 +29,7 @@ void Parameter::ReadParam(const std::string &param_filename) {
     }
     std::vector<std::string> segs(split(buffer, " "));
     if (segs[0] == "simulation_method") {
-      simulation_method_ = segs[1];
+      method = segs[1];
     } else if (segs[0] == "config_filename") {
       config_filename_ = segs[1];
     } else if (segs[0] == "json_coefficients_filename") {
@@ -58,7 +58,7 @@ void Parameter::ReadParam(const std::string &param_filename) {
 }
 void Parameter::PrintParameters() const {
   std::cout << "KMC Parameters" << std::endl;
-  std::cout << "simulation_method: " << simulation_method_ << std::endl;
+  std::cout << "simulation_method: " << method << std::endl;
   std::cout << "config_filename: " << config_filename_ << std::endl;
   std::cout << "json_coefficients_filename: " << json_coefficients_filename_ << std::endl;
   std::cout << "log_dump_steps: " << log_dump_steps_ << std::endl;
