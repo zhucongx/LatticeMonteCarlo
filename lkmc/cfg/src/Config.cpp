@@ -7,7 +7,8 @@ namespace cfg {
 Config::Config() = default;
 Config::Config(const Matrix_t &basis,
                std::vector<Lattice> lattice_vector,
-               std::vector<Atom> atom_vector)
+               std::vector<Atom> atom_vector,
+               bool neighbor_found)
     : basis_(basis),
       lattice_vector_(std::move(lattice_vector)),
       atom_vector_(std::move(atom_vector)) {
@@ -21,7 +22,9 @@ Config::Config(const Matrix_t &basis,
     lattice_to_atom_hashmap_.emplace(lattice_id, atom_id);
     atom_to_lattice_hashmap_.emplace(atom_id, lattice_id);
   }
-  UpdateNeighbors();
+  if (!neighbor_found) {
+    UpdateNeighbors();
+  }
 }
 size_t Config::GetNumAtoms() const {
   return atom_vector_.size();
@@ -159,13 +162,51 @@ Config Config::ReadCfg(const std::string &filename) {
   double mass;
   std::string type;
   Vector_t relative_position;
-  for (size_t id = 0; id < num_atoms; ++id) {
+  size_t neighbor_id;
+  bool neighbor_found = false;
+
+  std::vector<std::vector<size_t> > first_neighbors_adjacency_list,
+      second_neighbors_adjacency_list, third_neighbors_adjacency_list;
+
+  for (size_t lattice_id = 0; lattice_id < num_atoms; ++lattice_id) {
     ifs >> mass >> type >> relative_position;
-    atom_vector.emplace_back(id, type);
-    lattice_vector.emplace_back(id, relative_position * basis, relative_position);
-    ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    atom_vector.emplace_back(lattice_id, type);
+    lattice_vector.emplace_back(lattice_id, relative_position * basis, relative_position);
+    if (ifs.peek() != '\n') {
+      ifs.ignore(std::numeric_limits<std::streamsize>::max(), '#');
+      std::vector<size_t> first_neighbors_list, second_neighbors_list, third_neighbor_list;
+      for (size_t i = 0; i < constants::kNumFirstNearestNeighbors; ++i) {
+        ifs >> neighbor_id;
+        first_neighbors_list.push_back(neighbor_id);
+      }
+      first_neighbors_adjacency_list.push_back(first_neighbors_list);
+
+      for (size_t i = 0; i < constants::kNumSecondNearestNeighbors; ++i) {
+        ifs >> neighbor_id;
+        second_neighbors_list.push_back(neighbor_id);
+      }
+      second_neighbors_adjacency_list.push_back(second_neighbors_list);
+
+      for (size_t i = 0; i < constants::kNumThirdNearestNeighbors; ++i) {
+        ifs >> neighbor_id;
+        third_neighbor_list.push_back(neighbor_id);
+      }
+      third_neighbors_adjacency_list.push_back(third_neighbor_list);
+
+      ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+      neighbor_found = true;
+    }
   }
-  return Config{basis, lattice_vector, atom_vector};
+
+  if (neighbor_found) {
+    Config config(basis, lattice_vector, atom_vector, true);
+    config.first_neighbors_adjacency_list_ = first_neighbors_adjacency_list;
+    config.second_neighbors_adjacency_list_ = second_neighbors_adjacency_list;
+    config.third_neighbors_adjacency_list_ = third_neighbors_adjacency_list;
+    return config;
+  } else {
+    return Config{basis, lattice_vector, atom_vector, false};
+  }
 }
 void Config::WriteCfg(const std::string &filename, bool neighbors_info) const {
   std::ofstream ofs(filename, std::ofstream::out);

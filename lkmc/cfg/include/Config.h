@@ -12,9 +12,6 @@ class Config {
   public:
     /// Constructor
     Config();
-    Config(const Matrix_t &basis,
-           std::vector<Lattice> lattice_vector,
-           std::vector<Atom> atom_vector);
     /// Getter
     [[nodiscard]] size_t GetNumAtoms() const;
     [[nodiscard]] const Matrix_t &GetBasis() const;
@@ -43,6 +40,12 @@ class Config {
     void WriteElement(const std::string &filename) const;
     void WriteMap(const std::string &filename) const;
   private:
+    /// Private Constructor
+    Config(const Matrix_t &basis,
+           std::vector<Lattice> lattice_vector,
+           std::vector<Atom> atom_vector,
+           bool neighbor_found);
+    /// Private Getter
     [[nodiscard]] const std::unordered_map<size_t, size_t> &GetLatticeToAtomHashmap() const;
     [[nodiscard]] const std::unordered_map<size_t, size_t> &GetAtomToLatticeHashmap() const;
     /// Modify config
