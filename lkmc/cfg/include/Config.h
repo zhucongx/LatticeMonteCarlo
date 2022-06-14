@@ -15,7 +15,7 @@ class Config {
     Config(const Matrix_t &basis,
            std::vector<Lattice> lattice_vector,
            std::vector<Atom> atom_vector,
-           bool neighbor_found);
+           bool update_neighbor);
     /// Getter
     [[nodiscard]] size_t GetNumAtoms() const;
     [[nodiscard]] const Matrix_t &GetBasis() const;
@@ -24,16 +24,18 @@ class Config {
     [[nodiscard]] const std::vector<std::vector<size_t> > &GetFirstNeighborsAdjacencyList() const;
     [[nodiscard]] const std::vector<std::vector<size_t> > &GetSecondNeighborsAdjacencyList() const;
     [[nodiscard]] const std::vector<std::vector<size_t> > &GetThirdNeighborsAdjacencyList() const;
-    [[nodiscard]] std::vector<size_t> GetFirstNeighborsAtomIdVectorOfAtom(
-        size_t atom_id) const;
+    [[nodiscard]] std::vector<size_t> GetFirstNeighborsAtomIdVectorOfAtom(size_t atom_id) const;
+    [[nodiscard]] std::vector<size_t> GetSecondNeighborsAtomIdVectorOfAtom(size_t atom_id) const;
     [[nodiscard]] size_t GetAtomIdFromLatticeId(size_t lattice_id) const;
     [[nodiscard]] size_t GetLatticeIdFromAtomId(size_t atom_id) const;
+    [[nodiscard]] Element GetElementAtAtomId(size_t atom_id) const;
     [[nodiscard]] Element GetElementAtLatticeId(size_t lattice_id) const;
     [[nodiscard]] std::set<Element> GetElementSetWithoutVacancy() const;
     [[nodiscard]] size_t GetStateHash() const;
     /// Modify config
     void AtomJump(const std::pair<size_t, size_t> &atom_id_jump_pair);
     void LatticeJump(const std::pair<size_t, size_t> &lattice_id_jump_pair);
+    void ChangeAtomElementTypeAtAtom(size_t atom_id, Element element);
     void ChangeAtomElementTypeAtLattice(size_t lattice_id, Element element);
     /// IO
     static Config ReadCfg(const std::string &filename);

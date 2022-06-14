@@ -6,17 +6,25 @@ namespace ansys {
 
 class Iterator {
   public:
-    virtual void IterateToRun() = 0;
     Iterator(unsigned long long int initial_number,
-                unsigned long long int increment_number,
-                unsigned long long int finial_number);
+             unsigned long long int increment_number,
+             Element solvent_element,
+             std::set<Element> type_set,
+             size_t smallest_cluster_criteria,
+             size_t solvent_bond_criteria,
+             const std::string &predictor_filename);
     virtual ~Iterator();
+    void SerialRunCluster() const;
 
-  protected:
+  private:
     const unsigned long long initial_number_;
     const unsigned long long increment_number_;
-    const unsigned long long finial_number_;
-
+    unsigned long long final_number_;
+    Element solvent_element_;
+    size_t smallest_cluster_criteria_;
+    size_t solvent_bond_criteria_;
+    std::unordered_map<unsigned long long, double> filename_time_hashset_{};
+    const pred::EnergyEstimator energy_estimator_;
 };
 
 } // namespace ansys

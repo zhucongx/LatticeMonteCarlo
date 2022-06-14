@@ -19,29 +19,26 @@ int main(int argc, char *argv[]) {
   //
   // }
 
-  pred::EnergyEstimator a("quartic_coefficients.json",
-                          std::set<Element>{Element("Al"), Element("Mg"),
-                                            Element("Zn")});
-  const auto conf0 = cfg::GenerateFCC(
-      4.046, {30, 30, 30}, Element("Al"));
-  size_t Zn, Mg;
-#pragma omp parallel for default(none) shared(conf0, a, std::cout) private(Zn, Mg)
-  for (Mg = 0; Mg <= 200; ++Mg) {
-    for (Zn = 0; Zn <= 200; ++Zn) {
-      if (Mg + Zn > 200) continue;
-      auto conf1 = GenerateSoluteConfigFromExcitingPure(
-          conf0,
-          {{Element("Mg"), Mg},
-           {Element("Zn"), Zn}});
-      double energy = a.GetEnergy(conf1);
-      std::string outpt =
-          "Mg " + std::to_string(Mg) + " Zn " + std::to_string(Zn) + ' ' + std::to_string(energy)
-              + '\n';
-      std::cout << outpt << std::flush;
-    }
-  }
+  ansys::Iterator test(0, 1e4,
+                       Element("Al"),
+                       {Element("Al"),
+                        Element("Mg"),
+                        Element("Zn")},
+                        4, 3, "quartic_coefficients.json");
+  test.SerialRunCluster();
 
-
+  // auto conf0 = cfg::Config::ReadCfg("70900000.cfg");
+  // conf0.WriteCfg("709.cfg", true);
+  // const pred::EnergyEstimator energy_estimator("quartic_coefficients.json",
+  //                                              {Element("Al"),
+  //                                               Element("Mg"),
+  //                                               Element("Zn")});
+  // auto cluster_finder = ansys::ClustersFinder("start1.cfg", Element("Al"),
+  //                                             4, 3, energy_estimator);
+  // auto result = cluster_finder.FindClustersAndOutput();
+  // for (auto [cluster, energy]: result) {
+  //   std::cout << energy << '\n';
+  // }
 
   // auto conf0 = cfg::Config::ReadCfg("start.cfg");
   // conf0.WriteCfg("start1.cfg", true);

@@ -12,7 +12,7 @@ Config::Config() = default;
 Config::Config(const Matrix_t &basis,
                std::vector<Lattice> lattice_vector,
                std::vector<Atom> atom_vector,
-               bool neighbor_found)
+               bool update_neighbor)
     : basis_(basis),
       lattice_vector_(std::move(lattice_vector)),
       atom_vector_(std::move(atom_vector)) {
@@ -26,7 +26,7 @@ Config::Config(const Matrix_t &basis,
     lattice_to_atom_hashmap_.emplace(lattice_id, atom_id);
     atom_to_lattice_hashmap_.emplace(atom_id, lattice_id);
   }
-  if (!neighbor_found) {
+  if (update_neighbor) {
     UpdateNeighbors();
   }
 }
@@ -66,11 +66,23 @@ std::vector<size_t> Config::GetFirstNeighborsAtomIdVectorOfAtom(size_t atom_id) 
   }
   return first_neighbors_atom_id_vector;
 }
+std::vector<size_t> Config::GetSecondNeighborsAtomIdVectorOfAtom(size_t atom_id) const {
+  auto lattice_id = atom_to_lattice_hashmap_.at(atom_id);
+  std::vector<size_t> first_neighbors_atom_id_vector;
+  first_neighbors_atom_id_vector.reserve(constants::kNumFirstNearestNeighbors);
+  for (auto neighbor_lattice_id: second_neighbors_adjacency_list_[lattice_id]) {
+    first_neighbors_atom_id_vector.push_back(lattice_to_atom_hashmap_.at(neighbor_lattice_id));
+  }
+  return first_neighbors_atom_id_vector;
+}
 size_t Config::GetAtomIdFromLatticeId(size_t lattice_id) const {
   return lattice_to_atom_hashmap_.at(lattice_id);
 }
 size_t Config::GetLatticeIdFromAtomId(size_t atom_id) const {
   return atom_to_lattice_hashmap_.at(atom_id);
+}
+Element Config::GetElementAtAtomId(size_t atom_id) const {
+  return atom_vector_[atom_id].GetElement();
 }
 Element Config::GetElementAtLatticeId(size_t lattice_id) const {
   auto atom_id = lattice_to_atom_hashmap_.at(lattice_id);
@@ -110,6 +122,9 @@ void Config::LatticeJump(const std::pair<size_t, size_t> &lattice_id_jump_pair) 
   atom_to_lattice_hashmap_.at(atom_id_rhs) = lattice_id_lhs;
   lattice_to_atom_hashmap_.at(lattice_id_lhs) = atom_id_rhs;
   lattice_to_atom_hashmap_.at(lattice_id_rhs) = atom_id_lhs;
+}
+void Config::ChangeAtomElementTypeAtAtom(size_t atom_id, Element element) {
+  atom_vector_.at(atom_id).SetElement(element);
 }
 void Config::ChangeAtomElementTypeAtLattice(size_t lattice_id, Element element) {
   atom_vector_.at(lattice_to_atom_hashmap_.at(lattice_id)).SetElement(element);
@@ -207,13 +222,13 @@ Config Config::ReadCfg(const std::string &filename) {
   }
 
   if (neighbor_found) {
-    Config config(basis, lattice_vector, atom_vector, true);
+    Config config(basis, lattice_vector, atom_vector, false);
     config.first_neighbors_adjacency_list_ = first_neighbors_adjacency_list;
     config.second_neighbors_adjacency_list_ = second_neighbors_adjacency_list;
     config.third_neighbors_adjacency_list_ = third_neighbors_adjacency_list;
     return config;
   } else {
-    return Config{basis, lattice_vector, atom_vector, false};
+    return Config{basis, lattice_vector, atom_vector, true};
   }
 }
 void Config::WriteCfg(const std::string &filename, bool neighbors_info) const {
@@ -582,7 +597,7 @@ Config GenerateFCC(double lattice_constant_a, const Factor_t &factors, Element e
       }
     }
   }
-  return Config{basis, lattice_vector, atom_vector, false};
+  return Config{basis, lattice_vector, atom_vector, true};
 }
 Config GenerateSoluteConfigFromExcitingPure(Config config,
                                             const std::map<Element, size_t> &solute_atom_count) {

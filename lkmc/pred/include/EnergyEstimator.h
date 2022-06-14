@@ -18,8 +18,6 @@ class EnergyEstimator {
     [[nodiscard]] std::vector<double> GetEncodeFast(const cfg::Config &config) const;
     [[nodiscard]] std::vector<double> GetEncodeFastOmp(const cfg::Config &config) const;
     [[nodiscard]] double GetEnergy(const cfg::Config &config) const;
-    [[nodiscard]] double GetEnergyOfSoluteConfig(
-        const std::map<Element, size_t> &solute_atom_count) const;
   private:
     std::vector<double> base_theta_{};
     const std::set<Element> type_set_;

@@ -233,10 +233,6 @@ std::vector<double> EnergyEstimator::GetEncodeFastOmp(const cfg::Config &config)
   }
   return energy_encode;
 }
-double EnergyEstimator::GetEnergyOfSoluteConfig(
-    const std::map<Element, size_t> &solute_atom_count) const {
-  return 0;
-}
 double EnergyEstimator::GetEnergy(const cfg::Config &config) const {
   auto encode = GetEncodeFast(config);
   double E = 0;
