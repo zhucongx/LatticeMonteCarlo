@@ -26,8 +26,9 @@ int main(int argc, char *argv[]) {
       4.046, {30, 30, 30}, Element("Al"));
   size_t Zn, Mg;
 #pragma omp parallel for default(none) shared(conf0, a, std::cout) private(Zn, Mg)
-  for (Mg = 0; Mg < 200; ++Mg) {
-    for (Zn = Mg; Zn < 200 - Mg; ++Zn) {
+  for (Mg = 0; Mg <= 200; ++Mg) {
+    for (Zn = 0; Zn <= 200; ++Zn) {
+      if (Mg + Zn > 200) continue;
       auto conf1 = GenerateSoluteConfigFromExcitingPure(
           conf0,
           {{Element("Mg"), Mg},
