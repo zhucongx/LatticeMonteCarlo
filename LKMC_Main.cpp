@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
         std::string outpt =
             "Mg " + std::to_string(Mg) + " Zn " + std::to_string(Zn) + ' ' + std::to_string(energy)
                 + '\n';
-        std::cout << outpt << std::endl;
+        std::cout << outpt << std::flush;
       }
     }
   }
