@@ -24,11 +24,13 @@ int main(int argc, char *argv[]) {
                                             Element("Zn")});
   const auto conf0 = cfg::GenerateFCC(
       4.046, {30, 30, 30}, Element("Al"));
-#pragma omp parallel default(none) shared(conf0, a)
+  size_t Zn, Mg;
+
+#pragma omp parallel default(none) shared(conf0, a) private(Zn, Mg)
   {
 #pragma omp for collapse(2)
-    for (size_t Mg = 0; Mg < 200; ++Mg) {
-      for (size_t Zn = Mg; Zn < 200 - Mg; ++Zn) {
+    for (Mg = 0; Mg < 200; ++Mg) {
+      for (Zn = Mg; Zn < 200 - Mg; ++Zn) {
         auto conf1 = GenerateSoluteConfigFromExcitingPure(
             conf0,
             {{Element("Mg"), Mg},
