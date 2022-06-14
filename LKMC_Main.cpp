@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
   const auto conf0 = cfg::GenerateFCC(
       4.046, {30, 30, 30}, Element("Al"));
   size_t Zn, Mg;
-#pragma omp parallel for collapse(2)  default(none) shared(conf0, a, std::cout) private(Zn, Mg)
+#pragma omp parallel for default(none) shared(conf0, a, std::cout) private(Zn, Mg)
   for (Mg = 0; Mg < 200; ++Mg) {
     for (Zn = Mg; Zn < 200 - Mg; ++Zn) {
       auto conf1 = GenerateSoluteConfigFromExcitingPure(
