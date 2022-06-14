@@ -5,7 +5,7 @@
 #include "EnergyPredictorSymmetry.h"
 #include "EnergyPredictorStateLru.h"
 #include "EnergyPredictorQuarticLru.h"
-#include "EnergyPredictorHighT.h"
+#include "EnergyPredictorRandomizer.h"
 #include "JumpEvent.h"
 namespace kmc {
 class FirstKmcMpi {

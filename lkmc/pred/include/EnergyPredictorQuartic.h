@@ -6,23 +6,10 @@
 #include "Config.h"
 #include "LatticeCluster.hpp"
 #include "ElementCluster.hpp"
-#include "EnergyPredictorUtility.h"
+#include "EnergyUtility.h"
 
 namespace pred {
-struct ParametersQuartic {
-  std::vector<double> mu_x_mmm{};
-  std::vector<double> mu_x_mm2{};
-  std::vector<double> sigma_x_mmm{};
-  std::vector<double> sigma_x_mm2{};
-  std::vector<std::vector<double> > U_mmm{};
-  std::vector<std::vector<double> > U_mm2{};
-  std::vector<double> theta_D{};
-  std::vector<double> theta_Ks{};
-  double mu_y_D{};
-  double mu_y_Ks{};
-  double sigma_y_D{};
-  double sigma_y_Ks{};
-};
+
 
 class EnergyPredictorQuartic {
   public:

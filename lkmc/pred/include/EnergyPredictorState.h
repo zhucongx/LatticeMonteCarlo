@@ -6,7 +6,7 @@
 #include "Config.h"
 #include "LatticeCluster.hpp"
 #include "ElementCluster.hpp"
-#include "EnergyPredictorUtility.h"
+#include "EnergyUtility.h"
 
 namespace pred {
 

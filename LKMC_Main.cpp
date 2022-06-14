@@ -1,23 +1,48 @@
 #include "Home.h"
 int main(int argc, char *argv[]) {
-  api::Parameter parameter;
-  if (argc == 1) {
-    std::cout << "No input parameter filename. Opening kmc_param.txt" << std::endl;
-    parameter = api::Parameter("kmc_param.txt");
-  } else {
-    parameter = api::Parameter(argc, argv);
-  }
-  parameter.PrintParameters();
-  if (parameter.method == "First") {
-    auto kmc = api::BuildFirstKmcMpiFromParameter(parameter);
-    kmc.Simulate();
+  // api::Parameter parameter;
+  // if (argc == 1) {
+  //   std::cout << "No input parameter filename. Opening kmc_param.txt" << std::endl;
+  //   parameter = api::Parameter("kmc_param.txt");
+  // } else {
+  //   parameter = api::Parameter(argc, argv);
+  // }
+  // parameter.PrintParameters();
+  // if (parameter.method == "First") {
+  //   auto kmc = api::BuildFirstKmcMpiFromParameter(parameter);
+  //   kmc.Simulate();
+  //
+  // } else if (parameter.method == "Chain") {
+  //   auto kmc = api::BuildChainKmcMpiFromParameter(parameter);
+  //   kmc.Simulate();
+  // } else if (parameter.method == "Cluster") {
+  //
+  // }
 
-  } else if (parameter.method == "Chain") {
-    auto kmc = api::BuildChainKmcMpiFromParameter(parameter);
-    kmc.Simulate();
-  } else if (parameter.method == "Cluster") {
-
+  pred::EnergyEstimator a("quartic_coefficients.json",
+                          std::set<Element>{Element("Al"), Element("Mg"),
+                                            Element("Zn")});
+  const auto conf0 = cfg::GenerateFCC(
+      4.046, {30, 30, 30}, Element("Al"));
+#pragma omp parallel default(none) shared(conf0, a)
+  {
+#pragma omp for collapse(2)
+    for (size_t Mg = 0; Mg < 200; ++Mg) {
+      for (size_t Zn = Mg; Zn < 200 - Mg; ++Zn) {
+        auto conf1 = GenerateSoluteConfigFromExcitingPure(
+            conf0,
+            {{Element("Mg"), Mg},
+             {Element("Zn"), Zn}});
+        double energy = a.GetEnergy(conf1);
+        std::string outpt =
+            "Mg " + std::to_string(Mg) + " Zn " + std::to_string(Zn) + ' ' + std::to_string(energy)
+                + '\n';
+        std::cout << outpt << std::endl;
+      }
+    }
   }
+
+
 
   // auto conf0 = cfg::Config::ReadCfg("start.cfg");
   // conf0.WriteCfg("start1.cfg", true);

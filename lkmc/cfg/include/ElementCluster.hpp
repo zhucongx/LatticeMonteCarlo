@@ -15,12 +15,12 @@ namespace cfg {
 class ElementCluster {
   public:
     /// Constructor
-    ElementCluster(size_t label, std::vector<Element> element_vector)
+    ElementCluster(int label, std::vector<Element> element_vector)
         : label_(label), element_vector_(std::move(element_vector)) {
       std::sort(element_vector_.begin(), element_vector_.end());
     }
     template<typename ... Ts>
-    explicit ElementCluster(size_t label, Ts &&... ts)
+    explicit ElementCluster(int label, Ts &&... ts)
         : label_(label), element_vector_{std::forward<Ts>(ts)...} {
       std::sort(element_vector_.begin(), element_vector_.end());
     }
@@ -28,7 +28,7 @@ class ElementCluster {
     [[nodiscard]] size_t GetSize() const {
       return element_vector_.size();
     }
-    [[nodiscard]] size_t GetLabel() const {
+    [[nodiscard]] int GetLabel() const {
       return label_;
     }
     [[nodiscard]] const std::vector<Element> &GetElementVector() const {
@@ -73,7 +73,7 @@ class ElementCluster {
       return seed;
     }
   private:
-    size_t label_;
+    int label_;
     std::vector<Element> element_vector_;
 };
 

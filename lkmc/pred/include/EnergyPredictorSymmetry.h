@@ -5,24 +5,9 @@
 #include <boost/functional/hash.hpp>
 #include "Config.h"
 #include "LatticeCluster.hpp"
-#include "EnergyPredictorUtility.h"
+#include "EnergyUtility.h"
 namespace pred {
-struct ParametersE0 {
-  std::vector<double> mu_x{};
-  std::vector<double> sigma_x{};
-  double mu_y{};
-  double sigma_y{};
-  std::vector<std::vector<double> > U{};
-  std::vector<double> theta{};
-};
-struct ParametersDE {
-  std::vector<double> mu_x{};
-  std::vector<double> sigma_x{};
-  double mu_y{};
-  double sigma_y{};
-  std::vector<std::vector<double> > U{};
-  std::vector<double> theta{};
-};
+
 class EnergyPredictorSymmetry {
   public:
     EnergyPredictorSymmetry(const std::string &predictor_filename,

@@ -12,6 +12,10 @@ class Config {
   public:
     /// Constructor
     Config();
+    Config(const Matrix_t &basis,
+           std::vector<Lattice> lattice_vector,
+           std::vector<Atom> atom_vector,
+           bool neighbor_found);
     /// Getter
     [[nodiscard]] size_t GetNumAtoms() const;
     [[nodiscard]] const Matrix_t &GetBasis() const;
@@ -30,6 +34,7 @@ class Config {
     /// Modify config
     void AtomJump(const std::pair<size_t, size_t> &atom_id_jump_pair);
     void LatticeJump(const std::pair<size_t, size_t> &lattice_id_jump_pair);
+    void ChangeAtomElementTypeAtLattice(size_t lattice_id, Element element);
     /// IO
     static Config ReadCfg(const std::string &filename);
     void WriteCfg(const std::string &filename, bool neighbors_info) const;
@@ -40,11 +45,6 @@ class Config {
     void WriteElement(const std::string &filename) const;
     void WriteMap(const std::string &filename) const;
   private:
-    /// Private Constructor
-    Config(const Matrix_t &basis,
-           std::vector<Lattice> lattice_vector,
-           std::vector<Atom> atom_vector,
-           bool neighbor_found);
     /// Private Getter
     [[nodiscard]] const std::unordered_map<size_t, size_t> &GetLatticeToAtomHashmap() const;
     [[nodiscard]] const std::unordered_map<size_t, size_t> &GetAtomToLatticeHashmap() const;
@@ -82,5 +82,13 @@ std::unordered_set<size_t> GetNeighborsLatticeIdSetOfLattice(
 Config GetNeighborsConfigSetOfJumpPair(
     const Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair);
 int FindDistanceLabelBetweenLattice(size_t index1, size_t index2, const Config &config);
+Config GenerateFCC(double lattice_constant_a, const Factor_t &factors, Element element);
+Config GenerateSoluteConfigFromExcitingPure(Config config,
+                                            const std::map<Element, size_t> &solute_atom_count);
+Config GenerateSoluteConfig(double lattice_constant_a,
+                            const Factor_t &factors,
+                            Element solvent_element,
+                            const std::map<Element, size_t> &solute_atom_count);
+
 } // namespace cfg
 #endif //LKMC_LKMC_CFG_INCLUDE_CONFIG_H_

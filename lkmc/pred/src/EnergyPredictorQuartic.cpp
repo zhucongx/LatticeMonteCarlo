@@ -13,14 +13,13 @@ EnergyPredictorQuartic::EnergyPredictorQuartic(const std::string &predictor_file
       mapping_mmm_(GetAverageClusterParametersMappingMMM(reference_config)),
       mapping_mm2_(GetAverageClusterParametersMappingMM2(reference_config)),
       mapping_state_(GetClusterParametersMappingState(reference_config)) {
-  std::ifstream ifs(predictor_filename, std::ifstream::in);
-  json all_parameters;
-  ifs >> all_parameters;
-
   auto type_set_copy(type_set_);
   type_set_copy.emplace(ElementName::X);
   initialized_cluster_hashmap_ = InitializeClusterHashMap(type_set_copy);
 
+  std::ifstream ifs(predictor_filename, std::ifstream::in);
+  json all_parameters;
+  ifs >> all_parameters;
   for (const auto &[element, parameters]: all_parameters.items()) {
     if (element == "Base") {
       base_theta_ = std::vector<double>(parameters.at("theta"));
@@ -86,7 +85,7 @@ double EnergyPredictorQuartic::GetDe(const cfg::Config &config,
   auto start_hashmap(initialized_cluster_hashmap_);
   auto end_hashmap(initialized_cluster_hashmap_);
 
-  size_t label = 0;
+  int label = 0;
   for (const auto &cluster_vector: mapping_state_) {
     for (const auto &cluster: cluster_vector) {
       std::vector<Element> element_vector_start, element_vector_end;

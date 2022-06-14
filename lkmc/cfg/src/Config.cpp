@@ -1,7 +1,10 @@
 #include "Config.h"
 
+#include <random>
 #include <utility>
 #include <boost/functional/hash.hpp>
+
+#include <omp.h>
 
 namespace cfg {
 Config::Config() = default;
@@ -107,6 +110,10 @@ void Config::LatticeJump(const std::pair<size_t, size_t> &lattice_id_jump_pair) 
   lattice_to_atom_hashmap_.at(lattice_id_lhs) = atom_id_rhs;
   lattice_to_atom_hashmap_.at(lattice_id_rhs) = atom_id_lhs;
 }
+void Config::ChangeAtomElementTypeAtLattice(size_t lattice_id, Element element) {
+  atom_vector_.at(lattice_to_atom_hashmap_.at(lattice_id)).SetElement(element);
+}
+
 Config Config::ReadCfg(const std::string &filename) {
   std::ifstream ifs(filename, std::ifstream::in);
   // "Number of particles = %i"
@@ -370,29 +377,36 @@ void Config::UpdateNeighbors() {
   const double first_r_cutoff_square = std::pow(constants::kFirstNearestNeighborsCutoff, 2);
   const double second_r_cutoff_square = std::pow(constants::kSecondNearestNeighborsCutoff, 2);
   const double third_r_cutoff_square = std::pow(constants::kThirdNearestNeighborsCutoff, 2);
-  for (auto it1 = atom_vector_.begin(); it1 != atom_vector_.end(); ++it1) {
-    for (auto it2 = atom_vector_.begin(); it2 != it1; ++it2) {
-      auto first_lattice_id = atom_to_lattice_hashmap_[it1->GetId()];
-      auto second_lattice_id = atom_to_lattice_hashmap_[it2->GetId()];
-      Vector_t absolute_distance_vector =
-          GetRelativeDistanceVectorLattice(lattice_vector_[first_lattice_id],
-                                           lattice_vector_[second_lattice_id]) * basis_;
-      if (std::abs(absolute_distance_vector[kXDimension])
-          > constants::kNearNeighborsCutoff) { continue; }
-      if (std::abs(absolute_distance_vector[kYDimension])
-          > constants::kNearNeighborsCutoff) { continue; }
-      if (std::abs(absolute_distance_vector[kZDimension])
-          > constants::kNearNeighborsCutoff) { continue; }
-      const double absolute_distance_square = Inner(absolute_distance_vector);
-      if (absolute_distance_square < first_r_cutoff_square) {
-        first_neighbors_adjacency_list_[first_lattice_id].push_back(second_lattice_id);
-        first_neighbors_adjacency_list_[second_lattice_id].push_back(first_lattice_id);
-      } else if (absolute_distance_square < second_r_cutoff_square) {
-        second_neighbors_adjacency_list_[first_lattice_id].push_back(second_lattice_id);
-        second_neighbors_adjacency_list_[second_lattice_id].push_back(first_lattice_id);
-      } else if (absolute_distance_square < third_r_cutoff_square) {
-        third_neighbors_adjacency_list_[first_lattice_id].push_back(second_lattice_id);
-        third_neighbors_adjacency_list_[second_lattice_id].push_back(first_lattice_id);
+#pragma omp parallel default(none) shared(first_r_cutoff_square, second_r_cutoff_square, third_r_cutoff_square)
+  {
+#pragma omp for
+    for (auto it1 = atom_vector_.begin(); it1 != atom_vector_.end(); ++it1) {
+      for (auto it2 = atom_vector_.begin(); it2 != it1; ++it2) {
+        auto first_lattice_id = atom_to_lattice_hashmap_[it1->GetId()];
+        auto second_lattice_id = atom_to_lattice_hashmap_[it2->GetId()];
+        Vector_t absolute_distance_vector =
+            GetRelativeDistanceVectorLattice(lattice_vector_[first_lattice_id],
+                                             lattice_vector_[second_lattice_id]) * basis_;
+        if (std::abs(absolute_distance_vector[kXDimension])
+            > constants::kNearNeighborsCutoff) { continue; }
+        if (std::abs(absolute_distance_vector[kYDimension])
+            > constants::kNearNeighborsCutoff) { continue; }
+        if (std::abs(absolute_distance_vector[kZDimension])
+            > constants::kNearNeighborsCutoff) { continue; }
+        const double absolute_distance_square = Inner(absolute_distance_vector);
+#pragma omp critical
+        {
+          if (absolute_distance_square < first_r_cutoff_square) {
+            first_neighbors_adjacency_list_[first_lattice_id].push_back(second_lattice_id);
+            first_neighbors_adjacency_list_[second_lattice_id].push_back(first_lattice_id);
+          } else if (absolute_distance_square < second_r_cutoff_square) {
+            second_neighbors_adjacency_list_[first_lattice_id].push_back(second_lattice_id);
+            second_neighbors_adjacency_list_[second_lattice_id].push_back(first_lattice_id);
+          } else if (absolute_distance_square < third_r_cutoff_square) {
+            third_neighbors_adjacency_list_[first_lattice_id].push_back(second_lattice_id);
+            third_neighbors_adjacency_list_[second_lattice_id].push_back(first_lattice_id);
+          }
+        }
       }
     }
   }
@@ -532,6 +546,82 @@ int FindDistanceLabelBetweenLattice(size_t index1, size_t index2, const Config &
   }
   return -1;
 
+}
+Config GenerateFCC(double lattice_constant_a, const Factor_t &factors, Element element) {
+  Matrix_t basis{{{lattice_constant_a * static_cast<double>(factors[kXDimension]), 0, 0},
+                  {0, lattice_constant_a * static_cast<double>(factors[kYDimension]), 0},
+                  {0, 0, lattice_constant_a * static_cast<double>(factors[kZDimension])}}};
+  const size_t num_atoms = 4 * factors[kXDimension] * factors[kYDimension] * factors[kZDimension];
+  auto x_length = static_cast<double>(factors[kXDimension]);
+  auto y_length = static_cast<double>(factors[kYDimension]);
+  auto z_length = static_cast<double>(factors[kZDimension]);
+  std::vector<Lattice> lattice_vector;
+  lattice_vector.reserve(num_atoms);
+  std::vector<Atom> atom_vector;
+  atom_vector.reserve(num_atoms);
+  size_t count = 0;
+  for (size_t k = 0; k < factors[kZDimension]; ++k) {
+    for (size_t j = 0; j < factors[kYDimension]; ++j) {
+      for (size_t i = 0; i < factors[kXDimension]; ++i) {
+        auto x_ref = static_cast<double>(i);
+        auto y_ref = static_cast<double>(j);
+        auto z_ref = static_cast<double>(k);
+        std::vector<Vector_t> relative_position_list = {
+            {x_ref / x_length, y_ref / y_length, z_ref / z_length},
+            {(x_ref + 0.5) / x_length, (y_ref + 0.5) / y_length, z_ref / z_length},
+            {(x_ref + 0.5) / x_length, y_ref / y_length, (z_ref + 0.5) / z_length},
+            {x_ref / x_length, (y_ref + 0.5) / y_length, (z_ref + 0.5) / z_length}
+        };
+
+        for (const auto &relative_position: relative_position_list) {
+          lattice_vector.emplace_back(count, relative_position * basis, relative_position);
+          atom_vector.emplace_back(count, element);
+          count++;
+        }
+      }
+    }
+  }
+  return Config{basis, lattice_vector, atom_vector, false};
+}
+Config GenerateSoluteConfigFromExcitingPure(Config config,
+                                            const std::map<Element, size_t> &solute_atom_count) {
+  std::unordered_set<size_t> unavailable_position{};
+
+  static std::mt19937_64 generator(static_cast<unsigned long long int>(
+                                       std::chrono::system_clock::now().time_since_epoch().count()));
+  std::uniform_int_distribution<> dis(0, static_cast<int>(config.GetNumAtoms() - 1));
+
+  size_t selected_lattice_index;
+  for (const auto [solute_atom, count]: solute_atom_count) {
+    for (size_t it = 0; it < count; ++it) {
+      do {
+        selected_lattice_index = static_cast<size_t>(dis(generator));
+      } while (unavailable_position.find(selected_lattice_index) != unavailable_position.end());
+      config.ChangeAtomElementTypeAtLattice(selected_lattice_index, solute_atom);
+      unavailable_position.emplace(selected_lattice_index);
+      std::copy(config.GetFirstNeighborsAdjacencyList().at(selected_lattice_index).begin(),
+                config.GetFirstNeighborsAdjacencyList().at(selected_lattice_index).end(),
+                std::inserter(unavailable_position,
+                              unavailable_position.begin()));
+      std::copy(config.GetSecondNeighborsAdjacencyList().at(selected_lattice_index).begin(),
+                config.GetSecondNeighborsAdjacencyList().at(selected_lattice_index).end(),
+                std::inserter(unavailable_position,
+                              unavailable_position.begin()));
+      std::copy(config.GetThirdNeighborsAdjacencyList().at(selected_lattice_index).begin(),
+                config.GetThirdNeighborsAdjacencyList().at(selected_lattice_index).end(),
+                std::inserter(unavailable_position,
+                              unavailable_position.begin()));
+    }
+  }
+  return config;
+}
+Config GenerateSoluteConfig(double lattice_constant_a,
+                            const Factor_t &factors,
+                            const Element solvent_element,
+                            const std::map<Element, size_t> &solute_atom_count) {
+  return GenerateSoluteConfigFromExcitingPure(GenerateFCC(lattice_constant_a,
+                                                          factors,
+                                                          solvent_element), solute_atom_count);
 }
 
 } // namespace cfg

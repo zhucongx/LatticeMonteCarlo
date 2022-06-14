@@ -1,8 +1,8 @@
-#include "EnergyPredictorHighT.h"
+#include "EnergyPredictorRandomizer.h"
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 namespace pred {
-EnergyPredictorHighT::EnergyPredictorHighT(const std::string &predictor_filename,
+EnergyPredictorRandomizer::EnergyPredictorRandomizer(const std::string &predictor_filename,
                                            const cfg::Config &reference_config,
                                            std::set<Element> type_set)
     : type_set_(std::move(type_set)),
@@ -34,9 +34,9 @@ EnergyPredictorHighT::EnergyPredictorHighT(const std::string &predictor_filename
     }
   }
 }
-EnergyPredictorHighT::~EnergyPredictorHighT() = default;
+EnergyPredictorRandomizer::~EnergyPredictorRandomizer() = default;
 
-std::pair<double, double> EnergyPredictorHighT::GetBarrierAndDiffFromAtomIdPair(
+std::pair<double, double> EnergyPredictorRandomizer::GetBarrierAndDiffFromAtomIdPair(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &atom_id_jump_pair) const {
   return GetBarrierAndDiffFromLatticeIdPair(
@@ -44,14 +44,14 @@ std::pair<double, double> EnergyPredictorHighT::GetBarrierAndDiffFromAtomIdPair(
       {config.GetLatticeIdFromAtomId(atom_id_jump_pair.first),
        config.GetLatticeIdFromAtomId(atom_id_jump_pair.second)});
 }
-double EnergyPredictorHighT::GetDe(const cfg::Config &config,
+double EnergyPredictorRandomizer::GetDe(const cfg::Config &config,
                                    const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
   auto migration_element = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
   const auto &lattice_id_vector = site_bond_cluster_state_hashmap_.at(lattice_id_jump_pair);
   auto start_hashmap(initialized_cluster_hashmap_);
   auto end_hashmap(initialized_cluster_hashmap_);
 
-  size_t label = 0;
+  int label = 0;
   for (const auto &cluster_vector: mapping_state_) {
     for (const auto &cluster: cluster_vector) {
       std::vector<Element> element_vector_start, element_vector_end;
@@ -118,7 +118,7 @@ double EnergyPredictorHighT::GetDe(const cfg::Config &config,
   }
   return dE;
 }
-std::pair<double, double> EnergyPredictorHighT::GetBarrierAndDiffFromLatticeIdPair(
+std::pair<double, double> EnergyPredictorRandomizer::GetBarrierAndDiffFromLatticeIdPair(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
   const auto dE = GetDe(config, lattice_id_jump_pair);

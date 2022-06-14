@@ -65,7 +65,7 @@ std::pair<double, double> EnergyPredictorState::GetBarrierAndDiffFromLatticeIdPa
   auto start_hashmap(initialized_cluster_hashmap);
   auto end_hashmap(initialized_cluster_hashmap);
   auto transition_hashmap(initialized_cluster_hashmap);
-  size_t label = 0;
+  int label = 0;
   for (const auto &cluster_vector: mapping_state_) {
     for (const auto &cluster: cluster_vector) {
       std::vector<Element> element_vector_start, element_vector_end, element_vector_transition;

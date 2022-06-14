@@ -58,12 +58,14 @@ file(GLOB PROJECT_SRC
         ${PROJECT_SOURCE_DIR}/lkmc/cfg/src/*.cpp
         ${PROJECT_SOURCE_DIR}/lkmc/pred/src/*.cpp
         ${PROJECT_SOURCE_DIR}/lkmc/kmc/src/*.cpp
+        ${PROJECT_SOURCE_DIR}/lkmc/ansys/src/*.cpp
         ${PROJECT_SOURCE_DIR}/lkmc/api/src/*.cpp
         )
 set(PROJECT_INCLUDE
         ${PROJECT_SOURCE_DIR}/lkmc/cfg/include
         ${PROJECT_SOURCE_DIR}/lkmc/pred/include
         ${PROJECT_SOURCE_DIR}/lkmc/kmc/include
+        ${PROJECT_SOURCE_DIR}/lkmc/ansys/include
         ${PROJECT_SOURCE_DIR}/lkmc/api/include
         )
 
@@ -105,7 +107,7 @@ FetchContent_Declare(
         json
         GIT_REPOSITORY
         https://github.com/ArthurSonzogni/nlohmann_json_cmake_fetchcontent
-        GIT_TAG v3.10.4)
+        GIT_TAG v3.10.5)
 FetchContent_GetProperties(json)
 if(NOT json_POPULATED)
     FetchContent_Populate(json)

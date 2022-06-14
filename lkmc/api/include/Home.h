@@ -3,6 +3,7 @@
 #include "Parameter.h"
 #include "FirstKmcMpi.h"
 #include "ChainKmcMpi.h"
+#include "Iterator.h"
 namespace api {
 kmc::FirstKmcMpi BuildFirstKmcMpiFromParameter(const Parameter &parameter);
 kmc::ChainKmcMpi BuildChainKmcMpiFromParameter(const Parameter &parameter);

@@ -1,4 +1,4 @@
-#include "EnergyPredictorUtility.h"
+#include "EnergyUtility.h"
 namespace pred {
 std::unordered_map<std::string, std::vector<double> > GetOneHotEncodeHashmap(
     const std::set<Element> &type_set) {
@@ -297,14 +297,14 @@ std::unordered_map<
       if (element1 == ElementName::X && element2.GetString()[0] == 'p') {
         continue;
       }
-      for (size_t label = 1; label <= 3; ++label) {
+      for (int label = 1; label <= 3; ++label) {
         initialized_cluster_hashmap[cfg::ElementCluster(label, element1, element2)] = 0;
       }
       for (const auto &element3: type_set) {
         if (element3 == ElementName::X || element3.GetString()[0] == 'p') {
           continue;
         }
-        for (size_t label = 4; label < 8; ++label) {
+        for (int label = 4; label < 8; ++label) {
           initialized_cluster_hashmap[cfg::ElementCluster(label, element1, element2, element3)] = 0;
         }
       }
@@ -313,7 +313,7 @@ std::unordered_map<
   return initialized_cluster_hashmap;
 }
 
-static int GetLabel(const std::vector<size_t> &lattice_index_list, const cfg::Config &config) {
+int GetLabel(const std::vector<size_t> &lattice_index_list, const cfg::Config &config) {
   if (lattice_index_list.size() == 1) {
     return 0;
   }
@@ -356,8 +356,7 @@ static int GetLabel(const std::vector<size_t> &lattice_index_list, const cfg::Co
 template<size_t DataSize>
 static void GetParametersMappingFromLatticeClusterVectorHelper(
     std::vector<cfg::LatticeCluster<DataSize>> &&cluster_vector,
-    std::vector<std::vector<std::vector<size_t> > > &cluster_mapping
-) {
+    std::vector<std::vector<std::vector<size_t> > > &cluster_mapping) {
   std::vector<std::vector<size_t> > cluster_index_vector;
   for (const auto &cluster: cluster_vector) {
     auto cluster_index = cluster.GetIndexVector();

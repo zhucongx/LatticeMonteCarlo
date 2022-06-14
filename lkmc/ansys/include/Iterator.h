@@ -1,10 +1,7 @@
-//
-// Created by Zhucong Xi on 3/15/22.
-//
-
 #ifndef LKMC_LKMC_ANSYS_INCLUDE_ITERATOR_H_
 #define LKMC_LKMC_ANSYS_INCLUDE_ITERATOR_H_
-
+#include "EnergyEstimator.h"
+#include "ClustersFinder.h"
 namespace ansys {
 
 class Iterator {

@@ -11,6 +11,8 @@ struct Atom {
   public:
     /// Constructor
     Atom() = default;
+    Atom(size_t id, const Element element)
+        : id_(id), element_(element) {}
     Atom(size_t id, const std::string &element_string)
         : id_(id), element_(element_string) {}
     /// Getter
@@ -27,6 +29,9 @@ struct Atom {
       return element_.GetMass();
     }
     /// Setter
+    void SetElement(const Element &element) {
+      element_ = element;
+    }
   private:
     // atom id
     size_t id_{};
