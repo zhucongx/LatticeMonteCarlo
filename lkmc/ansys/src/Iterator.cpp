@@ -88,6 +88,7 @@ void Iterator::SerialRunCluster() const {
 }
 void Iterator::SerialRunReformat() const {
   for (unsigned long long i = 0; i <= final_number_; i += increment_number_) {
+    std::cerr << i << " / " << final_number_ << std::endl;
     auto config = cfg::Config::ReadCfg(std::to_string(i) + ".cfg");
     if (i == 0) {
       config.WriteLattice("lattice.txt");
