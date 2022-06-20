@@ -26,8 +26,8 @@ int main(int argc, char *argv[]) {
                         Element("Mg"),
                         Element("Zn")},
                         4, 3, "quartic_coefficients.json");
-  test.SerialRunReformat();
-  // test.SerialRunCluster();
+  // test.SerialRunReformat();
+  test.SerialRunCluster();
 //   pred::EnergyEstimator a("quartic_coefficients.json",
 //                           std::set<Element>{Element("Al"), Element("Mg"),
 //                                             Element("Zn")});

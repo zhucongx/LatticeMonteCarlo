@@ -19,7 +19,7 @@ Iterator::Iterator(unsigned long long int initial_number,
       energy_estimator_(predictor_filename, std::move(type_set)) {
   std::ifstream ifs("kmc_log.txt", std::ifstream::in);
   if (!ifs.is_open()) {
-    std::cout << "Cannot open kmc_log.txt\n";
+    std::cerr << "Cannot open kmc_log.txt\n";
     return;
   }
   unsigned long long filename;
@@ -51,7 +51,11 @@ void Iterator::SerialRunCluster() const {
   ofs << "[ \n";
 
   for (unsigned long long i = 0; i <= final_number_; i += increment_number_) {
-    ClustersFinder cluster_finder(cfg::Config::ReadCfg(std::to_string(i) + ".cfg"),
+    std::cerr << i << " / " << final_number_ << std::endl;
+
+    ClustersFinder cluster_finder(cfg::Config::ReadMap(
+                                      "lattice.txt", "element.txt",
+                                      "map" + std::to_string(i) + ".txt"),
                                   solvent_element_,
                                   smallest_cluster_criteria_,
                                   solvent_bond_criteria_,
