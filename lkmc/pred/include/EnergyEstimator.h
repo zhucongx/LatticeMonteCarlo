@@ -21,7 +21,7 @@ class EnergyEstimator {
   private:
     std::vector<double> base_theta_{};
     const std::set<Element> type_set_;
-    std::unordered_map<cfg::ElementCluster, int,
+    std::unordered_map<cfg::ElementCluster, size_t,
                        boost::hash<cfg::ElementCluster> > initialized_cluster_hashmap_;
     // std::vector<cfg::ElementCluster> sorted_cluster_type_vector;
 };

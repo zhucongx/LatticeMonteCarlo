@@ -158,6 +158,7 @@ double ClustersFinder::GetAbsoluteEnergyOfCluster(const std::vector<size_t> &ato
   for (size_t atom_id: atom_id_list) {
     solute_config.ChangeAtomElementTypeAtAtom(atom_id, config_.GetElementAtAtomId(atom_id));
   }
+  // solute_config.WriteCfg("cluster/" + std::to_string(atom_id_list.size()) + ".cfg", false);
   return energy_estimator_.GetEnergy(solute_config);
 }
 

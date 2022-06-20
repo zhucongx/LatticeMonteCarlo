@@ -283,9 +283,9 @@ std::vector<cfg::Lattice> GetSortedLatticeVectorState(
 }
 
 std::unordered_map<
-    cfg::ElementCluster, int, boost::hash<cfg::ElementCluster> > InitializeClusterHashMap(
+    cfg::ElementCluster, size_t, boost::hash<cfg::ElementCluster> > InitializeClusterHashMap(
     const std::set<Element> &type_set) {
-  std::unordered_map<cfg::ElementCluster, int,
+  std::unordered_map<cfg::ElementCluster, size_t,
                      boost::hash<cfg::ElementCluster> > initialized_cluster_hashmap;
 
   for (const auto &element1: type_set) {

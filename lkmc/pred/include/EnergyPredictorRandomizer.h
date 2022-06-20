@@ -36,7 +36,7 @@ class EnergyPredictorRandomizer {
                        boost::hash<std::pair<size_t, size_t> > > site_bond_cluster_state_hashmap_;
 
 
-    std::unordered_map<cfg::ElementCluster, int,
+    std::unordered_map<cfg::ElementCluster, size_t,
                        boost::hash<cfg::ElementCluster> > initialized_cluster_hashmap_;
 
 };

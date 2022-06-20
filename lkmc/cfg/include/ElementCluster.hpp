@@ -15,6 +15,7 @@ namespace cfg {
 class ElementCluster {
   public:
     /// Constructor
+    ElementCluster() = default;
     ElementCluster(int label, std::vector<Element> element_vector)
         : label_(label), element_vector_(std::move(element_vector)) {
       std::sort(element_vector_.begin(), element_vector_.end());
@@ -73,7 +74,7 @@ class ElementCluster {
       return seed;
     }
   private:
-    int label_;
+    int label_{};
     std::vector<Element> element_vector_;
 };
 

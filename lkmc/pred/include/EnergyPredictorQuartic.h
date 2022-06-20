@@ -54,7 +54,7 @@ class EnergyPredictorQuartic {
                        ParametersQuartic,
                        boost::hash<Element>> element_parameters_hashmap_;
 
-    std::unordered_map<cfg::ElementCluster, int,
+    std::unordered_map<cfg::ElementCluster, size_t,
                        boost::hash<cfg::ElementCluster> > initialized_cluster_hashmap_;
 
 };

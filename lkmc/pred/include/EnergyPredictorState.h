@@ -32,7 +32,7 @@ class EnergyPredictorState {
                        std::vector<double>,
                        boost::hash<Element> > element_theta_;
     std::unordered_map<Element,
-                       std::unordered_map<cfg::ElementCluster, int,
+                       std::unordered_map<cfg::ElementCluster, size_t,
                                           boost::hash<cfg::ElementCluster> >,
                        boost::hash<Element> > element_initialized_cluster_hashmap_;
 };

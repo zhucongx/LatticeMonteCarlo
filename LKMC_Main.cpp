@@ -19,29 +19,48 @@ int main(int argc, char *argv[]) {
   //
   // }
 
-  ansys::Iterator test(0, 1e4,
-                       Element("Al"),
-                       {Element("Al"),
-                        Element("Mg"),
-                        Element("Zn")},
-                        4, 3, "quartic_coefficients.json");
-  test.SerialRunCluster();
+  // ansys::Iterator test(0, 1e4,
+  //                      Element("Al"),
+  //                      {Element("Al"),
+  //                       Element("Mg"),
+  //                       Element("Zn")},
+  //                       4, 3, "quartic_coefficients.json");
+  // test.SerialRunCluster();
+  // auto conf0 = cfg::GenerateFCC(4.046, {30, 30, 30}, Element("Al"));
+  // conf0.WriteCfg("303030.cfg", true);
+  auto t1 = std::chrono::high_resolution_clock::now();
+  const pred::EnergyEstimator energy_estimator("quartic_coefficients.json",
+                                               {Element("Al"),
+                                                Element("Mg"),
+                                                Element("Zn")});
+  std::cout << "Energy 333: " << energy_estimator.GetEnergy(
+      cfg::Config::ReadCfg("333_f.cfg")) - energy_estimator.GetEnergy(
+      cfg::Config::ReadCfg("333_c.cfg")) << std::endl;
 
-  // auto conf0 = cfg::Config::ReadCfg("70900000.cfg");
-  // conf0.WriteCfg("709.cfg", true);
-  // const pred::EnergyEstimator energy_estimator("quartic_coefficients.json",
-  //                                              {Element("Al"),
-  //                                               Element("Mg"),
-  //                                               Element("Zn")});
-  // auto cluster_finder = ansys::ClustersFinder("start1.cfg", Element("Al"),
+  std::cout << "Energy 444: " << energy_estimator.GetEnergy(
+      cfg::Config::ReadCfg("444_f.cfg")) - energy_estimator.GetEnergy(
+      cfg::Config::ReadCfg("444_c.cfg")) << std::endl;
+
+  std::cout << "Energy 555: " << energy_estimator.GetEnergy(
+      cfg::Config::ReadCfg("555_f.cfg")) - energy_estimator.GetEnergy(
+      cfg::Config::ReadCfg("555_c.cfg")) << std::endl;
+  std::cout << "Energy 303030: " << energy_estimator.GetEnergy(
+      cfg::Config::ReadCfg("303030_f.cfg")) - energy_estimator.GetEnergy(
+      cfg::Config::ReadCfg("303030_c.cfg")) << std::endl;
+
+  auto t2 = std::chrono::high_resolution_clock::now();
+  std::cout << std::setprecision(16)
+            << std::chrono::duration_cast<std::chrono::seconds>(t2 - t1).count() << std::endl;
+  // auto cluster_finder = ansys::ClustersFinder("22100000.cfg", Element("Al"),
   //                                             4, 3, energy_estimator);
   // auto result = cluster_finder.FindClustersAndOutput();
   // for (auto [cluster, energy]: result) {
   //   std::cout << energy << '\n';
   // }
 
-  // auto conf0 = cfg::Config::ReadCfg("start.cfg");
-  // conf0.WriteCfg("start1.cfg", true);
+  // auto conf0 = cfg::GenerateFCC(4.046, {4,4,4}, Element("Al"));
+  //
+  // conf0.WriteCfg("444.cfg", true);
   // std::cout << conf0.GetStateHash() << std::endl;
   //
   // auto conf1 = cfg::Config::ReadCfg("start1.cfg");

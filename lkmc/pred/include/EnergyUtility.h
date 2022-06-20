@@ -30,7 +30,7 @@ std::vector<std::vector<std::vector<size_t> > > GetAverageClusterParametersMappi
     const cfg::Config &config);
 
 std::unordered_map<cfg::ElementCluster,
-                   int,
+                   size_t,
                    boost::hash<cfg::ElementCluster> > InitializeClusterHashMap(
     const std::set<Element> &type_set);
 int GetLabel(const std::vector<size_t> &lattice_index_list, const cfg::Config &config);
