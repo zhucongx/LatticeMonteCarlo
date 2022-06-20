@@ -6,14 +6,13 @@
 #include <filesystem>
 #include <omp.h>
 namespace ansys {
-ClustersFinder::ClustersFinder(std::string cfg_filename,
+ClustersFinder::ClustersFinder(const cfg::Config &config,
                                Element solvent_atom_type,
                                size_t smallest_cluster_criteria,
                                size_t solvent_bond_criteria,
                                const pred::EnergyEstimator &energy_estimator)
-    : cfg_filename_(std::move(cfg_filename)),
-      config_(cfg::Config::ReadCfg(cfg_filename_)),
-      solvent_config_(config_),
+    : config_(config),
+      solvent_config_(config),
       solvent_element_(solvent_atom_type),
       element_set_(config_.GetElementSetWithoutVacancy()),
       smallest_cluster_criteria_(smallest_cluster_criteria),
@@ -22,10 +21,11 @@ ClustersFinder::ClustersFinder(std::string cfg_filename,
   for (size_t atom_id = 0; atom_id < solvent_config_.GetNumAtoms(); ++atom_id) {
     solvent_config_.ChangeAtomElementTypeAtAtom(atom_id, Element("Al"));
   }
-  // absolute_energy_solvent_config_ = energy_estimator_.GetEnergy(solvent_config_);
+  absolute_energy_solvent_config_ = energy_estimator_.GetEnergy(solvent_config_);
 }
 
-ClustersFinder::ClusterElementNumMap ClustersFinder::FindClustersAndOutput() {
+ClustersFinder::ClusterElementNumMap ClustersFinder::FindClustersAndOutput(
+    const std::string &output_folder, const std::string &output_name) {
   auto cluster_to_atom_vector = FindAtomListOfClusters();
 
   ClusterElementNumMap cluster_element_num_map;
@@ -35,7 +35,7 @@ ClustersFinder::ClusterElementNumMap ClustersFinder::FindClustersAndOutput() {
   {
 #pragma omp for
     for (auto &atom_list: cluster_to_atom_vector) {
-      const double cluster_energy = GetAbsoluteEnergyOfCluster(atom_list);
+      const double cluster_energy = GetRelativeEnergyOfCluster(atom_list);
       // initialize map with all the element, because some cluster may not have all types of element
       std::map<Element, size_t> num_atom_in_one_cluster;
       for (const auto &element: element_set_) {
@@ -59,11 +59,12 @@ ClustersFinder::ClusterElementNumMap ClustersFinder::FindClustersAndOutput() {
   }
   cfg::Config config_out(config_.GetBasis(), lattice_vector, atom_vector, false);
 
-  std::filesystem::create_directories("cluster");
-  auto output_name("cluster/" + cfg_filename_);
-  auto const pos = output_name.find_last_of('.');
-  output_name.insert(pos, "_cluster");
-  config_out.WriteCfg(output_name, false);
+  if (output_folder.empty()) {
+    config_out.WriteCfg(output_name, false);
+  } else {
+    std::filesystem::create_directories(output_folder);
+    config_out.WriteCfg(output_folder + "/" + output_name, false);
+  }
   return cluster_element_num_map;
 }
 
@@ -153,7 +154,7 @@ std::vector<std::vector<size_t> > ClustersFinder::FindAtomListOfClusters() const
   */
   return cluster_atom_list;
 }
-double ClustersFinder::GetAbsoluteEnergyOfCluster(const std::vector<size_t> &atom_id_list) {
+double ClustersFinder::GetAbsoluteEnergyOfCluster(const std::vector<size_t> &atom_id_list) const {
   cfg::Config solute_config(solvent_config_);
   for (size_t atom_id: atom_id_list) {
     solute_config.ChangeAtomElementTypeAtAtom(atom_id, config_.GetElementAtAtomId(atom_id));
@@ -161,5 +162,13 @@ double ClustersFinder::GetAbsoluteEnergyOfCluster(const std::vector<size_t> &ato
   // solute_config.WriteCfg("cluster/" + std::to_string(atom_id_list.size()) + ".cfg", false);
   return energy_estimator_.GetEnergy(solute_config);
 }
-
+double ClustersFinder::GetRelativeEnergyOfCluster(const std::vector<size_t> &atom_id_list) const {
+  cfg::Config solute_config(solvent_config_);
+  for (size_t atom_id: atom_id_list) {
+    solute_config.ChangeAtomElementTypeAtAtom(atom_id, config_.GetElementAtAtomId(atom_id));
+  }
+  return energy_estimator_.GetEnergyOfCluster(solute_config, atom_id_list) -
+      energy_estimator_.GetEnergyOfCluster(solvent_config_, atom_id_list)
+      + absolute_energy_solvent_config_;
+}
 } // namespace kn

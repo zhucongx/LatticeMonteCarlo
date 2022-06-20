@@ -11,16 +11,18 @@ namespace ansys {
 class ClustersFinder {
   public:
     using ClusterElementNumMap = std::vector<std::pair<std::map<Element, size_t>, double> >;
-    ClustersFinder(std::string cfg_filename,
+    ClustersFinder(const cfg::Config &config,
                    Element solvent_atom_type,
                    size_t smallest_cluster_criteria,
                    size_t solvent_bond_criteria,
                    const pred::EnergyEstimator &energy_estimator);
 
-    ClusterElementNumMap FindClustersAndOutput();
+    ClusterElementNumMap FindClustersAndOutput(const std::string &output_folder,
+                                               const std::string &output_name);
 
   private:
-    double GetAbsoluteEnergyOfCluster(const std::vector<size_t> &atom_id_list);
+    [[nodiscard]] double GetAbsoluteEnergyOfCluster(const std::vector<size_t> &atom_id_list) const;
+    [[nodiscard]] double GetRelativeEnergyOfCluster(const std::vector<size_t> &atom_id_list) const;
     [[nodiscard]] std::unordered_set<size_t> FindSoluteAtomIndexes() const;
     [[nodiscard]] std::vector<std::vector<size_t> > FindAtomListOfClustersBFSHelper(
         std::unordered_set<size_t> unvisited_atoms_id_set) const;
@@ -29,7 +31,6 @@ class ClustersFinder {
     // element in one cluster
     [[nodiscard]] std::vector<std::vector<size_t> > FindAtomListOfClusters() const;
 
-    const std::string cfg_filename_;
     const cfg::Config config_;
     cfg::Config solvent_config_;
     const Element solvent_element_;
@@ -38,7 +39,7 @@ class ClustersFinder {
     const size_t solvent_bond_criteria_;
 
     const pred::EnergyEstimator energy_estimator_;
-    // double absolute_energy_solvent_config_{};
+    double absolute_energy_solvent_config_;
 };
 } // namespace ansys
 

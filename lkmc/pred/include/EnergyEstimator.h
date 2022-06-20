@@ -15,9 +15,14 @@ class EnergyEstimator {
     EnergyEstimator(const std::string &predictor_filename,
                     std::set<Element> type_set);
     ~EnergyEstimator();
-    [[nodiscard]] std::vector<double> GetEncodeFast(const cfg::Config &config) const;
-    [[nodiscard]] std::vector<double> GetEncodeFastOmp(const cfg::Config &config) const;
+    [[nodiscard]] std::vector<double> GetEncode(const cfg::Config &config) const;
+    [[nodiscard]] std::vector<double> GetEncodeOfCluster(
+        const cfg::Config &config, const std::vector<size_t> &atom_id_list) const;
+    [[nodiscard]] std::vector<double> GetEncodeOmp(const cfg::Config &config) const;
+
     [[nodiscard]] double GetEnergy(const cfg::Config &config) const;
+    [[nodiscard]] double GetEnergyOfCluster(const cfg::Config &config,
+                                            const std::vector<size_t> &atom_id_list) const;
   private:
     std::vector<double> base_theta_{};
     const std::set<Element> type_set_;

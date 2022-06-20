@@ -51,12 +51,13 @@ void Iterator::SerialRunCluster() const {
   ofs << "[ \n";
 
   for (unsigned long long i = 0; i <= final_number_; i += increment_number_) {
-    ClustersFinder cluster_finder(std::to_string(i) + ".cfg",
+    ClustersFinder cluster_finder(cfg::Config::ReadCfg(std::to_string(i) + ".cfg"),
                                   solvent_element_,
                                   smallest_cluster_criteria_,
                                   solvent_bond_criteria_,
                                   energy_estimator_);
-    auto num_different_element = cluster_finder.FindClustersAndOutput();
+    auto num_different_element =
+        cluster_finder.FindClustersAndOutput("cluster", std::to_string(i) + "_cluster.cfg");
 
     ofs << "{ \n"
         << "\"index\" : "
@@ -66,8 +67,8 @@ void Iterator::SerialRunCluster() const {
     for (auto it = num_different_element.cbegin(); it < num_different_element.cend(); ++it) {
       ofs << "[ ";
       const auto &cluster = *it;
-      std::for_each(cluster.first.cbegin(), cluster.first.cend(), [&ofs](auto it) {
-        ofs << it.second << ", ";
+      std::for_each(cluster.first.cbegin(), cluster.first.cend(), [&ofs](auto ii) {
+        ofs << ii.second << ", ";
       });
       ofs << cluster.second;
       if (it == num_different_element.cend() - 1) {

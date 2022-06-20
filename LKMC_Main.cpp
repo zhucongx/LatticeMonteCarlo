@@ -27,31 +27,51 @@ int main(int argc, char *argv[]) {
   //                       Element("Zn")},
   //                       4, 3, "quartic_coefficients.json");
   // test.SerialRunCluster();
+  pred::EnergyEstimator a("quartic_coefficients.json",
+                          std::set<Element>{Element("Al"), Element("Mg"),
+                                            Element("Zn")});
+  const auto conf0 = cfg::GenerateFCC(
+      4.046, {30, 30, 30}, Element("Al"));
+  size_t Zn, Mg;
+  std::cout << "Mg Zn Energy" << std::endl;
+#pragma omp parallel for default(none) shared(conf0, a, std::cout) private(Zn, Mg)
+  for (Mg = 0; Mg <= 200; ++Mg) {
+    for (Zn = 0; Zn <= 200; ++Zn) {
+      if (Mg + Zn > 200) continue;
+      auto conf1 = GenerateSoluteConfigFromExcitingPure(
+          conf0,
+          {{Element("Mg"), Mg},
+           {Element("Zn"), Zn}});
+      double energy = a.GetEnergy(conf1);
+      std::string output = std::to_string(Mg) + ' ' +
+          std::to_string(Zn) + ' ' + std::to_string(energy) + '\n';
+      std::cout << output << std::flush;
+    }
+  }
+
   // auto conf0 = cfg::GenerateFCC(4.046, {30, 30, 30}, Element("Al"));
   // conf0.WriteCfg("303030.cfg", true);
-  auto t1 = std::chrono::high_resolution_clock::now();
-  const pred::EnergyEstimator energy_estimator("quartic_coefficients.json",
-                                               {Element("Al"),
-                                                Element("Mg"),
-                                                Element("Zn")});
-  std::cout << "Energy 333: " << energy_estimator.GetEnergy(
-      cfg::Config::ReadCfg("333_f.cfg")) - energy_estimator.GetEnergy(
-      cfg::Config::ReadCfg("333_c.cfg")) << std::endl;
-
-  std::cout << "Energy 444: " << energy_estimator.GetEnergy(
-      cfg::Config::ReadCfg("444_f.cfg")) - energy_estimator.GetEnergy(
-      cfg::Config::ReadCfg("444_c.cfg")) << std::endl;
-
-  std::cout << "Energy 555: " << energy_estimator.GetEnergy(
-      cfg::Config::ReadCfg("555_f.cfg")) - energy_estimator.GetEnergy(
-      cfg::Config::ReadCfg("555_c.cfg")) << std::endl;
-  std::cout << "Energy 303030: " << energy_estimator.GetEnergy(
-      cfg::Config::ReadCfg("303030_f.cfg")) - energy_estimator.GetEnergy(
-      cfg::Config::ReadCfg("303030_c.cfg")) << std::endl;
-
-  auto t2 = std::chrono::high_resolution_clock::now();
-  std::cout << std::setprecision(16)
-            << std::chrono::duration_cast<std::chrono::seconds>(t2 - t1).count() << std::endl;
+  // auto t1 = std::chrono::high_resolution_clock::now();
+  // const pred::EnergyEstimator energy_estimator("quartic_coefficients.json",
+  //                                              {Element("Al"),
+  //                                               Element("Mg"),
+  //                                               Element("Zn")});
+  //
+  // ansys::ClustersFinder a(cfg::Config::ReadCfg("221.cfg"), Element("Al"),
+  //                         4, 3, energy_estimator);
+  // auto num_different_element = a.FindClustersAndOutput("", "221_cluster.cfg");
+  // for (auto it = num_different_element.cbegin(); it < num_different_element.cend(); ++it) {
+  //   const auto &cluster = *it;
+  //   for (auto iit: cluster.first) {
+  //     std::cout << iit.second << ", ";
+  //   }
+  //   std::cout << std::setprecision(16) << cluster.second;
+  //   std::cout << "\n";
+  // }
+  //
+  // auto t2 = std::chrono::high_resolution_clock::now();
+  // std::cout << std::setprecision(16)
+  //           << std::chrono::duration_cast<std::chrono::seconds>(t2 - t1).count() << std::endl;
   // auto cluster_finder = ansys::ClustersFinder("22100000.cfg", Element("Al"),
   //                                             4, 3, energy_estimator);
   // auto result = cluster_finder.FindClustersAndOutput();
