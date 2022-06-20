@@ -84,6 +84,16 @@ void Iterator::SerialRunCluster() const {
       ofs << "} \n";
     }
   }
-  ofs << " ]" << std::endl;;
+  ofs << " ]" << std::endl;
+}
+void Iterator::SerialRunReformat() const {
+  for (unsigned long long i = 0; i <= final_number_; i += increment_number_) {
+    auto config = cfg::Config::ReadCfg(std::to_string(i) + ".cfg");
+    if (i == 0) {
+      config.WriteLattice("lattice.txt");
+      config.WriteElement("element.txt");
+    }
+    config.WriteMap("map" + std::to_string(i) + ".txt");
+  }
 }
 } // namespace ansys

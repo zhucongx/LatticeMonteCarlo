@@ -20,34 +20,35 @@ int main(int argc, char *argv[]) {
   //
   // }
 
-  // ansys::Iterator test(0, 1e4,
-  //                      Element("Al"),
-  //                      {Element("Al"),
-  //                       Element("Mg"),
-  //                       Element("Zn")},
-  //                       4, 3, "quartic_coefficients.json");
+  ansys::Iterator test(0, 1e4,
+                       Element("Al"),
+                       {Element("Al"),
+                        Element("Mg"),
+                        Element("Zn")},
+                        4, 3, "quartic_coefficients.json");
+  test.SerialRunReformat();
   // test.SerialRunCluster();
-  pred::EnergyEstimator a("quartic_coefficients.json",
-                          std::set<Element>{Element("Al"), Element("Mg"),
-                                            Element("Zn")});
-  const auto conf0 = cfg::GenerateFCC(
-      4.046, {30, 30, 30}, Element("Al"));
-  size_t Zn, Mg;
-  std::cout << "Mg Zn Energy" << std::endl;
-#pragma omp parallel for default(none) shared(conf0, a, std::cout) private(Zn, Mg)
-  for (Mg = 0; Mg <= 200; ++Mg) {
-    for (Zn = 0; Zn <= 200; ++Zn) {
-      if (Mg + Zn > 200) continue;
-      auto conf1 = GenerateSoluteConfigFromExcitingPure(
-          conf0,
-          {{Element("Mg"), Mg},
-           {Element("Zn"), Zn}});
-      double energy = a.GetEnergy(conf1);
-      std::string output = std::to_string(Mg) + ' ' +
-          std::to_string(Zn) + ' ' + std::to_string(energy) + '\n';
-      std::cout << output << std::flush;
-    }
-  }
+//   pred::EnergyEstimator a("quartic_coefficients.json",
+//                           std::set<Element>{Element("Al"), Element("Mg"),
+//                                             Element("Zn")});
+//   const auto conf0 = cfg::GenerateFCC(
+//       4.046, {30, 30, 30}, Element("Al"));
+//   size_t Zn, Mg;
+//   std::cout << "Mg Zn Energy" << std::endl;
+// #pragma omp parallel for default(none) shared(conf0, a, std::cout) private(Zn, Mg)
+//   for (Mg = 0; Mg <= 200; ++Mg) {
+//     for (Zn = 0; Zn <= 200; ++Zn) {
+//       if (Mg + Zn > 200) continue;
+//       auto conf1 = GenerateSoluteConfigFromExcitingPure(
+//           conf0,
+//           {{Element("Mg"), Mg},
+//            {Element("Zn"), Zn}});
+//       double energy = a.GetEnergy(conf1);
+//       std::string output = std::to_string(Mg) + ' ' +
+//           std::to_string(Zn) + ' ' + std::to_string(energy) + '\n';
+//       std::cout << output << std::flush;
+//     }
+//   }
 
   // auto conf0 = cfg::GenerateFCC(4.046, {30, 30, 30}, Element("Al"));
   // conf0.WriteCfg("303030.cfg", true);

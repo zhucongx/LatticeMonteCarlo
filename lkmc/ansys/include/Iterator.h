@@ -15,7 +15,7 @@ class Iterator {
              const std::string &predictor_filename);
     virtual ~Iterator();
     void SerialRunCluster() const;
-
+    void SerialRunReformat() const;
   private:
     const unsigned long long initial_number_;
     const unsigned long long increment_number_;
