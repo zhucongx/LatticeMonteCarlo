@@ -140,72 +140,71 @@ std::vector<double> EnergyEstimator::GetEncodeFastOmp(const cfg::Config &config)
                                             12288,
                                             12288};
 #pragma omp parallel for default(none) shared(config, cluster_hashmap, cluster_counter)
-  {
-    for (size_t atom_id1 = 0; atom_id1 < config.GetNumAtoms(); ++atom_id1) {
-      const size_t lattice_id1 = config.GetLatticeIdFromAtomId(atom_id1);
-      Element element1 = config.GetAtomVector()[atom_id1].GetElement();
-      auto &count0 =
-          cluster_hashmap.at(cfg::ElementCluster(0, element1));
+  for (size_t atom_id1 = 0; atom_id1 < config.GetNumAtoms(); ++atom_id1) {
+    const size_t lattice_id1 = config.GetLatticeIdFromAtomId(atom_id1);
+    Element element1 = config.GetAtomVector()[atom_id1].GetElement();
+    auto &count0 =
+        cluster_hashmap.at(cfg::ElementCluster(0, element1));
+#pragma omp critical
+    {
+      count0++;
+    }
+    for (size_t lattice_id2: config.GetFirstNeighborsAdjacencyList()[lattice_id1]) {
+      Element element2 = config.GetElementAtLatticeId(lattice_id2);
+      auto &count1 =
+          cluster_hashmap.at(cfg::ElementCluster(1, element1, element2));
 #pragma omp critical
       {
-        count0++;
+        count1++;
       }
-      for (size_t lattice_id2: config.GetFirstNeighborsAdjacencyList()[lattice_id1]) {
-        Element element2 = config.GetElementAtLatticeId(lattice_id2);
-        auto &count1 =
-            cluster_hashmap.at(cfg::ElementCluster(1, element1, element2));
+      for (size_t lattice_id3: config.GetFirstNeighborsAdjacencyList()[lattice_id2]) {
+        Element element3 = config.GetElementAtLatticeId(lattice_id3);
+        if (std::find(config.GetFirstNeighborsAdjacencyList()[lattice_id1].begin(),
+                      config.GetFirstNeighborsAdjacencyList()[lattice_id1].end(),
+                      lattice_id3)
+            != config.GetFirstNeighborsAdjacencyList()[lattice_id1].end()) {
+          auto &count4 =
+              cluster_hashmap.at(cfg::ElementCluster(4, element1, element2, element3));
 #pragma omp critical
-        {
-          count1++;
-        }
-        for (size_t lattice_id3: config.GetFirstNeighborsAdjacencyList()[lattice_id2]) {
-          Element element3 = config.GetElementAtLatticeId(lattice_id3);
-          if (std::find(config.GetFirstNeighborsAdjacencyList()[lattice_id1].begin(),
-                        config.GetFirstNeighborsAdjacencyList()[lattice_id1].end(),
-                        lattice_id3)
-              != config.GetFirstNeighborsAdjacencyList()[lattice_id1].end()) {
-            auto &count4 =
-                cluster_hashmap.at(cfg::ElementCluster(4, element1, element2, element3));
+          {
+            count4++;
+          }
+        } else if (std::find(config.GetSecondNeighborsAdjacencyList()[lattice_id1].begin(),
+                             config.GetSecondNeighborsAdjacencyList()[lattice_id1].end(),
+                             lattice_id3)
+            != config.GetSecondNeighborsAdjacencyList()[lattice_id1].end()) {
+          auto &count5 =
+              cluster_hashmap.at(cfg::ElementCluster(5, element1, element2, element3));
 #pragma omp critical
-            {
-              count4++;
-            }
-          } else if (std::find(config.GetSecondNeighborsAdjacencyList()[lattice_id1].begin(),
-                               config.GetSecondNeighborsAdjacencyList()[lattice_id1].end(),
-                               lattice_id3)
-              != config.GetSecondNeighborsAdjacencyList()[lattice_id1].end()) {
-            auto &count5 =
-                cluster_hashmap.at(cfg::ElementCluster(5, element1, element2, element3));
+          {
+            count5++;
+          }
+        } else if (std::find(config.GetThirdNeighborsAdjacencyList()[lattice_id1].begin(),
+                             config.GetThirdNeighborsAdjacencyList()[lattice_id1].end(),
+                             lattice_id3)
+            != config.GetThirdNeighborsAdjacencyList()[lattice_id1].end()) {
+          auto &count6 =
+              cluster_hashmap.at(cfg::ElementCluster(6, element1, element2, element3));
 #pragma omp critical
-            {
-              count5++;
-            }
-          } else if (std::find(config.GetThirdNeighborsAdjacencyList()[lattice_id1].begin(),
-                               config.GetThirdNeighborsAdjacencyList()[lattice_id1].end(),
-                               lattice_id3)
-              != config.GetThirdNeighborsAdjacencyList()[lattice_id1].end()) {
-            auto &count6 =
-                cluster_hashmap.at(cfg::ElementCluster(6, element1, element2, element3));
-#pragma omp critical
-            {
-              count6++;
-            }
+          {
+            count6++;
           }
         }
-        for (size_t lattice_id3: config.GetSecondNeighborsAdjacencyList()[lattice_id2]) {
-          Element element3 = config.GetElementAtLatticeId(lattice_id3);
-          if (std::find(config.GetThirdNeighborsAdjacencyList()[lattice_id1].begin(),
-                        config.GetThirdNeighborsAdjacencyList()[lattice_id1].end(),
-                        lattice_id3)
-              != config.GetThirdNeighborsAdjacencyList()[lattice_id1].end()) {
-            auto &count7 =
-                cluster_hashmap.at(cfg::ElementCluster(7, element1, element2, element3));
+      }
+      for (size_t lattice_id3: config.GetSecondNeighborsAdjacencyList()[lattice_id2]) {
+        Element element3 = config.GetElementAtLatticeId(lattice_id3);
+        if (std::find(config.GetThirdNeighborsAdjacencyList()[lattice_id1].begin(),
+                      config.GetThirdNeighborsAdjacencyList()[lattice_id1].end(),
+                      lattice_id3)
+            != config.GetThirdNeighborsAdjacencyList()[lattice_id1].end()) {
+          auto &count7 =
+              cluster_hashmap.at(cfg::ElementCluster(7, element1, element2, element3));
 #pragma omp critical
-            {
-              count7++;
-            }
+          {
+            count7++;
           }
         }
+      }
 //           for (size_t lattice_id3: config.GetThirdNeighborsAdjacencyList()[lattice_id2]) {
 //             Element element3 = config.GetElementAtLatticeId(lattice_id3);
 //             if (std::find(config.GetThirdNeighborsAdjacencyList()[lattice_id1].begin(),
@@ -220,15 +219,15 @@ std::vector<double> EnergyEstimator::GetEncodeFastOmp(const cfg::Config &config)
 //               }
 //             }
 //           }
-      }
-      for (size_t lattice_id2: config.GetSecondNeighborsAdjacencyList()[lattice_id1]) {
-        Element element2 = config.GetElementAtLatticeId(lattice_id2);
-        auto &count2 =
-            cluster_hashmap.at(cfg::ElementCluster(2, element1, element2));
+    }
+    for (size_t lattice_id2: config.GetSecondNeighborsAdjacencyList()[lattice_id1]) {
+      Element element2 = config.GetElementAtLatticeId(lattice_id2);
+      auto &count2 =
+          cluster_hashmap.at(cfg::ElementCluster(2, element1, element2));
 #pragma omp critical
-        {
-          count2++;
-        }
+      {
+        count2++;
+      }
 //           for (size_t lattice_id3: config.GetThirdNeighborsAdjacencyList()[lattice_id2]) {
 //             Element element3 = config.GetElementAtLatticeId(lattice_id3);
 //             if (std::find(config.GetThirdNeighborsAdjacencyList()[lattice_id1].begin(),
@@ -243,15 +242,15 @@ std::vector<double> EnergyEstimator::GetEncodeFastOmp(const cfg::Config &config)
 //               }
 //             }
 //           }
-      }
-      for (size_t lattice_id2: config.GetThirdNeighborsAdjacencyList()[lattice_id1]) {
-        Element element2 = config.GetElementAtLatticeId(lattice_id2);
-        auto &count3 =
-            cluster_hashmap.at(cfg::ElementCluster(3, element1, element2));
+    }
+    for (size_t lattice_id2: config.GetThirdNeighborsAdjacencyList()[lattice_id1]) {
+      Element element2 = config.GetElementAtLatticeId(lattice_id2);
+      auto &count3 =
+          cluster_hashmap.at(cfg::ElementCluster(3, element1, element2));
 #pragma omp critical
-        {
-          count3++;
-        }
+      {
+        count3++;
+      }
 //           for (size_t lattice_id3: config.GetThirdNeighborsAdjacencyList()[lattice_id2]) {
 //             Element element3 = config.GetElementAtLatticeId(lattice_id3);
 //             if (std::find(config.GetThirdNeighborsAdjacencyList()[lattice_id1].begin(),
@@ -266,7 +265,6 @@ std::vector<double> EnergyEstimator::GetEncodeFastOmp(const cfg::Config &config)
 //               }
 //             }
 //           }
-      }
     }
   }
   const std::map<cfg::ElementCluster, int>
