@@ -163,6 +163,7 @@ void Config::ReassignLatticeVector() {
   for (auto &neighbor_id_vector: new_first_neighbors_adjacency_list) {
     std::sort(neighbor_id_vector.begin(), neighbor_id_vector.end());
   }
+
   new_second_neighbors_adjacency_list.resize(GetNumAtoms());
   for (auto &neighbor_list: new_second_neighbors_adjacency_list) {
     neighbor_list.clear();
@@ -179,6 +180,7 @@ void Config::ReassignLatticeVector() {
   for (auto &neighbor_id_vector: new_second_neighbors_adjacency_list) {
     std::sort(neighbor_id_vector.begin(), neighbor_id_vector.end());
   }
+
   new_third_neighbors_adjacency_list.resize(GetNumAtoms());
   for (auto &neighbor_list: new_third_neighbors_adjacency_list) {
     neighbor_list.clear();
