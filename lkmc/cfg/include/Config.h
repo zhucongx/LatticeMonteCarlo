@@ -35,6 +35,7 @@ class Config {
     /// Modify config
     void AtomJump(const std::pair<size_t, size_t> &atom_id_jump_pair);
     void LatticeJump(const std::pair<size_t, size_t> &lattice_id_jump_pair);
+    void ReassignLatticeVector();
     void ChangeAtomElementTypeAtAtom(size_t atom_id, Element element);
     void ChangeAtomElementTypeAtLattice(size_t lattice_id, Element element);
     /// IO

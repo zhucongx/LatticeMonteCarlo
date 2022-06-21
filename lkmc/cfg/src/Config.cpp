@@ -123,6 +123,79 @@ void Config::LatticeJump(const std::pair<size_t, size_t> &lattice_id_jump_pair) 
   lattice_to_atom_hashmap_.at(lattice_id_lhs) = atom_id_rhs;
   lattice_to_atom_hashmap_.at(lattice_id_rhs) = atom_id_lhs;
 }
+void Config::ReassignLatticeVector() {
+  auto new_lattice_vector(lattice_vector_);
+  std::sort(new_lattice_vector.begin(),
+            new_lattice_vector.end(),
+            [](const auto &lhs, const auto &rhs) -> bool {
+              return lhs.GetRelativePosition() < rhs.GetRelativePosition();
+            });
+  std::unordered_map<size_t, size_t> old_lattice_id_to_new;
+  for (size_t lattice_id = 0; lattice_id < GetNumAtoms(); ++lattice_id) {
+    old_lattice_id_to_new.emplace(new_lattice_vector.at(lattice_id).GetId(), lattice_id);
+    new_lattice_vector.at(lattice_id).SetId(lattice_id);
+  }
+  auto new_lattice_to_atom_hashmap(lattice_to_atom_hashmap_),
+      new_atom_to_lattice_hashmap(atom_to_lattice_hashmap_);
+  for (size_t atom_id = 0; atom_id < GetNumAtoms(); ++atom_id) {
+    auto old_lattice_id = atom_to_lattice_hashmap_.at(atom_id);
+    auto new_lattice_id = old_lattice_id_to_new.at(old_lattice_id);
+    new_lattice_to_atom_hashmap.emplace(new_lattice_id, atom_id);
+    new_atom_to_lattice_hashmap.emplace(atom_id, new_lattice_id);
+  }
+
+  std::vector<std::vector<size_t> > new_first_neighbors_adjacency_list,
+      new_second_neighbors_adjacency_list,
+      new_third_neighbors_adjacency_list;
+  new_first_neighbors_adjacency_list.resize(GetNumAtoms());
+  for (auto &neighbor_list: new_first_neighbors_adjacency_list) {
+    neighbor_list.clear();
+    neighbor_list.reserve(constants::kNumFirstNearestNeighbors);
+  }
+  for (size_t old_lattice_id = 0; old_lattice_id < GetNumAtoms(); ++old_lattice_id) {
+    auto old_neighbor_id_vector = first_neighbors_adjacency_list_.at(old_lattice_id);
+    auto new_lattice_id = old_lattice_id_to_new.at(old_lattice_id);
+    for (auto old_neighbor_id: old_neighbor_id_vector) {
+      new_first_neighbors_adjacency_list.at(new_lattice_id).push_back(
+          old_lattice_id_to_new.at(old_lattice_id));
+    }
+  }
+
+  new_second_neighbors_adjacency_list.resize(GetNumAtoms());
+  for (auto &neighbor_list: new_second_neighbors_adjacency_list) {
+    neighbor_list.clear();
+    neighbor_list.reserve(constants::kNumSecondNearestNeighbors);
+  }
+  for (size_t old_lattice_id = 0; old_lattice_id < GetNumAtoms(); ++old_lattice_id) {
+    auto old_neighbor_id_vector = second_neighbors_adjacency_list_.at(old_lattice_id);
+    auto new_lattice_id = old_lattice_id_to_new.at(old_lattice_id);
+    for (auto old_neighbor_id: old_neighbor_id_vector) {
+      new_second_neighbors_adjacency_list.at(new_lattice_id).push_back(
+          old_lattice_id_to_new.at(old_lattice_id));
+    }
+  }
+
+  new_third_neighbors_adjacency_list.resize(GetNumAtoms());
+  for (auto &neighbor_list: new_third_neighbors_adjacency_list) {
+    neighbor_list.clear();
+    neighbor_list.reserve(constants::kNumThirdNearestNeighbors);
+  }
+  for (size_t old_lattice_id = 0; old_lattice_id < GetNumAtoms(); ++old_lattice_id) {
+    auto old_neighbor_id_vector = third_neighbors_adjacency_list_.at(old_lattice_id);
+    auto new_lattice_id = old_lattice_id_to_new.at(old_lattice_id);
+    for (auto old_neighbor_id: old_neighbor_id_vector) {
+      new_third_neighbors_adjacency_list.at(new_lattice_id).push_back(
+          old_lattice_id_to_new.at(old_lattice_id));
+    }
+  }
+  lattice_vector_ = new_lattice_vector;
+  lattice_to_atom_hashmap_ = new_lattice_to_atom_hashmap;
+  atom_to_lattice_hashmap_ = new_atom_to_lattice_hashmap;
+  first_neighbors_adjacency_list_ = new_first_neighbors_adjacency_list;
+  second_neighbors_adjacency_list_ = new_second_neighbors_adjacency_list;
+  third_neighbors_adjacency_list_ = new_third_neighbors_adjacency_list;
+}
+
 void Config::ChangeAtomElementTypeAtAtom(size_t atom_id, Element element) {
   atom_vector_.at(atom_id).SetElement(element);
 }
