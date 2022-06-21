@@ -160,7 +160,9 @@ void Config::ReassignLatticeVector() {
           old_lattice_id_to_new.at(old_lattice_id));
     }
   }
-
+  for (auto &neighbor_id_vector: new_first_neighbors_adjacency_list) {
+    std::sort(neighbor_id_vector.begin(), neighbor_id_vector.end());
+  }
   new_second_neighbors_adjacency_list.resize(GetNumAtoms());
   for (auto &neighbor_list: new_second_neighbors_adjacency_list) {
     neighbor_list.clear();
@@ -174,7 +176,9 @@ void Config::ReassignLatticeVector() {
           old_lattice_id_to_new.at(old_lattice_id));
     }
   }
-
+  for (auto &neighbor_id_vector: new_second_neighbors_adjacency_list) {
+    std::sort(neighbor_id_vector.begin(), neighbor_id_vector.end());
+  }
   new_third_neighbors_adjacency_list.resize(GetNumAtoms());
   for (auto &neighbor_list: new_third_neighbors_adjacency_list) {
     neighbor_list.clear();
@@ -187,6 +191,9 @@ void Config::ReassignLatticeVector() {
       new_third_neighbors_adjacency_list.at(new_lattice_id).push_back(
           old_lattice_id_to_new.at(old_lattice_id));
     }
+  }
+  for (auto &neighbor_id_vector: new_third_neighbors_adjacency_list) {
+    std::sort(neighbor_id_vector.begin(), neighbor_id_vector.end());
   }
   lattice_vector_ = new_lattice_vector;
   lattice_to_atom_hashmap_ = new_lattice_to_atom_hashmap;
