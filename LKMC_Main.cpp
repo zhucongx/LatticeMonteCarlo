@@ -20,18 +20,18 @@ int main(int argc, char *argv[]) {
   //
   // }
 
-  // ansys::Iterator test(0, 1e4,
-  //                      Element("Al"),
-  //                      {Element("Al"),
-  //                       Element("Mg"),
-  //                       Element("Zn")},
-  //                       4, 3, "quartic_coefficients.json");
-  // test.SerialRunReformat();
+  ansys::Iterator test(0, 1e4,
+                       Element("Al"),
+                       {Element("Al"),
+                        Element("Mg"),
+                        Element("Zn")},
+                        4, 3, "quartic_coefficients.json");
+  test.SerialRunReformat();
 
-  auto conf0 = cfg::Config::ReadCfg("221.cfg");
-  conf0.ReassignLatticeVector();
-  conf0.WriteMap("map.txt");
-  conf0.WriteLattice("lattice.txt");
+  // auto conf0 = cfg::Config::ReadCfg("221.cfg");
+  // conf0.ReassignLatticeVector();
+  // conf0.WriteMap("map.txt");
+  // conf0.WriteLattice("lattice.txt");
   // test.SerialRunCluster();
 //   pred::EnergyEstimator a("quartic_coefficients.json",
 //                           std::set<Element>{Element("Al"), Element("Mg"),
