@@ -95,11 +95,10 @@ void Iterator::SerialRunReformat() const {
     std::cerr << i << " / " << final_number_ << std::endl;
     auto config = cfg::Config::ReadCfg(std::to_string(i) + ".cfg");
     config.ReassignLatticeVector();
-
-    // if (i == 0) {
-    config.WriteLattice("lattice" + std::to_string(i) + ".txt");
-    config.WriteElement("element" + std::to_string(i) + ".txt");
-    // }
+    if (i == 0) {
+      config.WriteLattice("lattice.txt");
+      config.WriteElement("element.txt");
+    }
     config.WriteMap("map" + std::to_string(i) + ".txt");
   }
 }
