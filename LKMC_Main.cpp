@@ -27,6 +27,7 @@ int main(int argc, char *argv[]) {
                         Element("Zn")},
                         4, 3, "quartic_coefficients.json");
   test.SerialRunReformat();
+  // test.SerialRunCluster();
 
   // auto conf0 = cfg::Config::ReadCfg("221.cfg");
   // conf0.ReassignLatticeVector();
