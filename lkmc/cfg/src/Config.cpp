@@ -446,9 +446,8 @@ void Config::WriteElement(const std::string &filename) const {
 void Config::WriteMap(const std::string &filename) const {
   std::ofstream ofs(filename, std::ofstream::out);
   ofs.precision(16);
-  for (const auto &atom: atom_vector_) {
-    size_t lattice_id = atom_to_lattice_hashmap_.at(atom.GetId());
-    ofs << lattice_id << std::endl;
+  for (size_t atom_id = 0; atom_id < atom_vector_.size(); ++atom_id) {
+    ofs <<  atom_to_lattice_hashmap_.at(atom_id) << std::endl;
   }
 }
 void Config::ConvertRelativeToCartesian() {
