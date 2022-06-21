@@ -212,6 +212,9 @@ void Config::ChangeAtomElementTypeAtLattice(size_t lattice_id, Element element) 
 
 Config Config::ReadCfg(const std::string &filename) {
   std::ifstream ifs(filename, std::ifstream::in);
+  if (!ifs.is_open()) {
+    std::cerr << "Cannot open " + filename + "\n";
+  }
   // "Number of particles = %i"
   ifs.ignore(std::numeric_limits<std::streamsize>::max(), '=');
   size_t num_atoms;
@@ -355,7 +358,7 @@ Config Config::ReadMap(const std::string &lattice_filename,
   Config config;
   std::ifstream ifs_lattice(lattice_filename, std::ifstream::in);
   if (!ifs_lattice.is_open()) {
-    std::cerr << "Cannot open lattice.txt\n";
+    std::cerr << "Cannot open " + lattice_filename + "\n";
   }
   size_t num_atoms;
   ifs_lattice >> num_atoms;
@@ -390,7 +393,7 @@ Config Config::ReadMap(const std::string &lattice_filename,
 
   std::ifstream ifs_element(element_filename, std::ifstream::in);
   if (!ifs_element.is_open()) {
-    std::cerr << "Cannot open element.txt\n";
+    std::cerr << "Cannot open " + element_filename + "\n";
   }
   std::string type;
   config.atom_vector_.reserve(num_atoms);
@@ -402,7 +405,7 @@ Config Config::ReadMap(const std::string &lattice_filename,
 
   std::ifstream ifs_map(map_filename, std::ifstream::in);
   if (!ifs_map.is_open()) {
-    std::cerr << "Cannot open map.txt\n";
+    std::cerr << "Cannot open " + map_filename + "\n";
   }
   size_t lattice_id;
   for (size_t atom_id = 0; atom_id < num_atoms; ++atom_id) {
