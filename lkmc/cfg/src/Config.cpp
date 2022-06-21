@@ -135,8 +135,7 @@ void Config::ReassignLatticeVector() {
     old_lattice_id_to_new.emplace(new_lattice_vector.at(lattice_id).GetId(), lattice_id);
     new_lattice_vector.at(lattice_id).SetId(lattice_id);
   }
-  auto new_lattice_to_atom_hashmap(lattice_to_atom_hashmap_),
-      new_atom_to_lattice_hashmap(atom_to_lattice_hashmap_);
+  std::unordered_map<size_t, size_t> new_lattice_to_atom_hashmap, new_atom_to_lattice_hashmap;
   for (size_t atom_id = 0; atom_id < GetNumAtoms(); ++atom_id) {
     auto old_lattice_id = atom_to_lattice_hashmap_.at(atom_id);
     auto new_lattice_id = old_lattice_id_to_new.at(old_lattice_id);
@@ -157,7 +156,7 @@ void Config::ReassignLatticeVector() {
     auto new_lattice_id = old_lattice_id_to_new.at(old_lattice_id);
     for (auto old_neighbor_id: old_neighbor_id_vector) {
       new_first_neighbors_adjacency_list.at(new_lattice_id).push_back(
-          old_lattice_id_to_new.at(old_lattice_id));
+          old_lattice_id_to_new.at(old_neighbor_id));
     }
   }
   for (auto &neighbor_id_vector: new_first_neighbors_adjacency_list) {
@@ -174,7 +173,7 @@ void Config::ReassignLatticeVector() {
     auto new_lattice_id = old_lattice_id_to_new.at(old_lattice_id);
     for (auto old_neighbor_id: old_neighbor_id_vector) {
       new_second_neighbors_adjacency_list.at(new_lattice_id).push_back(
-          old_lattice_id_to_new.at(old_lattice_id));
+          old_lattice_id_to_new.at(old_neighbor_id));
     }
   }
   for (auto &neighbor_id_vector: new_second_neighbors_adjacency_list) {
@@ -191,7 +190,7 @@ void Config::ReassignLatticeVector() {
     auto new_lattice_id = old_lattice_id_to_new.at(old_lattice_id);
     for (auto old_neighbor_id: old_neighbor_id_vector) {
       new_third_neighbors_adjacency_list.at(new_lattice_id).push_back(
-          old_lattice_id_to_new.at(old_lattice_id));
+          old_lattice_id_to_new.at(old_neighbor_id));
     }
   }
   for (auto &neighbor_id_vector: new_third_neighbors_adjacency_list) {
@@ -447,7 +446,7 @@ void Config::WriteMap(const std::string &filename) const {
   std::ofstream ofs(filename, std::ofstream::out);
   ofs.precision(16);
   for (size_t atom_id = 0; atom_id < atom_vector_.size(); ++atom_id) {
-    ofs <<  atom_to_lattice_hashmap_.at(atom_id) << std::endl;
+    ofs << atom_to_lattice_hashmap_.at(atom_id) << std::endl;
   }
 }
 void Config::ConvertRelativeToCartesian() {

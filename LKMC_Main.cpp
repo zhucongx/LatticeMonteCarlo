@@ -27,6 +27,10 @@ int main(int argc, char *argv[]) {
                         Element("Zn")},
                         4, 3, "quartic_coefficients.json");
   test.SerialRunReformat();
+
+  // auto conf0 = cfg::Config::ReadCfg("221.cfg");
+  // conf0.ReassignLatticeVector();
+  // conf0.WriteMap("map.txt");
   // test.SerialRunCluster();
 //   pred::EnergyEstimator a("quartic_coefficients.json",
 //                           std::set<Element>{Element("Al"), Element("Mg"),
