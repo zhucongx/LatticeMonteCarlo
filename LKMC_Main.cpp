@@ -33,13 +33,16 @@ int main(int argc, char *argv[]) {
 //   test.SerialRunCluster();
 
   auto t1 = std::chrono::high_resolution_clock::now();
-
   pred::StateChangePredictor a("quartic_coefficients.json",
                                cfg::GenerateFCC(
-                                   4.046, {10, 10, 10}, Element("Al")),
+                                   4.046, {8, 8, 8}, Element("Al")),
                                {Element("Al"),
                                 Element("Mg"),
                                 Element("Zn")});
+  auto t2 = std::chrono::high_resolution_clock::now();
+  std::cout << std::setprecision(16)
+            << std::chrono::duration_cast<std::chrono::seconds>(t2 - t1).count();
+
 
   // const pred::TotalEnergyPredictor energy_estimator("quartic_coefficients.json",
   //                                                   {Element("Al"),
@@ -97,22 +100,20 @@ int main(int argc, char *argv[]) {
   // std::cout << "Energy barrier 303030: " << pair303030.first << " Energy change 303030: "
   //           << pair303030.second
   //           << std::endl;
-  auto t2 = std::chrono::high_resolution_clock::now();
-  std::cout << std::setprecision(16)
-            << std::chrono::duration_cast<std::chrono::seconds>(t2 - t1).count();
+
 
 
 //   pred::TotalEnergyPredictor a("quartic_coefficients.json",
 //                                std::set<Element>{Element("Al"), Element("Mg"),
 //                                                  Element("Zn")});
 //   const auto conf0 = cfg::GenerateFCC(
-//       4.046, {10, 10, 10}, Element("Al"));
+//       4.046, {8, 8, 8}, Element("Al"));
 //   size_t Zn, Mg;
 //   std::cout << "Mg Zn Energy" << std::endl;
 // #pragma omp parallel for default(none) shared(conf0, a, std::cout) private(Zn, Mg)
-//   for (Mg = 0; Mg <= 200; ++Mg) {
-//     for (Zn = 0; Zn <= 200; ++Zn) {
-//       if (Mg + Zn > 200) continue;
+//   for (Mg = 0; Mg <= 100; ++Mg) {
+//     for (Zn = 0; Zn <= 100; ++Zn) {
+//       if (Mg + Zn > 100) continue;
 //       auto conf1 = GenerateSoluteConfigFromExcitingPure(
 //           conf0,
 //           {{Element("Mg"), Mg},

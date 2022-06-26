@@ -24,12 +24,12 @@ StateChangePredictor::StateChangePredictor(const std::string &predictor_filename
       base_theta_ = std::vector<double>(parameters.at("theta"));
     }
   }
-#pragma omp parallel for default(none) shared(reference_config, std::cout)
+// #pragma omp parallel for default(none) shared(reference_config, std::cout)
   for (size_t i = 0; i < reference_config.GetNumAtoms(); ++i) {
     for (size_t j = 0; j < i; ++j) {
       std::cout << i << ' ' << j << std::endl;
       auto bond_mapping = GetClusterParametersMappingStateOfBond(reference_config, {i, j});
-#pragma omp critical
+// #pragma omp critical
       {
         site_bond_neighbors_hashmap_[{i, j}] = bond_mapping;
         site_bond_neighbors_hashmap_[{j, i}] = bond_mapping;
