@@ -1,13 +1,13 @@
-#include "EnergyPredictorQuartic.h"
+#include "VacancyMigrationPredictorQuartic.h"
 #include <utility>
 #include <boost/range/combine.hpp>
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
 namespace pred {
-EnergyPredictorQuartic::EnergyPredictorQuartic(const std::string &predictor_filename,
-                                               const cfg::Config &reference_config,
-                                               std::set<Element> type_set)
+VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::string &predictor_filename,
+                                                                   const cfg::Config &reference_config,
+                                                                   std::set<Element> type_set)
     : type_set_(std::move(type_set)),
       one_hot_encode_hash_map_(GetOneHotEncodeHashmap(type_set_)),
       mapping_mmm_(GetAverageClusterParametersMappingMMM(reference_config)),
@@ -68,9 +68,9 @@ EnergyPredictorQuartic::EnergyPredictorQuartic(const std::string &predictor_file
     }
   }
 }
-EnergyPredictorQuartic::~EnergyPredictorQuartic() = default;
+VacancyMigrationPredictorQuartic::~VacancyMigrationPredictorQuartic() = default;
 
-std::pair<double, double> EnergyPredictorQuartic::GetBarrierAndDiffFromAtomIdPair(
+std::pair<double, double> VacancyMigrationPredictorQuartic::GetBarrierAndDiffFromAtomIdPair(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &atom_id_jump_pair) const {
   return GetBarrierAndDiffFromLatticeIdPair(
@@ -78,8 +78,8 @@ std::pair<double, double> EnergyPredictorQuartic::GetBarrierAndDiffFromAtomIdPai
       {config.GetLatticeIdFromAtomId(atom_id_jump_pair.first),
        config.GetLatticeIdFromAtomId(atom_id_jump_pair.second)});
 }
-double EnergyPredictorQuartic::GetDe(const cfg::Config &config,
-                                     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
+double VacancyMigrationPredictorQuartic::GetDe(const cfg::Config &config,
+                                               const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
   auto migration_element = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
   const auto &lattice_id_vector = site_bond_cluster_state_hashmap_.at(lattice_id_jump_pair);
   auto start_hashmap(initialized_cluster_hashmap_);
@@ -151,8 +151,8 @@ double EnergyPredictorQuartic::GetDe(const cfg::Config &config,
   }
   return dE;
 }
-double EnergyPredictorQuartic::GetKs(const cfg::Config &config,
-                                     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
+double VacancyMigrationPredictorQuartic::GetKs(const cfg::Config &config,
+                                               const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
   auto migration_element = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
 
   auto lattice_id_vector_mm2_forward =
@@ -208,8 +208,8 @@ double EnergyPredictorQuartic::GetKs(const cfg::Config &config,
   logKs += mu_y;
   return std::exp(logKs);
 }
-double EnergyPredictorQuartic::GetD(const cfg::Config &config,
-                                    const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
+double VacancyMigrationPredictorQuartic::GetD(const cfg::Config &config,
+                                              const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
   auto migration_element = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
   auto lattice_id_vector_mmm = site_bond_cluster_mmm_hashmap_.at(lattice_id_jump_pair);
   std::vector<Element> ele_vector{};
@@ -249,7 +249,7 @@ double EnergyPredictorQuartic::GetD(const cfg::Config &config,
   logD += mu_y;
   return std::exp(logD);
 }
-std::pair<double, double> EnergyPredictorQuartic::GetBarrierAndDiffFromLatticeIdPair(
+std::pair<double, double> VacancyMigrationPredictorQuartic::GetBarrierAndDiffFromLatticeIdPair(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
   const auto dE = GetDe(config, lattice_id_jump_pair);

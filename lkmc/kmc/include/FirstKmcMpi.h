@@ -2,8 +2,8 @@
 #define LKMC_LKMC_KMC_INCLUDE_FIRSTKMCMPI_H_
 #include <random>
 #include <mpi.h>
-#include "EnergyPredictorQuarticLru.h"
-#include "EnergyPredictorRandomizer.h"
+#include "VacancyMigrationPredictorQuarticLru.h"
+#include "VacancyMigrationRandomizer.h"
 #include "JumpEvent.h"
 namespace kmc {
 class FirstKmcMpi {
@@ -53,7 +53,7 @@ class FirstKmcMpi {
     std::pair<size_t, size_t> atom_id_jump_pair_;
 
     std::vector<JumpEvent> event_list_{};
-    const pred::EnergyPredictorQuarticLru energy_predictor_;
+    const pred::VacancyMigrationPredictorQuarticLru energy_predictor_;
     mutable std::mt19937_64 generator_;
 };
 } // namespace kmc

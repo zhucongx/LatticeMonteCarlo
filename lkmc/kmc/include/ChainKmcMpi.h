@@ -2,7 +2,7 @@
 #define LKMC_LKMC_KMC_INCLUDE_CHAINKMCMPI_H_
 #include <random>
 #include <mpi.h>
-#include "EnergyPredictorQuarticLru.h"
+#include "VacancyMigrationPredictorQuarticLru.h"
 #include "JumpEvent.h"
 namespace kmc {
 //  j -> k -> i -> l
@@ -65,7 +65,7 @@ class ChainKmcMpi {
     MPI_Comm first_comm_, second_comm_;
 
     std::vector<JumpEvent> event_list_{};
-    const pred::EnergyPredictorQuarticLru energy_predictor_;
+    const pred::VacancyMigrationPredictorQuarticLru energy_predictor_;
     mutable std::mt19937_64 generator_;
 };
 } // namespace kmc

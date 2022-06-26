@@ -10,7 +10,7 @@ ClustersFinder::ClustersFinder(const cfg::Config &config,
                                Element solvent_atom_type,
                                size_t smallest_cluster_criteria,
                                // size_t solvent_bond_criteria,
-                               const pred::EnergyEstimator &energy_estimator)
+                               const pred::TotalEnergyEstimator &energy_estimator)
     : config_(config),
       solvent_config_(config),
       solvent_element_(solvent_atom_type),

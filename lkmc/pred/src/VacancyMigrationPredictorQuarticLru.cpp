@@ -1,21 +1,21 @@
-#include "EnergyPredictorQuarticLru.h"
+#include "VacancyMigrationPredictorQuarticLru.h"
 namespace pred {
 
-EnergyPredictorQuarticLru::EnergyPredictorQuarticLru(const std::string &predictor_filename,
-                                                     const cfg::Config &reference_config,
-                                                     const std::set<Element> &type_set,
-                                                     const size_t cache_size)
-    : EnergyPredictorQuartic(predictor_filename, reference_config, type_set),
+VacancyMigrationPredictorQuarticLru::VacancyMigrationPredictorQuarticLru(const std::string &predictor_filename,
+                                                                         const cfg::Config &reference_config,
+                                                                         const std::set<Element> &type_set,
+                                                                         const size_t cache_size)
+    : VacancyMigrationPredictorQuartic(predictor_filename, reference_config, type_set),
       cache_size_(cache_size) {}
-EnergyPredictorQuarticLru::~EnergyPredictorQuarticLru() = default;
-std::pair<double, double> EnergyPredictorQuarticLru::GetBarrierAndDiffFromLatticeIdPair(
+VacancyMigrationPredictorQuarticLru::~VacancyMigrationPredictorQuarticLru() = default;
+std::pair<double, double> VacancyMigrationPredictorQuarticLru::GetBarrierAndDiffFromLatticeIdPair(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
   auto hash_value = GetHashFromConfigAndLatticeIdPair(config, lattice_id_jump_pair);
   std::pair<double, double> value;
   auto it = hashmap_.find(hash_value);
   if (it == hashmap_.end()) {
-    value = EnergyPredictorQuartic::GetBarrierAndDiffFromLatticeIdPair(config, lattice_id_jump_pair);
+    value = VacancyMigrationPredictorQuartic::GetBarrierAndDiffFromLatticeIdPair(config, lattice_id_jump_pair);
     Add(hash_value, value);
   } else {
     cache_list_.splice(cache_list_.begin(), cache_list_, it->second);
@@ -23,7 +23,7 @@ std::pair<double, double> EnergyPredictorQuarticLru::GetBarrierAndDiffFromLattic
   }
   return value;
 }
-size_t EnergyPredictorQuarticLru::GetHashFromConfigAndLatticeIdPair(
+size_t VacancyMigrationPredictorQuarticLru::GetHashFromConfigAndLatticeIdPair(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
   const auto &lattice_id_list_state = site_bond_cluster_state_hashmap_.at(lattice_id_jump_pair);
@@ -42,7 +42,7 @@ size_t EnergyPredictorQuarticLru::GetHashFromConfigAndLatticeIdPair(
   }
   return seed;
 }
-void EnergyPredictorQuarticLru::Add(size_t key, std::pair<double, double> value) const {
+void VacancyMigrationPredictorQuarticLru::Add(size_t key, std::pair<double, double> value) const {
   auto it = hashmap_.find(key);
   if (it != hashmap_.end()) {
     cache_list_.erase(it->second);

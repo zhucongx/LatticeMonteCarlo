@@ -1,5 +1,5 @@
-#ifndef LKMC_LKMC_PRED_INCLUDE_ENERGYPREDICTORQUARTIC_H_
-#define LKMC_LKMC_PRED_INCLUDE_ENERGYPREDICTORQUARTIC_H_
+#ifndef LKMC_LKMC_PRED_INCLUDE_VACANCYMIGRATIONPREDICTORQUARTIC_H_
+#define LKMC_LKMC_PRED_INCLUDE_VACANCYMIGRATIONPREDICTORQUARTIC_H_
 #include <string>
 #include <set>
 #include <boost/functional/hash.hpp>
@@ -10,12 +10,12 @@
 
 namespace pred {
 
-class EnergyPredictorQuartic {
+class VacancyMigrationPredictorQuartic {
   public:
-    EnergyPredictorQuartic(const std::string &predictor_filename,
-                           const cfg::Config &reference_config,
-                           std::set<Element> type_set);
-    virtual ~EnergyPredictorQuartic();
+    VacancyMigrationPredictorQuartic(const std::string &predictor_filename,
+                                     const cfg::Config &reference_config,
+                                     std::set<Element> type_set);
+    virtual ~VacancyMigrationPredictorQuartic();
     [[nodiscard]] std::pair<double, double> GetBarrierAndDiffFromAtomIdPair(
         const cfg::Config &config,
         const std::pair<size_t, size_t> &atom_id_jump_pair) const;
@@ -57,4 +57,4 @@ class EnergyPredictorQuartic {
 
 };
 } // namespace pred
-#endif //LKMC_LKMC_PRED_INCLUDE_ENERGYPREDICTORQUARTIC_H_
+#endif //LKMC_LKMC_PRED_INCLUDE_VACANCYMIGRATIONPREDICTORQUARTIC_H_

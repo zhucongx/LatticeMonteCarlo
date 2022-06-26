@@ -1,10 +1,10 @@
-#include "EnergyPredictorRandomizer.h"
+#include "VacancyMigrationRandomizer.h"
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 namespace pred {
-EnergyPredictorRandomizer::EnergyPredictorRandomizer(const std::string &predictor_filename,
-                                           const cfg::Config &reference_config,
-                                           std::set<Element> type_set)
+VacancyMigrationRandomizer::VacancyMigrationRandomizer(const std::string &predictor_filename,
+                                                       const cfg::Config &reference_config,
+                                                       std::set<Element> type_set)
     : type_set_(std::move(type_set)),
       one_hot_encode_hash_map_(GetOneHotEncodeHashmap(type_set_)),
       mapping_state_(GetClusterParametersMappingState(reference_config)) {
@@ -34,9 +34,9 @@ EnergyPredictorRandomizer::EnergyPredictorRandomizer(const std::string &predicto
     }
   }
 }
-EnergyPredictorRandomizer::~EnergyPredictorRandomizer() = default;
+VacancyMigrationRandomizer::~VacancyMigrationRandomizer() = default;
 
-std::pair<double, double> EnergyPredictorRandomizer::GetBarrierAndDiffFromAtomIdPair(
+std::pair<double, double> VacancyMigrationRandomizer::GetBarrierAndDiffFromAtomIdPair(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &atom_id_jump_pair) const {
   return GetBarrierAndDiffFromLatticeIdPair(
@@ -44,8 +44,8 @@ std::pair<double, double> EnergyPredictorRandomizer::GetBarrierAndDiffFromAtomId
       {config.GetLatticeIdFromAtomId(atom_id_jump_pair.first),
        config.GetLatticeIdFromAtomId(atom_id_jump_pair.second)});
 }
-double EnergyPredictorRandomizer::GetDe(const cfg::Config &config,
-                                   const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
+double VacancyMigrationRandomizer::GetDe(const cfg::Config &config,
+                                         const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
   auto migration_element = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
   const auto &lattice_id_vector = site_bond_cluster_state_hashmap_.at(lattice_id_jump_pair);
   auto start_hashmap(initialized_cluster_hashmap_);
@@ -118,7 +118,7 @@ double EnergyPredictorRandomizer::GetDe(const cfg::Config &config,
   }
   return dE;
 }
-std::pair<double, double> EnergyPredictorRandomizer::GetBarrierAndDiffFromLatticeIdPair(
+std::pair<double, double> VacancyMigrationRandomizer::GetBarrierAndDiffFromLatticeIdPair(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
   const auto dE = GetDe(config, lattice_id_jump_pair);

@@ -1,15 +1,15 @@
-#ifndef LKMC_LKMC_PRED_INCLUDE_ENERGYPREDICTORQUARTICLRU_H_
-#define LKMC_LKMC_PRED_INCLUDE_ENERGYPREDICTORQUARTICLRU_H_
-#include "EnergyPredictorQuartic.h"
+#ifndef LKMC_LKMC_PRED_INCLUDE_VACANCYMIGRATIONPREDICTORQUARTICLRU_H_
+#define LKMC_LKMC_PRED_INCLUDE_VACANCYMIGRATIONPREDICTORQUARTICLRU_H_
+#include "VacancyMigrationPredictorQuartic.h"
 namespace pred {
 
-class EnergyPredictorQuarticLru : public EnergyPredictorQuartic {
+class VacancyMigrationPredictorQuarticLru : public VacancyMigrationPredictorQuartic {
   public:
-    EnergyPredictorQuarticLru(const std::string &predictor_filename,
-                              const cfg::Config &reference_config,
-                              const std::set<Element> &type_set,
-                              size_t cache_size);
-    ~EnergyPredictorQuarticLru() override;
+    VacancyMigrationPredictorQuarticLru(const std::string &predictor_filename,
+                                        const cfg::Config &reference_config,
+                                        const std::set<Element> &type_set,
+                                        size_t cache_size);
+    ~VacancyMigrationPredictorQuarticLru() override;
   private:
     [[nodiscard]] std::pair<double, double> GetBarrierAndDiffFromLatticeIdPair(
         const cfg::Config &config,
@@ -27,4 +27,4 @@ class EnergyPredictorQuarticLru : public EnergyPredictorQuartic {
 };
 } // namespace pred
 
-#endif //LKMC_LKMC_PRED_INCLUDE_ENERGYPREDICTORQUARTICLRU_H_
+#endif //LKMC_LKMC_PRED_INCLUDE_VACANCYMIGRATIONPREDICTORQUARTICLRU_H_

@@ -1,5 +1,5 @@
-#ifndef LKMC_LKMC_PRED_INCLUDE_ENERGYPREDICTORRANDOMIZER_H_
-#define LKMC_LKMC_PRED_INCLUDE_ENERGYPREDICTORRANDOMIZER_H_
+#ifndef LKMC_LKMC_PRED_INCLUDE_VACANCYMIGRATIONRANDOMIZER_H_
+#define LKMC_LKMC_PRED_INCLUDE_VACANCYMIGRATIONRANDOMIZER_H_
 #include <string>
 #include <set>
 #include <boost/functional/hash.hpp>
@@ -9,12 +9,12 @@
 #include "EnergyUtility.h"
 
 namespace pred {
-class EnergyPredictorRandomizer {
+class VacancyMigrationRandomizer {
   public:
-    EnergyPredictorRandomizer(const std::string &predictor_filename,
-                              const cfg::Config &reference_config,
-                              std::set<Element> type_set);
-    virtual ~EnergyPredictorRandomizer();
+    VacancyMigrationRandomizer(const std::string &predictor_filename,
+                               const cfg::Config &reference_config,
+                               std::set<Element> type_set);
+    virtual ~VacancyMigrationRandomizer();
     [[nodiscard]] std::pair<double, double> GetBarrierAndDiffFromAtomIdPair(
         const cfg::Config &config,
         const std::pair<size_t, size_t> &atom_id_jump_pair) const;
@@ -40,4 +40,4 @@ class EnergyPredictorRandomizer {
 
 };
 } // namespace pred
-#endif //LKMC_LKMC_PRED_INCLUDE_ENERGYPREDICTORRANDOMIZER_H_
+#endif //LKMC_LKMC_PRED_INCLUDE_VACANCYMIGRATIONRANDOMIZER_H_
