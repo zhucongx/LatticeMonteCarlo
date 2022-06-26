@@ -1,10 +1,10 @@
-#include "TotalEnergyEstimator.h"
+#include "TotalEnergyPredictor.h"
 #include <omp.h>
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
 namespace pred {
-TotalEnergyEstimator::TotalEnergyEstimator(const std::string &predictor_filename,
+TotalEnergyPredictor::TotalEnergyPredictor(const std::string &predictor_filename,
                                            std::set<Element> type_set)
     : type_set_(std::move(type_set)) {
   auto type_set_copy(type_set_);
@@ -28,8 +28,8 @@ TotalEnergyEstimator::TotalEnergyEstimator(const std::string &predictor_filename
     }
   }
 }
-TotalEnergyEstimator::~TotalEnergyEstimator() = default;
-std::vector<double> TotalEnergyEstimator::GetEncode(const cfg::Config &config) const {
+TotalEnergyPredictor::~TotalEnergyPredictor() = default;
+std::vector<double> TotalEnergyPredictor::GetEncode(const cfg::Config &config) const {
   auto cluster_hashmap(initialized_cluster_hashmap_);
   const std::vector<size_t> cluster_counter{256,
                                             3072,
@@ -126,7 +126,7 @@ std::vector<double> TotalEnergyEstimator::GetEncode(const cfg::Config &config) c
   }
   return energy_encode;
 }
-std::vector<double> TotalEnergyEstimator::GetEncodeOfCluster(
+std::vector<double> TotalEnergyPredictor::GetEncodeOfCluster(
     const cfg::Config &config, const std::vector<size_t> &atom_id_list) const {
   auto cluster_hashmap(initialized_cluster_hashmap_);
   std::unordered_set<size_t> lattice_id_hashset;
@@ -245,7 +245,7 @@ std::vector<double> TotalEnergyEstimator::GetEncodeOfCluster(
   }
   return energy_encode;
 }
-std::vector<double> TotalEnergyEstimator::GetEncodeOmp(const cfg::Config &config) const {
+std::vector<double> TotalEnergyPredictor::GetEncodeOmp(const cfg::Config &config) const {
   auto cluster_hashmap(initialized_cluster_hashmap_);
   const std::vector<size_t> cluster_counter{256,
                                             3072,
@@ -400,7 +400,7 @@ std::vector<double> TotalEnergyEstimator::GetEncodeOmp(const cfg::Config &config
   }
   return energy_encode;
 }
-double TotalEnergyEstimator::GetEnergy(const cfg::Config &config) const {
+double TotalEnergyPredictor::GetEnergy(const cfg::Config &config) const {
   auto encode = GetEncode(config);
   double E = 0;
   const size_t cluster_size = base_theta_.size();
@@ -409,7 +409,7 @@ double TotalEnergyEstimator::GetEnergy(const cfg::Config &config) const {
   }
   return E;
 }
-double TotalEnergyEstimator::GetEnergyOfCluster(
+double TotalEnergyPredictor::GetEnergyOfCluster(
     const cfg::Config &config,
     const std::vector<size_t> &atom_id_list) const {
   auto encode = GetEncodeOfCluster(config, atom_id_list);

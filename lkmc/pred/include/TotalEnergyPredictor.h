@@ -10,11 +10,11 @@
 
 namespace pred {
 
-class TotalEnergyEstimator {
+class TotalEnergyPredictor {
   public:
-    TotalEnergyEstimator(const std::string &predictor_filename,
+    TotalEnergyPredictor(const std::string &predictor_filename,
                          std::set<Element> type_set);
-    ~TotalEnergyEstimator();
+    ~TotalEnergyPredictor();
     [[nodiscard]] std::vector<double> GetEncode(const cfg::Config &config) const;
     [[nodiscard]] std::vector<double> GetEncodeOfCluster(
         const cfg::Config &config, const std::vector<size_t> &atom_id_list) const;
