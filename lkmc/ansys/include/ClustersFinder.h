@@ -14,7 +14,7 @@ class ClustersFinder {
     ClustersFinder(const cfg::Config &config,
                    Element solvent_atom_type,
                    size_t smallest_cluster_criteria,
-                   size_t solvent_bond_criteria,
+                   // size_t solvent_bond_criteria,
                    const pred::EnergyEstimator &energy_estimator);
 
     ClusterElementNumMap FindClustersAndOutput(const std::string &output_folder,
@@ -36,7 +36,7 @@ class ClustersFinder {
     const Element solvent_element_;
     const std::set<Element> element_set_;
     const size_t smallest_cluster_criteria_;
-    const size_t solvent_bond_criteria_;
+    // const size_t solvent_bond_criteria_;
 
     const pred::EnergyEstimator energy_estimator_;
     double absolute_energy_solvent_config_;

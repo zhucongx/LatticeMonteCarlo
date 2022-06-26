@@ -8,14 +8,14 @@ Iterator::Iterator(unsigned long long int initial_number,
                    Element solvent_element,
                    std::set<Element> type_set,
                    size_t smallest_cluster_criteria,
-                   size_t solvent_bond_criteria,
+                   // size_t solvent_bond_criteria,
                    const std::string &predictor_filename)
     : initial_number_(initial_number),
       increment_number_(increment_number),
       final_number_(increment_number),
       solvent_element_(solvent_element),
       smallest_cluster_criteria_(smallest_cluster_criteria),
-      solvent_bond_criteria_(solvent_bond_criteria),
+      // solvent_bond_criteria_(solvent_bond_criteria),
       energy_estimator_(predictor_filename, std::move(type_set)) {
   std::ifstream ifs("kmc_log.txt", std::ifstream::in);
   if (!ifs.is_open()) {
@@ -58,7 +58,7 @@ void Iterator::SerialRunCluster() const {
                                       "map" + std::to_string(i) + ".txt"),
                                   solvent_element_,
                                   smallest_cluster_criteria_,
-                                  solvent_bond_criteria_,
+                                  // solvent_bond_criteria_,
                                   energy_estimator_);
     auto num_different_element =
         cluster_finder.FindClustersAndOutput("cluster", std::to_string(i) + "_cluster.cfg");

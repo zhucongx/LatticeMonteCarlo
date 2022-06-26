@@ -11,7 +11,7 @@ class Iterator {
              Element solvent_element,
              std::set<Element> type_set,
              size_t smallest_cluster_criteria,
-             size_t solvent_bond_criteria,
+             // size_t solvent_bond_criteria,
              const std::string &predictor_filename);
     virtual ~Iterator();
     void SerialRunCluster() const;
@@ -22,7 +22,7 @@ class Iterator {
     unsigned long long final_number_;
     Element solvent_element_;
     size_t smallest_cluster_criteria_;
-    size_t solvent_bond_criteria_;
+    // size_t solvent_bond_criteria_;
     std::unordered_map<unsigned long long, double> filename_time_hashset_{};
     const pred::EnergyEstimator energy_estimator_;
 };

@@ -9,14 +9,14 @@ namespace ansys {
 ClustersFinder::ClustersFinder(const cfg::Config &config,
                                Element solvent_atom_type,
                                size_t smallest_cluster_criteria,
-                               size_t solvent_bond_criteria,
+                               // size_t solvent_bond_criteria,
                                const pred::EnergyEstimator &energy_estimator)
     : config_(config),
       solvent_config_(config),
       solvent_element_(solvent_atom_type),
       element_set_(config_.GetElementSetWithoutVacancy()),
       smallest_cluster_criteria_(smallest_cluster_criteria),
-      solvent_bond_criteria_(solvent_bond_criteria),
+      // solvent_bond_criteria_(solvent_bond_criteria),
       energy_estimator_(energy_estimator) {
   for (size_t atom_id = 0; atom_id < solvent_config_.GetNumAtoms(); ++atom_id) {
     solvent_config_.ChangeAtomElementTypeAtAtom(atom_id, Element("Al"));
