@@ -2,8 +2,6 @@
 #define LKMC_LKMC_KMC_INCLUDE_FIRSTKMCMPI_H_
 #include <random>
 #include <mpi.h>
-#include "EnergyPredictorSymmetry.h"
-#include "EnergyPredictorStateLru.h"
 #include "EnergyPredictorQuarticLru.h"
 #include "EnergyPredictorRandomizer.h"
 #include "JumpEvent.h"

@@ -10,7 +10,6 @@
 
 namespace pred {
 
-
 class EnergyPredictorQuartic {
   public:
     EnergyPredictorQuartic(const std::string &predictor_filename,
@@ -30,7 +29,6 @@ class EnergyPredictorQuartic {
     [[nodiscard]] virtual std::pair<double, double> GetBarrierAndDiffFromLatticeIdPair(
         const cfg::Config &config,
         const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
-
 
     const std::set<Element> type_set_;
     const std::unordered_map<std::string, std::vector<double> > one_hot_encode_hash_map_;

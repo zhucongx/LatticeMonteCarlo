@@ -12,8 +12,8 @@ namespace pred {
 class EnergyPredictorRandomizer {
   public:
     EnergyPredictorRandomizer(const std::string &predictor_filename,
-                           const cfg::Config &reference_config,
-                           std::set<Element> type_set);
+                              const cfg::Config &reference_config,
+                              std::set<Element> type_set);
     virtual ~EnergyPredictorRandomizer();
     [[nodiscard]] std::pair<double, double> GetBarrierAndDiffFromAtomIdPair(
         const cfg::Config &config,
@@ -34,7 +34,6 @@ class EnergyPredictorRandomizer {
     std::unordered_map<std::pair<size_t, size_t>,
                        std::vector<size_t>,
                        boost::hash<std::pair<size_t, size_t> > > site_bond_cluster_state_hashmap_;
-
 
     std::unordered_map<cfg::ElementCluster, size_t,
                        boost::hash<cfg::ElementCluster> > initialized_cluster_hashmap_;

@@ -2,8 +2,6 @@
 #define LKMC_LKMC_KMC_INCLUDE_CHAINKMCMPI_H_
 #include <random>
 #include <mpi.h>
-#include "EnergyPredictorSymmetry.h"
-#include "EnergyPredictorStateLru.h"
 #include "EnergyPredictorQuarticLru.h"
 #include "JumpEvent.h"
 namespace kmc {
@@ -70,7 +68,6 @@ class ChainKmcMpi {
     const pred::EnergyPredictorQuarticLru energy_predictor_;
     mutable std::mt19937_64 generator_;
 };
-
 } // namespace kmc
 
 

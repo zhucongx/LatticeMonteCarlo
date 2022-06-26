@@ -144,7 +144,6 @@ double EnergyPredictorQuartic::GetDe(const cfg::Config &config,
     }
     de_encode.push_back((end - start) / total_bond);
   }
-
   double dE = 0;
   const size_t cluster_size = base_theta_.size();
   for (size_t i = 0; i < cluster_size; ++i) {
