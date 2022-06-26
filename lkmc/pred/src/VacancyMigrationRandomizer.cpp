@@ -44,8 +44,9 @@ std::pair<double, double> VacancyMigrationRandomizer::GetBarrierAndDiffFromAtomI
       {config.GetLatticeIdFromAtomId(atom_id_jump_pair.first),
        config.GetLatticeIdFromAtomId(atom_id_jump_pair.second)});
 }
-double VacancyMigrationRandomizer::GetDe(const cfg::Config &config,
-                                         const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
+double VacancyMigrationRandomizer::GetDe(
+    const cfg::Config &config,
+    const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
   auto migration_element = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
   const auto &lattice_id_vector = site_bond_cluster_state_hashmap_.at(lattice_id_jump_pair);
   auto start_hashmap(initialized_cluster_hashmap_);

@@ -39,6 +39,8 @@ std::vector<cfg::Lattice> GetSortedLatticeVectorState(
     const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair);
 std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState(
     const cfg::Config &config);
+std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingStateOfBond(
+    const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair);
 std::vector<double> GetOneHotParametersFromMap(
     const std::vector<Element> &encode,
     const std::unordered_map<std::string, std::vector<double> > &one_hot_encode_hashmap,

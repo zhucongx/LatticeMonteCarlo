@@ -79,7 +79,8 @@ std::pair<double, double> VacancyMigrationPredictorQuartic::GetBarrierAndDiffFro
        config.GetLatticeIdFromAtomId(atom_id_jump_pair.second)});
 }
 double VacancyMigrationPredictorQuartic::GetDe(const cfg::Config &config,
-                                               const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
+                                               const std::pair<size_t,
+                                                               size_t> &lattice_id_jump_pair) const {
   auto migration_element = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
   const auto &lattice_id_vector = site_bond_cluster_state_hashmap_.at(lattice_id_jump_pair);
   auto start_hashmap(initialized_cluster_hashmap_);
@@ -152,7 +153,8 @@ double VacancyMigrationPredictorQuartic::GetDe(const cfg::Config &config,
   return dE;
 }
 double VacancyMigrationPredictorQuartic::GetKs(const cfg::Config &config,
-                                               const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
+                                               const std::pair<size_t,
+                                                               size_t> &lattice_id_jump_pair) const {
   auto migration_element = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
 
   auto lattice_id_vector_mm2_forward =
@@ -209,7 +211,8 @@ double VacancyMigrationPredictorQuartic::GetKs(const cfg::Config &config,
   return std::exp(logKs);
 }
 double VacancyMigrationPredictorQuartic::GetD(const cfg::Config &config,
-                                              const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
+                                              const std::pair<size_t,
+                                                              size_t> &lattice_id_jump_pair) const {
   auto migration_element = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
   auto lattice_id_vector_mmm = site_bond_cluster_mmm_hashmap_.at(lattice_id_jump_pair);
   std::vector<Element> ele_vector{};
