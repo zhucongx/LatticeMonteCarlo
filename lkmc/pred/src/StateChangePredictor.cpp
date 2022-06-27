@@ -30,6 +30,7 @@ StateChangePredictor::StateChangePredictor(const std::string &predictor_filename
       auto bond_mapping = GetClusterParametersMappingStateOfBond(reference_config, {i, j});
 #pragma omp critical
       {
+        std::cout << i << ' ' << j << std::endl;
         site_bond_neighbors_hashmap_[{j, i}] = std::move(bond_mapping);
       }
     }
