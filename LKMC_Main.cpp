@@ -121,7 +121,7 @@ int main(int argc, char *argv[]) {
             << std::endl;
 
   auto t1 = std::chrono::high_resolution_clock::now();
-  for (size_t i = 0; i < 100; ++i)
+  for (size_t i = 0; i < 10000; ++i)
     auto aa = d.GetDiffFromAtomIdPair(cfg::Config::ReadCfg("555_b.cfg"), {97, 0});
   auto t2 = std::chrono::high_resolution_clock::now();
   std::cout << std::setprecision(16)

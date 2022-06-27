@@ -486,7 +486,7 @@ std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState
 
   auto lattice_id_hashset = cfg::GetNeighborsLatticeIdSetOfJumpPair(config, lattice_id_jump_pair);
 
-  for (const auto index1: {lattice_id_jump_pair.first, lattice_id_jump_pair.second}) {
+  for (const auto index1: lattice_id_hashset) {
     const auto &lattice1 = config.GetLatticeVector()[index1];
     singlet_vector.emplace_back(std::array<cfg::Lattice, 1>{lattice1});
     for (const auto index2: lattice_id_hashset) {
@@ -498,7 +498,7 @@ std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState
           break;
         case 3: third_pair_vector.emplace_back(std::array<cfg::Lattice, 2>{lattice1, lattice2});
           break;
-        default:;
+        default:continue;
       }
       for (const auto index3: lattice_id_hashset) {
         const auto &lattice3 = config.GetLatticeVector()[index3];
@@ -519,7 +519,7 @@ std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState
             first_second_third_triplets_vector.emplace_back(
                 std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
             break;
-          default:;
+          default:continue;
         }
       }
     }

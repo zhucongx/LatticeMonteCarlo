@@ -28,7 +28,7 @@ class StateChangePredictor {
                        boost::hash<cfg::ElementCluster> > initialized_cluster_hashmap_;
 
     std::unordered_map<std::pair<size_t, size_t>,
-                       std::unordered_set<size_t>,
+                       std::vector<std::vector<std::vector<size_t> > >,
                        boost::hash<std::pair<size_t, size_t> > > site_bond_neighbors_hashmap_;
 };
 
