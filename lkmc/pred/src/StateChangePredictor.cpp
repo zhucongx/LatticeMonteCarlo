@@ -24,7 +24,7 @@ StateChangePredictor::StateChangePredictor(const std::string &predictor_filename
       base_theta_ = std::vector<double>(parameters.at("theta"));
     }
   }
-#pragma omp parallel for default(none) shared(reference_config, std::cout)
+#pragma omp parallel for default(none) shared(reference_config, std::cout) collapse(2)
   for (size_t i = 0; i < reference_config.GetNumAtoms(); ++i) {
     for (size_t j = 0; j < i; ++j) {
       std::cout << i << ' ' << j << std::endl;
