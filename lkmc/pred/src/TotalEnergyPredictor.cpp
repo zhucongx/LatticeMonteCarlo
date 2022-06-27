@@ -27,17 +27,8 @@ TotalEnergyPredictor::TotalEnergyPredictor(const std::string &predictor_filename
 TotalEnergyPredictor::~TotalEnergyPredictor() = default;
 std::vector<double> TotalEnergyPredictor::GetEncode(const cfg::Config &config) const {
   auto cluster_hashmap(initialized_cluster_hashmap_);
-  const std::vector<size_t> cluster_counter{256,
-                                            3072,
-                                            1536,
-                                            6144,
-                                            12288,
-                                            6144,
-                                            12288,
-                                            6144,
-                                            12288,
-                                            12288,
-                                            12288};
+  const std::vector<size_t>
+      cluster_counter{256, 3072, 1536, 6144, 12288, 6144, 12288, 6144, 12288, 12288, 12288};
   for (size_t atom_id1 = 0; atom_id1 < config.GetNumAtoms(); ++atom_id1) {
     const size_t lattice_id1 = config.GetLatticeIdFromAtomId(atom_id1);
     Element element1 = config.GetAtomVector()[atom_id1].GetElement();
@@ -139,17 +130,8 @@ std::vector<double> TotalEnergyPredictor::GetEncodeOfCluster(
       lattice_id_hashset.insert(neighbor_lattice_id);
     }
   }
-  const std::vector<size_t> cluster_counter{256,
-                                            3072,
-                                            1536,
-                                            6144,
-                                            12288,
-                                            6144,
-                                            12288,
-                                            6144,
-                                            12288,
-                                            12288,
-                                            12288};
+  const std::vector<size_t>
+      cluster_counter{256, 3072, 1536, 6144, 12288, 6144, 12288, 6144, 12288, 12288, 12288};
   for (size_t lattice_id1: lattice_id_hashset) {
     Element element1 = config.GetElementAtLatticeId(lattice_id1);
     cluster_hashmap[cfg::ElementCluster(0, element1)]++;

@@ -16,6 +16,11 @@ class StateChangePredictor {
     StateChangePredictor(const std::string &predictor_filename,
                          const cfg::Config &reference_config,
                          std::set<Element> type_set);
+    [[nodiscard]] double GetDiffFromAtomIdPair(
+        const cfg::Config &config, const std::pair<size_t, size_t> &atom_id_jump_pair) const;
+
+    [[nodiscard]] double GetDiffFromLatticeIdPair(
+        const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
   private:
     const std::set<Element> type_set_;
     std::vector<double> base_theta_{};
@@ -23,7 +28,7 @@ class StateChangePredictor {
                        boost::hash<cfg::ElementCluster> > initialized_cluster_hashmap_;
 
     std::unordered_map<std::pair<size_t, size_t>,
-                       std::vector<std::vector<std::vector<size_t> > >,
+                       std::unordered_set<size_t>,
                        boost::hash<std::pair<size_t, size_t> > > site_bond_neighbors_hashmap_;
 };
 
