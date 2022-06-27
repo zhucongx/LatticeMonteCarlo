@@ -46,11 +46,11 @@ int main(int argc, char *argv[]) {
                                                     });
 
   std::cout << "Energy 444: " << energy_estimator.GetEnergy(
-      cfg::Config::ReadCfg("444_c.cfg")) - energy_estimator.GetEnergy(
-      cfg::Config::ReadCfg("444_f.cfg")) << std::endl;
+      cfg::Config::ReadCfg("444_f.cfg")) - energy_estimator.GetEnergy(
+      cfg::Config::ReadCfg("444_c.cfg")) << std::endl;
   std::cout << "Energy 555: " << energy_estimator.GetEnergy(
-      cfg::Config::ReadCfg("555_c.cfg")) - energy_estimator.GetEnergy(
-      cfg::Config::ReadCfg("555_f.cfg")) << std::endl;
+      cfg::Config::ReadCfg("555_f.cfg")) - energy_estimator.GetEnergy(
+      cfg::Config::ReadCfg("555_c.cfg")) << std::endl;
 
   pred::StateChangePredictor a("quartic_coefficients.json",
                                cfg::Config::ReadCfg("444_c.cfg"),

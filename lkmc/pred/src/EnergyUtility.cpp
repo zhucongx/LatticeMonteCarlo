@@ -486,40 +486,52 @@ std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState
 
   auto lattice_id_hashset = cfg::GetNeighborsLatticeIdSetOfJumpPair(config, lattice_id_jump_pair);
 
-  for (const auto index1: lattice_id_hashset) {
+  for (auto it1 = lattice_id_hashset.begin(); it1 != lattice_id_hashset.end(); ++it1) {
+    auto index1 = *it1;
     const auto &lattice1 = config.GetLatticeVector()[index1];
-    singlet_vector.emplace_back(std::array<cfg::Lattice, 1>{lattice1});
-    for (const auto index2: lattice_id_hashset) {
+    if (index1 == lattice_id_jump_pair.first || index1 == lattice_id_jump_pair.second) {
+      singlet_vector.emplace_back(std::array<cfg::Lattice, 1>{lattice1});
+    }
+    for (auto it2 = lattice_id_hashset.begin(); it2 != it1; ++it2) {
+      auto index2 = *it2;
       const auto &lattice2 = config.GetLatticeVector()[index2];
-      switch (GetLabel({index1, index2}, config)) {
-        case 1: first_pair_vector.emplace_back(std::array<cfg::Lattice, 2>{lattice1, lattice2});
-          break;
-        case 2: second_pair_vector.emplace_back(std::array<cfg::Lattice, 2>{lattice1, lattice2});
-          break;
-        case 3: third_pair_vector.emplace_back(std::array<cfg::Lattice, 2>{lattice1, lattice2});
-          break;
-        default:continue;
-      }
-      for (const auto index3: lattice_id_hashset) {
-        const auto &lattice3 = config.GetLatticeVector()[index3];
-        switch (GetLabel({index1, index2, index3}, config)) {
-          case 4:
-            first_first_first_triplets_vector.emplace_back(
-                std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
+      if (index1 == lattice_id_jump_pair.first || index1 == lattice_id_jump_pair.second
+          || index2 == lattice_id_jump_pair.first || index2 == lattice_id_jump_pair.second) {
+        switch (GetLabel({index1, index2}, config)) {
+          case 1: first_pair_vector.emplace_back(std::array<cfg::Lattice, 2>{lattice1, lattice2});
             break;
-          case 5:
-            first_first_second_triplets_vector.emplace_back(
-                std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
+          case 2: second_pair_vector.emplace_back(std::array<cfg::Lattice, 2>{lattice1, lattice2});
             break;
-          case 6:
-            first_first_third_triplets_vector.emplace_back(
-                std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
-            break;
-          case 7:
-            first_second_third_triplets_vector.emplace_back(
-                std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
+          case 3: third_pair_vector.emplace_back(std::array<cfg::Lattice, 2>{lattice1, lattice2});
             break;
           default:continue;
+        }
+      }
+      for (auto it3 = lattice_id_hashset.begin(); it3 != it2; ++it3) {
+        auto index3 = *it3;
+        const auto &lattice3 = config.GetLatticeVector()[index3];
+        if (index1 == lattice_id_jump_pair.first || index1 == lattice_id_jump_pair.second
+            || index2 == lattice_id_jump_pair.first || index2 == lattice_id_jump_pair.second
+            || index3 == lattice_id_jump_pair.first || index3 == lattice_id_jump_pair.second) {
+          switch (GetLabel({index1, index2, index3}, config)) {
+            case 4:
+              first_first_first_triplets_vector.emplace_back(
+                  std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
+              break;
+            case 5:
+              first_first_second_triplets_vector.emplace_back(
+                  std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
+              break;
+            case 6:
+              first_first_third_triplets_vector.emplace_back(
+                  std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
+              break;
+            case 7:
+              first_second_third_triplets_vector.emplace_back(
+                  std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
+              break;
+            default:continue;
+          }
         }
       }
     }
