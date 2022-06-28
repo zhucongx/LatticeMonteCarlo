@@ -33,8 +33,8 @@ class SimulatedAnnealing {
     // simulation statistics
     unsigned long long int steps_;
     unsigned long long int count_;
-    double energy_{};
-    double lowest_energy_{};
+    double energy_{0.0};
+    double lowest_energy_{0.0};
     const double initial_temperature_{1000 * kBoltzmannConstant * 7};
     double temperature_{};
 
@@ -43,9 +43,6 @@ class SimulatedAnnealing {
     mutable std::uniform_int_distribution<size_t> solute_atom_selector_;
     mutable std::uniform_int_distribution<size_t> neighbor_index_selector_;
     mutable std::uniform_real_distribution<double> one_distribution_{0.0, 1.0};
-    // std::vector<std::pair<size_t,size_t>> jump_pair_vector_;
-    // std::vector<double> dE_vector_;
-
 };
 } // namespace ansys
 

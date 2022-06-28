@@ -47,14 +47,12 @@ SimulatedAnnealing::SimulatedAnnealing(const Factor_t &factors,
                      std::chrono::system_clock::now().time_since_epoch().count())),
       solute_atom_selector_(0, solute_atom_id_vector_.size() - 1),
       neighbor_index_selector_(0, constants::kNumFirstNearestNeighbors - 1) {
-  pred::TotalEnergyPredictor total_energy_predictor(json_coefficients_filename,
-                                                    GetElementSetFromSolventAndSolute(
-                                                        solvent_element,
-                                                        solute_atom_count));
-  energy_ = total_energy_predictor.GetEnergy(config_);
-  lowest_energy_ = energy_;
-  // jump_pair_vector_.resize(omp_get_max_threads());
-  // dE_vector_.resize(omp_get_max_threads());
+  // pred::TotalEnergyPredictor total_energy_predictor(json_coefficients_filename,
+  //                                                   GetElementSetFromSolventAndSolute(
+  //                                                       solvent_element,
+  //                                                       solute_atom_count));
+  // energy_ = total_energy_predictor.GetEnergy(config_);
+  // lowest_energy_ = energy_;
 }
 std::pair<size_t, size_t> SimulatedAnnealing::GenerateAtomIdJumpPair() {
   size_t atom_id1 = solute_atom_selector_(generator_);
