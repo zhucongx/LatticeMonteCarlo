@@ -26,11 +26,10 @@ StateChangePredictor::StateChangePredictor(const std::string &predictor_filename
   }
 #pragma omp parallel for default(none) shared(reference_config, std::cout)
   for (size_t i = 0; i < reference_config.GetNumAtoms(); ++i) {
-    for (size_t j = 0; j < i; ++j) {
+    for (auto j: reference_config.GetFirstNeighborsAdjacencyList()[i]) {
       auto bond_mapping = GetClusterParametersMappingStateOfBond(reference_config, {i, j});
 #pragma omp critical
       {
-        std::cout << i << ' ' << j << std::endl;
         site_bond_neighbors_hashmap_[{j, i}] = std::move(bond_mapping);
       }
     }

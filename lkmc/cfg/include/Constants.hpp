@@ -3,6 +3,8 @@
 
 #include <cmath>
 namespace constants {
+constexpr double kLatticeConstant = 4.046;
+
 constexpr double kFirstNearestNeighborsCutoff = 3.5;
 constexpr double kSecondNearestNeighborsCutoff = 4.8;
 constexpr double kThirdNearestNeighborsCutoff = 5.3;

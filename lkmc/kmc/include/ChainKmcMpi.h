@@ -25,7 +25,7 @@ class ChainKmcMpi {
 
   protected:
     // virtual bool CheckAndSolveEquilibrium(std::ofstream &ofs) { return false; }
-    inline void Dump(std::ofstream &ofs);
+    inline void Dump(std::ofstream &ofs) const;
     JumpEvent GetEventI();
     [[nodiscard]] double BuildEventListParallel();
 

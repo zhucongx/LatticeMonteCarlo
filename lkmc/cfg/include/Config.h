@@ -85,11 +85,10 @@ std::unordered_set<size_t> GetNeighborsLatticeIdSetOfLattice(
 Config GetNeighborsConfigSetOfJumpPair(
     const Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair);
 int FindDistanceLabelBetweenLattice(size_t index1, size_t index2, const Config &config);
-Config GenerateFCC(double lattice_constant_a, const Factor_t &factors, Element element);
+Config GenerateFCC(const Factor_t &factors, Element element);
 Config GenerateSoluteConfigFromExcitingPure(Config config,
                                             const std::map<Element, size_t> &solute_atom_count);
-Config GenerateSoluteConfig(double lattice_constant_a,
-                            const Factor_t &factors,
+Config GenerateSoluteConfig(const Factor_t &factors,
                             Element solvent_element,
                             const std::map<Element, size_t> &solute_atom_count);
 

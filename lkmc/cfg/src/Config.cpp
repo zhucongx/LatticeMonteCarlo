@@ -655,10 +655,11 @@ int FindDistanceLabelBetweenLattice(size_t index1, size_t index2, const Config &
   return -1;
 
 }
-Config GenerateFCC(double lattice_constant_a, const Factor_t &factors, Element element) {
-  Matrix_t basis{{{lattice_constant_a * static_cast<double>(factors[kXDimension]), 0, 0},
-                  {0, lattice_constant_a * static_cast<double>(factors[kYDimension]), 0},
-                  {0, 0, lattice_constant_a * static_cast<double>(factors[kZDimension])}}};
+Config GenerateFCC(const Factor_t &factors, Element element) {
+  Matrix_t
+      basis{{{constants::kLatticeConstant * static_cast<double>(factors[kXDimension]), 0, 0},
+             {0, constants::kLatticeConstant * static_cast<double>(factors[kYDimension]), 0},
+             {0, 0, constants::kLatticeConstant * static_cast<double>(factors[kZDimension])}}};
   const size_t num_atoms = 4 * factors[kXDimension] * factors[kYDimension] * factors[kZDimension];
   auto x_length = static_cast<double>(factors[kXDimension]);
   auto y_length = static_cast<double>(factors[kYDimension]);
@@ -697,13 +698,13 @@ Config GenerateSoluteConfigFromExcitingPure(Config config,
 
   static std::mt19937_64 generator(static_cast<unsigned long long int>(
                                        std::chrono::system_clock::now().time_since_epoch().count()));
-  std::uniform_int_distribution<> dis(0, static_cast<int>(config.GetNumAtoms() - 1));
+  std::uniform_int_distribution<size_t> dis(0, config.GetNumAtoms() - 1);
 
   size_t selected_lattice_index;
   for (const auto [solute_atom, count]: solute_atom_count) {
     for (size_t it = 0; it < count; ++it) {
       do {
-        selected_lattice_index = static_cast<size_t>(dis(generator));
+        selected_lattice_index = dis(generator);
       } while (unavailable_position.find(selected_lattice_index) != unavailable_position.end());
       config.ChangeAtomElementTypeAtLattice(selected_lattice_index, solute_atom);
       unavailable_position.emplace(selected_lattice_index);
@@ -723,13 +724,11 @@ Config GenerateSoluteConfigFromExcitingPure(Config config,
   }
   return config;
 }
-Config GenerateSoluteConfig(double lattice_constant_a,
-                            const Factor_t &factors,
+Config GenerateSoluteConfig(const Factor_t &factors,
                             const Element solvent_element,
                             const std::map<Element, size_t> &solute_atom_count) {
-  return GenerateSoluteConfigFromExcitingPure(GenerateFCC(lattice_constant_a,
-                                                          factors,
-                                                          solvent_element), solute_atom_count);
+  return GenerateSoluteConfigFromExcitingPure(
+      GenerateFCC(factors, solvent_element), solute_atom_count);
 }
 
 } // namespace cfg

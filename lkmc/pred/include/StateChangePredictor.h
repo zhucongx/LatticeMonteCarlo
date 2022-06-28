@@ -18,10 +18,9 @@ class StateChangePredictor {
                          std::set<Element> type_set);
     [[nodiscard]] double GetDiffFromAtomIdPair(
         const cfg::Config &config, const std::pair<size_t, size_t> &atom_id_jump_pair) const;
-
+  private:
     [[nodiscard]] double GetDiffFromLatticeIdPair(
         const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
-  private:
     const std::set<Element> type_set_;
     std::vector<double> base_theta_{};
     std::unordered_map<cfg::ElementCluster, size_t,

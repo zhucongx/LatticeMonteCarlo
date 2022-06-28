@@ -4,6 +4,7 @@
 #include "FirstKmcMpi.h"
 #include "ChainKmcMpi.h"
 #include "Iterator.h"
+#include "SimulatedAnnealing.h"
 namespace api {
 kmc::FirstKmcMpi BuildFirstKmcMpiFromParameter(const Parameter &parameter);
 kmc::ChainKmcMpi BuildChainKmcMpiFromParameter(const Parameter &parameter);

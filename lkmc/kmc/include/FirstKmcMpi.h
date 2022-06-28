@@ -21,7 +21,7 @@ class FirstKmcMpi {
     virtual ~FirstKmcMpi();
     virtual void Simulate();
   protected:
-    inline void Dump(std::ofstream &ofs);
+    inline void Dump(std::ofstream &ofs) const;
     void BuildEventListParallel();
     [[nodiscard]] size_t SelectEvent() const;
 
