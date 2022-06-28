@@ -35,7 +35,8 @@ class SimulatedAnnealing {
     unsigned long long int count_;
     double energy_{};
     double lowest_energy_{};
-    double temperature_{1000 * kBoltzmannConstant};
+    const double initial_temperature_{1000 * kBoltzmannConstant * 7};
+    double temperature_{};
 
     const pred::StateChangePredictor energy_predictor_;
     mutable std::mt19937_64 generator_;

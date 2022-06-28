@@ -68,10 +68,12 @@ void SimulatedAnnealing::Dump(std::ofstream &ofs) {
   if (energy_ < lowest_energy_) {
     lowest_energy_ = energy_;
     config_.WriteCfg("lowest_energy.cfg", false);
-    ofs << steps_ << '\t' << energy_ << '\t' << lowest_energy_ << '\t' << temperature_ << std::endl;
+    ofs << steps_ << '\t' << energy_ << '\t' << lowest_energy_ << '\t'
+        << temperature_ / kBoltzmannConstant << std::endl;
   }
   if (steps_ % log_dump_steps_ == 0) {
-    ofs << steps_ << '\t' << energy_ << '\t' << lowest_energy_ << '\t' << temperature_ << std::endl;
+    ofs << steps_ << '\t' << energy_ << '\t' << lowest_energy_ << '\t'
+        << temperature_ / kBoltzmannConstant << std::endl;
   }
   if (steps_ % config_dump_steps_ == 0) {
     config_.WriteCfg(std::to_string(steps_) + ".cfg", false);
@@ -84,6 +86,8 @@ void SimulatedAnnealing::Simulate() {
   ofs.precision(8);
 
   while (steps_ < maximum_number_) {
+    temperature_ = initial_temperature_ / std::log(2 + steps_);
+
     auto atom_id_jump_pair = GenerateAtomIdJumpPair();
     auto dE = energy_predictor_.GetDiffFromAtomIdPair(
         config_, atom_id_jump_pair);
@@ -102,7 +106,6 @@ void SimulatedAnnealing::Simulate() {
     if (EarlyStop()) {
       break;
     }
-    temperature_ *= 0.9999;
     ++steps_;
   }
 }
