@@ -46,7 +46,7 @@ SimulatedAnnealing::SimulatedAnnealing(const Factor_t &factors,
       generator_(static_cast<unsigned long long int>(
                      std::chrono::system_clock::now().time_since_epoch().count())),
       solute_atom_selector_(0, solute_atom_id_vector_.size() - 1),
-      all_atom_selector_(0, config_.GetNumAtoms() - 1) {
+      neighbor_index_selector_(0, constants::kNumFirstNearestNeighbors - 1) {
   // pred::TotalEnergyPredictor total_energy_predictor(json_coefficients_filename,
   //                                                   GetElementSetFromSolventAndSolute(
   //                                                       solvent_element,
@@ -55,12 +55,11 @@ SimulatedAnnealing::SimulatedAnnealing(const Factor_t &factors,
   // lowest_energy_ = energy_;
 }
 std::pair<size_t, size_t> SimulatedAnnealing::GenerateAtomIdJumpPair() {
-  size_t atom_id1 = 0, atom_id2 = 0;
-  while (atom_id1 == atom_id2) {
-    atom_id1 = solute_atom_id_vector_.at(solute_atom_selector_(generator_));
-
-    atom_id2 = all_atom_selector_(generator_);
-  }
+  size_t atom_id1 =solute_atom_id_vector_.at(solute_atom_selector_(generator_));
+  size_t lattice_id1 = config_.GetLatticeIdFromAtomId(atom_id1);
+  size_t lattice_id2 = config_.GetFirstNeighborsAdjacencyList().at(
+      lattice_id1).at(neighbor_index_selector_(generator_));
+  size_t atom_id2 = config_.GetAtomIdFromLatticeId(lattice_id2);
   return {atom_id1, atom_id2};
 }
 void SimulatedAnnealing::Dump(std::ofstream &ofs) {
@@ -101,10 +100,10 @@ void SimulatedAnnealing::Simulate() {
         energy_ += dE;
       }
     }
-    if (EarlyStop()) {
-      Dump(ofs);
-      break;
-    }
+    // if (EarlyStop()) {
+    //   Dump(ofs);
+    //   break;
+    // }
     Dump(ofs);
     ++steps_;
   }
