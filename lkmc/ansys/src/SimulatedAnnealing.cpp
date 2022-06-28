@@ -57,7 +57,7 @@ SimulatedAnnealing::SimulatedAnnealing(const Factor_t &factors,
 std::pair<size_t, size_t> SimulatedAnnealing::GenerateAtomIdJumpPair() {
   size_t atom_id1 = 0, atom_id2 = 0;
   while (atom_id1 == atom_id2) {
-    atom_id1 = solute_atom_selector_(generator_);
+    atom_id1 = solute_atom_id_vector_.at(solute_atom_selector_(generator_));
 
     atom_id2 = all_atom_selector_(generator_);
   }
