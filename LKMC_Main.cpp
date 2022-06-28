@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
   a = ansys::SimulatedAnnealing({8, 8, 8},
                                 Element("Al"),
                                 {{Element("Mg"), 20}, {Element("Zn"), 20}},
-                                 1e2, 1e5, 1e10, 1e6, "quartic_coefficients.json");
+                                 1e2, 1e5, 1e10, 1e7, "quartic_coefficients.json");
                                 a.Simulate();
 
 
