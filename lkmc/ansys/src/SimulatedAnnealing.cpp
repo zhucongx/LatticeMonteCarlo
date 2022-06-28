@@ -101,10 +101,6 @@ void SimulatedAnnealing::Simulate() {
         energy_ += dE;
       }
     }
-    if (EarlyStop()) {
-      Dump(ofs);
-      break;
-    }
     Dump(ofs);
     ++steps_;
   }
