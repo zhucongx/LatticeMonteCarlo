@@ -23,14 +23,14 @@ int main(int argc, char *argv[]) {
   //
   // }
 
-//   ansys::Iterator test(0, 1e4,
-//                        Element("Al"),
-//                        {Element("Al"),
-//                         Element("Mg"),
-//                         Element("Zn")},
-//                        4, "quartic_coefficients.json");
-//   // test.SerialRunReformat();
-//   test.SerialRunCluster();
+  ansys::Iterator test(0, 1e4,
+                       Element("Al"),
+                       {Element("Al"),
+                        Element("Mg"),
+                        Element("Zn")},
+                       4, "quartic_coefficients.json");
+  // test.SerialRunReformat();
+  test.SerialRunCluster();
 
   // auto t1 = std::chrono::high_resolution_clock::now();
   // pred::StateChangePredictor a("quartic_coefficients.json",
@@ -42,12 +42,12 @@ int main(int argc, char *argv[]) {
   // auto t2 = std::chrono::high_resolution_clock::now();
   // std::cout << std::setprecision(16)
   //           << std::chrono::duration_cast<std::chrono::seconds>(t2 - t1).count() << '\n';
-  auto
-  a = ansys::SimulatedAnnealing({8, 8, 8},
-                                Element("Al"),
-                                {{Element("Mg"), 20}, {Element("Zn"), 20}},
-                                 1e2, 1e5, 1e10, 1e7, "quartic_coefficients.json");
-                                a.Simulate();
+  // auto
+  // a = ansys::SimulatedAnnealing({8, 8, 8},
+  //                               Element("Al"),
+  //                               {{Element("Mg"), 20}, {Element("Zn"), 20}},
+  //                                1e2, 1e5, 1e10, 1e7, "quartic_coefficients.json");
+  //                               a.Simulate();
 
 
 //   pred::TotalEnergyPredictor a("quartic_coefficients.json",

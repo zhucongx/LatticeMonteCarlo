@@ -74,7 +74,7 @@ void Iterator::SerialRunCluster() const {
       std::for_each(cluster.first.cbegin(), cluster.first.cend(), [&ofs](auto ii) {
         ofs << ii.second << ", ";
       });
-      ofs << cluster.second;
+      ofs << std::setprecision(16) << cluster.second;
       if (it == num_different_element.cend() - 1) {
         ofs << "] \n";
       } else {
