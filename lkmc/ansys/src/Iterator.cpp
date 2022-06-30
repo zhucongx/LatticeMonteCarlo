@@ -51,7 +51,7 @@ void Iterator::SerialRunCluster() const {
   ofs << "[ \n";
 
   for (unsigned long long i = 0; i <= final_number_; i += increment_number_) {
-    std::cerr << i << " / " << final_number_ << std::endl;
+    std::cout << i << " / " << final_number_ << std::endl;
 
     ClustersFinder cluster_finder(cfg::Config::ReadMap(
                                       "lattice.txt", "element.txt",
@@ -92,7 +92,7 @@ void Iterator::SerialRunCluster() const {
 }
 void Iterator::SerialRunReformat() const {
   for (unsigned long long i = 0; i <= final_number_; i += increment_number_) {
-    std::cerr << i << " / " << final_number_ << std::endl;
+    std::cout << i << " / " << final_number_ << std::endl;
     auto config = cfg::Config::ReadCfg(std::to_string(i) + ".cfg");
     config.ReassignLatticeVector();
     if (i == 0) {
