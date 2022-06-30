@@ -703,7 +703,13 @@ Config GenerateSoluteConfigFromExcitingPure(Config config,
   size_t selected_lattice_index;
   for (const auto [solute_atom, count]: solute_atom_count) {
     for (size_t it = 0; it < count; ++it) {
+      size_t ct = 0;
       do {
+        if (ct > 1000000) {
+          std::cerr << "Size is too small. Cannot generate correct config.\n";
+          break;
+        }
+        ++ct;
         selected_lattice_index = dis(generator);
       } while (unavailable_position.find(selected_lattice_index) != unavailable_position.end());
       config.ChangeAtomElementTypeAtLattice(selected_lattice_index, solute_atom);

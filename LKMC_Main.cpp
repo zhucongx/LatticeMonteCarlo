@@ -46,14 +46,14 @@ int main(int argc, char *argv[]) {
       {8, 8, 8},
       Element("Al"),
       {{Element("Mg"), 100}, {Element("Zn"), 100}},
-      1e2, 1e5, 1e10, 1e7, "quartic_coefficients.json");
+      1e2, 1e10, 1e10, 1e7, "quartic_coefficients.json");
   a.Simulate();
 
 
 //   pred::TotalEnergyPredictor a("quartic_coefficients.json",
 //                                std::set<Element>{Element("Al"), Element("Mg"),
 //                                                  Element("Zn")});
-//   const auto conf0 = cfg::GenerateFCC({8, 8, 8}, Element("Al"));
+//   const auto conf0 = cfg::GenerateFCC({10, 10, 10}, Element("Al"));
 //   size_t Zn, Mg;
 //   std::cout << "Mg Zn Energy" << std::endl;
 // #pragma omp parallel for default(none) shared(conf0, a, std::cout) private(Zn, Mg)
