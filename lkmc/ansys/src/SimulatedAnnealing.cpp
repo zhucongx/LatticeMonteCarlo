@@ -108,8 +108,8 @@ void SimulatedAnnealing::Simulate() {
     ++steps_;
   }
   auto t2 = std::chrono::high_resolution_clock::now();
-  std::cerr << "Simulated Annealing Monte Carlo finished in " << std::setprecision(16)
-            << std::chrono::duration_cast<std::chrono::seconds>(t2 - t1).count() << "seconds \n";
+  std::cout << "Simulated Annealing Monte Carlo finished in " << std::setprecision(16)
+            << std::chrono::duration_cast<std::chrono::seconds>(t2 - t1).count() << " seconds.\n";
 }
 double SimulatedAnnealing::MoveOneStep() {
   auto atom_id_jump_pair = GenerateAtomIdJumpPair();

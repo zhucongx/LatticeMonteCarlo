@@ -11,6 +11,7 @@ int main(int argc, char *argv[]) {
   }
 
   parameter.PrintParameters();
+
   if (parameter.method == "FirstKmc") {
     auto first_kmc = api::BuildFirstKmcMpiFromParameter(parameter);
     first_kmc.Simulate();
