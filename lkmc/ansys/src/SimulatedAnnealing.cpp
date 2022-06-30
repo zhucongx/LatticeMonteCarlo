@@ -55,7 +55,7 @@ SimulatedAnnealing::SimulatedAnnealing(const Factor_t &factors,
   // lowest_energy_ = energy_;
 }
 std::pair<size_t, size_t> SimulatedAnnealing::GenerateAtomIdJumpPair() {
-  size_t atom_id1 =solute_atom_id_vector_.at(solute_atom_selector_(generator_));
+  size_t atom_id1 = solute_atom_id_vector_.at(solute_atom_selector_(generator_));
   size_t lattice_id1 = config_.GetLatticeIdFromAtomId(atom_id1);
   size_t lattice_id2 = config_.GetFirstNeighborsAdjacencyList().at(
       lattice_id1).at(neighbor_index_selector_(generator_));
@@ -82,7 +82,7 @@ void SimulatedAnnealing::Simulate() {
   std::ofstream ofs("mc_log.txt", std::ofstream::out | std::ofstream::app);
   ofs << "steps\tenergy\tlowest_energy\ttemperature\n";
   ofs.precision(8);
-
+  auto t1 = std::chrono::high_resolution_clock::now();
   while (steps_ < maximum_number_) {
     temperature_ = initial_temperature_ / std::log(2 + steps_);
 
@@ -107,6 +107,9 @@ void SimulatedAnnealing::Simulate() {
     Dump(ofs);
     ++steps_;
   }
+  auto t2 = std::chrono::high_resolution_clock::now();
+  std::cerr << "Simulated Annealing Monte Carlo finished in " << std::setprecision(16)
+            << std::chrono::duration_cast<std::chrono::seconds>(t2 - t1).count() << "seconds \n";
 }
 double SimulatedAnnealing::MoveOneStep() {
   auto atom_id_jump_pair = GenerateAtomIdJumpPair();
