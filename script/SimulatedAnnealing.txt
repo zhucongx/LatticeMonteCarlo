@@ -1,0 +1,11 @@
+simulation_method SimulatedAnnealing
+json_coefficients_filename quartic_coefficients.json
+factor 10
+solvent_element Al
+solute_element_set Mg Zn
+solute_number_set 100 100
+log_dump_steps 100
+config_dump_steps 10000000000
+maximum_steps 10000000000
+early_stop_steps 10000000
+temperature 3000

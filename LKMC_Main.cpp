@@ -2,26 +2,27 @@
 #include "Home.h"
 #include "StateChangePredictor.h"
 int main(int argc, char *argv[]) {
-  // api::Parameter parameter;
-  // if (argc == 1) {
-  //   std::cout << "No input parameter filename. Opening kmc_param.txt" << std::endl;
-  //   parameter = api::Parameter("kmc_param.txt");
-  // } else {
-  //   parameter = api::Parameter(argc, argv);
-  // }
-  // parameter.PrintParameters();
-  // if (parameter.method == "First") {
-  //   auto kmc = api::BuildFirstKmcMpiFromParameter(parameter);
-  //   kmc.Simulate();
-  //
-  // } else if (parameter.method == "Chain") {
-  //   auto kmc = api::BuildChainKmcMpiFromParameter(parameter);
-  //   kmc.Simulate();
-  // } else if (parameter.method == "Cluster") {
-  //
-  // } else if (parameter.method == "Metropolis") {
-  //
-  // }
+  api::Parameter parameter;
+  if (argc == 1) {
+    std::cout << "No input parameter filename. Opening lkmc_param.txt" << std::endl;
+    parameter = api::Parameter("lkmc_param.txt");
+  } else {
+    parameter = api::Parameter(argc, argv);
+  }
+
+  parameter.PrintParameters();
+  if (parameter.method == "FirstKmc") {
+    auto first_kmc = api::BuildFirstKmcMpiFromParameter(parameter);
+    first_kmc.Simulate();
+  } else if (parameter.method == "ChainKmc") {
+    auto chain_kmc = api::BuildChainKmcMpiFromParameter(parameter);
+    chain_kmc.Simulate();
+  } else if (parameter.method == "Cluster") {
+
+  } else if (parameter.method == "SimulatedAnnealing") {
+    auto simulated_annealing_mc = api::BuildSimulatedAnnealingFromParameter(parameter);
+    simulated_annealing_mc.Simulate();
+  }
 
   // ansys::Iterator test(0, 1e4,
   //                      Element("Al"),
@@ -32,22 +33,6 @@ int main(int argc, char *argv[]) {
   // // test.SerialRunReformat();
   // test.SerialRunCluster();
 
-  // auto t1 = std::chrono::high_resolution_clock::now();
-  // pred::StateChangePredictor a("quartic_coefficients.json",
-  //                              cfg::GenerateFCC(
-  //                                  4.046, {8, 8, 8}, Element("Al")),
-  //                              {Element("Al"),
-  //                               Element("Mg"),
-  //                               Element("Zn")});
-  // auto t2 = std::chrono::high_resolution_clock::now();
-  // std::cout << std::setprecision(16)
-  //           << std::chrono::duration_cast<std::chrono::seconds>(t2 - t1).count() << '\n';
-  auto a = ansys::SimulatedAnnealing(
-      {8, 8, 8},
-      Element("Al"),
-      {{Element("Mg"), 100}, {Element("Zn"), 100}},
-      1e2, 1e10, 1e10, 1e7, 3000, "quartic_coefficients.json");
-  a.Simulate();
 
 
 //   pred::TotalEnergyPredictor a("quartic_coefficients.json",

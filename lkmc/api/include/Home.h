@@ -8,6 +8,7 @@
 namespace api {
 kmc::FirstKmcMpi BuildFirstKmcMpiFromParameter(const Parameter &parameter);
 kmc::ChainKmcMpi BuildChainKmcMpiFromParameter(const Parameter &parameter);
+ansys::SimulatedAnnealing BuildSimulatedAnnealingFromParameter(const Parameter &parameter);
 
 } // namespace api
 

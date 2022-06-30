@@ -24,16 +24,23 @@ struct Parameter {
 
     std::string parameters_filename;
     std::string method;
+
     std::string config_filename_;
     std::string json_coefficients_filename_;
     unsigned long long int log_dump_steps_;
     unsigned long long int config_dump_steps_;
-    unsigned long long int maximum_number_;
+    unsigned long long int maximum_steps_;
     double temperature_;
-    std::vector<std::string> element_symbols_;
+    std::vector<std::string> element_set_;
     unsigned long long int restart_steps_;
     double restart_energy_;
     double restart_time_;
+
+    size_t factor_;
+    std::string solvent_element_;
+    std::vector<std::string> solute_element_set_;
+    std::vector<size_t> solute_number_set_;
+    unsigned long long int early_stop_steps_;
 };
 } // namespace api
 #endif //LKMC_LKMC_API_INCLUDE_PARAMETER_H_

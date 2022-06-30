@@ -1,0 +1,11 @@
+simulation_method ChainKmc
+config_filename start.cfg
+json_coefficients_filename quartic_coefficients.json
+log_dump_steps 1000
+config_dump_steps 1000000
+maximum_steps 1000000000000000
+temperature 500
+element_set Al Mg Zn
+restart_steps 0
+restart_energy 0
+restart_time 0
