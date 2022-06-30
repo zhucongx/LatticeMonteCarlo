@@ -39,7 +39,7 @@ SimulatedAnnealing::SimulatedAnnealing(const Factor_t &factors,
       config_dump_steps_(config_dump_steps),
       maximum_number_(maximum_number),
       early_stop_number_(early_stop_number),
-      initial_temperature_(initial_temperature*kBoltzmannConstant),
+      initial_temperature_(initial_temperature * kBoltzmannConstant),
       energy_predictor_(json_coefficients_filename,
                         config_,
                         GetElementSetFromSolventAndSolute(solvent_element, solute_atom_count)),
@@ -67,11 +67,11 @@ void SimulatedAnnealing::Dump(std::ofstream &ofs) {
     lowest_energy_ = energy_;
     config_.WriteCfg("lowest_energy.cfg", false);
     ofs << steps_ << '\t' << energy_ << '\t' << lowest_energy_ << '\t'
-        << temperature_ / kBoltzmannConstant << std::endl;
+        << temperature_ / kBoltzmannConstant << '\t' << count_ << std::endl;
   }
   if (steps_ % log_dump_steps_ == 0) {
     ofs << steps_ << '\t' << energy_ << '\t' << lowest_energy_ << '\t'
-        << temperature_ / kBoltzmannConstant << std::endl;
+        << temperature_ / kBoltzmannConstant << '\t' << count_ << std::endl;
   }
   if (steps_ % config_dump_steps_ == 0) {
     config_.WriteCfg(std::to_string(steps_) + ".cfg", false);
@@ -80,7 +80,7 @@ void SimulatedAnnealing::Dump(std::ofstream &ofs) {
 
 void SimulatedAnnealing::Simulate() {
   std::ofstream ofs("mc_log.txt", std::ofstream::out | std::ofstream::app);
-  ofs << "steps\tenergy\tlowest_energy\ttemperature\n";
+  ofs << "steps\tenergy\tlowest_energy\ttemperature\tcount\n ";
   ofs.precision(8);
   auto t1 = std::chrono::high_resolution_clock::now();
   while (steps_ < maximum_number_) {
@@ -100,10 +100,10 @@ void SimulatedAnnealing::Simulate() {
         energy_ += dE;
       }
     }
-    // if (EarlyStop()) {
-    //   Dump(ofs);
-    //   break;
-    // }
+    if (EarlyStop()) {
+      Dump(ofs);
+      break;
+    }
     Dump(ofs);
     ++steps_;
   }
