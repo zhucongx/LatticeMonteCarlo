@@ -16,6 +16,7 @@ class SimulatedAnnealing {
                        unsigned long long int config_dump_steps,
                        unsigned long long int maximum_number,
                        unsigned long long int early_stop_number,
+                       double initial_temperature,
                        const std::string &json_coefficients_filename);
     void Simulate();
   private:
@@ -31,11 +32,11 @@ class SimulatedAnnealing {
     const unsigned long long int maximum_number_;
     const unsigned long long int early_stop_number_;
     // simulation statistics
-    unsigned long long int steps_;
-    unsigned long long int count_;
+    unsigned long long int steps_{0};
+    unsigned long long int count_{0};
     double energy_{0.0};
     double lowest_energy_{0.0};
-    const double initial_temperature_{2000 * kBoltzmannConstant};
+    const double initial_temperature_;
     double temperature_{};
 
     const pred::StateChangePredictor energy_predictor_;
