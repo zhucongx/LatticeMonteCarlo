@@ -63,7 +63,7 @@ std::pair<size_t, size_t> SimulatedAnnealing::GenerateAtomIdJumpPair() {
   return {atom_id1, atom_id2};
 }
 void SimulatedAnnealing::Dump(std::ofstream &ofs) {
-  if (energy_ < lowest_energy_) {
+  if (energy_ < lowest_energy_ - kEpsilon) {
     lowest_energy_ = energy_;
     config_.WriteCfg("lowest_energy.cfg", false);
     ofs << steps_ << '\t' << energy_ << '\t' << lowest_energy_ << '\t'
@@ -119,12 +119,12 @@ double SimulatedAnnealing::MoveOneStep() {
   return dE;
 }
 bool SimulatedAnnealing::EarlyStop() {
-  if (energy_ >= lowest_energy_) {
-    ++count_;
-  } else {
+  if (energy_ < lowest_energy_ - kEpsilon) {
     count_ = 0;
+  } else {
+    ++count_;
   }
-  if (count_ > early_stop_number_) {
+  if (count_ >= early_stop_number_) {
     return true;
   }
   return false;
