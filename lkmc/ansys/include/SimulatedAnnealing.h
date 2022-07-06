@@ -20,9 +20,7 @@ class SimulatedAnnealing {
                        const std::string &json_coefficients_filename);
     void Simulate();
   private:
-    double MoveOneStep();
     inline void Dump(std::ofstream &ofs);
-    bool EarlyStop();
     std::pair<size_t, size_t> GenerateAtomIdJumpPair();
     // simulation parameters
     cfg::Config config_;

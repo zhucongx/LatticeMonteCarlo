@@ -36,11 +36,15 @@ int main(int argc, char *argv[]) {
 
 
 
-//   pred::TotalEnergyPredictor a("quartic_coefficients.json",
-//                                std::set<Element>{Element("Al"), Element("Mg"),
-//                                                  Element("Zn")});
-//   const auto conf0 = cfg::GenerateFCC({10, 10, 10}, Element("Al"));
-//   size_t Zn, Mg;
+  // pred::TotalEnergyPredictor a("quartic_coefficients.json",
+  //                              std::set<Element>{Element("Al"), Element("Mg"),
+  //                                                Element("Zn")});
+  // auto conf = cfg::Config::ReadCfg("Large30_Mg25_Zn56.cfg");
+  // double energy = a.GetEnergy(conf);
+  // std::cout << energy << std::flush;
+
+  // const auto conf0 = cfg::GenerateFCC({10, 10, 10}, Element("Al"));
+  // size_t Zn, Mg;
 //   std::cout << "Mg Zn Energy" << std::endl;
 // #pragma omp parallel for default(none) shared(conf0, a, std::cout) private(Zn, Mg)
 //   for (Mg = 0; Mg <= 200; ++Mg) {

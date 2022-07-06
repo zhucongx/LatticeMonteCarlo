@@ -100,34 +100,23 @@ void SimulatedAnnealing::Simulate() {
         energy_ += dE;
       }
     }
-    if (EarlyStop()) {
-      Dump(ofs);
-      break;
+
+    if (energy_ < lowest_energy_ - kEpsilon) {
+      count_ = 0;
+    } else {
+      ++count_;
     }
+
     Dump(ofs);
     ++steps_;
+
+    if (count_ >= early_stop_number_) {
+      break;
+    }
   }
   auto t2 = std::chrono::high_resolution_clock::now();
   std::cout << "Simulated Annealing Monte Carlo finished in " << std::setprecision(16)
             << std::chrono::duration_cast<std::chrono::seconds>(t2 - t1).count() << " seconds.\n";
-}
-double SimulatedAnnealing::MoveOneStep() {
-  auto atom_id_jump_pair = GenerateAtomIdJumpPair();
-  auto dE = energy_predictor_.GetDiffFromAtomIdPair(
-      config_, atom_id_jump_pair);
-  config_.AtomJump(atom_id_jump_pair);
-  return dE;
-}
-bool SimulatedAnnealing::EarlyStop() {
-  if (energy_ < lowest_energy_ - kEpsilon) {
-    count_ = 0;
-  } else {
-    ++count_;
-  }
-  if (count_ >= early_stop_number_) {
-    return true;
-  }
-  return false;
 }
 
 } // namespace ansys
