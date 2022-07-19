@@ -12,6 +12,7 @@ kmc::FirstKmcMpi BuildFirstKmcMpiFromParameter(const Parameter &parameter) {
   } else {
     config = cfg::Config::ReadMap("lattice.txt", "element.txt", parameter.map_filename_);
   }
+  std::cout << "Finish config reading. Start kMC." << std::endl;
   return kmc::FirstKmcMpi{config,
                           parameter.log_dump_steps_,
                           parameter.config_dump_steps_,
@@ -35,6 +36,7 @@ kmc::ChainKmcMpi BuildChainKmcMpiFromParameter(const Parameter &parameter) {
   } else {
     config = cfg::Config::ReadMap("lattice.txt", "element.txt", parameter.map_filename_);
   }
+  std::cout << "Finish config reading. Start kMC." << std::endl;
   return kmc::ChainKmcMpi{config,
                           parameter.log_dump_steps_,
                           parameter.config_dump_steps_,

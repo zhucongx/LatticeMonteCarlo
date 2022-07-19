@@ -3,7 +3,7 @@ simulation_method ChainKmc
 map_filename 0.map
 json_coefficients_filename quartic_coefficients.json
 log_dump_steps 1000
-config_dump_steps 1000000
+config_dump_steps 100000
 maximum_steps 1000000000000000
 temperature 500
 element_set Al Mg Zn
