@@ -76,8 +76,12 @@ void ChainKmcMpi::Dump(std::ofstream &ofs) const {
     ofs << steps_ << '\t' << time_ << '\t' << energy_ << '\t' << one_step_barrier_ << '\t'
         << one_step_energy_change_ << '\t' << migrating_element_.GetString() << std::endl;
   }
+  if (steps_ == 0) {
+    config_.WriteLattice("lattice.txt");
+    config_.WriteElement("element.txt");
+  }
   if (steps_ % config_dump_steps_ == 0) {
-    config_.WriteCfg(std::to_string(steps_) + ".cfg", true);
+    config_.WriteMap("map" + std::to_string(steps_) + ".txt");
   }
 }
 

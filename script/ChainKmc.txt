@@ -1,5 +1,6 @@
 simulation_method ChainKmc
-config_filename start.cfg
+#config_filename start.cfg
+map_filename 0.map
 json_coefficients_filename quartic_coefficients.json
 log_dump_steps 1000
 config_dump_steps 1000000

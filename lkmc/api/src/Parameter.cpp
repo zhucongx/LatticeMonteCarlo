@@ -27,11 +27,16 @@ void Parameter::ReadParam(const std::string &param_filename) {
     if (buffer.empty()) {
       continue;
     }
+    if (buffer[0] == '#'){
+      continue;
+    }
     std::vector<std::string> segs(split(buffer, " "));
     if (segs[0] == "simulation_method") {
       method = std::string(segs[1]);
     } else if (segs[0] == "config_filename") {
       config_filename_ = std::string(segs[1]);
+    } else if (segs[0] == "map_filename") {
+      map_filename_ = std::string(segs[1]);
     } else if (segs[0] == "json_coefficients_filename") {
       json_coefficients_filename_ = std::string(segs[1]);
     } else if (segs[0] == "log_dump_steps") {
@@ -77,6 +82,7 @@ void Parameter::PrintParameters() const {
   std::cout << "simulation_method: " << method << std::endl;
   if (method == "FirstKmc" || method == "ChainKmc") {
     std::cout << "config_filename: " << config_filename_ << std::endl;
+    std::cout << "map_filename: " << map_filename_ << std::endl;
     std::cout << "json_coefficients_filename: " << json_coefficients_filename_ << std::endl;
     std::cout << "log_dump_steps: " << log_dump_steps_ << std::endl;
     std::cout << "config_dump_steps: " << config_dump_steps_ << std::endl;

@@ -5,7 +5,14 @@ kmc::FirstKmcMpi BuildFirstKmcMpiFromParameter(const Parameter &parameter) {
   for (const auto &element_string: parameter.element_set_) {
     ele_set.insert(Element(element_string));
   }
-  return kmc::FirstKmcMpi{cfg::Config::ReadCfg(parameter.config_filename_),
+  cfg::Config config;
+  if (parameter.map_filename_.empty()) {
+    config = cfg::Config::ReadCfg(parameter.config_filename_);
+    config.ReassignLatticeVector();
+  } else {
+    config = cfg::Config::ReadMap("lattice.txt", "element.txt", parameter.map_filename_);
+  }
+  return kmc::FirstKmcMpi{config,
                           parameter.log_dump_steps_,
                           parameter.config_dump_steps_,
                           parameter.maximum_steps_,
@@ -21,7 +28,14 @@ kmc::ChainKmcMpi BuildChainKmcMpiFromParameter(const Parameter &parameter) {
   for (const auto &element_string: parameter.element_set_) {
     ele_set.insert(Element(element_string));
   }
-  return kmc::ChainKmcMpi{cfg::Config::ReadCfg(parameter.config_filename_),
+  cfg::Config config;
+  if (parameter.map_filename_.empty()) {
+    config = cfg::Config::ReadCfg(parameter.config_filename_);
+    config.ReassignLatticeVector();
+  } else {
+    config = cfg::Config::ReadMap("lattice.txt", "element.txt", parameter.map_filename_);
+  }
+  return kmc::ChainKmcMpi{config,
                           parameter.log_dump_steps_,
                           parameter.config_dump_steps_,
                           parameter.maximum_steps_,

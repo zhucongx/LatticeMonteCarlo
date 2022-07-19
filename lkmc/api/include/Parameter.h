@@ -26,6 +26,7 @@ struct Parameter {
     std::string method;
 
     std::string config_filename_;
+    std::string map_filename_;
     std::string json_coefficients_filename_;
     unsigned long long int log_dump_steps_;
     unsigned long long int config_dump_steps_;

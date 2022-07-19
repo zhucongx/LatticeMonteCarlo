@@ -736,5 +736,14 @@ Config GenerateSoluteConfig(const Factor_t &factors,
   return GenerateSoluteConfigFromExcitingPure(
       GenerateFCC(factors, solvent_element), solute_atom_count);
 }
+// Config GenerateClusteredConfigFromExcitingPure(Config config,
+//                                                const std::map<Element, size_t> &solute_atom_count) {
+//   return Config();
+// }
+// Config GenerateClusteredConfig(const Factor_t &factors,
+//                                Element solvent_element,
+//                                const std::map<Element, size_t> &solute_atom_count) {
+//   return Config();
+// }
 
 } // namespace cfg

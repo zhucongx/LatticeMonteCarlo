@@ -57,7 +57,6 @@ VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::st
                      std::back_inserter(lattice_id_vector_mmm),
                      [](const auto &lattice) { return lattice.GetId(); });
       site_bond_cluster_mmm_hashmap_[{i, j}] = lattice_id_vector_mmm;
-
       auto sorted_lattice_vector_mm2 =
           GetSymmetricallySortedLatticeVectorMM2(reference_config, {i, j});
       std::vector<size_t> lattice_id_vector_mm2;
