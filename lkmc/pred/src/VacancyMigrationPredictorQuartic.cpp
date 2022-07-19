@@ -42,7 +42,7 @@ VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::st
   }
 
   for (size_t i = 0; i < reference_config.GetNumAtoms(); ++i) {
-    for (auto j: GetNeighborsLatticeIdSetOfLattice(reference_config, i)) {
+    for (auto j: reference_config.GetFirstNeighborsAdjacencyList()[i]) {
       auto sorted_lattice_vector =
           GetSortedLatticeVectorState(reference_config, {i, j});
       std::vector<size_t> lattice_id_vector_state;
