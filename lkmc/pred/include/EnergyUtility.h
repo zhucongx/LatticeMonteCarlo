@@ -18,7 +18,7 @@ using Pair_State_t = cfg::LatticeCluster<2>;
 using Triplet_State_t = cfg::LatticeCluster<3>;
 
 std::unordered_map<std::string, std::vector<double> > GetOneHotEncodeHashmap(
-    const std::set<Element> &type_set);
+    const std::set<Element> &element_set);
 // Returns forward and backward sorted lattice lists
 std::vector<cfg::Lattice> GetSymmetricallySortedLatticeVectorMMM(
     const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair);
@@ -32,7 +32,7 @@ std::vector<std::vector<std::vector<size_t> > > GetAverageClusterParametersMappi
 std::unordered_map<cfg::ElementCluster,
                    size_t,
                    boost::hash<cfg::ElementCluster> > InitializeClusterHashMap(
-    const std::set<Element> &type_set);
+    const std::set<Element> &element_set);
 int GetLabel(const std::vector<size_t> &lattice_index_list, const cfg::Config &config);
 // Returns forward and backward sorted lattice lists
 std::vector<cfg::Lattice> GetSortedLatticeVectorState(

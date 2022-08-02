@@ -1,0 +1,7 @@
+simulation_method FindCluster
+solvent_element Al
+element_set Al Mg Zn
+initial_steps 0
+increment_steps 10000
+smallest_cluster_criteria 4
+json_coefficients_filename quartic_coefficients.json

@@ -15,13 +15,13 @@ class StateChangePredictor {
   public:
     StateChangePredictor(const std::string &predictor_filename,
                          const cfg::Config &reference_config,
-                         std::set<Element> type_set);
+                         std::set<Element> element_set);
     [[nodiscard]] double GetDiffFromAtomIdPair(
         const cfg::Config &config, const std::pair<size_t, size_t> &atom_id_jump_pair) const;
   private:
     [[nodiscard]] double GetDiffFromLatticeIdPair(
         const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
-    const std::set<Element> type_set_;
+    const std::set<Element> element_set_;
     std::vector<double> base_theta_{};
     std::unordered_map<cfg::ElementCluster, size_t,
                        boost::hash<cfg::ElementCluster> > initialized_cluster_hashmap_;

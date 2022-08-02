@@ -7,7 +7,7 @@ class VacancyMigrationPredictorQuarticLru : public VacancyMigrationPredictorQuar
   public:
     VacancyMigrationPredictorQuarticLru(const std::string &predictor_filename,
                                         const cfg::Config &reference_config,
-                                        const std::set<Element> &type_set,
+                                        const std::set<Element> &element_set,
                                         size_t cache_size);
     ~VacancyMigrationPredictorQuarticLru() override;
   private:

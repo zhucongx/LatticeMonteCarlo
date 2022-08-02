@@ -5,11 +5,11 @@ using json = nlohmann::json;
 
 namespace pred {
 TotalEnergyPredictor::TotalEnergyPredictor(const std::string &predictor_filename,
-                                           std::set<Element> type_set)
-    : type_set_(std::move(type_set)) {
-  auto type_set_copy(type_set_);
-  type_set_copy.emplace(ElementName::X);
-  initialized_cluster_hashmap_ = InitializeClusterHashMap(type_set_copy);
+                                           std::set<Element> element_set)
+    : element_set_(std::move(element_set)) {
+  auto element_set_copy(element_set_);
+  element_set_copy.emplace(ElementName::X);
+  initialized_cluster_hashmap_ = InitializeClusterHashMap(element_set_copy);
 
   const std::map<cfg::ElementCluster, int>
       ordered(initialized_cluster_hashmap_.begin(), initialized_cluster_hashmap_.end());

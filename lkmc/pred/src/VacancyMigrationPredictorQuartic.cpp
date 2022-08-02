@@ -7,15 +7,15 @@ using json = nlohmann::json;
 namespace pred {
 VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::string &predictor_filename,
                                                                    const cfg::Config &reference_config,
-                                                                   std::set<Element> type_set)
-    : type_set_(std::move(type_set)),
-      one_hot_encode_hash_map_(GetOneHotEncodeHashmap(type_set_)),
+                                                                   std::set<Element> element_set)
+    : element_set_(std::move(element_set)),
+      one_hot_encode_hash_map_(GetOneHotEncodeHashmap(element_set_)),
       mapping_mmm_(GetAverageClusterParametersMappingMMM(reference_config)),
       mapping_mm2_(GetAverageClusterParametersMappingMM2(reference_config)),
       mapping_state_(GetClusterParametersMappingState(reference_config)) {
-  auto type_set_copy(type_set_);
-  type_set_copy.emplace(ElementName::X);
-  initialized_cluster_hashmap_ = InitializeClusterHashMap(type_set_copy);
+  auto element_set_copy(element_set_);
+  element_set_copy.emplace(ElementName::X);
+  initialized_cluster_hashmap_ = InitializeClusterHashMap(element_set_copy);
 
   std::ifstream ifs(predictor_filename, std::ifstream::in);
   json all_parameters;
@@ -165,7 +165,7 @@ double VacancyMigrationPredictorQuartic::GetKs(const cfg::Config &config,
   }
   auto encode_mm2_forward = GetOneHotParametersFromMap(ele_vector_forward,
                                                        one_hot_encode_hash_map_,
-                                                       type_set_.size(),
+                                                       element_set_.size(),
                                                        mapping_mm2_);
 
   auto lattice_id_vector_mm2_backward =
@@ -177,7 +177,7 @@ double VacancyMigrationPredictorQuartic::GetKs(const cfg::Config &config,
   }
   auto encode_mm2_backward = GetOneHotParametersFromMap(ele_vector_backward,
                                                         one_hot_encode_hash_map_,
-                                                        type_set_.size(),
+                                                        element_set_.size(),
                                                         mapping_mm2_);
 
   const auto &element_parameters = element_parameters_hashmap_.at(migration_element);
@@ -221,7 +221,7 @@ double VacancyMigrationPredictorQuartic::GetD(const cfg::Config &config,
   }
   auto encode_mmm = GetOneHotParametersFromMap(ele_vector,
                                                one_hot_encode_hash_map_,
-                                               type_set_.size(),
+                                               element_set_.size(),
                                                mapping_mmm_);
   const auto &element_parameters = element_parameters_hashmap_.at(migration_element);
 

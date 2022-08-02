@@ -13,7 +13,7 @@ class FirstKmcMpi {
                 unsigned long long int config_dump_steps,
                 unsigned long long int maximum_number,
                 double temperature,
-                const std::set<Element> &type_set,
+                const std::set<Element> &element_set,
                 unsigned long long int restart_steps,
                 double restart_energy,
                 double restart_time,

@@ -37,6 +37,10 @@ struct Parameter {
     double restart_energy_;
     double restart_time_;
 
+    unsigned long long int initial_steps_;
+    unsigned long long int increment_steps_;
+    size_t smallest_cluster_criteria_;
+
     size_t factor_;
     std::string solvent_element_;
     std::vector<std::string> solute_element_set_;

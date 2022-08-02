@@ -1,12 +1,12 @@
 #include "EnergyUtility.h"
 namespace pred {
 std::unordered_map<std::string, std::vector<double> > GetOneHotEncodeHashmap(
-    const std::set<Element> &type_set) {
-  size_t type_size = type_set.size();
+    const std::set<Element> &element_set) {
+  size_t type_size = element_set.size();
   std::unordered_map<std::string, std::vector<double> > encode_dict;
 
   size_t ct1 = 0;
-  for (const auto &element: type_set) {
+  for (const auto &element: element_set) {
     std::vector<double> element_encode(type_size, 0);
     element_encode[ct1] = 1.0;
     encode_dict[element.GetString()] = element_encode;
@@ -15,8 +15,8 @@ std::unordered_map<std::string, std::vector<double> > GetOneHotEncodeHashmap(
 
   size_t num_pairs = type_size * type_size;
   size_t ct2 = 0;
-  for (const auto &element1: type_set) {
-    for (const auto &element2: type_set) {
+  for (const auto &element1: element_set) {
+    for (const auto &element2: element_set) {
       std::vector<double> element_encode(num_pairs, 0);
       element_encode[ct2] = 1.0;
       encode_dict[element1.GetString() + element2.GetString()] = element_encode;
@@ -26,8 +26,8 @@ std::unordered_map<std::string, std::vector<double> > GetOneHotEncodeHashmap(
 
   size_t num_pairs_symmetry = (type_size + 1) * type_size / 2;
   size_t ct3 = 0;
-  for (auto it1 = type_set.cbegin(); it1 != type_set.cend(); ++it1) {
-    for (auto it2 = it1; it2 != type_set.cend(); ++it2) {
+  for (auto it1 = element_set.cbegin(); it1 != element_set.cend(); ++it1) {
+    for (auto it2 = it1; it2 != element_set.cend(); ++it2) {
       std::vector<double> element_encode(num_pairs_symmetry, 0);
       element_encode[ct3] = 1.0;
       encode_dict[it1->GetString() + '-' + it2->GetString()] = element_encode;
@@ -284,13 +284,13 @@ std::vector<cfg::Lattice> GetSortedLatticeVectorState(
 
 std::unordered_map<
     cfg::ElementCluster, size_t, boost::hash<cfg::ElementCluster> > InitializeClusterHashMap(
-    const std::set<Element> &type_set) {
+    const std::set<Element> &element_set) {
   std::unordered_map<cfg::ElementCluster, size_t,
                      boost::hash<cfg::ElementCluster> > initialized_cluster_hashmap;
 
-  for (const auto &element1: type_set) {
+  for (const auto &element1: element_set) {
     initialized_cluster_hashmap[cfg::ElementCluster(0, element1)] = 0;
-    for (const auto &element2: type_set) {
+    for (const auto &element2: element_set) {
       if (element2 == ElementName::X) {
         continue;
       }
@@ -300,7 +300,7 @@ std::unordered_map<
       for (int label = 1; label <= 3; ++label) {
         initialized_cluster_hashmap[cfg::ElementCluster(label, element1, element2)] = 0;
       }
-      for (const auto &element3: type_set) {
+      for (const auto &element3: element_set) {
         if (element3 == ElementName::X || element3.GetString()[0] == 'p') {
           continue;
         }

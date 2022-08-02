@@ -3,9 +3,9 @@ namespace pred {
 
 VacancyMigrationPredictorQuarticLru::VacancyMigrationPredictorQuarticLru(const std::string &predictor_filename,
                                                                          const cfg::Config &reference_config,
-                                                                         const std::set<Element> &type_set,
-                                                                         const size_t cache_size)
-    : VacancyMigrationPredictorQuartic(predictor_filename, reference_config, type_set),
+                                                                         const std::set<Element> &element_set,
+                                                                         size_t cache_size)
+    : VacancyMigrationPredictorQuartic(predictor_filename, reference_config, element_set),
       cache_size_(cache_size) {}
 VacancyMigrationPredictorQuarticLru::~VacancyMigrationPredictorQuarticLru() = default;
 std::pair<double, double> VacancyMigrationPredictorQuarticLru::GetBarrierAndDiffFromLatticeIdPair(

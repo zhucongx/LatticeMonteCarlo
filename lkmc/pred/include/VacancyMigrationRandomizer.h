@@ -13,7 +13,7 @@ class VacancyMigrationRandomizer {
   public:
     VacancyMigrationRandomizer(const std::string &predictor_filename,
                                const cfg::Config &reference_config,
-                               std::set<Element> type_set);
+                               std::set<Element> element_set);
     virtual ~VacancyMigrationRandomizer();
     [[nodiscard]] std::pair<double, double> GetBarrierAndDiffFromAtomIdPair(
         const cfg::Config &config,
@@ -25,7 +25,7 @@ class VacancyMigrationRandomizer {
         const cfg::Config &config,
         const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
 
-    const std::set<Element> type_set_;
+    const std::set<Element> element_set_;
     const std::unordered_map<std::string, std::vector<double> > one_hot_encode_hash_map_;
     const std::vector<std::vector<std::vector<size_t> > > mapping_state_;
 

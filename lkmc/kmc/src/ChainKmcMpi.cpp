@@ -8,7 +8,7 @@ ChainKmcMpi::ChainKmcMpi(cfg::Config config,
                          unsigned long long int config_dump_steps,
                          unsigned long long int maximum_number,
                          double temperature,
-                         const std::set<Element> &type_set,
+                         const std::set<Element> &element_set,
                          unsigned long long int restart_steps,
                          double restart_energy,
                          double restart_time,
@@ -24,7 +24,7 @@ ChainKmcMpi::ChainKmcMpi(cfg::Config config,
       vacancy_index_(cfg::GetVacancyAtomIndex(config_)),
       previous_j_(config_.GetFirstNeighborsAtomIdVectorOfAtom(vacancy_index_)[0]),
       energy_predictor_(json_coefficients_filename,
-                        config_, type_set, 100000),
+                        config_, element_set, 100000),
       generator_(static_cast<unsigned long long int>(
                      std::chrono::system_clock::now().time_since_epoch().count())) {
   event_list_.resize(kFirstEventListSize);

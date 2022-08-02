@@ -18,21 +18,23 @@ int main(int argc, char *argv[]) {
   } else if (parameter.method == "ChainKmc") {
     auto chain_kmc = api::BuildChainKmcMpiFromParameter(parameter);
     chain_kmc.Simulate();
-  } else if (parameter.method == "Cluster") {
-
+  } else if (parameter.method == "FindCluster") {
+    auto iterator = api::BuildIteratorFromParameter(parameter);
+    iterator.RunCluster();
   } else if (parameter.method == "SimulatedAnnealing") {
-    auto simulated_annealing_mc = api::BuildSimulatedAnnealingFromParameter(parameter);
-    simulated_annealing_mc.Simulate();
+    auto simulated_annealing = api::BuildSimulatedAnnealingFromParameter(parameter);
+    simulated_annealing.Simulate();
+  } else {
+    std::cout << "Unknown method: " << parameter.method << std::endl;
   }
-
   // ansys::Iterator test(0, 1e4,
   //                      Element("Al"),
   //                      {Element("Al"),
   //                       Element("Mg"),
   //                       Element("Zn")},
   //                      4, "quartic_coefficients.json");
-  // // test.SerialRunReformat();
-  // test.SerialRunCluster();
+  // // test.RunReformat();
+  // test.RunCluster();
 
 
 

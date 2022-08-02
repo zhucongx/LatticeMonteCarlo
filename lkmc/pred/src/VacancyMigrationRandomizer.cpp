@@ -4,17 +4,17 @@ using json = nlohmann::json;
 namespace pred {
 VacancyMigrationRandomizer::VacancyMigrationRandomizer(const std::string &predictor_filename,
                                                        const cfg::Config &reference_config,
-                                                       std::set<Element> type_set)
-    : type_set_(std::move(type_set)),
-      one_hot_encode_hash_map_(GetOneHotEncodeHashmap(type_set_)),
+                                                       std::set<Element> element_set)
+    : element_set_(std::move(element_set)),
+      one_hot_encode_hash_map_(GetOneHotEncodeHashmap(element_set_)),
       mapping_state_(GetClusterParametersMappingState(reference_config)) {
   std::ifstream ifs(predictor_filename, std::ifstream::in);
   json all_parameters;
   ifs >> all_parameters;
 
-  auto type_set_copy(type_set_);
-  type_set_copy.emplace(ElementName::X);
-  initialized_cluster_hashmap_ = InitializeClusterHashMap(type_set_copy);
+  auto element_set_copy(element_set_);
+  element_set_copy.emplace(ElementName::X);
+  initialized_cluster_hashmap_ = InitializeClusterHashMap(element_set_copy);
 
   for (const auto &[element, parameters]: all_parameters.items()) {
     if (element == "Base") {

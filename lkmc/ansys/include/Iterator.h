@@ -6,19 +6,19 @@ namespace ansys {
 
 class Iterator {
   public:
-    Iterator(unsigned long long int initial_number,
-             unsigned long long int increment_number,
+    Iterator(unsigned long long int initial_steps,
+             unsigned long long int increment_steps,
              Element solvent_element,
-             std::set<Element> type_set,
+             std::set<Element> element_set,
              size_t smallest_cluster_criteria,
              // size_t solvent_bond_criteria,
              const std::string &predictor_filename);
     virtual ~Iterator();
-    void SerialRunCluster() const;
-    void SerialRunReformat() const;
+    void RunCluster() const;
+    void RunReformat() const;
   private:
-    const unsigned long long initial_number_;
-    const unsigned long long increment_number_;
+    const unsigned long long initial_steps_;
+    const unsigned long long increment_steps_;
     unsigned long long final_number_;
     Element solvent_element_;
     size_t smallest_cluster_criteria_;
