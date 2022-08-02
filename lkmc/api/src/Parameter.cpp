@@ -119,7 +119,7 @@ void Parameter::PrintParameters() const {
     std::cout << "early_stop_steps: " << early_stop_steps_ << std::endl;
     std::cout << "temperature: " << temperature_ << std::endl;
     std::cout << "json_coefficients_filename: " << json_coefficients_filename_ << std::endl;
-  } else if (method == "Cluster") {
+  } else if (method == "FindCluster") {
     std::cout << "solvent_element: " << solvent_element_ << std::endl;
     std::cout << "element_set: ";
     std::copy(element_set_.begin(), element_set_.end(),
