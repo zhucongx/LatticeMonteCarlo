@@ -4,8 +4,8 @@
 int main(int argc, char *argv[]) {
   api::Parameter parameter;
   if (argc == 1) {
-    std::cout << "No input parameter filename. Opening lkmc_param.txt" << std::endl;
-    parameter = api::Parameter("lkmc_param.txt");
+    std::cout << "No input parameter filename." << std::endl;
+    return 1;
   } else {
     parameter = api::Parameter(argc, argv);
   }
@@ -27,16 +27,6 @@ int main(int argc, char *argv[]) {
   } else {
     std::cout << "Unknown method: " << parameter.method << std::endl;
   }
-  // ansys::Iterator test(0, 1e4,
-  //                      Element("Al"),
-  //                      {Element("Al"),
-  //                       Element("Mg"),
-  //                       Element("Zn")},
-  //                      4, "quartic_coefficients.json");
-  // // test.RunReformat();
-  // test.RunCluster();
-
-
 
   // pred::TotalEnergyPredictor a("quartic_coefficients.json",
   //                              std::set<Element>{Element("Al"), Element("Mg"),
@@ -64,5 +54,5 @@ int main(int argc, char *argv[]) {
 //     }
 //   }
 //
-//   return 0;
+  return 0;
 }
