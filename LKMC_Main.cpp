@@ -21,6 +21,9 @@ int main(int argc, char *argv[]) {
   } else if (parameter.method == "FindCluster") {
     auto iterator = api::BuildIteratorFromParameter(parameter);
     iterator.RunCluster();
+  } else if (parameter.method == "Reformat") {
+    auto iterator = api::BuildIteratorFromParameter(parameter);
+    iterator.RunReformat();
   } else if (parameter.method == "SimulatedAnnealing") {
     auto simulated_annealing = api::BuildSimulatedAnnealingFromParameter(parameter);
     simulated_annealing.Simulate();
