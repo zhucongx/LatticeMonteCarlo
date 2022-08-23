@@ -17,9 +17,9 @@ Iterator::Iterator(unsigned long long int initial_steps,
       smallest_cluster_criteria_(smallest_cluster_criteria),
       // solvent_bond_criteria_(solvent_bond_criteria),
       energy_estimator_(predictor_filename, std::move(element_set)) {
-  std::ifstream ifs("kmc_log.txt", std::ifstream::in);
+  std::ifstream ifs("kmc_log_modified.txt", std::ifstream::in);
   if (!ifs.is_open()) {
-    std::cerr << "Cannot open kmc_log.txt\n";
+    std::cerr << "Cannot open kmc_log_modified.txt\n";
     return;
   }
   unsigned long long filename;
