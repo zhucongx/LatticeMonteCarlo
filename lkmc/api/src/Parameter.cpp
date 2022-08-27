@@ -12,7 +12,7 @@ Parameter::Parameter(const std::string &param_filename) {
 }
 void Parameter::ParseArgs(int argc, char *argv[]) {
   for (int i = 0; i < argc; i++) {
-    if (!strcmp(argv[i], "--p") || !strcmp(argv[i], "-p"))
+    if (!std::strcmp(argv[i], "--p") || !std::strcmp(argv[i], "-p"))
       parameters_filename = std::string(argv[++i]);
   }
 }
@@ -23,7 +23,7 @@ void Parameter::ReadParam(const std::string &param_filename) {
   std::ifstream ifs(param_filename, std::ifstream::in);
   if (!ifs.is_open()) std::cerr << " error opening " << param_filename << std::endl;
   std::string buffer;
-  while (getline(ifs, buffer)) {
+  while (std::getline(ifs, buffer)) {
     if (buffer.empty()) {
       continue;
     }

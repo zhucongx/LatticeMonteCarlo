@@ -9,12 +9,12 @@ namespace api {
 inline std::vector<std::string> split(const std::string &s, const char *delim) {
   std::vector<std::string> res;
   char *dup = strdup(s.c_str());
-  char *token = strtok(dup, delim);
-  while (token != NULL) {
-    res.push_back(std::string(token));
+  char *token = std::strtok(dup, delim);
+  while (token != nullptr) {
+    res.emplace_back(token);
     // the call is treated as a subsequent calls to strtok:
     // the function continues from where it left in previous invocation
-    token = strtok(NULL, delim);
+    token = std::strtok(nullptr, delim);
   }
   free(dup);
   return res;
