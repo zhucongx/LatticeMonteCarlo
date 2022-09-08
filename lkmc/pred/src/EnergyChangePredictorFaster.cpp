@@ -28,7 +28,7 @@ EnergyChangePredictorFaster::EnergyChangePredictorFaster(const std::string &pred
       auto bond_mapping = GetClusterParametersMappingStateOfBond(reference_config, {i, j});
 #pragma omp critical
       {
-        site_bond_neighbors_hashmap_[{j, i}] = std::move(bond_mapping);
+        site_bond_neighbors_hashmap_[{i, j}] = std::move(bond_mapping);
       }
     }
   }
@@ -43,10 +43,7 @@ double EnergyChangePredictorFaster::GetDiffFromAtomIdPair(
 }
 double EnergyChangePredictorFaster::GetDiffFromLatticeIdPair(
     const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
-  auto [jump_id1, jump_id2] = lattice_id_jump_pair;
-  std::pair<size_t, size_t>
-      lattice_pair = {std::min(jump_id1, jump_id2), std::max(jump_id1, jump_id2)};
-  const auto mapping = site_bond_neighbors_hashmap_.at(lattice_pair);
+  const auto mapping = site_bond_neighbors_hashmap_.at(lattice_id_jump_pair);
 
   const auto element_first = config.GetElementAtLatticeId(lattice_id_jump_pair.first);
   const auto element_second = config.GetElementAtLatticeId(lattice_id_jump_pair.second);

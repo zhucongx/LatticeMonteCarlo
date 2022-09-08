@@ -34,8 +34,7 @@ EnergyChangePredictorSmaller::EnergyChangePredictorSmaller(const std::string &pr
 }
 EnergyChangePredictorSmaller::~EnergyChangePredictorSmaller() = default;
 double EnergyChangePredictorSmaller::GetDiffFromAtomIdPair(
-    const cfg::Config &config,
-    const std::pair<size_t, size_t> &atom_id_jump_pair) const {
+    const cfg::Config &config, const std::pair<size_t, size_t> &atom_id_jump_pair) const {
   return GetDiffFromLatticeIdPair(
       config,
       {config.GetLatticeIdFromAtomId(atom_id_jump_pair.first),
