@@ -20,7 +20,6 @@ EnergyChangePredictorSmaller::EnergyChangePredictorSmaller(const std::string &pr
       base_theta_ = std::vector<double>(parameters.at("theta"));
     }
   }
-#pragma omp parallel for default(none) shared(reference_config, std::cout)
   for (size_t i = 0; i < reference_config.GetNumAtoms(); ++i) {
     for (auto j: reference_config.GetFirstNeighborsAdjacencyList()[i]) {
       auto sorted_lattice_vector =
@@ -29,10 +28,7 @@ EnergyChangePredictorSmaller::EnergyChangePredictorSmaller(const std::string &pr
       std::transform(sorted_lattice_vector.begin(), sorted_lattice_vector.end(),
                      std::back_inserter(lattice_id_vector_state),
                      [](const auto &lattice) { return lattice.GetId(); });
-#pragma omp critical
-      {
-        site_bond_cluster_state_hashmap_[{i, j}] = lattice_id_vector_state;
-      }
+      site_bond_cluster_state_hashmap_[{i, j}] = lattice_id_vector_state;
     }
   }
 }
