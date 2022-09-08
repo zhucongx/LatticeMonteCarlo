@@ -54,7 +54,6 @@ ansys::SimulatedAnnealing BuildSimulatedAnnealingFromParameter(const Parameter &
   for (size_t i = 0; i < parameter.solute_element_set_.size(); ++i) {
     solute_atom_count.insert(std::make_pair(Element(parameter.solute_element_set_[i]),
                                             parameter.solute_number_set_[i]));
-
   }
 
   return ansys::SimulatedAnnealing{
@@ -65,6 +64,23 @@ ansys::SimulatedAnnealing BuildSimulatedAnnealingFromParameter(const Parameter &
       parameter.config_dump_steps_,
       parameter.maximum_steps_,
       parameter.early_stop_steps_,
+      parameter.temperature_,
+      parameter.json_coefficients_filename_};
+
+}
+ansys::CanonicalMC BuildCanonicalMCFromParameter(const Parameter &parameter) {
+  std::set<Element> element_set;
+  for (const auto &element_string: parameter.element_set_) {
+    element_set.insert(Element(element_string));
+  }
+
+  auto config = cfg::Config::ReadCfg(parameter.config_filename_);
+  return ansys::CanonicalMC{
+      config,
+      element_set,
+      parameter.log_dump_steps_,
+      parameter.config_dump_steps_,
+      parameter.maximum_steps_,
       parameter.temperature_,
       parameter.json_coefficients_filename_};
 

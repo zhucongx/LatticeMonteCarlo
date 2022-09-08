@@ -27,6 +27,9 @@ int main(int argc, char *argv[]) {
   } else if (parameter.method == "SimulatedAnnealing") {
     auto simulated_annealing = api::BuildSimulatedAnnealingFromParameter(parameter);
     simulated_annealing.Simulate();
+  } else if (parameter.method == "CanonicalMC") {
+    auto canonical_mc = api::BuildCanonicalMCFromParameter(parameter);
+    canonical_mc.Simulate();
   } else {
     std::cout << "Unknown method: " << parameter.method << std::endl;
   }

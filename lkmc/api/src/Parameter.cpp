@@ -119,6 +119,17 @@ void Parameter::PrintParameters() const {
     std::cout << "early_stop_steps: " << early_stop_steps_ << std::endl;
     std::cout << "temperature: " << temperature_ << std::endl;
     std::cout << "json_coefficients_filename: " << json_coefficients_filename_ << std::endl;
+  }else if (method == "CanonicalMC") {
+    std::cout << "config_filename: " << config_filename_ << std::endl;
+    std::cout << "element_set: ";
+    std::copy(element_set_.begin(), element_set_.end(),
+              std::ostream_iterator<std::string>(std::cout, " "));
+    std::cout << std::endl;
+    std::cout << "log_dump_steps: " << log_dump_steps_ << std::endl;
+    std::cout << "config_dump_steps: " << config_dump_steps_ << std::endl;
+    std::cout << "maximum_steps: " << maximum_steps_ << std::endl;
+    std::cout << "temperature: " << temperature_ << std::endl;
+    std::cout << "json_coefficients_filename: " << json_coefficients_filename_ << std::endl;
   } else if (method == "FindCluster" || method == "Reformat") {
     std::cout << "solvent_element: " << solvent_element_ << std::endl;
     std::cout << "element_set: ";

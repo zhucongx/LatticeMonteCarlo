@@ -1,0 +1,8 @@
+simulation_method CanonicalMC
+json_coefficients_filename quartic_coefficients.json
+config_filename start.cfg
+element_set Al Mg Zn
+log_dump_steps 1
+config_dump_steps 100000000
+maximum_steps 10000000
+temperature 300
