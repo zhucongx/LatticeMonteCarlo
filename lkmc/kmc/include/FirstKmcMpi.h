@@ -3,7 +3,6 @@
 #include <random>
 #include <mpi.h>
 #include "VacancyMigrationPredictorQuarticLru.h"
-#include "VacancyMigrationRandomizer.h"
 #include "JumpEvent.h"
 namespace kmc {
 class FirstKmcMpi {
