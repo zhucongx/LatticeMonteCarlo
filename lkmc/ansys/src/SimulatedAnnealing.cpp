@@ -3,6 +3,8 @@
 #include <chrono>
 #include "TotalEnergyPredictor.h"
 namespace ansys {
+constexpr double kBoltzmannConstant = 8.617333262145e-5;
+
 static std::set<Element> GetElementSetFromSolventAndSolute(
     Element solvent_element,
     const std::map<Element, size_t> &solute_atom_count) {
@@ -47,12 +49,8 @@ SimulatedAnnealing::SimulatedAnnealing(const Factor_t &factors,
                      std::chrono::system_clock::now().time_since_epoch().count())),
       solute_atom_selector_(0, solute_atom_id_vector_.size() - 1),
       neighbor_index_selector_(0, constants::kNumFirstNearestNeighbors - 1) {
-  // pred::TotalEnergyPredictor total_energy_predictor(json_coefficients_filename,
-  //                                                   GetElementSetFromSolventAndSolute(
-  //                                                       solvent_element,
-  //                                                       solute_atom_count));
-  // energy_ = total_energy_predictor.GetEnergy(config_);
-  // lowest_energy_ = energy_;
+  std::ofstream ofs("sa_log.txt", std::ofstream::out);
+  ofs << "steps\tenergy\tlowest_energy\ttemperature\tcount\n ";
 }
 std::pair<size_t, size_t> SimulatedAnnealing::GenerateAtomIdJumpPair() {
   size_t atom_id1 = solute_atom_id_vector_.at(solute_atom_selector_(generator_));
@@ -79,8 +77,7 @@ void SimulatedAnnealing::Dump(std::ofstream &ofs) {
 }
 
 void SimulatedAnnealing::Simulate() {
-  std::ofstream ofs("mc_log.txt", std::ofstream::out | std::ofstream::app);
-  ofs << "steps\tenergy\tlowest_energy\ttemperature\tcount\n ";
+  std::ofstream ofs("sa_log.txt", std::ofstream::out | std::ofstream::app);
   ofs.precision(8);
   auto t1 = std::chrono::high_resolution_clock::now();
   while (steps_ < maximum_number_) {

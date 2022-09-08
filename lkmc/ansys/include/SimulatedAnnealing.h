@@ -5,8 +5,6 @@
 #include <omp.h>
 #include "StateChangePredictor.h"
 namespace ansys {
-constexpr double kBoltzmannConstant = 8.617333262145e-5;
-
 class SimulatedAnnealing {
   public:
     SimulatedAnnealing(const Factor_t &factors,
