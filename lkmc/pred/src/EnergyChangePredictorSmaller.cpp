@@ -20,6 +20,7 @@ EnergyChangePredictorSmaller::EnergyChangePredictorSmaller(const std::string &pr
       base_theta_ = std::vector<double>(parameters.at("theta"));
     }
   }
+#pragma omp parallel for default(none) shared(reference_config, std::cout)
   for (size_t i = 0; i < reference_config.GetNumAtoms(); ++i) {
     for (auto j: reference_config.GetFirstNeighborsAdjacencyList()[i]) {
       auto sorted_lattice_vector =
@@ -28,7 +29,10 @@ EnergyChangePredictorSmaller::EnergyChangePredictorSmaller(const std::string &pr
       std::transform(sorted_lattice_vector.begin(), sorted_lattice_vector.end(),
                      std::back_inserter(lattice_id_vector_state),
                      [](const auto &lattice) { return lattice.GetId(); });
-      site_bond_cluster_state_hashmap_[{i, j}] = lattice_id_vector_state;
+#pragma omp critical
+      {
+        site_bond_cluster_state_hashmap_[{i, j}] = lattice_id_vector_state;
+      }
     }
   }
 }
@@ -43,10 +47,12 @@ double EnergyChangePredictorSmaller::GetDiffFromAtomIdPair(
 double EnergyChangePredictorSmaller::GetDiffFromLatticeIdPair(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
-  auto migration_element = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
-  const auto &lattice_id_vector = site_bond_cluster_state_hashmap_.at(lattice_id_jump_pair);
+
+  const auto element_first = config.GetElementAtLatticeId(lattice_id_jump_pair.first);
+  const auto element_second = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
   auto start_hashmap(initialized_cluster_hashmap_);
   auto end_hashmap(initialized_cluster_hashmap_);
+  const auto &lattice_id_vector = site_bond_cluster_state_hashmap_.at(lattice_id_jump_pair);
 
   int label = 0;
   for (const auto &cluster_vector: mapping_state_) {
@@ -58,10 +64,10 @@ double EnergyChangePredictorSmaller::GetDiffFromLatticeIdPair(
         size_t lattice_id = lattice_id_vector[index];
         element_vector_start.push_back(config.GetElementAtLatticeId(lattice_id));
         if (lattice_id == lattice_id_jump_pair.first) {
-          element_vector_end.push_back(migration_element);
+          element_vector_end.push_back(element_second);
           continue;
         } else if (lattice_id == lattice_id_jump_pair.second) {
-          element_vector_end.emplace_back(ElementName::X);
+          element_vector_end.emplace_back(element_first);
           continue;
         }
         element_vector_end.push_back(config.GetElementAtLatticeId(lattice_id));
