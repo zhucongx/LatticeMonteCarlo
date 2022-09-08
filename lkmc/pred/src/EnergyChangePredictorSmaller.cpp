@@ -50,6 +50,9 @@ double EnergyChangePredictorSmaller::GetDiffFromLatticeIdPair(
 
   const auto element_first = config.GetElementAtLatticeId(lattice_id_jump_pair.first);
   const auto element_second = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
+  if (element_first == element_second) {
+    return 0.0;
+  }
   auto start_hashmap(initialized_cluster_hashmap_);
   auto end_hashmap(initialized_cluster_hashmap_);
   const auto &lattice_id_vector = site_bond_cluster_state_hashmap_.at(lattice_id_jump_pair);

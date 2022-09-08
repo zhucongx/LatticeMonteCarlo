@@ -5,8 +5,8 @@ using json = nlohmann::json;
 
 namespace pred {
 EnergyChangePredictorFaster::EnergyChangePredictorFaster(const std::string &predictor_filename,
-                                           const cfg::Config &reference_config,
-                                           std::set<Element> element_set)
+                                                         const cfg::Config &reference_config,
+                                                         std::set<Element> element_set)
     : element_set_(std::move(element_set)) {
   auto element_set_copy(element_set_);
   element_set_copy.emplace(ElementName::X);
@@ -47,6 +47,9 @@ double EnergyChangePredictorFaster::GetDiffFromLatticeIdPair(
 
   const auto element_first = config.GetElementAtLatticeId(lattice_id_jump_pair.first);
   const auto element_second = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
+  if (element_first == element_second) {
+    return 0.0;
+  }
   auto start_hashmap(initialized_cluster_hashmap_);
   auto end_hashmap(initialized_cluster_hashmap_);
 
