@@ -3,7 +3,7 @@
 #include <random>
 #include <mpi.h>
 #include <omp.h>
-#include "StateChangePredictor.h"
+#include "EnergyChangePredictorFaster.h"
 namespace ansys {
 class CanonicalMC {
   public:
@@ -28,7 +28,7 @@ class CanonicalMC {
     double energy_{0.0};
     const double beta_;
 
-    const pred::StateChangePredictor energy_predictor_;
+    const pred::EnergyChangePredictorFaster energy_predictor_;
     mutable std::mt19937_64 generator_;
     mutable std::uniform_int_distribution<size_t> atom_index_selector_;
     mutable std::uniform_int_distribution<size_t> neighbor_index_selector_;

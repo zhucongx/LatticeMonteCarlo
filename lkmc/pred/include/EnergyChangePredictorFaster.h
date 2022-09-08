@@ -1,5 +1,5 @@
-#ifndef LKMC_LKMC_PRED_INCLUDE_STATECHANGEPREDICTOR_H_
-#define LKMC_LKMC_PRED_INCLUDE_STATECHANGEPREDICTOR_H_
+#ifndef LKMC_LKMC_PRED_INCLUDE_ENERGYCHANGEPREDICTORFASTER_H_
+#define LKMC_LKMC_PRED_INCLUDE_ENERGYCHANGEPREDICTORFASTER_H_
 #include <string>
 #include <unordered_set>
 #include <unordered_map>
@@ -11,11 +11,12 @@
 
 namespace pred {
 
-class StateChangePredictor {
+class EnergyChangePredictorFaster {
   public:
-    StateChangePredictor(const std::string &predictor_filename,
-                         const cfg::Config &reference_config,
-                         std::set<Element> element_set);
+    EnergyChangePredictorFaster(const std::string &predictor_filename,
+                                const cfg::Config &reference_config,
+                                std::set<Element> element_set);
+    virtual ~EnergyChangePredictorFaster();
     [[nodiscard]] double GetDiffFromAtomIdPair(
         const cfg::Config &config, const std::pair<size_t, size_t> &atom_id_jump_pair) const;
   private:
@@ -34,4 +35,4 @@ class StateChangePredictor {
 } // namespace pred
 
 
-#endif //LKMC_LKMC_PRED_INCLUDE_STATECHANGEPREDICTOR_H_
+#endif //LKMC_LKMC_PRED_INCLUDE_ENERGYCHANGEPREDICTORFASTER_H_

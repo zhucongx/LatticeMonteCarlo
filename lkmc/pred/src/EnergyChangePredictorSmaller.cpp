@@ -1,27 +1,26 @@
-#include "VacancyMigrationRandomizer.h"
+#include "EnergyChangePredictorSmaller.h"
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 namespace pred {
-VacancyMigrationRandomizer::VacancyMigrationRandomizer(const std::string &predictor_filename,
-                                                       const cfg::Config &reference_config,
-                                                       std::set<Element> element_set)
+EnergyChangePredictorSmaller::EnergyChangePredictorSmaller(const std::string &predictor_filename,
+                                                           const cfg::Config &reference_config,
+                                                           std::set<Element> element_set)
     : element_set_(std::move(element_set)),
-      one_hot_encode_hash_map_(GetOneHotEncodeHashmap(element_set_)),
       mapping_state_(GetClusterParametersMappingState(reference_config)) {
-  std::ifstream ifs(predictor_filename, std::ifstream::in);
-  json all_parameters;
-  ifs >> all_parameters;
-
   auto element_set_copy(element_set_);
   element_set_copy.emplace(ElementName::X);
   initialized_cluster_hashmap_ = InitializeClusterHashMap(element_set_copy);
+
+  std::ifstream ifs(predictor_filename, std::ifstream::in);
+  json all_parameters;
+  ifs >> all_parameters;
 
   for (const auto &[element, parameters]: all_parameters.items()) {
     if (element == "Base") {
       base_theta_ = std::vector<double>(parameters.at("theta"));
     }
   }
-
+#pragma omp parallel for default(none) shared(reference_config, std::cout)
   for (size_t i = 0; i < reference_config.GetNumAtoms(); ++i) {
     for (auto j: reference_config.GetFirstNeighborsAdjacencyList()[i]) {
       auto sorted_lattice_vector =
@@ -30,21 +29,23 @@ VacancyMigrationRandomizer::VacancyMigrationRandomizer(const std::string &predic
       std::transform(sorted_lattice_vector.begin(), sorted_lattice_vector.end(),
                      std::back_inserter(lattice_id_vector_state),
                      [](const auto &lattice) { return lattice.GetId(); });
-      site_bond_cluster_state_hashmap_[{i, j}] = lattice_id_vector_state;
+#pragma omp critical
+      {
+        site_bond_cluster_state_hashmap_[{i, j}] = lattice_id_vector_state;
+      }
     }
   }
 }
-VacancyMigrationRandomizer::~VacancyMigrationRandomizer() = default;
-
-std::pair<double, double> VacancyMigrationRandomizer::GetBarrierAndDiffFromAtomIdPair(
+EnergyChangePredictorSmaller::~EnergyChangePredictorSmaller() = default;
+double EnergyChangePredictorSmaller::GetDiffFromAtomIdPair(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &atom_id_jump_pair) const {
-  return GetBarrierAndDiffFromLatticeIdPair(
+  return GetDiffFromLatticeIdPair(
       config,
       {config.GetLatticeIdFromAtomId(atom_id_jump_pair.first),
        config.GetLatticeIdFromAtomId(atom_id_jump_pair.second)});
 }
-double VacancyMigrationRandomizer::GetDe(
+double EnergyChangePredictorSmaller::GetDiffFromLatticeIdPair(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
   auto migration_element = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
@@ -118,11 +119,5 @@ double VacancyMigrationRandomizer::GetDe(
     dE += base_theta_[i] * de_encode[i];
   }
   return dE;
-}
-std::pair<double, double> VacancyMigrationRandomizer::GetBarrierAndDiffFromLatticeIdPair(
-    const cfg::Config &config,
-    const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
-  const auto dE = GetDe(config, lattice_id_jump_pair);
-  return {0, dE};
 }
 } // namespace pred

@@ -1,19 +1,16 @@
-#include "StateChangePredictor.h"
+#include "EnergyChangePredictorFaster.h"
 #include <omp.h>
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
 namespace pred {
-StateChangePredictor::StateChangePredictor(const std::string &predictor_filename,
+EnergyChangePredictorFaster::EnergyChangePredictorFaster(const std::string &predictor_filename,
                                            const cfg::Config &reference_config,
                                            std::set<Element> element_set)
     : element_set_(std::move(element_set)) {
   auto element_set_copy(element_set_);
   element_set_copy.emplace(ElementName::X);
   initialized_cluster_hashmap_ = InitializeClusterHashMap(element_set_copy);
-
-  const std::map<cfg::ElementCluster, int>
-      ordered(initialized_cluster_hashmap_.begin(), initialized_cluster_hashmap_.end());
 
   std::ifstream ifs(predictor_filename, std::ifstream::in);
   json all_parameters;
@@ -36,14 +33,15 @@ StateChangePredictor::StateChangePredictor(const std::string &predictor_filename
     }
   }
 }
-double StateChangePredictor::GetDiffFromAtomIdPair(
+EnergyChangePredictorFaster::~EnergyChangePredictorFaster() = default;
+double EnergyChangePredictorFaster::GetDiffFromAtomIdPair(
     const cfg::Config &config, const std::pair<size_t, size_t> &atom_id_jump_pair) const {
   return GetDiffFromLatticeIdPair(
       config,
       {config.GetLatticeIdFromAtomId(atom_id_jump_pair.first),
        config.GetLatticeIdFromAtomId(atom_id_jump_pair.second)});
 }
-double StateChangePredictor::GetDiffFromLatticeIdPair(
+double EnergyChangePredictorFaster::GetDiffFromLatticeIdPair(
     const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
   auto [jump_id1, jump_id2] = lattice_id_jump_pair;
   std::pair<size_t, size_t>
@@ -99,7 +97,7 @@ double StateChangePredictor::GetDiffFromLatticeIdPair(
   return dE;
 }
 
-// double StateChangePredictor::GetDiffFromLatticeIdPairSet(
+// double EnergyChangePredictorFaster::GetDiffFromLatticeIdPairSet(
 //     const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
 //   auto [jump_id1, jump_id2] = lattice_id_jump_pair;
 //   std::pair<size_t, size_t>
