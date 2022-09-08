@@ -55,7 +55,7 @@ void CanonicalMC::Simulate() {
   ofs.precision(8);
   auto t1 = std::chrono::high_resolution_clock::now();
   while (steps_ < maximum_number_) {
-
+    Dump(ofs);
     auto atom_id_jump_pair = GenerateAtomIdJumpPair();
     auto dE = energy_predictor_.GetDiffFromAtomIdPair(
         config_, atom_id_jump_pair);
@@ -70,7 +70,7 @@ void CanonicalMC::Simulate() {
         energy_ += dE;
       }
     }
-
+    ++steps_;
   }
   auto t2 = std::chrono::high_resolution_clock::now();
   std::cout << "Canonical Monte Carlo finished in " << std::setprecision(16)
