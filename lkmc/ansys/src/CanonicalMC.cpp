@@ -30,7 +30,7 @@ CanonicalMC::CanonicalMC(cfg::Config config,
   std::ofstream ofs("cmc_log.txt", std::ofstream::out);
   ofs << "initial_energy = " << total_energy_predictor.GetEnergy(config_) << ", T = "
       << temperature << std::endl;
-  ofs << "steps\tenergy\n ";
+  ofs << "steps\tenergy\n";
 
 }
 std::pair<size_t, size_t> CanonicalMC::GenerateAtomIdJumpPair() {
@@ -72,6 +72,8 @@ void CanonicalMC::Simulate() {
     }
     ++steps_;
   }
+
+  config_.WriteCfg("final.cfg", false);
   auto t2 = std::chrono::high_resolution_clock::now();
   std::cout << "Canonical Monte Carlo finished in " << std::setprecision(16)
             << std::chrono::duration_cast<std::chrono::seconds>(t2 - t1).count() << " seconds.\n";
