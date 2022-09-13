@@ -4,14 +4,14 @@
 #include "FirstKmcMpi.h"
 #include "ChainKmcMpi.h"
 #include "SimulatedAnnealing.h"
-#include "CanonicalMC.h"
+#include "CanonicalMc.h"
 #include "Iterator.h"
 
 namespace api {
 kmc::FirstKmcMpi BuildFirstKmcMpiFromParameter(const Parameter &parameter);
 kmc::ChainKmcMpi BuildChainKmcMpiFromParameter(const Parameter &parameter);
 ansys::SimulatedAnnealing BuildSimulatedAnnealingFromParameter(const Parameter &parameter);
-ansys::CanonicalMC BuildCanonicalMCFromParameter(const Parameter &parameter);
+ansys::CanonicalMc BuildCanonicalMcFromParameter(const Parameter &parameter);
 ansys::Iterator BuildIteratorFromParameter(const Parameter &parameter);
 } // namespace api
 

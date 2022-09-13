@@ -1,11 +1,11 @@
-#include "CanonicalMC.h"
+#include "CanonicalMc.h"
 #include <utility>
 #include <chrono>
 #include "TotalEnergyPredictor.h"
 namespace ansys {
 constexpr double kBoltzmannConstant = 8.617333262145e-5;
 
-CanonicalMC::CanonicalMC(cfg::Config config,
+CanonicalMc::CanonicalMc(cfg::Config config,
                          const std::set<Element> &element_set,
                          const unsigned long long int log_dump_steps,
                          const unsigned long long int config_dump_steps,
@@ -34,7 +34,7 @@ CanonicalMC::CanonicalMC(cfg::Config config,
   ofs << "steps\tenergy\n";
 
 }
-std::pair<size_t, size_t> CanonicalMC::GenerateAtomIdJumpPair() {
+std::pair<size_t, size_t> CanonicalMc::GenerateAtomIdJumpPair() {
   size_t atom_id1 = atom_index_selector_(generator_);
   size_t lattice_id1 = config_.GetLatticeIdFromAtomId(atom_id1);
   size_t lattice_id2 = config_.GetFirstNeighborsAdjacencyList().at(
@@ -42,7 +42,7 @@ std::pair<size_t, size_t> CanonicalMC::GenerateAtomIdJumpPair() {
   size_t atom_id2 = config_.GetAtomIdFromLatticeId(lattice_id2);
   return {atom_id1, atom_id2};
 }
-void CanonicalMC::Dump(std::ofstream &ofs) {
+void CanonicalMc::Dump(std::ofstream &ofs) {
   unsigned long long int log_dump_steps;
   if (steps_ > 10 * log_dump_steps_) {
     log_dump_steps = log_dump_steps_;
@@ -61,7 +61,7 @@ void CanonicalMC::Dump(std::ofstream &ofs) {
   }
 }
 
-void CanonicalMC::Simulate() {
+void CanonicalMc::Simulate() {
   std::ofstream ofs("cmc_log.txt", std::ofstream::out | std::ofstream::app);
   ofs.precision(8);
   auto t1 = std::chrono::high_resolution_clock::now();

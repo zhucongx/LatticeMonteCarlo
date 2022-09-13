@@ -6,9 +6,9 @@
 #include "EnergyChangePredictorSmaller.h"
 #include "EnergyChangePredictorFaster.h"
 namespace ansys {
-class CanonicalMC {
+class CanonicalMc {
   public:
-    CanonicalMC(cfg::Config config,
+    CanonicalMc(cfg::Config config,
                 const std::set<Element> &element_set,
                 unsigned long long int log_dump_steps,
                 unsigned long long int config_dump_steps,

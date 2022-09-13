@@ -68,14 +68,14 @@ ansys::SimulatedAnnealing BuildSimulatedAnnealingFromParameter(const Parameter &
       parameter.json_coefficients_filename_};
 
 }
-ansys::CanonicalMC BuildCanonicalMCFromParameter(const Parameter &parameter) {
+ansys::CanonicalMc BuildCanonicalMcFromParameter(const Parameter &parameter) {
   std::set<Element> element_set;
   for (const auto &element_string: parameter.element_set_) {
     element_set.insert(Element(element_string));
   }
 
   auto config = cfg::Config::ReadCfg(parameter.config_filename_);
-  return ansys::CanonicalMC{
+  return ansys::CanonicalMc{
       config,
       element_set,
       parameter.log_dump_steps_,
