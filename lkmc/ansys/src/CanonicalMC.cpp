@@ -43,7 +43,16 @@ std::pair<size_t, size_t> CanonicalMC::GenerateAtomIdJumpPair() {
   return {atom_id1, atom_id2};
 }
 void CanonicalMC::Dump(std::ofstream &ofs) {
-  unsigned long long int log_dump_steps = std::min(steps_ / 1000 + 1, log_dump_steps_);
+  unsigned long long int log_dump_steps;
+  if (steps_ > 10 * log_dump_steps_) {
+    log_dump_steps = log_dump_steps_;
+  } else {
+    log_dump_steps = static_cast<unsigned long long int>(
+        std::pow(10, static_cast<unsigned long long int>(std::log10(
+            steps_ + 1) - 1)));
+    log_dump_steps = std::max(log_dump_steps, static_cast<unsigned long long int>(1));
+    log_dump_steps = std::min(log_dump_steps, log_dump_steps_);
+  }
   if (steps_ % log_dump_steps == 0) {
     ofs << steps_ << '\t' << energy_ << std::endl;
   }
