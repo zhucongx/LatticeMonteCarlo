@@ -30,8 +30,12 @@ int main(int argc, char *argv[]) {
   } else if (parameter.method == "CanonicalMc") {
     auto canonical_mc = api::BuildCanonicalMcFromParameter(parameter);
     canonical_mc.Simulate();
+  } else if (parameter.method == "CanonicalMcStepT") {
+    auto canonical_mc_step_t = api::BuildCanonicalMcStepTFromParameter(parameter);
+    canonical_mc_step_t.Simulate();
   } else {
-    std::cout << "Unknown method: " << parameter.method << std::endl;
+    std::cout << "No such method: " << parameter.method << std::endl;
+    return 1;
   }
 
   // pred::TotalEnergyPredictor a("quartic_coefficients.json",

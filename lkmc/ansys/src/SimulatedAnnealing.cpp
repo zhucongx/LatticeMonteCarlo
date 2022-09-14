@@ -6,14 +6,13 @@ namespace ansys {
 constexpr double kBoltzmannConstant = 8.617333262145e-5;
 
 static std::set<Element> GetElementSetFromSolventAndSolute(
-    Element solvent_element,
-    const std::map<Element, size_t> &solute_atom_count) {
-  std::set<Element> element_hashset;
-  element_hashset.insert(solvent_element);
+    Element solvent_element, const std::map<Element, size_t> &solute_atom_count) {
+  std::set<Element> element_set;
+  element_set.insert(solvent_element);
   for (const auto &solute_element_count: solute_atom_count) {
-    element_hashset.insert(solute_element_count.first);
+    element_set.insert(solute_element_count.first);
   }
-  return element_hashset;
+  return element_set;
 }
 static std::vector<size_t> GetSoluteAtomIdVector(
     const cfg::Config &config,

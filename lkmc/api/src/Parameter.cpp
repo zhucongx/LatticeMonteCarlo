@@ -47,6 +47,10 @@ void Parameter::ReadParam(const std::string &param_filename) {
       maximum_steps_ = stoull(segs[1]);
     } else if (segs[0] == "temperature") {
       temperature_ = stod(segs[1]);
+    } else if (segs[0] == "initial_temperature") {
+      initial_temperature_ = stod(segs[1]);
+    } else if (segs[0] == "decrement_temperature") {
+      decrement_temperature_ = stod(segs[1]);
     } else if (segs[0] == "element_set") {
       element_set_.clear();
       std::copy(segs.begin() + 1, segs.end(),
@@ -87,6 +91,7 @@ void Parameter::PrintParameters() const {
   std::cout << "Parameters" << std::endl;
   std::cout << "simulation_method: " << method << std::endl;
   if (method == "FirstKmc" || method == "ChainKmc") {
+    std::cout << "json_coefficients_filename: " << json_coefficients_filename_ << std::endl;
     std::cout << "config_filename: " << config_filename_ << std::endl;
     std::cout << "map_filename: " << map_filename_ << std::endl;
     std::cout << "log_dump_steps: " << log_dump_steps_ << std::endl;
@@ -100,8 +105,8 @@ void Parameter::PrintParameters() const {
     std::cout << "restart_steps: " << restart_steps_ << std::endl;
     std::cout << "restart_energy: " << restart_energy_ << std::endl;
     std::cout << "restart_time: " << restart_time_ << std::endl;
-    std::cout << "json_coefficients_filename: " << json_coefficients_filename_ << std::endl;
   } else if (method == "SimulatedAnnealing") {
+    std::cout << "json_coefficients_filename: " << json_coefficients_filename_ << std::endl;
     std::cout << "factor: " << factor_ << std::endl;
     std::cout << "solvent_element: " << solvent_element_ << std::endl;
     std::cout << "solute_element_set: ";
@@ -117,9 +122,9 @@ void Parameter::PrintParameters() const {
     std::cout << "config_dump_steps: " << config_dump_steps_ << std::endl;
     std::cout << "maximum_steps: " << maximum_steps_ << std::endl;
     std::cout << "early_stop_steps: " << early_stop_steps_ << std::endl;
-    std::cout << "temperature: " << temperature_ << std::endl;
+    std::cout << "initial_temperature: " << initial_temperature_ << std::endl;
+  } else if (method == "CanonicalMc") {
     std::cout << "json_coefficients_filename: " << json_coefficients_filename_ << std::endl;
-  }else if (method == "CanonicalMc") {
     std::cout << "config_filename: " << config_filename_ << std::endl;
     std::cout << "element_set: ";
     std::copy(element_set_.begin(), element_set_.end(),
@@ -129,8 +134,22 @@ void Parameter::PrintParameters() const {
     std::cout << "config_dump_steps: " << config_dump_steps_ << std::endl;
     std::cout << "maximum_steps: " << maximum_steps_ << std::endl;
     std::cout << "temperature: " << temperature_ << std::endl;
+  } else if (method == "CanonicalMcStepT") {
     std::cout << "json_coefficients_filename: " << json_coefficients_filename_ << std::endl;
+    std::cout << "config_filename: " << config_filename_ << std::endl;
+    std::cout << "solvent_element: " << solvent_element_ << std::endl;
+    std::cout << "solute_element_set: ";
+    std::copy(solute_element_set_.begin(), solute_element_set_.end(),
+              std::ostream_iterator<std::string>(std::cout, " "));
+    std::cout << std::endl;
+    std::cout << "log_dump_steps: " << log_dump_steps_ << std::endl;
+    std::cout << "config_dump_steps: " << config_dump_steps_ << std::endl;
+    std::cout << "maximum_steps: " << maximum_steps_ << std::endl;
+    std::cout << "initial_temperature: " << initial_temperature_ << std::endl;
+    std::cout << "decrement_temperature: " << decrement_temperature_ << std::endl;
+
   } else if (method == "FindCluster" || method == "Reformat") {
+    std::cout << "json_coefficients_filename: " << json_coefficients_filename_ << std::endl;
     std::cout << "solvent_element: " << solvent_element_ << std::endl;
     std::cout << "element_set: ";
     std::copy(element_set_.begin(), element_set_.end(),
@@ -139,7 +158,6 @@ void Parameter::PrintParameters() const {
     std::cout << "initial_steps: " << initial_steps_ << std::endl;
     std::cout << "increment_steps: " << increment_steps_ << std::endl;
     std::cout << "smallest_cluster_criteria: " << smallest_cluster_criteria_ << std::endl;
-    std::cout << "json_coefficients_filename: " << json_coefficients_filename_ << std::endl;
   }
 }
 

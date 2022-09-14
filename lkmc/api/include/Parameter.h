@@ -32,6 +32,8 @@ struct Parameter {
     unsigned long long int config_dump_steps_{};
     unsigned long long int maximum_steps_{};
     double temperature_{};
+    double initial_temperature_{};
+    double decrement_temperature_{};
     std::vector<std::string> element_set_;
     unsigned long long int restart_steps_{};
     double restart_energy_{};

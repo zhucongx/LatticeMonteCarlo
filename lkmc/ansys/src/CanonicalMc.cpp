@@ -29,7 +29,7 @@ CanonicalMc::CanonicalMc(cfg::Config config,
 
   std::ofstream ofs("cmc_log.txt", std::ofstream::out);
   ofs.precision(16);
-  ofs << "initial_energy = " << total_energy_predictor.GetEnergy(config_) << ", T = "
+  ofs << "initial_energy = " << total_energy_predictor.GetEnergy(config_) << " T = "
       << temperature << std::endl;
   ofs << "steps\tenergy\n";
 

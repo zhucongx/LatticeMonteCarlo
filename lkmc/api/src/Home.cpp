@@ -64,7 +64,7 @@ ansys::SimulatedAnnealing BuildSimulatedAnnealingFromParameter(const Parameter &
       parameter.config_dump_steps_,
       parameter.maximum_steps_,
       parameter.early_stop_steps_,
-      parameter.temperature_,
+      parameter.initial_temperature_,
       parameter.json_coefficients_filename_};
 
 }
@@ -83,7 +83,24 @@ ansys::CanonicalMc BuildCanonicalMcFromParameter(const Parameter &parameter) {
       parameter.maximum_steps_,
       parameter.temperature_,
       parameter.json_coefficients_filename_};
+}
+ansys::CanonicalMcStepT BuildCanonicalMcStepTFromParameter(const Parameter &parameter) {
+  std::set<Element> solute_element_set;
+  for (const auto &element_string: parameter.solute_element_set_) {
+    solute_element_set.insert(Element(element_string));
+  }
 
+  auto config = cfg::Config::ReadCfg(parameter.config_filename_);
+  return ansys::CanonicalMcStepT{
+      config,
+      Element(parameter.solvent_element_),
+      solute_element_set,
+      parameter.log_dump_steps_,
+      parameter.config_dump_steps_,
+      parameter.maximum_steps_,
+      parameter.initial_temperature_,
+      parameter.decrement_temperature_,
+      parameter.json_coefficients_filename_};
 }
 ansys::Iterator BuildIteratorFromParameter(const Parameter &parameter) {
   std::set<Element> element_set;
