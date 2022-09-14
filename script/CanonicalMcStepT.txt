@@ -6,5 +6,5 @@ solute_element_set Mg Zn
 log_dump_steps 100000
 config_dump_steps 100000000
 maximum_steps 1000000000
-initial_temperature 600
+initial_temperature 725
 decrement_temperature 25
