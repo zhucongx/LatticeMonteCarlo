@@ -1,7 +1,12 @@
 simulation_method FindCluster
+log_type canonical_mc
+#log_type canonical_mc_step_t
+config_type config
+#config_type map
 json_coefficients_filename quartic_coefficients.json
 solvent_element Al
 element_set Al Mg Zn
 initial_steps 0
 increment_steps 10000
 smallest_cluster_criteria 4
+solvent_bond_criteria 3

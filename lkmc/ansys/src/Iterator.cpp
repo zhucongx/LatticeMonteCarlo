@@ -8,23 +8,39 @@ Iterator::Iterator(unsigned long long int initial_steps,
                    Element solvent_element,
                    std::set<Element> element_set,
                    size_t smallest_cluster_criteria,
-                   // size_t solvent_bond_criteria,
-                   const std::string &predictor_filename)
+                   size_t solvent_bond_criteria,
+                   const std::string &predictor_filename,
+                   std::string log_type,
+                   std::string config_type)
     : initial_steps_(initial_steps),
       increment_steps_(increment_steps),
       final_number_(increment_steps),
       solvent_element_(solvent_element),
       smallest_cluster_criteria_(smallest_cluster_criteria),
-      // solvent_bond_criteria_(solvent_bond_criteria),
-      energy_estimator_(predictor_filename, std::move(element_set)) {
-  std::ifstream ifs("kmc_log_modified.txt", std::ifstream::in);
+      solvent_bond_criteria_(solvent_bond_criteria),
+      energy_estimator_(predictor_filename, std::move(element_set)),
+      log_type_(std::move(log_type)),
+      config_type_(std::move(config_type)) {
+  std::string log_file_name;
+  if (log_type_ == "kinetic_mc") {
+    log_file_name = "kmc_log.txt";
+  } else if (log_type_ == "canonical_mc") {
+    log_file_name = "cmc_log.txt";
+  } else if (log_type_ == "canonical_mc_step_t") {
+    log_file_name = "cmc_log.txt";
+  } else {
+    std::cerr << "Unknown log type: " << log_type_ << std::endl;
+  }
+  std::ifstream ifs(log_file_name, std::ifstream::in);
   if (!ifs.is_open()) {
-    std::cerr << "Cannot open kmc_log_modified.txt\n";
+    std::cerr << "Cannot open " << log_file_name << "\n";
     return;
   }
-  unsigned long long filename;
-  double time;
-  ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+  unsigned long long step_number;
+  double energy, time, temperature;
+  if (ifs.peek() != '0') {
+    ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+  }
 
   while (true) {
     if (ifs.eof() || ifs.bad()) {
@@ -34,12 +50,28 @@ Iterator::Iterator(unsigned long long int initial_steps,
       ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
       continue;
     }
+    if (log_type_ == "kinetic_mc") {
+      ifs >> step_number >> time >> energy;
+    } else if (log_type_ == "canonical_mc") {
+      ifs >> step_number >> energy;
+    } else if (log_type_ == "canonical_mc_step_t") {
+      ifs >> step_number >> energy >> temperature;
+    } else {
+      std::cerr << "Unknown log type: " << log_type_ << std::endl;
+    }
 
-    ifs >> filename >> time;
     ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-    if (filename >= initial_steps_ && (filename - initial_steps_) % increment_steps == 0) {
-      filename_time_hashset_[filename] = time;
-      final_number_ = filename;
+    if (step_number >= initial_steps_ && (step_number - initial_steps_) % increment_steps == 0) {
+      if (log_type_ == "kinetic_mc") {
+        filename_info_hashset_[step_number] = time;
+      } else if (log_type_ == "canonical_mc") {
+        filename_info_hashset_[step_number] = 0;
+      } else if (log_type_ == "canonical_mc_step_t") {
+        filename_info_hashset_[step_number] = temperature;
+      } else {
+        std::cerr << "Unknown log type: " << log_type_ << std::endl;
+      }
+      final_number_ = step_number;
     }
   }
   final_number_ -= increment_steps;
@@ -53,12 +85,19 @@ void Iterator::RunCluster() const {
   for (unsigned long long i = 0; i <= final_number_; i += increment_steps_) {
     std::cout << i << " / " << final_number_ << std::endl;
 
-    ClustersFinder cluster_finder(cfg::Config::ReadMap(
-                                      "lattice.txt", "element.txt",
-                                      "map" + std::to_string(i) + ".txt"),
+    cfg::Config config;
+    if (config_type_ == "config") {
+      config = cfg::Config::ReadCfg(std::to_string(i) + ".cfg");
+      config.ReassignLatticeVector();
+    } else if (config_type_ == "map") {
+      cfg::Config::ReadMap("lattice.txt", "element.txt", "map" + std::to_string(i) + ".txt");
+    } else {
+      std::cerr << "Unknown config type: " << config_type_ << std::endl;
+    }
+    ClustersFinder cluster_finder(config,
                                   solvent_element_,
                                   smallest_cluster_criteria_,
-                                  // solvent_bond_criteria_,
+                                  solvent_bond_criteria_,
                                   energy_estimator_);
     auto num_different_element =
         cluster_finder.FindClustersAndOutput("cluster", std::to_string(i) + "_cluster.cfg");
@@ -66,7 +105,7 @@ void Iterator::RunCluster() const {
     ofs << "{ \n"
         << "\"index\" : "
         << "\"" << std::to_string(i) << "\",\n"
-        << "\"time\" : " << filename_time_hashset_.at(i) << ",\n"
+        << "\"info\" : " << filename_info_hashset_.at(i) << ",\n"
         << "\"clusters\" : [ \n";
     for (auto it = num_different_element.cbegin(); it < num_different_element.cend(); ++it) {
       ofs << "[ ";
@@ -91,6 +130,10 @@ void Iterator::RunCluster() const {
   ofs << " ]" << std::endl;
 }
 void Iterator::RunReformat() const {
+  if (config_type_ == "map") {
+    std::cerr << "Reformat map already done" << std::endl;
+    return;
+  }
   for (unsigned long long i = 0; i <= final_number_; i += increment_steps_) {
     std::cout << i << " / " << final_number_ << std::endl;
     auto config = cfg::Config::ReadCfg(std::to_string(i) + ".cfg");

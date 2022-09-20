@@ -39,6 +39,10 @@ void Parameter::ReadParam(const std::string &param_filename) {
       map_filename_ = std::string(segs[1]);
     } else if (segs[0] == "json_coefficients_filename") {
       json_coefficients_filename_ = std::string(segs[1]);
+    } else if (segs[0] == "log_type") {
+      log_type_ = std::string(segs[1]);
+    } else if (segs[0] == "config_type") {
+      config_type_ = std::string(segs[1]);
     } else if (segs[0] == "log_dump_steps") {
       log_dump_steps_ = stoull(segs[1]);
     } else if (segs[0] == "config_dump_steps") {
@@ -61,7 +65,9 @@ void Parameter::ReadParam(const std::string &param_filename) {
       increment_steps_ = stoull(segs[1]);
     } else if (segs[0] == "smallest_cluster_criteria") {
       smallest_cluster_criteria_ = stoul(segs[1]);
-    } else if (segs[0] == "restart_steps") {
+    } else if (segs[0] == "solvent_bond_criteria")  {
+      solvent_bond_criteria_ = stoul(segs[1]);
+    }  else if (segs[0] == "restart_steps") {
       restart_steps_ = stoull(segs[1]);
     } else if (segs[0] == "restart_energy") {
       restart_energy_ = stod(segs[1]);
@@ -158,6 +164,9 @@ void Parameter::PrintParameters() const {
     std::cout << "initial_steps: " << initial_steps_ << std::endl;
     std::cout << "increment_steps: " << increment_steps_ << std::endl;
     std::cout << "smallest_cluster_criteria: " << smallest_cluster_criteria_ << std::endl;
+    std::cout << "solvent_bond_criteria: " << solvent_bond_criteria_ << std::endl;
+    std::cout << "log_type: " << log_type_ << std::endl;
+    std::cout << "config_type: " << config_type_ << std::endl;
   }
 }
 

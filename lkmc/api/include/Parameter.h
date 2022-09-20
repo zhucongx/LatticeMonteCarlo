@@ -28,6 +28,8 @@ struct Parameter {
     std::string config_filename_;
     std::string map_filename_;
     std::string json_coefficients_filename_;
+    std::string log_type_;
+    std::string config_type_;
     unsigned long long int log_dump_steps_{};
     unsigned long long int config_dump_steps_{};
     unsigned long long int maximum_steps_{};
@@ -42,6 +44,7 @@ struct Parameter {
     unsigned long long int initial_steps_{};
     unsigned long long int increment_steps_{};
     size_t smallest_cluster_criteria_{};
+    size_t solvent_bond_criteria_{};
 
     size_t factor_{};
     std::string solvent_element_;

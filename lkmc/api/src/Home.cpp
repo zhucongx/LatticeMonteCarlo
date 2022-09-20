@@ -108,11 +108,12 @@ ansys::Iterator BuildIteratorFromParameter(const Parameter &parameter) {
     element_set.insert(Element(element_string));
   }
 
-  return ansys::Iterator{parameter.initial_steps_,
-                         parameter.increment_steps_,
-                         Element(parameter.solvent_element_),
-                         element_set,
+  return ansys::Iterator{parameter.initial_steps_, parameter.increment_steps_,
+                         Element(parameter.solvent_element_), element_set,
                          parameter.smallest_cluster_criteria_,
-                         parameter.json_coefficients_filename_};
+                         parameter.solvent_bond_criteria_,
+                         parameter.json_coefficients_filename_,
+                         parameter.log_type_,
+                         parameter.config_type_};
 }
 } // namespace api

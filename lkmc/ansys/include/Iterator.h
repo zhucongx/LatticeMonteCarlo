@@ -11,8 +11,10 @@ class Iterator {
              Element solvent_element,
              std::set<Element> element_set,
              size_t smallest_cluster_criteria,
-             // size_t solvent_bond_criteria,
-             const std::string &predictor_filename);
+             size_t solvent_bond_criteria,
+             const std::string &predictor_filename,
+             std::string log_type,
+             std::string config_type);
     virtual ~Iterator();
     void RunCluster() const;
     void RunReformat() const;
@@ -22,9 +24,11 @@ class Iterator {
     unsigned long long final_number_;
     Element solvent_element_;
     size_t smallest_cluster_criteria_;
-    // size_t solvent_bond_criteria_;
-    std::unordered_map<unsigned long long, double> filename_time_hashset_{};
+    size_t solvent_bond_criteria_;
+    std::unordered_map<unsigned long long, double> filename_info_hashset_{};
     const pred::TotalEnergyPredictor energy_estimator_;
+    const std::string log_type_;
+    const std::string config_type_;
 };
 
 } // namespace ansys
