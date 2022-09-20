@@ -38,7 +38,7 @@ Iterator::Iterator(unsigned long long int initial_steps,
   }
   unsigned long long step_number;
   double energy, time, temperature;
-  if (ifs.peek() != '0') {
+  while (ifs.peek() != '0') {
     ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
   }
 
