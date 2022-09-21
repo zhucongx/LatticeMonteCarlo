@@ -104,7 +104,7 @@ void FirstKmcMpi::Simulate() {
     ofs.precision(8);
   }
 
-  while (steps_ < maximum_number_) {
+  while (steps_ <= maximum_number_) {
     if (mpi_rank_ == 0) {
       Dump(ofs);
     }

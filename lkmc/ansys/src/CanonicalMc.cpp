@@ -65,7 +65,7 @@ void CanonicalMc::Simulate() {
   std::ofstream ofs("cmc_log.txt", std::ofstream::out | std::ofstream::app);
   ofs.precision(8);
   auto t1 = std::chrono::high_resolution_clock::now();
-  while (steps_ < maximum_number_) {
+  while (steps_ <= maximum_number_) {
     Dump(ofs);
     auto atom_id_jump_pair = GenerateAtomIdJumpPair();
     auto dE = energy_predictor_.GetDiffFromAtomIdPair(
