@@ -74,7 +74,7 @@ Iterator::Iterator(unsigned long long int initial_steps,
       final_number_ = step_number;
     }
   }
-  final_number_ -= increment_steps;
+  // final_number_ -= increment_steps;
 }
 Iterator::~Iterator() = default;
 void Iterator::RunCluster() const {
