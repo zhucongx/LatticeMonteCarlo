@@ -90,7 +90,7 @@ void Iterator::RunCluster() const {
       config = cfg::Config::ReadCfg(std::to_string(i) + ".cfg");
       config.ReassignLatticeVector();
     } else if (config_type_ == "map") {
-      cfg::Config::ReadMap("lattice.txt", "element.txt", "map" + std::to_string(i) + ".txt");
+      config = cfg::Config::ReadMap("lattice.txt", "element.txt", "map" + std::to_string(i) + ".txt");
     } else {
       std::cerr << "Unknown config type: " << config_type_ << std::endl;
     }
