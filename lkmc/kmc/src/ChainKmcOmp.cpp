@@ -91,7 +91,7 @@ void ChainKmcOmp::BuildFirstEventList() {
 }
 
 void ChainKmcOmp::BuildSecondEventList() {
-#pragma omp parallel default(none)
+#pragma omp parallel default(none) shared(std::cout)
   {
 #pragma omp for
     for (size_t it = 0; it < kFirstEventListSize * kSecondEventListSize; ++it) {
