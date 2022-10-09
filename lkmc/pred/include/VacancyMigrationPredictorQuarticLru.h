@@ -1,6 +1,8 @@
 #ifndef LKMC_LKMC_PRED_INCLUDE_VACANCYMIGRATIONPREDICTORQUARTICLRU_H_
 #define LKMC_LKMC_PRED_INCLUDE_VACANCYMIGRATIONPREDICTORQUARTICLRU_H_
 #include "VacancyMigrationPredictorQuartic.h"
+#include <thread>
+#include <mutex>
 namespace pred {
 
 class VacancyMigrationPredictorQuarticLru : public VacancyMigrationPredictorQuartic {
@@ -23,6 +25,7 @@ class VacancyMigrationPredictorQuarticLru : public VacancyMigrationPredictorQuar
     mutable std::unordered_map<
         size_t,
         std::list<std::pair<size_t, std::pair<double, double> > >::iterator> hashmap_{};
+    mutable std::mutex mu_;
     const size_t cache_size_;
 };
 } // namespace pred
