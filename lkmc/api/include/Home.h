@@ -3,6 +3,7 @@
 #include "Parameter.h"
 #include "FirstKmcMpi.h"
 #include "ChainKmcMpi.h"
+#include "ChainKmcOmp.h"
 #include "SimulatedAnnealing.h"
 #include "CanonicalMc.h"
 #include "CanonicalMcStepT.h"
@@ -11,6 +12,7 @@
 namespace api {
 kmc::FirstKmcMpi BuildFirstKmcMpiFromParameter(const Parameter &parameter);
 kmc::ChainKmcMpi BuildChainKmcMpiFromParameter(const Parameter &parameter);
+kmc::ChainKmcOmp BuildChainKmcOmpFromParameter(const Parameter &parameter);
 ansys::SimulatedAnnealing BuildSimulatedAnnealingFromParameter(const Parameter &parameter);
 ansys::CanonicalMc BuildCanonicalMcFromParameter(const Parameter &parameter);
 ansys::CanonicalMcStepT BuildCanonicalMcStepTFromParameter(const Parameter &parameter);

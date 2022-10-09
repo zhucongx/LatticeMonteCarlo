@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
     auto first_kmc = api::BuildFirstKmcMpiFromParameter(parameter);
     first_kmc.Simulate();
   } else if (parameter.method == "ChainKmc") {
-    auto chain_kmc = api::BuildChainKmcMpiFromParameter(parameter);
+    auto chain_kmc = api::BuildChainKmcOmpFromParameter(parameter);
     chain_kmc.Simulate();
   } else if (parameter.method == "FindCluster") {
     auto iterator = api::BuildIteratorFromParameter(parameter);
