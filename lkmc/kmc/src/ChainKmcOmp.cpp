@@ -58,8 +58,8 @@ void ChainKmcOmp::Dump(std::ofstream &ofs) {
 // Update event list and total rate of k and initial total i list. Only applied to 12 threads.
 void ChainKmcOmp::BuildFirstEventList() {
   total_rate_k_ = 0;
-  const auto & config = config_list_[0];
-  const auto & i_indexes = config.GetFirstNeighborsAtomIdVectorOfAtom(vacancy_index_);
+  const auto &config = config_list_[0];
+  const auto &i_indexes = config.GetFirstNeighborsAtomIdVectorOfAtom(vacancy_index_);
 
 #pragma omp parallel for default(none) shared(i_indexes, config, std::cout) reduction(+: total_rate_k_)
   for (size_t it = 0; it < kFirstEventListSize; ++it) {
@@ -67,19 +67,19 @@ void ChainKmcOmp::BuildFirstEventList() {
     const auto i_index = i_indexes[it];
     auto event_k_i = JumpEvent(
         {vacancy_index_, i_index},
-        energy_predictor_.GetBarrierAndDiffFromAtomIdPair(config,
-                                                          {vacancy_index_,
-                                                           i_index}),
+        energy_predictor_.GetBarrierAndDiffFromAtomIdPair(
+            config, {vacancy_index_, i_index}),
         beta_);
-    const auto rate_k = event_k_i.GetForwardRate();
-    total_rate_k_ += rate_k;
+    total_rate_k_ += event_k_i.GetForwardRate();
     // initial total rate i list
     total_rate_i_list_.at(it) = event_k_i.GetBackwardRate();
     // initial event list
     first_event_list_.at(it) = std::move(event_k_i);
     // update l_index_list_
     size_t ii = 0;
-    for (const auto l_index:config.GetFirstNeighborsAtomIdVectorOfAtom(i_index)) {
+    std::cout << "Here " << std::endl;
+
+    for (const auto l_index: config.GetFirstNeighborsAtomIdVectorOfAtom(i_index)) {
       l_index_list_[it * kSecondEventListSize + ii] = l_index;
       if (l_index == vacancy_index_) { continue; }
       ++ii;
@@ -89,7 +89,6 @@ void ChainKmcOmp::BuildFirstEventList() {
   for (auto &event_i: first_event_list_) {
     event_i.CalculateProbability(total_rate_k_);
   }
-  std::cout << "Here " << std::endl;
 }
 
 void ChainKmcOmp::BuildSecondEventList() {
