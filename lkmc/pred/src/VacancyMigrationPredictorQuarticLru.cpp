@@ -13,7 +13,6 @@ std::pair<double, double> VacancyMigrationPredictorQuarticLru::GetBarrierAndDiff
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
   auto hash_value = GetHashFromConfigAndLatticeIdPair(config, lattice_id_jump_pair);
   std::pair<double, double> value;
-  std::lock_guard<std::mutex> lock(mu_);
 
   auto it = hashmap_.find(hash_value);
   if (it == hashmap_.end()) {
@@ -21,6 +20,7 @@ std::pair<double, double> VacancyMigrationPredictorQuarticLru::GetBarrierAndDiff
                                                                                  lattice_id_jump_pair);
     Add(hash_value, value);
   } else {
+    std::lock_guard<std::mutex> lock(mu_);
     cache_list_.splice(cache_list_.begin(), cache_list_, it->second);
     value = it->second->second;
   }
