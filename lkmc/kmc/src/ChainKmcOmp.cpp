@@ -57,20 +57,20 @@ void ChainKmcOmp::Dump(std::ofstream &ofs) {
 // Get the energy change and the probability from j to k, pjk by the reference.
 // Update event list and total rate of k and initial total i list. Only applied to 12 threads.
 void ChainKmcOmp::BuildFirstEventList() {
-  total_rate_k_ = 0;
+  double total_rate_k = 0;
   const auto &config = config_list_[0];
   const auto &i_indexes = config.GetFirstNeighborsAtomIdVectorOfAtom(vacancy_index_);
 
-#pragma omp parallel for default(none) shared(i_indexes, config, std::cout) reduction(+: total_rate_k_)
+#pragma omp parallel for default(none) shared(i_indexes, config, std::cout) reduction(+: total_rate_k)
   for (size_t it = 0; it < kFirstEventListSize; ++it) {
-    std::cout << omp_get_thread_num() << " it: " << it << std::endl;
     const auto i_index = i_indexes[it];
     auto event_k_i = JumpEvent(
         {vacancy_index_, i_index},
         energy_predictor_.GetBarrierAndDiffFromAtomIdPair(
             config, {vacancy_index_, i_index}),
         beta_);
-    total_rate_k_ += event_k_i.GetForwardRate();
+    std::cout << omp_get_thread_num() << " it: " << it << std::endl;
+    total_rate_k += event_k_i.GetForwardRate();
     // initial total rate i list
     total_rate_i_list_.at(it) = event_k_i.GetBackwardRate();
     // initial event list
@@ -85,7 +85,7 @@ void ChainKmcOmp::BuildFirstEventList() {
       ++ii;
     }
   }
-
+  total_rate_k_ = total_rate_k;
   for (auto &event_i: first_event_list_) {
     event_i.CalculateProbability(total_rate_k_);
   }
