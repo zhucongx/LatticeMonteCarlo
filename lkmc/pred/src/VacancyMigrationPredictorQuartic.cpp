@@ -1,6 +1,7 @@
 #include "VacancyMigrationPredictorQuartic.h"
 #include <utility>
 #include <boost/range/combine.hpp>
+#include <omp.h>
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
@@ -40,7 +41,7 @@ VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::st
         parameters.at("sigma_Ks")
     };
   }
-
+#pragma omp parallel for default(none) shared(reference_config, std::cout)
   for (size_t i = 0; i < reference_config.GetNumAtoms(); ++i) {
     for (auto j: reference_config.GetFirstNeighborsAdjacencyList()[i]) {
       auto sorted_lattice_vector =
@@ -49,21 +50,30 @@ VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::st
       std::transform(sorted_lattice_vector.begin(), sorted_lattice_vector.end(),
                      std::back_inserter(lattice_id_vector_state),
                      [](const auto &lattice) { return lattice.GetId(); });
-      site_bond_cluster_state_hashmap_[{i, j}] = lattice_id_vector_state;
+#pragma omp critical
+      {
+        site_bond_cluster_state_hashmap_[{i, j}] = lattice_id_vector_state;
+      }
       auto sorted_lattice_vector_mmm =
           GetSymmetricallySortedLatticeVectorMMM(reference_config, {i, j});
       std::vector<size_t> lattice_id_vector_mmm;
       std::transform(sorted_lattice_vector_mmm.begin(), sorted_lattice_vector_mmm.end(),
                      std::back_inserter(lattice_id_vector_mmm),
                      [](const auto &lattice) { return lattice.GetId(); });
-      site_bond_cluster_mmm_hashmap_[{i, j}] = lattice_id_vector_mmm;
+#pragma omp critical
+      {
+        site_bond_cluster_mmm_hashmap_[{i, j}] = lattice_id_vector_mmm;
+      }
       auto sorted_lattice_vector_mm2 =
           GetSymmetricallySortedLatticeVectorMM2(reference_config, {i, j});
       std::vector<size_t> lattice_id_vector_mm2;
       std::transform(sorted_lattice_vector_mm2.begin(), sorted_lattice_vector_mm2.end(),
                      std::back_inserter(lattice_id_vector_mm2),
                      [](const auto &lattice) { return lattice.GetId(); });
-      site_bond_cluster_mm2_hashmap_[{i, j}] = lattice_id_vector_mm2;
+#pragma omp critical
+      {
+        site_bond_cluster_mm2_hashmap_[{i, j}] = lattice_id_vector_mm2;
+      }
     }
   }
 }
