@@ -69,7 +69,6 @@ void ChainKmcOmp::BuildFirstEventList() {
         energy_predictor_.GetBarrierAndDiffFromAtomIdPair(
             config, {vacancy_index_, i_index}),
         beta_);
-    std::cout << omp_get_thread_num() << " it: " << it << std::endl;
     total_rate_k += event_k_i.GetForwardRate();
     // initial total rate i list
     total_rate_i_list_.at(it) = event_k_i.GetBackwardRate();
@@ -77,7 +76,6 @@ void ChainKmcOmp::BuildFirstEventList() {
     first_event_list_.at(it) = std::move(event_k_i);
     // update l_index_list_
     size_t ii = 0;
-    std::cout << "Here " << std::endl;
 
     for (const auto l_index: config.GetFirstNeighborsAtomIdVectorOfAtom(i_index)) {
       l_index_list_[it * kSecondEventListSize + ii] = l_index;
@@ -119,6 +117,8 @@ void ChainKmcOmp::BuildSecondEventList() {
 
 double ChainKmcOmp::CalculateTime() {
   BuildFirstEventList();
+  std::cout << "Here " << std::endl;
+
   BuildSecondEventList();
   double beta_bar_k = 0.0, beta_k = 0.0, gamma_bar_k_j = 0.0, gamma_k_j = 0.0,
       beta_k_j = 0.0, alpha_k_j = 0.0;
