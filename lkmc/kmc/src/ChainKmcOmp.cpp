@@ -89,6 +89,7 @@ void ChainKmcOmp::BuildFirstEventList() {
   for (auto &event_i: first_event_list_) {
     event_i.CalculateProbability(total_rate_k_);
   }
+  std::cout << "Here " << std::endl;
 }
 
 void ChainKmcOmp::BuildSecondEventList() {
