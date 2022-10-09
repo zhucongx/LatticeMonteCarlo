@@ -95,6 +95,7 @@ void ChainKmcOmp::BuildSecondEventList() {
   {
 #pragma omp for
     for (size_t it = 0; it < kFirstEventListSize * kSecondEventListSize; ++it) {
+      std::cout << omp_get_thread_num() << " it: " << it << std::endl;
       size_t it1 = it / kSecondEventListSize;
 
       const auto event_k_i = first_event_list_.at(it1);
