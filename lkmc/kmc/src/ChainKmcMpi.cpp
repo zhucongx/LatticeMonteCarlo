@@ -200,10 +200,10 @@ double ChainKmcMpi::BuildEventListParallel() {
                   first_comm_);
 
     // calculate relative and cumulative probability
-    double cumulative_provability = 0.0;
+    double cumulative_probability = 0.0;
     for (auto &event: event_list_) {
-      cumulative_provability += event.GetProbability();
-      event.SetCumulativeProbability(cumulative_provability);
+      cumulative_probability += event.GetProbability();
+      event.SetCumulativeProbability(cumulative_probability);
     }
 
     double t = 1 / total_rate_k_ / kPrefactor;
