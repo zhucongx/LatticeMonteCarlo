@@ -7,6 +7,6 @@ out/
 .idea/
 .vs/
 .vscode/
-
+.fleet/
 CMakeSettings.json
 **/.DS_Store
