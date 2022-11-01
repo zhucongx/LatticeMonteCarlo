@@ -63,7 +63,6 @@ void ChainKmcOmp::BuildFirstEventList() {
 
 #pragma omp parallel for default(none) shared(i_indexes, config, std::cout) reduction(+: total_rate_k)
   for (size_t it = 0; it < kFirstEventListSize; ++it) {
-    std::cout << omp_get_thread_num() << " it: " << it << std::endl;
     const auto i_index = i_indexes[it];
     auto event_k_i = JumpEvent(
         {vacancy_index_, i_index},
@@ -118,9 +117,8 @@ void ChainKmcOmp::BuildSecondEventList() {
 
 double ChainKmcOmp::CalculateTime() {
   BuildFirstEventList();
-  std::cout << "Here " << std::endl;
-
   BuildSecondEventList();
+  std::cout << "Here " << std::endl;
   double beta_bar_k = 0.0, beta_k = 0.0, gamma_bar_k_j = 0.0, gamma_k_j = 0.0,
       beta_k_j = 0.0, alpha_k_j = 0.0;
   std::array<double, kFirstEventListSize> beta_bar_k_i_list{}, beta_k_i_list{};
