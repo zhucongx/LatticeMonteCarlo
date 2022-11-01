@@ -29,7 +29,7 @@ ChainKmcOmp::ChainKmcOmp(const cfg::Config &config,
       vacancy_index_(cfg::GetVacancyAtomIndex(config)),
       previous_j_(config.GetFirstNeighborsAtomIdVectorOfAtom(vacancy_index_)[0]),
       energy_predictor_(json_parameters_filename,
-                        config, type_set),
+                        config, type_set, 3000),
       generator_(static_cast<unsigned long long int>(
                      std::chrono::system_clock::now().time_since_epoch().count())) {
   std::array<cfg::Config, kSecondEventListSize> config_sublist;
@@ -115,8 +115,9 @@ void ChainKmcOmp::BuildSecondEventList() {
 }
 
 double ChainKmcOmp::CalculateTime() {
-  std::cout << "Start" << std::endl;
+  std::cout << "First" << std::endl;
   BuildFirstEventList();
+  std::cout << "Second" << std::endl;
   BuildSecondEventList();
   std::cout << "Done " << std::endl;
   double beta_bar_k = 0.0, beta_k = 0.0, gamma_bar_k_j = 0.0, gamma_k_j = 0.0,
