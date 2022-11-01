@@ -6,22 +6,19 @@ VacancyMigrationPredictorQuarticLru::VacancyMigrationPredictorQuarticLru(const s
                                                                          const std::set<Element> &element_set,
                                                                          size_t cache_size)
     : VacancyMigrationPredictorQuartic(predictor_filename, reference_config, element_set),
-      cache_size_(cache_size) {}
+      lru_cache_(cache_size) {}
 VacancyMigrationPredictorQuarticLru::~VacancyMigrationPredictorQuarticLru() = default;
 std::pair<double, double> VacancyMigrationPredictorQuarticLru::GetBarrierAndDiffFromLatticeIdPair(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
-  auto hash_value = GetHashFromConfigAndLatticeIdPair(config, lattice_id_jump_pair);
+  auto key = GetHashFromConfigAndLatticeIdPair(config, lattice_id_jump_pair);
   std::pair<double, double> value;
-  std::lock_guard<std::mutex> lock(mu_);
-  auto it = hashmap_.find(hash_value);
-  if (it == hashmap_.end()) {
-    value = VacancyMigrationPredictorQuartic::GetBarrierAndDiffFromLatticeIdPair(config,
-                                                                                 lattice_id_jump_pair);
-    Add(hash_value, value);
+  if (lru_cache_.Exist(key)) {
+    value = lru_cache_.Get(key);
   } else {
-    cache_list_.splice(cache_list_.begin(), cache_list_, it->second);
-    value = it->second->second;
+    value = VacancyMigrationPredictorQuartic::GetBarrierAndDiffFromLatticeIdPair(
+        config, lattice_id_jump_pair);
+    lru_cache_.Add(key, value);
   }
   return value;
 }
@@ -44,18 +41,4 @@ size_t VacancyMigrationPredictorQuarticLru::GetHashFromConfigAndLatticeIdPair(
   }
   return seed;
 }
-void VacancyMigrationPredictorQuarticLru::Add(size_t key, std::pair<double, double> value) const {
-  auto it = hashmap_.find(key);
-  if (it != hashmap_.end()) {
-    cache_list_.erase(it->second);
-  }
-  cache_list_.push_front(std::make_pair(key, std::move(value)));
-  hashmap_[key] = cache_list_.begin();
-  if (hashmap_.size() > cache_size_) {
-    auto last = cache_list_.rbegin()->first;
-    cache_list_.pop_back();
-    hashmap_.erase(last);
-  }
-}
-
 } // namespace pred
