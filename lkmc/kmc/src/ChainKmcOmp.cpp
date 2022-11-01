@@ -115,9 +115,10 @@ void ChainKmcOmp::BuildSecondEventList() {
 }
 
 double ChainKmcOmp::CalculateTime() {
+  std::cout << "Start" << std::endl;
   BuildFirstEventList();
   BuildSecondEventList();
-  std::cout << "Here " << std::endl;
+  std::cout << "Done " << std::endl;
   double beta_bar_k = 0.0, beta_k = 0.0, gamma_bar_k_j = 0.0, gamma_k_j = 0.0,
       beta_k_j = 0.0, alpha_k_j = 0.0;
   std::array<double, kFirstEventListSize> beta_bar_k_i_list{}, beta_k_i_list{};
