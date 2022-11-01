@@ -61,7 +61,7 @@ void ChainKmcOmp::BuildFirstEventList() {
   const auto &config = config_list_[0];
   const auto &i_indexes = config.GetFirstNeighborsAtomIdVectorOfAtom(vacancy_index_);
 
-#pragma omp parallel for default(none) shared(i_indexes, config, std::cout) reduction(+: total_rate_k)
+#pragma omp parallel for default(none) shared(i_indexes, config) reduction(+: total_rate_k)
   for (size_t it = 0; it < kFirstEventListSize; ++it) {
     const auto i_index = i_indexes[it];
     auto event_k_i = JumpEvent(
@@ -90,9 +90,8 @@ void ChainKmcOmp::BuildFirstEventList() {
 }
 
 void ChainKmcOmp::BuildSecondEventList() {
-#pragma omp parallel for default(none) shared(std::cout)
+#pragma omp parallel for default(none)
   for (size_t it = 0; it < kFirstEventListSize * kSecondEventListSize; ++it) {
-    std::cout << omp_get_thread_num() << " it: " << it << std::endl;
     size_t it1 = it / kSecondEventListSize;
 
     const auto event_k_i = first_event_list_.at(it1);
