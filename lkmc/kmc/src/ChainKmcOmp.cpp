@@ -90,28 +90,29 @@ void ChainKmcOmp::BuildFirstEventList() {
 }
 
 void ChainKmcOmp::BuildSecondEventList() {
-#pragma omp parallel for default(none)
+  std::array<double, kFirstEventListSize> total_rate_i_list{};
+#pragma omp parallel for default(none) shared(total_rate_i_list)
   for (size_t it = 0; it < kFirstEventListSize * kSecondEventListSize; ++it) {
     size_t it1 = it / kSecondEventListSize;
 
     const auto event_k_i = first_event_list_.at(it1);
-    auto &config = config_list_[it];
+    auto &config = config_list_.at(it);
     config.AtomJump(event_k_i.GetAtomIdJumpPair());
-    const auto l_index = l_index_list_[it];
+    const auto l_index = l_index_list_.at(it);
     auto event_i_l = JumpEvent(
         {vacancy_index_, l_index},
-        energy_predictor_.GetBarrierAndDiffFromAtomIdPair(config,
-                                                          {vacancy_index_,
-                                                           l_index}),
+        energy_predictor_.GetBarrierAndDiffFromAtomIdPair(
+            config, {vacancy_index_, l_index}),
         beta_);
     config.AtomJump(event_k_i.GetAtomIdJumpPair());
     // get sum r_{k to l}
     auto r_i_l = event_i_l.GetForwardRate();
 #pragma omp critical
     {
-      total_rate_i_list_[it1] += r_i_l;
+      total_rate_i_list.at(it1) += r_i_l;
     }
   }
+  total_rate_i_list_ = total_rate_i_list;
 }
 
 double ChainKmcOmp::CalculateTime() {
@@ -127,7 +128,7 @@ double ChainKmcOmp::CalculateTime() {
   for (size_t it = 0; it < kFirstEventListSize; ++it) {
     const auto &event_k_i = first_event_list_.at(it);
     const auto probability_k_i = event_k_i.GetProbability();
-    const auto probability_i_k = event_k_i.GetBackwardRate() / total_rate_i_list_[it];
+    const auto probability_i_k = event_k_i.GetBackwardRate() / total_rate_i_list_.at(it);
 
     const auto beta_bar_k_i = probability_k_i * probability_i_k;
     const auto beta_k_i = probability_k_i * (1 - probability_i_k);
@@ -177,7 +178,7 @@ double ChainKmcOmp::CalculateTime() {
   double ts_numerator = 0.0, ts_j_numerator = 0.0;
   for (size_t it = 0; it < kFirstEventListSize; ++it) {
     const auto &event_k_i = first_event_list_.at(it);
-    const auto total_rate_i = total_rate_i_list_[it];
+    const auto total_rate_i = total_rate_i_list_.at(it);
     double t_i = 1 / total_rate_i / kPrefactor;
     double ts_numerator_helper = (t + t_i) * beta_bar_k_i_list[it];
     ts_numerator += ts_numerator_helper;
