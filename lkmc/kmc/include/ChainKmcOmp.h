@@ -61,7 +61,7 @@ class ChainKmcOmp {
     size_t previous_j_;
 
     std::array<JumpEvent, kFirstEventListSize> first_event_list_{};
-    const pred::VacancyMigrationPredictorQuarticLru energy_predictor_;
+    const pred::VacancyMigrationPredictorQuartic energy_predictor_;
     mutable std::mt19937_64 generator_;
 };
 
