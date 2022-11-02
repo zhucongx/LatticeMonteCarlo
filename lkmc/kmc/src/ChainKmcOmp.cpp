@@ -4,8 +4,6 @@
 #include <chrono>
 #include <utility>
 namespace kmc {
-// Todo function GetBarrierAndDiffFromAtomIdPair() is not thread safe
-
 //  j -> k -> i ->l
 //       |
 // current position
