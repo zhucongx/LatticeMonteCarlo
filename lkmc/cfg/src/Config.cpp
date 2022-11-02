@@ -305,12 +305,14 @@ Config Config::ReadCfg(const std::string &filename) {
   }
 
   if (neighbor_found) {
+    std::cout << "Using neighbor information from file..." << std::endl;
     Config config(basis, lattice_vector, atom_vector, false);
     config.first_neighbors_adjacency_list_ = first_neighbors_adjacency_list;
     config.second_neighbors_adjacency_list_ = second_neighbors_adjacency_list;
     config.third_neighbors_adjacency_list_ = third_neighbors_adjacency_list;
     return config;
   } else {
+    std::cout << "Updating neighbor list..." << std::endl;
     return Config{basis, lattice_vector, atom_vector, true};
   }
 }
