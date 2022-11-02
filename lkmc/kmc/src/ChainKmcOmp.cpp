@@ -121,7 +121,8 @@ double ChainKmcOmp::CalculateTime() {
   for (size_t it = 0; it < kFirstEventListSize; ++it) {
     const auto &event_k_i = first_event_list_.at(it);
     const auto probability_k_i = event_k_i.GetProbability();
-    const auto probability_i_k = event_k_i.GetBackwardRate() / total_rate_i_list_.at(it);
+    const auto r_i_k = event_k_i.GetBackwardRate();
+    const auto probability_i_k = r_i_k / (r_i_k + total_rate_i_list_.at(it));
 
     const auto beta_bar_k_i = probability_k_i * probability_i_k;
     const auto beta_k_i = probability_k_i * (1 - probability_i_k);
