@@ -76,10 +76,11 @@ void ChainKmcOmp::BuildFirstEventList() {
     first_event_list_.at(it) = std::move(event_k_i);
     // update l_index_list_
     size_t ii = 0;
-
     for (const auto l_index: config.GetFirstNeighborsAtomIdVectorOfAtom(i_index)) {
+      if (l_index == vacancy_index_) {
+        continue;
+      }
       l_index_list_[it * kSecondEventListSize + ii] = l_index;
-      if (l_index == vacancy_index_) { continue; }
       ++ii;
     }
   }
@@ -90,8 +91,7 @@ void ChainKmcOmp::BuildFirstEventList() {
 }
 
 void ChainKmcOmp::BuildSecondEventList() {
-  std::array<double, kFirstEventListSize> total_rate_i_list{};
-#pragma omp parallel for default(none) shared(total_rate_i_list)
+#pragma omp parallel for default(none)
   for (size_t it = 0; it < kFirstEventListSize * kSecondEventListSize; ++it) {
     size_t it1 = it / kSecondEventListSize;
 
@@ -99,28 +99,23 @@ void ChainKmcOmp::BuildSecondEventList() {
     auto &config = config_list_.at(it);
     config.AtomJump(event_k_i.GetAtomIdJumpPair());
     const auto l_index = l_index_list_.at(it);
-    auto event_i_l = JumpEvent(
-        {vacancy_index_, l_index},
-        energy_predictor_.GetBarrierAndDiffFromAtomIdPair(
-            config, {vacancy_index_, l_index}),
-        beta_);
+    JumpEvent event_i_l({vacancy_index_, l_index},
+                        energy_predictor_.GetBarrierAndDiffFromAtomIdPair(
+                            config, {vacancy_index_, l_index}),
+                        beta_);
     config.AtomJump(event_k_i.GetAtomIdJumpPair());
     // get sum r_{k to l}
     auto r_i_l = event_i_l.GetForwardRate();
 #pragma omp critical
     {
-      total_rate_i_list.at(it1) += r_i_l;
+      total_rate_i_list_.at(it1) += r_i_l;
     }
   }
-  total_rate_i_list_ = total_rate_i_list;
 }
 
 double ChainKmcOmp::CalculateTime() {
-  std::cout << "First" << std::endl;
   BuildFirstEventList();
-  std::cout << "Second" << std::endl;
   BuildSecondEventList();
-  std::cout << "Done " << std::endl;
   double beta_bar_k = 0.0, beta_k = 0.0, gamma_bar_k_j = 0.0, gamma_k_j = 0.0,
       beta_k_j = 0.0, alpha_k_j = 0.0;
   std::array<double, kFirstEventListSize> beta_bar_k_i_list{}, beta_k_i_list{};
