@@ -9,13 +9,13 @@ namespace pred {
 template<class T>
 class LruCache {
   public:
-    LruCache(size_t capacity) : capacity_(capacity) {}
+    explicit LruCache(size_t capacity) : capacity_(capacity) {}
     bool Exist(size_t key) {
-      std::scoped_lock<std::shared_mutex> lock(mu_);
+      std::shared_lock<std::shared_mutex> lock(mu_);
       return (cache_hashmap_.find(key) != cache_hashmap_.end());
     }
     void Add(size_t key, const T &value) {
-      std::scoped_lock<std::shared_mutex> lock(mu_);
+      std::unique_lock<std::shared_mutex> lock(mu_);
       auto it = cache_hashmap_.find(key);
       if (it != cache_hashmap_.end()) {
         cache_list_.erase(it->second);
@@ -29,7 +29,7 @@ class LruCache {
       }
     }
     T Get(size_t key) {
-      std::scoped_lock<std::shared_mutex> lock(mu_);
+      std::shared_lock<std::shared_mutex> lock(mu_);
       auto it = cache_hashmap_.find(key);
       if (it == cache_hashmap_.end()) {
         throw std::runtime_error("LRUCache::Get() : key not found");
