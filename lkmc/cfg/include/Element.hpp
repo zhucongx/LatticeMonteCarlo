@@ -103,7 +103,7 @@ class Element {
       }
     }
   private:
-    ElementName element_name_{};
+    ElementName element_name_;
 };
 
 #endif //LKMC_LKMC_CFG_INCLUDE_ELEMENT_HPP_
