@@ -12,9 +12,12 @@ int main(int argc, char *argv[]) {
   if (parameter.method == "FirstKmc") {
     auto first_kmc = api::BuildFirstKmcMpiFromParameter(parameter);
     first_kmc.Simulate();
-  } else if (parameter.method == "ChainKmc") {
-    auto chain_kmc = api::BuildChainKmcOmpFromParameter(parameter);
-    chain_kmc.Simulate();
+  } else if (parameter.method == "ChainKmcOmp") {
+    auto chain_kmc_omp = api::BuildChainKmcOmpFromParameter(parameter);
+    chain_kmc_omp.Simulate();
+  } else if (parameter.method == "ChainKmcMpi") {
+    auto chain_kmc_mpi = api::BuildChainKmcMpiFromParameter(parameter);
+    chain_kmc_mpi.Simulate();
   } else if (parameter.method == "FindCluster") {
     auto iterator = api::BuildIteratorFromParameter(parameter);
     iterator.RunCluster();

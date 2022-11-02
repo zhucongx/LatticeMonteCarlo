@@ -35,10 +35,6 @@ class LruCache {
       return true;
     }
   private:
-    // bool Exist(K key) {
-    //   std::shared_lock<std::shared_mutex> lock(mu_);
-    //   return (cache_hashmap_.find(key) != cache_hashmap_.end());
-    // }
     size_t capacity_;
     // cache list of key and value
     std::list<std::pair<K, V> > cache_list_{};
