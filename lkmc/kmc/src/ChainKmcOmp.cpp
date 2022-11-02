@@ -27,7 +27,7 @@ ChainKmcOmp::ChainKmcOmp(const cfg::Config &config,
       vacancy_index_(cfg::GetVacancyAtomIndex(config)),
       previous_j_(config.GetFirstNeighborsAtomIdVectorOfAtom(vacancy_index_)[0]),
       energy_predictor_(json_parameters_filename,
-                        config, type_set, 3000),
+                        config, type_set, 100000),
       generator_(static_cast<unsigned long long int>(
                      std::chrono::system_clock::now().time_since_epoch().count())) {
   std::array<cfg::Config, kSecondEventListSize> config_sublist;
