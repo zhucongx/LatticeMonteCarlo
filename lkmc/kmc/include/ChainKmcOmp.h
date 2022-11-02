@@ -31,8 +31,8 @@ class ChainKmcOmp {
     size_t SelectEvent() const;
 
     // constants
-    static constexpr size_t kFirstEventListSize = 12;
-    static constexpr size_t kSecondEventListSize = 11;
+    static constexpr size_t kFirstEventListSize = constants::kNumFirstNearestNeighbors;
+    static constexpr size_t kSecondEventListSize = kFirstEventListSize - 1;
 
     // simulation parameters
     const unsigned long long int log_dump_steps_;

@@ -34,7 +34,7 @@ class ChainKmcMpi {
 
     // constants
     static constexpr size_t kFirstEventListSize = constants::kNumFirstNearestNeighbors;
-    static constexpr size_t kSecondEventListSize = 11;
+    static constexpr size_t kSecondEventListSize = kFirstEventListSize - 1;
 
     // simulation parameters
     cfg::Config config_;
