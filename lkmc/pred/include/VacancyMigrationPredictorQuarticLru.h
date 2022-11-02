@@ -16,7 +16,7 @@ class LruCache {
       if (it != cache_hashmap_.end()) {
         cache_list_.erase(it->second);
       }
-      cache_list_.push_front(std::make_pair(key, std::move(value)));
+      cache_list_.push_front(std::make_pair(key, value));
       cache_hashmap_[key] = cache_list_.begin();
       if (cache_hashmap_.size() > capacity_) {
         auto last = cache_list_.rbegin()->first;
