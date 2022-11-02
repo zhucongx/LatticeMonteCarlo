@@ -18,6 +18,9 @@ int main(int argc, char *argv[]) {
   } else if (parameter.method == "ChainKmcMpi") {
     auto chain_kmc_mpi = api::BuildChainKmcMpiFromParameter(parameter);
     chain_kmc_mpi.Simulate();
+  } else if (parameter.method == "ChainKmcOmpi") {
+    auto chain_kmc_ompi = api::BuildChainKmcOmpiFromParameter(parameter);
+    chain_kmc_ompi.Simulate();
   } else if (parameter.method == "FindCluster") {
     auto iterator = api::BuildIteratorFromParameter(parameter);
     iterator.RunCluster();

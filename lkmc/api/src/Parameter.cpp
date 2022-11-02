@@ -65,9 +65,9 @@ void Parameter::ReadParam(const std::string &param_filename) {
       increment_steps_ = stoull(segs[1]);
     } else if (segs[0] == "smallest_cluster_criteria") {
       smallest_cluster_criteria_ = stoul(segs[1]);
-    } else if (segs[0] == "solvent_bond_criteria")  {
+    } else if (segs[0] == "solvent_bond_criteria") {
       solvent_bond_criteria_ = stoul(segs[1]);
-    }  else if (segs[0] == "restart_steps") {
+    } else if (segs[0] == "restart_steps") {
       restart_steps_ = stoull(segs[1]);
     } else if (segs[0] == "restart_energy") {
       restart_energy_ = stod(segs[1]);
@@ -96,7 +96,8 @@ void Parameter::ReadParam(const std::string &param_filename) {
 void Parameter::PrintParameters() const {
   std::cout << "Parameters" << std::endl;
   std::cout << "simulation_method: " << method << std::endl;
-  if (method == "FirstKmc" || method == "ChainKmcOmp" || method == "ChainKmcMpi") {
+  if (method == "FirstKmc" || method == "ChainKmcOmp" || method == "ChainKmcMpi"
+      || method == "ChainKmcMpiOmp") {
     std::cout << "json_coefficients_filename: " << json_coefficients_filename_ << std::endl;
     std::cout << "config_filename: " << config_filename_ << std::endl;
     std::cout << "map_filename: " << map_filename_ << std::endl;
