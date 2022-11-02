@@ -121,8 +121,7 @@ double ChainKmcOmp::CalculateTime() {
   for (size_t it = 0; it < kFirstEventListSize; ++it) {
     const auto &event_k_i = first_event_list_.at(it);
     const auto probability_k_i = event_k_i.GetProbability();
-    const auto r_i_k = event_k_i.GetBackwardRate();
-    const auto probability_i_k = r_i_k / (r_i_k + total_rate_i_list_.at(it));
+    const auto probability_i_k = event_k_i.GetBackwardRate() / total_rate_i_list_.at(it);
 
     const auto beta_bar_k_i = probability_k_i * probability_i_k;
     const auto beta_k_i = probability_k_i * (1 - probability_i_k);
@@ -145,7 +144,6 @@ double ChainKmcOmp::CalculateTime() {
     beta_k_j += beta_k_j_helper;
     alpha_k_j += alpha_k_j_helper;
   }
-
   const double one_over_one_minus_a_j = 1 / (1 - alpha_k_j);
 
   const double
@@ -153,7 +151,6 @@ double ChainKmcOmp::CalculateTime() {
   for (size_t it = 0; it < kFirstEventListSize; ++it) {
     auto &event_k_i = first_event_list_.at(it);
     const auto beta_k_i = beta_k_i_list[it];
-
     const double
         indirect_probability_k_i = one_over_one_minus_a_j * (1 + gamma_bar_k_j / beta_k) * beta_k_i;
     if (event_k_i.GetAtomIdJumpPair().second == previous_j_) {
@@ -180,7 +177,7 @@ double ChainKmcOmp::CalculateTime() {
     if (event_k_i.GetAtomIdJumpPair().second == previous_j_) {
       ts_numerator_helper = 0;
     }
-    ts_j_numerator += ts_numerator;
+    ts_j_numerator += ts_numerator_helper;
   }
   double ts = ts_numerator / beta_bar_k;
   double ts_j = ts_j_numerator / gamma_bar_k_j;
