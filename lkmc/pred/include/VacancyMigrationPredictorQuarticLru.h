@@ -6,15 +6,11 @@
 #include <shared_mutex>
 namespace pred {
 
-template<class T>
+template<typename K, class V>
 class LruCache {
   public:
     explicit LruCache(size_t capacity) : capacity_(capacity) {}
-    bool Exist(size_t key) {
-      std::shared_lock<std::shared_mutex> lock(mu_);
-      return (cache_hashmap_.find(key) != cache_hashmap_.end());
-    }
-    void Add(size_t key, const T &value) {
+    void Add(const K key, const V &value) {
       std::unique_lock<std::shared_mutex> lock(mu_);
       auto it = cache_hashmap_.find(key);
       if (it != cache_hashmap_.end()) {
@@ -28,21 +24,26 @@ class LruCache {
         cache_hashmap_.erase(last);
       }
     }
-    T Get(size_t key) {
+    bool Get(K key, V &value) {
       std::shared_lock<std::shared_mutex> lock(mu_);
       auto it = cache_hashmap_.find(key);
       if (it == cache_hashmap_.end()) {
-        throw std::runtime_error("LRUCache::Get() : key not found");
+        return false;
       }
       cache_list_.splice(cache_list_.begin(), cache_list_, it->second);
-      return it->second->second;
+      value = it->second->second;
+      return true;
     }
   private:
+    // bool Exist(K key) {
+    //   std::shared_lock<std::shared_mutex> lock(mu_);
+    //   return (cache_hashmap_.find(key) != cache_hashmap_.end());
+    // }
     size_t capacity_;
     // cache list of key and value
-    std::list<std::pair<size_t, T>> cache_list_{};
+    std::list<std::pair<K, V> > cache_list_{};
     // hashmap of key and iterator of cache list
-    std::unordered_map<size_t, decltype(cache_list_.begin()) > cache_hashmap_{};
+    std::unordered_map<K, decltype(cache_list_.begin())> cache_hashmap_{};
     std::shared_mutex mu_;
 };
 
@@ -60,7 +61,7 @@ class VacancyMigrationPredictorQuarticLru : public VacancyMigrationPredictorQuar
     [[nodiscard]] size_t GetHashFromConfigAndLatticeIdPair(
         const cfg::Config &config,
         const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
-    mutable LruCache<std::pair<double, double>> lru_cache_;
+    mutable LruCache<size_t, std::pair<double, double> > lru_cache_;
 };
 } // namespace pred
 

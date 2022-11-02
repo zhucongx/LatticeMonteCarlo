@@ -13,8 +13,8 @@ std::pair<double, double> VacancyMigrationPredictorQuarticLru::GetBarrierAndDiff
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
   auto key = GetHashFromConfigAndLatticeIdPair(config, lattice_id_jump_pair);
   std::pair<double, double> value;
-  if (lru_cache_.Exist(key)) {
-    value = lru_cache_.Get(key);
+  if (lru_cache_.Get(key, value)) {
+    return value;
   } else {
     value = VacancyMigrationPredictorQuartic::GetBarrierAndDiffFromLatticeIdPair(
         config, lattice_id_jump_pair);
