@@ -701,7 +701,7 @@ Config GenerateSoluteConfigFromExcitingPure(Config config,
   std::uniform_int_distribution<size_t> dis(0, config.GetNumAtoms() - 1);
 
   size_t selected_lattice_index;
-  for (const auto [solute_atom, count]: solute_atom_count) {
+  for (const auto &[solute_atom, count]: solute_atom_count) {
     for (size_t it = 0; it < count; ++it) {
       size_t ct = 0;
       do {

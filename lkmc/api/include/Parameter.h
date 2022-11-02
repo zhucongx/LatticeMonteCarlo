@@ -9,7 +9,6 @@
 namespace api {
 struct Parameter {
   public:
-    Parameter();
     Parameter(int argc, char *argv[]);
     explicit Parameter(const std::string &param_filename);
 
@@ -22,21 +21,21 @@ struct Parameter {
     // show parameters
     void PrintParameters() const;
 
-    std::string parameters_filename;
-    std::string method;
+    std::string parameters_filename{};
+    std::string method{};
 
-    std::string config_filename_;
-    std::string map_filename_;
-    std::string json_coefficients_filename_;
-    std::string log_type_;
-    std::string config_type_;
+    std::string config_filename_{};
+    std::string map_filename_{};
+    std::string json_coefficients_filename_{};
+    std::string log_type_{};
+    std::string config_type_{};
     unsigned long long int log_dump_steps_{};
     unsigned long long int config_dump_steps_{};
     unsigned long long int maximum_steps_{};
     double temperature_{};
     double initial_temperature_{};
     double decrement_temperature_{};
-    std::vector<std::string> element_set_;
+    std::vector<std::string> element_set_{};
     unsigned long long int restart_steps_{};
     double restart_energy_{};
     double restart_time_{};
@@ -47,9 +46,9 @@ struct Parameter {
     size_t solvent_bond_criteria_{};
 
     size_t factor_{};
-    std::string solvent_element_;
-    std::vector<std::string> solute_element_set_;
-    std::vector<size_t> solute_number_set_;
+    std::string solvent_element_{};
+    std::vector<std::string> solute_element_set_{};
+    std::vector<size_t> solute_number_set_{};
     unsigned long long int early_stop_steps_{};
 };
 } // namespace api

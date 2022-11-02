@@ -2,14 +2,11 @@
 #include "Home.h"
 #include "EnergyChangePredictorFaster.h"
 int main(int argc, char *argv[]) {
-  api::Parameter parameter;
   if (argc == 1) {
     std::cout << "No input parameter filename." << std::endl;
     return 1;
-  } else {
-    parameter = api::Parameter(argc, argv);
   }
-
+  api::Parameter parameter(argc, argv);
   parameter.PrintParameters();
 
   if (parameter.method == "FirstKmc") {

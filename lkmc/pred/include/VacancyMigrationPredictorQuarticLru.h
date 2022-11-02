@@ -25,7 +25,7 @@ class LruCache {
       }
     }
     bool Get(K key, V &value) {
-      std::shared_lock<std::shared_mutex> lock(mu_);
+      std::unique_lock<std::shared_mutex> lock(mu_);
       auto it = cache_hashmap_.find(key);
       if (it == cache_hashmap_.end()) {
         return false;

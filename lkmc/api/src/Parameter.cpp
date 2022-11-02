@@ -1,8 +1,8 @@
 #include "Parameter.h"
-#include "Utility.h"
+#include <algorithm>
 
+#include "Utility.h"
 namespace api {
-Parameter::Parameter() = default;
 Parameter::Parameter(int argc, char *argv[]) {
   ParseArgs(argc, argv);
   ReadParam(parameters_filename);
