@@ -35,7 +35,7 @@ ChainKmcMpi::ChainKmcMpi(cfg::Config config,
   MPI_Comm_size(MPI_COMM_WORLD, &world_size);
   if (world_size != kFirstEventListSize * kSecondEventListSize) {
     std::cout << "Must use " << kFirstEventListSize * kSecondEventListSize
-              << " precesses. Terminating.\n";
+              << " precesses. Terminating...\n" << std::endl;
     MPI_Finalize();
     exit(0);
   }
