@@ -88,7 +88,7 @@ void ChainKmcMpi::Dump(std::ofstream &ofs) const {
 // Get the energy change and the probability from j to k, pjk by the reference.
 // And return the index of j and k. Only applied to 12 sub-primary processes.
 // And then pass to others, now we will have 12 different numbers for 12 different second groups.
-JumpEvent ChainKmcMpi::GetEventI() {
+JumpEvent ChainKmcMpi::GetFirstEventKI() {
   JumpEvent event_k_i;
   if (first_comm_ != MPI_COMM_NULL) {
     total_rate_k_ = 0;
@@ -137,7 +137,7 @@ std::vector<size_t> ChainKmcMpi::GetLIndexes() {
 }
 double ChainKmcMpi::BuildEventListParallel() {
   // double first_probability, first_energy_change, first_back_rate;
-  auto event_k_i = GetEventI();
+  auto event_k_i = GetFirstEventKI();
   const auto l_indexes = GetLIndexes();
   const auto probability_k_i = event_k_i.GetProbability();
   config_.AtomJump(event_k_i.GetAtomIdJumpPair());
