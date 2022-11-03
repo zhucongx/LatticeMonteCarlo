@@ -89,27 +89,27 @@ void ChainKmcMpi::Dump(std::ofstream &ofs) const {
 // And return the index of j and k. Only applied to 12 sub-primary processes.
 // And then pass to others, now we will have 12 different numbers for 12 different second groups.
 JumpEvent ChainKmcMpi::GetEventI() {
-  JumpEvent event_i;
+  JumpEvent event_k_i;
   if (first_comm_ != MPI_COMM_NULL) {
     total_rate_k_ = 0;
 
     const auto i_index = config_.GetFirstNeighborsAtomIdVectorOfAtom(
         vacancy_index_)[static_cast<size_t>(first_group_rank_)];
 
-    event_i = JumpEvent(
+    event_k_i = JumpEvent(
         {vacancy_index_, i_index},
         energy_predictor_.GetBarrierAndDiffFromAtomIdPair(config_,
                                                           {vacancy_index_, i_index}),
         beta_);
 
-    const double first_rate = event_i.GetForwardRate();
+    const double first_rate = event_k_i.GetForwardRate();
     MPI_Allreduce(&first_rate, &total_rate_k_, 1, MPI_DOUBLE, MPI_SUM, first_comm_);
-    event_i.CalculateProbability(total_rate_k_);
+    event_k_i.CalculateProbability(total_rate_k_);
 // MPI_Allgather(&first_probability_, 1, MPI_DOUBLE, probability_list_.data(), 1, MPI_DOUBLE, first_comm_);
   }
 
-  MPI_Bcast(&event_i, sizeof(JumpEvent), MPI_BYTE, 0, second_comm_);
-  return event_i;
+  MPI_Bcast(&event_k_i, sizeof(JumpEvent), MPI_BYTE, 0, second_comm_);
+  return event_k_i;
 }
 
 // Return the indexed of the corresponding second neighbors
