@@ -48,7 +48,7 @@ class FirstKmcMpi {
 
     // helpful properties
     double total_rate_{0.0};
-    int mpi_rank_{-1};
+    int world_rank_{-1};
     std::pair<size_t, size_t> atom_id_jump_pair_;
 
     std::vector<JumpEvent> event_list_{};

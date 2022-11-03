@@ -27,7 +27,7 @@ FirstKmcMpi::FirstKmcMpi(cfg::Config config,
                      std::chrono::system_clock::now().time_since_epoch().count())) {
   event_list_.resize(kEventListSize);
   MPI_Init(nullptr, nullptr);
-  MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank_);
+  MPI_Comm_rank(MPI_COMM_WORLD, &world_rank_);
   int mpi_size;
   MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
   if (mpi_size != kEventListSize) {
@@ -35,7 +35,7 @@ FirstKmcMpi::FirstKmcMpi(cfg::Config config,
     MPI_Finalize();
     exit(0);
   }
-  if (mpi_rank_ == 0) {
+  if (world_rank_ == 0) {
     std::cout << "Using " << mpi_size << " processes." << std::endl;
   }
 }
@@ -58,7 +58,7 @@ void FirstKmcMpi::Dump(std::ofstream &ofs) const {
 void FirstKmcMpi::BuildEventListParallel() {
   total_rate_ = 0;
   const auto neighbor_index =
-      config_.GetFirstNeighborsAtomIdVectorOfAtom(vacancy_index_)[static_cast<size_t>(mpi_rank_)];
+      config_.GetFirstNeighborsAtomIdVectorOfAtom(vacancy_index_)[static_cast<size_t>(world_rank_)];
   JumpEvent event
       ({vacancy_index_, neighbor_index},
        energy_predictor_.GetBarrierAndDiffFromAtomIdPair(config_,
@@ -99,19 +99,19 @@ size_t FirstKmcMpi::SelectEvent() const {
 }
 void FirstKmcMpi::Simulate() {
   std::ofstream ofs("kmc_log.txt", std::ofstream::out | std::ofstream::app);
-  if (mpi_rank_ == 0) {
+  if (world_rank_ == 0) {
     ofs << "steps\ttime\tenergy\tEa\tdE\ttype\n";
     ofs.precision(8);
   }
 
   while (steps_ <= maximum_number_) {
-    if (mpi_rank_ == 0) {
+    if (world_rank_ == 0) {
       Dump(ofs);
     }
     MPI_Barrier(MPI_COMM_WORLD);
     BuildEventListParallel();
     JumpEvent selected_event;
-    if (mpi_rank_ == 0) {
+    if (world_rank_ == 0) {
       selected_event = event_list_[SelectEvent()];
     }
     MPI_Bcast(&selected_event, sizeof(JumpEvent), MPI_BYTE, 0, MPI_COMM_WORLD);
