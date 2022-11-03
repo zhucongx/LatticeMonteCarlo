@@ -25,7 +25,7 @@ class FirstKmcMpi {
     [[nodiscard]] size_t SelectEvent() const;
 
     // constants
-    static constexpr size_t kEventListSize = constants::kNumFirstNearestNeighbors;
+    static constexpr size_t kFirstEventListSize = constants::kNumFirstNearestNeighbors;
 
     // simulation parameters
     cfg::Config config_;

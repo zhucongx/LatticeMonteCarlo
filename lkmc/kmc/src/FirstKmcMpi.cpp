@@ -25,13 +25,13 @@ FirstKmcMpi::FirstKmcMpi(cfg::Config config,
                         config_, element_set, 100000),
       generator_(static_cast<unsigned long long int>(
                      std::chrono::system_clock::now().time_since_epoch().count())) {
-  event_list_.resize(kEventListSize);
+  event_list_.resize(kFirstEventListSize);
   MPI_Init(nullptr, nullptr);
   MPI_Comm_rank(MPI_COMM_WORLD, &world_rank_);
   int mpi_size;
   MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-  if (mpi_size != kEventListSize) {
-    std::cout << "Must use " << kEventListSize << " precesses. Terminating.\n";
+  if (mpi_size != kFirstEventListSize) {
+    std::cout << "Must use " << kFirstEventListSize << " precesses. Terminating...\n" << std::endl;
     MPI_Finalize();
     exit(0);
   }
