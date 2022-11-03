@@ -53,8 +53,9 @@ void ChainKmcOmp::Dump(std::ofstream &ofs) const{
 }
 
 // Get the energy change and the probability from j to k, pjk by the reference.
-// Update event list and total rate of k and initial total i list. Only applied to 12 threads.
-void ChainKmcOmp::BuildFirstEventList() {
+// Update event list and total rate of k and initial total i list. And find the indexes for l.
+// Applied to 12 threads.
+void ChainKmcOmp::BuildFirstEventKIListAndLIndexList() {
   double total_rate_k = 0;
   const auto &config = config_list_[0];
   const auto &i_indexes = config.GetFirstNeighborsAtomIdVectorOfAtom(vacancy_index_);
@@ -71,7 +72,7 @@ void ChainKmcOmp::BuildFirstEventList() {
     // initial total rate i list
     total_rate_i_list_.at(it) = event_k_i.GetBackwardRate();
     // initial event list
-    first_event_list_.at(it) = std::move(event_k_i);
+    first_event_ki_list_.at(it) = std::move(event_k_i);
     // update l_index_list_
     size_t ii = 0;
     for (const auto l_index: config.GetFirstNeighborsAtomIdVectorOfAtom(i_index)) {
@@ -83,7 +84,7 @@ void ChainKmcOmp::BuildFirstEventList() {
     }
   }
   total_rate_k_ = total_rate_k;
-  for (auto &event_i: first_event_list_) {
+  for (auto &event_i: first_event_ki_list_) {
     event_i.CalculateProbability(total_rate_k_);
   }
 }
@@ -93,7 +94,7 @@ void ChainKmcOmp::BuildSecondEventList() {
   for (size_t it = 0; it < kFirstEventListSize * kSecondEventListSize; ++it) {
     size_t it1 = it / kSecondEventListSize;
 
-    const auto event_k_i = first_event_list_.at(it1);
+    const auto event_k_i = first_event_ki_list_.at(it1);
     auto &config = config_list_.at(it);
     config.AtomJump(event_k_i.GetAtomIdJumpPair());
     const auto l_index = l_index_list_.at(it);
@@ -112,14 +113,14 @@ void ChainKmcOmp::BuildSecondEventList() {
 }
 
 double ChainKmcOmp::CalculateTime() {
-  BuildFirstEventList();
+  BuildFirstEventKIListAndLIndexList();
   BuildSecondEventList();
   double beta_bar_k = 0.0, beta_k = 0.0, gamma_bar_k_j = 0.0, gamma_k_j = 0.0,
       beta_k_j = 0.0, alpha_k_j = 0.0;
   std::array<double, kFirstEventListSize> beta_bar_k_i_list{}, beta_k_i_list{};
 // #pragma omp parallel for default(none) reduction(+: beta_bar_k, beta_k, gamma_bar_k_j, gamma_k_j, beta_k_j, alpha_k_j)
   for (size_t it = 0; it < kFirstEventListSize; ++it) {
-    const auto &event_k_i = first_event_list_.at(it);
+    const auto &event_k_i = first_event_ki_list_.at(it);
     const auto probability_k_i = event_k_i.GetProbability();
     const auto probability_i_k = event_k_i.GetBackwardRate() / total_rate_i_list_.at(it);
 
@@ -149,7 +150,7 @@ double ChainKmcOmp::CalculateTime() {
   const double
       indirect_probability_k_j = one_over_one_minus_a_j * (gamma_bar_k_j / beta_k) * beta_k_j;
   for (size_t it = 0; it < kFirstEventListSize; ++it) {
-    auto &event_k_i = first_event_list_.at(it);
+    auto &event_k_i = first_event_ki_list_.at(it);
     const auto beta_k_i = beta_k_i_list[it];
     const double
         indirect_probability_k_i = one_over_one_minus_a_j * (1 + gamma_bar_k_j / beta_k) * beta_k_i;
@@ -161,14 +162,14 @@ double ChainKmcOmp::CalculateTime() {
   }
   // calculate relative and cumulative probability
   double cumulative_probability = 0.0;
-  for (auto &event: first_event_list_) {
+  for (auto &event: first_event_ki_list_) {
     cumulative_probability += event.GetProbability();
     event.SetCumulativeProbability(cumulative_probability);
   }
   double t = 1 / total_rate_k_ / kPrefactor;
   double ts_numerator = 0.0, ts_j_numerator = 0.0;
   for (size_t it = 0; it < kFirstEventListSize; ++it) {
-    const auto &event_k_i = first_event_list_.at(it);
+    const auto &event_k_i = first_event_ki_list_.at(it);
     const auto total_rate_i = total_rate_i_list_.at(it);
     double t_i = 1 / total_rate_i / kPrefactor;
     double ts_numerator_helper = (t + t_i) * beta_bar_k_i_list[it];
@@ -189,17 +190,17 @@ double ChainKmcOmp::CalculateTime() {
 size_t ChainKmcOmp::SelectEvent() const {
   static std::uniform_real_distribution<double> distribution(0.0, 1.0);
   const double random_number = distribution(generator_);
-  auto it = std::lower_bound(first_event_list_.begin(),
-                             first_event_list_.end(),
+  auto it = std::lower_bound(first_event_ki_list_.begin(),
+                             first_event_ki_list_.end(),
                              random_number,
                              [](const auto &lhs, double value) {
                                return lhs.GetCumulativeProvability() < value;
                              });
   // If not find (maybe generated 1), which rarely happens, returns the last event
-  if (it == first_event_list_.cend()) {
+  if (it == first_event_ki_list_.cend()) {
     it--;
   }
-  return static_cast<size_t>(std::distance(first_event_list_.begin(), it));
+  return static_cast<size_t>(std::distance(first_event_ki_list_.begin(), it));
 }
 
 void ChainKmcOmp::Simulate() {
@@ -211,7 +212,7 @@ void ChainKmcOmp::Simulate() {
     Dump(ofs);
 
     one_step_time_change_ = CalculateTime();
-    const JumpEvent &selected_event = first_event_list_[SelectEvent()];
+    const JumpEvent &selected_event = first_event_ki_list_[SelectEvent()];
     atom_id_jump_pair_ = selected_event.GetAtomIdJumpPair();
     // update time and energy
     time_ += one_step_time_change_;

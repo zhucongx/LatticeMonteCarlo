@@ -25,7 +25,7 @@ class ChainKmcOmp {
 
   protected:
     inline void Dump(std::ofstream &ofs) const;
-    void BuildFirstEventList();
+    void BuildFirstEventKIListAndLIndexList();
     void BuildSecondEventList();
     double CalculateTime();
     size_t SelectEvent() const;
@@ -60,7 +60,7 @@ class ChainKmcOmp {
     std::pair<size_t, size_t> atom_id_jump_pair_;
     size_t previous_j_;
 
-    std::array<JumpEvent, kFirstEventListSize> first_event_list_{};
+    std::array<JumpEvent, kFirstEventListSize> first_event_ki_list_{};
     const pred::VacancyMigrationPredictorQuarticLru energy_predictor_;
     mutable std::mt19937_64 generator_;
 };
