@@ -24,7 +24,7 @@ class ChainKmcOmp {
     virtual void Simulate();
 
   protected:
-    inline void Dump(std::ofstream &ofs);
+    inline void Dump(std::ofstream &ofs) const;
     void BuildFirstEventList();
     void BuildSecondEventList();
     double CalculateTime();

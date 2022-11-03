@@ -34,11 +34,11 @@ ChainKmcOmp::ChainKmcOmp(const cfg::Config &config,
   config_list_.fill(config);
 #pragma omp parallel master default(none) shared(std::cout)
   {
-    std::cout << "Using upto " << omp_get_num_threads() << " threads." << std::endl;
+    std::cout << "Using " << omp_get_num_threads() << " threads." << std::endl;
   }
 }
 ChainKmcOmp::~ChainKmcOmp() = default;
-void ChainKmcOmp::Dump(std::ofstream &ofs) {
+void ChainKmcOmp::Dump(std::ofstream &ofs) const{
   if (steps_ % log_dump_steps_ == 0) {
     ofs << steps_ << '\t' << time_ << '\t' << energy_ << '\t' << one_step_barrier_ << '\t'
         << one_step_energy_change_ << '\t' << migrating_element_.GetString() << std::endl;
