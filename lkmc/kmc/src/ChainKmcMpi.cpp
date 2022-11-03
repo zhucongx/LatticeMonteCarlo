@@ -27,7 +27,7 @@ ChainKmcMpi::ChainKmcMpi(cfg::Config config,
                         config_, element_set, 100000),
       generator_(static_cast<unsigned long long int>(
                      std::chrono::system_clock::now().time_since_epoch().count())) {
-  event_list_.resize(kFirstEventListSize);
+  event_k_i_list_.resize(kFirstEventListSize);
 
   MPI_Init(nullptr, nullptr);
   MPI_Comm_rank(MPI_COMM_WORLD, &world_rank_);
@@ -113,7 +113,7 @@ JumpEvent ChainKmcMpi::GetFirstEventKI() {
 }
 
 // Return the indexed of the corresponding second neighbors
-std::vector<size_t> ChainKmcMpi::GetLIndexes() {
+std::vector<size_t> ChainKmcMpi::GetLIndexList() {
   std::vector<size_t> l_indexes;
   l_indexes.reserve(kSecondEventListSize);
   if (first_comm_ != MPI_COMM_NULL) {
@@ -135,14 +135,14 @@ std::vector<size_t> ChainKmcMpi::GetLIndexes() {
             second_comm_);
   return l_indexes;
 }
-double ChainKmcMpi::BuildEventListParallel() {
+double ChainKmcMpi::BuildEventILList() {
   // double first_probability, first_energy_change, first_back_rate;
   auto event_k_i = GetFirstEventKI();
-  const auto l_indexes = GetLIndexes();
+  const auto l_index_list = GetLIndexList();
   const auto probability_k_i = event_k_i.GetProbability();
   config_.AtomJump(event_k_i.GetAtomIdJumpPair());
   total_rate_i_ = 0.0;
-  const auto l_index = l_indexes[static_cast<size_t>(second_group_rank_)];
+  const auto l_index = l_index_list[static_cast<size_t>(second_group_rank_)];
   JumpEvent event_i_l
       ({vacancy_index_, l_index},
        energy_predictor_.GetBarrierAndDiffFromAtomIdPair(config_,
@@ -165,7 +165,6 @@ double ChainKmcMpi::BuildEventListParallel() {
         alpha_k_j = 0.0;
 
     MPI_Allreduce(&beta_bar_k_i, &beta_bar_k, 1, MPI_DOUBLE, MPI_SUM, first_comm_);
-    // MPI_Allreduce(&beta_k_i, &beta_k, 1, MPI_DOUBLE, MPI_SUM, first_comm_);
     beta_k = 1 - beta_bar_k;
     double gamma_bar_k_j_helper = 0.0, gamma_k_j_helper = 0.0, beta_k_j_helper = 0.0,
         alpha_k_j_helper = 0.0;
@@ -194,14 +193,14 @@ double ChainKmcMpi::BuildEventListParallel() {
     MPI_Allgather(&event_k_i,
                   sizeof(JumpEvent),
                   MPI_BYTE,
-                  event_list_.data(),
+                  event_k_i_list_.data(),
                   sizeof(JumpEvent),
                   MPI_BYTE,
                   first_comm_);
 
     // calculate relative and cumulative probability
     double cumulative_probability = 0.0;
-    for (auto &event: event_list_) {
+    for (auto &event: event_k_i_list_) {
       cumulative_probability += event.GetProbability();
       event.SetCumulativeProbability(cumulative_probability);
     }
@@ -229,17 +228,17 @@ size_t ChainKmcMpi::SelectEvent() const {
   static std::uniform_real_distribution<double> distribution(0.0, 1.0);
 
   const double random_number = distribution(generator_);
-  auto it = std::lower_bound(event_list_.begin(),
-                             event_list_.end(),
+  auto it = std::lower_bound(event_k_i_list_.begin(),
+                             event_k_i_list_.end(),
                              random_number,
                              [](const auto &lhs, double value) {
                                return lhs.GetCumulativeProvability() < value;
                              });
   // If not find (maybe generated 1), which rarely happens, returns the last event
-  if (it == event_list_.cend()) {
+  if (it == event_k_i_list_.cend()) {
     it--;
   }
-  return static_cast<size_t>(std::distance(event_list_.begin(), it));
+  return static_cast<size_t>(std::distance(event_k_i_list_.begin(), it));
 }
 
 void ChainKmcMpi::Simulate() {
@@ -255,10 +254,10 @@ void ChainKmcMpi::Simulate() {
     }
     MPI_Barrier(MPI_COMM_WORLD);
 
-    one_step_time_change_ = BuildEventListParallel();
+    one_step_time_change_ = BuildEventILList();
     JumpEvent selected_event;
     if (world_rank_ == 0) {
-      selected_event = event_list_[SelectEvent()];
+      selected_event = event_k_i_list_[SelectEvent()];
     }
     MPI_Bcast(&selected_event, sizeof(JumpEvent), MPI_BYTE, 0, MPI_COMM_WORLD);
 

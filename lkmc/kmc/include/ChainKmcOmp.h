@@ -25,14 +25,17 @@ class ChainKmcOmp {
 
   protected:
     inline void Dump(std::ofstream &ofs) const;
-    void BuildFirstEventKIListAndLIndexList();
-    void BuildSecondEventList();
+    void BuildEventKIListAndLIndexList();
+    void BuildTotalRateIList();
     double CalculateTime();
     size_t SelectEvent() const;
 
     // constants
     static constexpr size_t kFirstEventListSize = constants::kNumFirstNearestNeighbors;
     static constexpr size_t kSecondEventListSize = kFirstEventListSize - 1;
+
+    // config
+    std::array<cfg::Config, kFirstEventListSize * kSecondEventListSize> config_list_;
 
     // simulation parameters
     const unsigned long long int log_dump_steps_;
@@ -53,14 +56,15 @@ class ChainKmcOmp {
     Element migrating_element_{};
 
     // helpful properties
-    std::array<cfg::Config, kFirstEventListSize * kSecondEventListSize> config_list_;
+    double total_rate_k_{0.0};
     std::array<double, kFirstEventListSize> total_rate_i_list_{};
     std::array<size_t, kFirstEventListSize * kSecondEventListSize> l_index_list_{};
-    double total_rate_k_{0.0};
+    std::array<JumpEvent, kFirstEventListSize> event_k_i_list_{};
+
     std::pair<size_t, size_t> atom_id_jump_pair_;
     size_t previous_j_;
 
-    std::array<JumpEvent, kFirstEventListSize> first_event_ki_list_{};
+
     const pred::VacancyMigrationPredictorQuarticLru energy_predictor_;
     mutable std::mt19937_64 generator_;
 };
