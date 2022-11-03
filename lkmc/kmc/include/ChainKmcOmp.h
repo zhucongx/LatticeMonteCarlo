@@ -19,7 +19,7 @@ class ChainKmcOmp {
                 unsigned long long int restart_steps,
                 double restart_energy,
                 double restart_time,
-                const std::string &json_parameters_filename);
+                const std::string &json_coefficients_filename);
     virtual ~ChainKmcOmp();
     virtual void Simulate();
 

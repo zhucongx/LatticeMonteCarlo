@@ -12,11 +12,11 @@ ChainKmcOmp::ChainKmcOmp(const cfg::Config &config,
                          unsigned long long int config_dump_steps,
                          unsigned long long int maximum_number,
                          double temperature,
-                         const std::set<Element> &type_set,
+                         const std::set<Element> &element_set,
                          unsigned long long int restart_steps,
                          double restart_energy,
                          double restart_time,
-                         const std::string &json_parameters_filename)
+                         const std::string &json_coefficients_filename)
     : log_dump_steps_(log_dump_steps),
       config_dump_steps_(config_dump_steps),
       maximum_number_(maximum_number),
@@ -26,8 +26,8 @@ ChainKmcOmp::ChainKmcOmp(const cfg::Config &config,
       time_(restart_time),
       vacancy_index_(cfg::GetVacancyAtomIndex(config)),
       previous_j_(config.GetFirstNeighborsAtomIdVectorOfAtom(vacancy_index_)[0]),
-      energy_predictor_(json_parameters_filename,
-                        config, type_set, 100000),
+      energy_predictor_(json_coefficients_filename,
+                        config, element_set, 100000),
       generator_(static_cast<unsigned long long int>(
                      std::chrono::system_clock::now().time_since_epoch().count())) {
   std::array<cfg::Config, kSecondEventListSize> config_sublist;
