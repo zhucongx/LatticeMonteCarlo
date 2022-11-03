@@ -138,18 +138,18 @@ void ChainKmcOmpi::BuildFirstEventKIListAndLIndexList() {
 }
 void ChainKmcOmpi::BuildTotalRateI() {
   total_rate_i_ = event_k_i_.GetBackwardRate();
+  config_.AtomJump(event_k_i_.GetAtomIdJumpPair());
 #pragma omp parallel for default(none) reduction(+:total_rate_i_)
   for (size_t ii = 0; ii < kSecondEventListSize; ++ii) {
-    config_.AtomJump(event_k_i_.GetAtomIdJumpPair());
     const auto l_index = l_index_list_[ii];
     JumpEvent event_i_l({vacancy_index_, l_index},
                         energy_predictor_.GetBarrierAndDiffFromAtomIdPair(
                             config_, {vacancy_index_, l_index}),
                         beta_);
-    config_.AtomJump(event_k_i_.GetAtomIdJumpPair());
     auto r_i_l = event_i_l.GetForwardRate();
     total_rate_i_ += r_i_l;
   }
+  config_.AtomJump(event_k_i_.GetAtomIdJumpPair());
 }
 
 void ChainKmcOmpi::UpdateIndirectProbability() {
