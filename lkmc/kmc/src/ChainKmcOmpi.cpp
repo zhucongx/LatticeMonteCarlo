@@ -69,10 +69,10 @@ ChainKmcOmpi::ChainKmcOmpi(cfg::Config config,
       steps_(restart_steps),
       energy_(restart_energy),
       time_(restart_time),
-      vacancy_index_(cfg::GetVacancyAtomIndex(config)),
+      vacancy_index_(cfg::GetVacancyAtomIndex(config_)),
       previous_j_(config_.GetFirstNeighborsAtomIdVectorOfAtom(vacancy_index_)[0]),
       energy_predictor_(json_coefficients_filename,
-                        config, element_set, 100000),
+                        config_, element_set, 100000),
       generator_(static_cast<unsigned long long int>(
                      std::chrono::system_clock::now().time_since_epoch().count())) {
   event_k_i_list_.resize(kFirstEventListSize);
@@ -211,8 +211,8 @@ double ChainKmcOmpi::UpdateIndirectProbabilityAndCalculateTime() {
     cumulative_probability += event.GetProbability();
     event.SetCumulativeProbability(cumulative_probability);
   }
-  std::cout << "world_rank_ = " << world_rank_ << ", cumulative_probability = "
-            << cumulative_probability << ", time = " << t_2 << std::endl;
+  // std::cout << "world_rank_ = " << world_rank_ << ", cumulative_probability = "
+  //           << cumulative_probability << ", time = " << t_2 << std::endl;
   return t_2;
 }
 
@@ -245,7 +245,6 @@ void ChainKmcOmpi::Simulate() {
       Dump(ofs);
     }
     // MPI_Barrier(MPI_COMM_WORLD);
-
     BuildFirstEventKIListAndLIndexList();
     BuildTotalRateI();
     UpdateIndirectProbability();
