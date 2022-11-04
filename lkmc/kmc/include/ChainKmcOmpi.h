@@ -26,14 +26,11 @@ class ChainKmcOmpi {
     virtual void Simulate();
   protected:
     inline void Dump(std::ofstream &ofs) const;
-    void BuildFirstEventKIListAndLIndexList();
-    void BuildTotalRateI();
-    void UpdateIndirectProbability();
+    void BuildFirstEventKIAndGetTotalRates();
     double UpdateIndirectProbabilityAndCalculateTime();
     size_t SelectEvent() const;
     // constants
-    static constexpr size_t kFirstEventListSize = constants::kNumFirstNearestNeighbors;
-    static constexpr size_t kSecondEventListSize = kFirstEventListSize - 1;
+    static constexpr size_t kEventListSize = constants::kNumFirstNearestNeighbors;
 
     // config
     cfg::Config config_;
@@ -58,7 +55,7 @@ class ChainKmcOmpi {
     // helpful properties
     double total_rate_k_{0.0}; // k would be same for all
     double total_rate_i_{0.0}; // i would be different
-    std::array<size_t, kSecondEventListSize> l_index_list_{};
+    std::array<size_t, kEventListSize> l_index_list_{};
     JumpEvent event_k_i_; // first event, different for each process
     std::vector<JumpEvent> event_k_i_list_{};
 

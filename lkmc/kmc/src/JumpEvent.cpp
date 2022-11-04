@@ -49,4 +49,7 @@ void JumpEvent::SetCumulativeProbability(double cumulative_probability) {
 void JumpEvent::CalculateProbability(double total_rates) {
   probability_ = forward_rate_ / total_rates;
 }
+JumpEvent JumpEvent::GetReverseJumpEvent() const {
+  return JumpEvent{atom_id_jump_pair_, {barrier_ - energy_change_, -energy_change_}, beta_};
+}
 } // namespace kmc

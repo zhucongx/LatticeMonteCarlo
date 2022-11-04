@@ -75,13 +75,13 @@ ChainKmcOmpi::ChainKmcOmpi(cfg::Config config,
                         config_, element_set, 100000),
       generator_(static_cast<unsigned long long int>(
                      std::chrono::system_clock::now().time_since_epoch().count())) {
-  event_k_i_list_.resize(kFirstEventListSize);
+  event_k_i_list_.resize(kEventListSize);
   MPI_Init(nullptr, nullptr);
   MPI_Comm_rank(MPI_COMM_WORLD, &world_rank_);
   int mpi_size;
   MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-  if (mpi_size != kFirstEventListSize) {
-    std::cout << "Must use " << kFirstEventListSize << " precesses. Terminating...\n" << std::endl;
+  if (mpi_size != kEventListSize) {
+    std::cout << "Must use " << kEventListSize << " precesses. Terminating...\n" << std::endl;
     MPI_Finalize();
     exit(0);
   }
@@ -113,48 +113,42 @@ void ChainKmcOmpi::Dump(std::ofstream &ofs) const {
   }
 }
 // update  first_event_ki and l_index_list for each process
-void ChainKmcOmpi::BuildFirstEventKIListAndLIndexList() {
-  total_rate_k_ = 0.0;
+void ChainKmcOmpi::BuildFirstEventKIAndGetTotalRates() {
   const auto i_index = config_.GetFirstNeighborsAtomIdVectorOfAtom(
       vacancy_index_)[static_cast<size_t>(world_rank_)];
-  event_k_i_ = JumpEvent(
-      {vacancy_index_, i_index},
-      energy_predictor_.GetBarrierAndDiffFromAtomIdPair(config_,
-                                                        {vacancy_index_, i_index}),
-      beta_);
-  const double first_rate = event_k_i_.GetForwardRate();
-  MPI_Allreduce(&first_rate, &total_rate_k_, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-  // Probability in first order Kmc
-  event_k_i_.CalculateProbability(total_rate_k_);
-
   size_t it = 0;
-  for (const auto l_index: config_.GetFirstNeighborsAtomIdVectorOfAtom(i_index)) {
+  for (auto l_index: config_.GetFirstNeighborsAtomIdVectorOfAtom(i_index)) {
     if (l_index == vacancy_index_) {
-      continue;
+      l_index = i_index;
     }
     l_index_list_[it] = l_index;
     ++it;
   }
-}
-void ChainKmcOmpi::BuildTotalRateI() {
-  total_rate_i_ = event_k_i_.GetBackwardRate();
-  config_.AtomJump(event_k_i_.GetAtomIdJumpPair());
-#pragma omp parallel for default(none) reduction(+:total_rate_i_)
-  for (size_t ii = 0; ii < kSecondEventListSize; ++ii) {
+
+  total_rate_k_ = 0.0;
+  total_rate_i_ = 0.0;
+
+  config_.AtomJump({vacancy_index_, i_index});
+#pragma omp parallel for default(none) shared(i_index) reduction(+:total_rate_i_)
+  for (size_t ii = 0; ii < kEventListSize; ++ii) {
     const auto l_index = l_index_list_[ii];
     JumpEvent event_i_l({vacancy_index_, l_index},
                         energy_predictor_.GetBarrierAndDiffFromAtomIdPair(
                             config_, {vacancy_index_, l_index}),
                         beta_);
+    if (l_index == i_index){
+      event_k_i_ = event_i_l.GetReverseJumpEvent();
+    }
     auto r_i_l = event_i_l.GetForwardRate();
     total_rate_i_ += r_i_l;
   }
-  config_.AtomJump(event_k_i_.GetAtomIdJumpPair());
+  config_.AtomJump({vacancy_index_, i_index});
+
+  double rate_i_k = event_k_i_.GetForwardRate();
+  MPI_Allreduce(&rate_i_k, &total_rate_k_, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+  event_k_i_.CalculateProbability(total_rate_k_);
 }
 
-void ChainKmcOmpi::UpdateIndirectProbability() {
-
-}
 double ChainKmcOmpi::UpdateIndirectProbabilityAndCalculateTime() {
   const auto probability_k_i = event_k_i_.GetProbability();
   const auto probability_i_k = event_k_i_.GetBackwardRate() / total_rate_i_;
@@ -217,7 +211,7 @@ double ChainKmcOmpi::UpdateIndirectProbabilityAndCalculateTime() {
 }
 
 // run this on this first process
-size_t ChainKmcOmpi::SelectEvent() const{
+size_t ChainKmcOmpi::SelectEvent() const {
   static std::uniform_real_distribution<double> distribution(0.0, 1.0);
 
   const double random_number = distribution(generator_);
@@ -245,9 +239,7 @@ void ChainKmcOmpi::Simulate() {
       Dump(ofs);
     }
     // MPI_Barrier(MPI_COMM_WORLD);
-    BuildFirstEventKIListAndLIndexList();
-    BuildTotalRateI();
-    UpdateIndirectProbability();
+    BuildFirstEventKIAndGetTotalRates();
     one_step_time_change_ = UpdateIndirectProbabilityAndCalculateTime();
     time_ += one_step_time_change_;
 

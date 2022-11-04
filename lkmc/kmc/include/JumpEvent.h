@@ -22,6 +22,7 @@ class JumpEvent {
     [[nodiscard]] double GetEnergyChange() const;
     [[nodiscard]] double GetProbability() const;
     [[nodiscard]] double GetCumulativeProvability() const;
+    [[nodiscard]] JumpEvent GetReverseJumpEvent() const;
     /// Setter
     void SetProbability(double probability);
     void SetCumulativeProbability(double cumulative_probability);
