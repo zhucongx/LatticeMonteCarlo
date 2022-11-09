@@ -88,7 +88,7 @@ void CanonicalMcStepT::Dump(std::ofstream &ofs) {
 
 void CanonicalMcStepT::Simulate() {
   std::ofstream ofs("cmc_log.txt", std::ofstream::out | std::ofstream::app);
-  ofs.precision(8);
+  ofs.precision(16);
   auto t1 = std::chrono::high_resolution_clock::now();
   while (steps_ <= maximum_number_
       * static_cast<unsigned long long int>(initial_temperature_ / decrement_temperature_ + 1)) {
