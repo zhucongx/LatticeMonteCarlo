@@ -1,4 +1,5 @@
 #include "ChainKmcOmpi.h"
+#include "TotalEnergyPredictor.h"
 namespace kmc {
 //  j -> k -> i ->l
 //       |
@@ -94,6 +95,14 @@ ChainKmcOmpi::ChainKmcOmpi(cfg::Config config,
   }
   MPI_Op_create(DataSum, 1, &mpi_op_);
   DefineStruct(&mpi_datatype_);
+  if (world_rank_ == 0) {
+    std::ofstream ofs("lkmc_log.txt", std::ofstream::out | std::ofstream::app);
+    ofs.precision(16);
+
+    pred::TotalEnergyPredictor total_energy_predictor(json_coefficients_filename, element_set);
+    ofs << "initial_energy = " << total_energy_predictor.GetEnergy(config_) << std::endl;
+    ofs << "steps\ttime\tenergy\tEa\tdE\ttype" << std::endl;
+  }
 }
 ChainKmcOmpi::~ChainKmcOmpi() {
   MPI_Op_free(&mpi_op_);
@@ -136,7 +145,7 @@ void ChainKmcOmpi::BuildFirstEventKIAndGetTotalRates() {
                         energy_predictor_.GetBarrierAndDiffFromAtomIdPair(
                             config_, {vacancy_index_, l_index}),
                         beta_);
-    if (l_index == i_index){
+    if (l_index == i_index) {
       event_k_i_ = event_i_l.GetReverseJumpEvent();
     }
     auto r_i_l = event_i_l.GetForwardRate();
@@ -205,8 +214,6 @@ double ChainKmcOmpi::UpdateIndirectProbabilityAndCalculateTime() {
     cumulative_probability += event.GetProbability();
     event.SetCumulativeProbability(cumulative_probability);
   }
-  // std::cout << "world_rank_ = " << world_rank_ << ", cumulative_probability = "
-  //           << cumulative_probability << ", time = " << t_2 << std::endl;
   return t_2;
 }
 
@@ -229,10 +236,9 @@ size_t ChainKmcOmpi::SelectEvent() const {
 }
 
 void ChainKmcOmpi::Simulate() {
-  std::ofstream ofs("kmc_log.txt", std::ofstream::out | std::ofstream::app);
+  std::ofstream ofs("lkmc_log.txt", std::ofstream::out | std::ofstream::app);
   if (world_rank_ == 0) {
-    ofs << "steps\ttime\tenergy\tEa\tdE\ttype\n";
-    ofs.precision(8);
+    ofs.precision(16);
   }
   while (steps_ <= maximum_number_) {
     if (world_rank_ == 0) {
