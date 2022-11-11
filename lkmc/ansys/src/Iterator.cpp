@@ -79,7 +79,7 @@ Iterator::Iterator(unsigned long long int initial_steps,
 Iterator::~Iterator() = default;
 void Iterator::RunCluster() const {
   // start
-  std::ofstream ofs("clusters_info.json", std::ofstream::out);
+  std::ofstream ofs("cluster_info.json", std::ofstream::out);
   ofs << "[ \n";
 
   for (unsigned long long i = 0; i <= final_number_; i += increment_steps_) {
@@ -90,9 +90,11 @@ void Iterator::RunCluster() const {
       config = cfg::Config::ReadCfg(std::to_string(i) + ".cfg");
       config.ReassignLatticeVector();
     } else if (config_type_ == "map") {
-      config = cfg::Config::ReadMap("lattice.txt", "element.txt", "map" + std::to_string(i) + ".txt");
+      config = cfg::Config::ReadMap("lattice.txt",
+                                    "element.txt",
+                                    "map" + std::to_string(i) + ".txt");
     } else {
-      std::cerr << "Unknown config type: " << config_type_ << std::endl;
+      throw std::invalid_argument("Unknown config type: " + config_type_);
     }
     ClustersFinder cluster_finder(config,
                                   solvent_element_,
