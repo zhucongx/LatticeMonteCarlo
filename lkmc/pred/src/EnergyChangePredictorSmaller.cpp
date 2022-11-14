@@ -58,8 +58,7 @@ double EnergyChangePredictorSmaller::GetDiffFromLatticeIdPair(
   auto end_hashmap(initialized_cluster_hashmap_);
   const auto &lattice_id_vector = site_bond_cluster_state_hashmap_.at(lattice_id_jump_pair);
 
-#pragma omp parallel for default(none) shared(config, lattice_id_jump_pair, lattice_id_vector, \
-element_first, element_second, start_hashmap, end_hashmap)
+// #pragma omp parallel for default(none) shared(config, lattice_id_jump_pair, lattice_id_vector, element_first, element_second, start_hashmap, end_hashmap)
   for (size_t label = 0; label < mapping_state_.size(); ++label) {
     const auto &cluster_vector = mapping_state_.at(label);
     for (const auto &cluster: cluster_vector) {
@@ -80,7 +79,7 @@ element_first, element_second, start_hashmap, end_hashmap)
       }
       auto cluster_start = cfg::ElementCluster(static_cast<int>(label), element_vector_start);
       auto cluster_end = cfg::ElementCluster(static_cast<int>(label), element_vector_end);
-#pragma omp critical
+// #pragma omp critical
       {
         start_hashmap[cluster_start]++;
         end_hashmap[cluster_end]++;
@@ -94,7 +93,7 @@ element_first, element_second, start_hashmap, end_hashmap)
   de_encode.resize(ordered.size());
   static const std::vector<double>
       cluster_counter{256, 1536, 768, 3072, 2048, 3072, 6144, 6144, 6144, 6144, 2048};
-#pragma omp parallel for default(none) shared(ordered, start_hashmap, end_hashmap, cluster_counter, de_encode)
+// #pragma omp parallel for default(none) shared(ordered, start_hashmap, end_hashmap, cluster_counter, de_encode)
   for (size_t i = 0; i < ordered.size(); ++i) {
     auto it = ordered.begin();
     std::advance(it, i);
@@ -107,7 +106,7 @@ element_first, element_second, start_hashmap, end_hashmap)
 
   double dE = 0;
   const size_t cluster_size = base_theta_.size();
-#pragma omp parallel for default(none) shared(cluster_size, de_encode) reduction(+:dE)
+// #pragma omp parallel for default(none) shared(cluster_size, de_encode) reduction(+:dE)
   for (size_t i = 0; i < cluster_size; ++i) {
     dE += base_theta_[i] * de_encode[i];
   }
