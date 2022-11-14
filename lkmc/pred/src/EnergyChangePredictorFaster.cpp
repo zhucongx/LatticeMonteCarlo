@@ -80,7 +80,7 @@ double EnergyChangePredictorFaster::GetDiffFromLatticeIdPair(
       ordered(initialized_cluster_hashmap_.begin(), initialized_cluster_hashmap_.end());
   std::vector<double> de_encode;
   de_encode.reserve(ordered.size());
-  const std::vector<double>
+  static const std::vector<double>
       cluster_counter{256, 1536, 768, 3072, 2048, 3072, 6144, 6144, 6144, 6144, 2048};
   for (const auto &cluster_count: ordered) {
     const auto &cluster = cluster_count.first;

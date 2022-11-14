@@ -57,8 +57,10 @@ double EnergyChangePredictorSmaller::GetDiffFromLatticeIdPair(
   auto end_hashmap(initialized_cluster_hashmap_);
   const auto &lattice_id_vector = site_bond_cluster_state_hashmap_.at(lattice_id_jump_pair);
 
-  int label = 0;
-  for (const auto &cluster_vector: mapping_state_) {
+#pragma omp parallel for default(none) shared(config, lattice_id_jump_pair, lattice_id_vector, \
+element_first, element_second, start_hashmap, end_hashmap)
+  for (size_t label = 0; label < mapping_state_.size(); ++label) {
+    const auto &cluster_vector = mapping_state_.at(label);
     for (const auto &cluster: cluster_vector) {
       std::vector<Element> element_vector_start, element_vector_end;
       element_vector_start.reserve(cluster.size());
@@ -75,50 +77,36 @@ double EnergyChangePredictorSmaller::GetDiffFromLatticeIdPair(
         }
         element_vector_end.push_back(config.GetElementAtLatticeId(lattice_id));
       }
-      start_hashmap[cfg::ElementCluster(label, element_vector_start)]++;
-      end_hashmap[cfg::ElementCluster(label, element_vector_end)]++;
+      auto cluster_start = cfg::ElementCluster(static_cast<int>(label), element_vector_start);
+      auto cluster_end = cfg::ElementCluster(static_cast<int>(label), element_vector_end);
+#pragma omp critical
+      {
+        start_hashmap[cluster_start]++;
+        end_hashmap[cluster_end]++;
+      }
     }
-    label++;
   }
 
   std::map<cfg::ElementCluster, int>
       ordered(initialized_cluster_hashmap_.begin(), initialized_cluster_hashmap_.end());
   std::vector<double> de_encode;
-  de_encode.reserve(ordered.size());
-  for (const auto &cluster_count: ordered) {
-    const auto &cluster = cluster_count.first;
+  de_encode.resize(ordered.size());
+  static const std::vector<double>
+      cluster_counter{256, 1536, 768, 3072, 2048, 3072, 6144, 6144, 6144, 6144, 2048};
+#pragma omp parallel for default(none) shared(ordered, start_hashmap, end_hashmap, cluster_counter, de_encode)
+  for (size_t i = 0; i < ordered.size(); ++i) {
+    auto it = ordered.begin();
+    std::advance(it, i);
+    const auto &cluster = it->first;
     auto start = static_cast<double>(start_hashmap.at(cluster));
     auto end = static_cast<double>(end_hashmap.at(cluster));
-    double total_bond{};
-    switch (cluster.GetLabel()) {
-      case 0:total_bond = 256;
-        break;
-      case 1: total_bond = 1536;
-        break;
-      case 2: total_bond = 768;
-        break;
-      case 3: total_bond = 3072;
-        break;
-      case 4: total_bond = 2048;
-        break;
-      case 5: total_bond = 3072;
-        break;
-      case 6: total_bond = 6144;
-        break;
-      case 7: total_bond = 6144;
-        break;
-      case 8: total_bond = 6144;
-        break;
-      case 9: total_bond = 6144;
-        break;
-      case 10: total_bond = 2048;
-        break;
-    }
-    de_encode.push_back((end - start) / total_bond);
+    auto total_bond = cluster_counter[static_cast<size_t>(cluster.GetLabel())];
+    de_encode[i] = (end - start) / total_bond;
   }
 
   double dE = 0;
   const size_t cluster_size = base_theta_.size();
+#pragma omp parallel for default(none) shared(cluster_size, de_encode) reduction(+:dE)
   for (size_t i = 0; i < cluster_size; ++i) {
     dE += base_theta_[i] * de_encode[i];
   }

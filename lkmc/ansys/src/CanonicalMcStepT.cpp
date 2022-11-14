@@ -59,11 +59,10 @@ std::pair<size_t, size_t> CanonicalMcStepT::GenerateAtomIdJumpPair() {
 
 void CanonicalMcStepT::UpdateTemperature() {
   if (steps_ % maximum_number_ == 0 && steps_ != 0) {
-    config_.WriteCfg(std::to_string(static_cast<int>(temperature_)) + "K.cfg",
+    config_.WriteCfg("end_" + std::to_string(static_cast<int>(temperature_)) + "K.cfg",
                      false);
     temperature_ -= decrement_temperature_;
     beta_ = 1.0 / kBoltzmannConstant / temperature_;
-
   }
 }
 
