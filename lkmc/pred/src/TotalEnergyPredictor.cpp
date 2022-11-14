@@ -27,7 +27,7 @@ TotalEnergyPredictor::TotalEnergyPredictor(const std::string &predictor_filename
 TotalEnergyPredictor::~TotalEnergyPredictor() = default;
 std::vector<double> TotalEnergyPredictor::GetEncode(const cfg::Config &config) const {
   auto cluster_hashmap(initialized_cluster_hashmap_);
-  const std::vector<size_t>
+  static const std::vector<size_t>
       cluster_counter{256, 3072, 1536, 6144, 12288, 6144, 12288, 6144, 12288, 12288, 12288};
   for (size_t atom_id1 = 0; atom_id1 < config.GetNumAtoms(); ++atom_id1) {
     const size_t lattice_id1 = config.GetLatticeIdFromAtomId(atom_id1);

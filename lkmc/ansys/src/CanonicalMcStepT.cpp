@@ -1,6 +1,7 @@
 #include "CanonicalMcStepT.h"
 #include <utility>
 #include <chrono>
+#include <omp.h>
 #include "TotalEnergyPredictor.h"
 namespace ansys {
 constexpr double kBoltzmannConstant = 8.617333262145e-5;
@@ -41,7 +42,10 @@ CanonicalMcStepT::CanonicalMcStepT(cfg::Config config,
   pred::TotalEnergyPredictor total_energy_predictor(
       json_coefficients_filename,
       GetElementSetFromSolventAndSolute(solvent_element, solute_element_set));
-
+#pragma omp parallel master default(none) shared(std::cout)
+  {
+    std::cout << "Using " << omp_get_num_threads() << " threads." << std::endl;
+  }
   std::ofstream ofs("cmc_log.txt", std::ofstream::out);
   ofs.precision(16);
   ofs << "initial_energy = " << total_energy_predictor.GetEnergy(config_) << std::endl;
@@ -94,8 +98,7 @@ void CanonicalMcStepT::Simulate() {
     Dump(ofs);
     UpdateTemperature();
     auto atom_id_jump_pair = GenerateAtomIdJumpPair();
-    auto dE = energy_predictor_.GetDiffFromAtomIdPair(
-        config_, atom_id_jump_pair);
+    auto dE = energy_predictor_.GetDiffFromAtomIdPair(config_, atom_id_jump_pair);
     if (dE < 0) {
       config_.AtomJump(atom_id_jump_pair);
       energy_ += dE;
