@@ -38,14 +38,14 @@ EnergyChangePredictorPair::EnergyChangePredictorPair(const std::string &predicto
   }
 }
 EnergyChangePredictorPair::~EnergyChangePredictorPair() = default;
-double EnergyChangePredictorPair::GetDiffFromAtomIdPair(
+double EnergyChangePredictorPair::GetDeFromAtomIdPair(
     const cfg::Config &config, const std::pair<size_t, size_t> &atom_id_jump_pair) const {
-  return GetDiffFromLatticeIdPair(
+  return GetDeFromLatticeIdPair(
       config,
       {config.GetLatticeIdFromAtomId(atom_id_jump_pair.first),
        config.GetLatticeIdFromAtomId(atom_id_jump_pair.second)});
 }
-double EnergyChangePredictorPair::GetDiffFromLatticeIdPair(
+double EnergyChangePredictorPair::GetDeFromLatticeIdPair(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
 

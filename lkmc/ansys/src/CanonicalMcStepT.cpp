@@ -2,7 +2,7 @@
 #include <utility>
 #include <chrono>
 #include <omp.h>
-#include "TotalEnergyPredictor.h"
+#include "EnergyPredictor.h"
 namespace ansys {
 constexpr double kBoltzmannConstant = 8.617333262145e-5;
 static std::set<Element> GetElementSetFromSolventAndSolute(
@@ -37,9 +37,8 @@ CanonicalMcStepT::CanonicalMcStepT(cfg::Config config,
                         GetElementSetFromSolventAndSolute(solvent_element, solute_element_set)),
       generator_(static_cast<unsigned long long int>(
                      std::chrono::system_clock::now().time_since_epoch().count())),
-      atom_index_selector_(0, config_.GetNumAtoms() - 1),
-      neighbor_index_selector_(0, constants::kNumFirstNearestNeighbors - 1) {
-  pred::TotalEnergyPredictor total_energy_predictor(
+      atom_index_selector_(0, config_.GetNumAtoms() - 1) {
+  pred::EnergyPredictor total_energy_predictor(
       json_coefficients_filename,
       GetElementSetFromSolventAndSolute(solvent_element, solute_element_set));
 #pragma omp parallel master default(none) shared(std::cout)
@@ -50,14 +49,13 @@ CanonicalMcStepT::CanonicalMcStepT(cfg::Config config,
   ofs.precision(16);
   ofs << "initial_energy = " << total_energy_predictor.GetEnergy(config_) << std::endl;
   ofs << "steps\tenergy\ttemperature\n";
-
 }
 std::pair<size_t, size_t> CanonicalMcStepT::GenerateAtomIdJumpPair() {
-  size_t atom_id1 = atom_index_selector_(generator_);
-  size_t lattice_id1 = config_.GetLatticeIdFromAtomId(atom_id1);
-  size_t lattice_id2 = config_.GetFirstNeighborsAdjacencyList().at(
-      lattice_id1).at(neighbor_index_selector_(generator_));
-  size_t atom_id2 = config_.GetAtomIdFromLatticeId(lattice_id2);
+  size_t atom_id1, atom_id2;
+  do {
+    atom_id1 = atom_index_selector_(generator_);
+    atom_id2 = atom_index_selector_(generator_);
+  } while (atom_id1 == atom_id2);
   return {atom_id1, atom_id2};
 }
 
@@ -98,7 +96,7 @@ void CanonicalMcStepT::Simulate() {
     Dump(ofs);
     UpdateTemperature();
     auto atom_id_jump_pair = GenerateAtomIdJumpPair();
-    auto dE = energy_predictor_.GetDiffFromAtomIdPair(config_, atom_id_jump_pair);
+    auto dE = energy_predictor_.GetDeFromAtomIdPair(config_, atom_id_jump_pair);
     if (dE < 0) {
       config_.AtomJump(atom_id_jump_pair);
       energy_ += dE;

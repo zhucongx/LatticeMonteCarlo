@@ -5,6 +5,7 @@
 #include <omp.h>
 #include "EnergyChangePredictorPair.h"
 #include "EnergyChangePredictorSite.h"
+#include "EnergyChangePredictorPairAll.h"
 namespace ansys {
 class CanonicalMcStepT {
   public:
@@ -35,10 +36,9 @@ class CanonicalMcStepT {
     double temperature_;
     double beta_;
 
-    const pred::EnergyChangePredictorPair energy_predictor_;
+    const pred::EnergyChangePredictorPairAll energy_predictor_;
     mutable std::mt19937_64 generator_;
     mutable std::uniform_int_distribution<size_t> atom_index_selector_;
-    mutable std::uniform_int_distribution<size_t> neighbor_index_selector_;
     mutable std::uniform_real_distribution<double> one_distribution_{0.0, 1.0};
 };
 } // namespace ansys

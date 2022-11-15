@@ -31,18 +31,17 @@ EnergyChangePredictorSite::EnergyChangePredictorSite(const std::string &predicto
   }
 }
 EnergyChangePredictorSite::~EnergyChangePredictorSite() = default;
-double EnergyChangePredictorSite::GetDiffFromAtomId(
-    const cfg::Config &config, const size_t atom_id, const Element new_element) const {
-  return GetDiffFromLatticeIdPair(config, config.GetLatticeIdFromAtomId(atom_id), new_element);
+double EnergyChangePredictorSite::GetDeFromAtomIdSite(
+    const cfg::Config &config, size_t atom_id, Element new_element) const {
+  return GetDeFromLatticeIdSite(config, config.GetLatticeIdFromAtomId(atom_id), new_element);
 }
-double EnergyChangePredictorSite::GetDiffFromLatticeIdPair(
-    const cfg::Config &config, const size_t lattice_id, const Element new_element) const {
-  const auto mapping = site_neighbors_hashmap_.at(lattice_id);
-
+double EnergyChangePredictorSite::GetDeFromLatticeIdSite(
+    const cfg::Config &config, size_t lattice_id, Element new_element) const {
   const auto old_element = config.GetElementAtLatticeId(lattice_id);
   if (old_element == new_element) {
     return 0.0;
   }
+  const auto mapping = site_neighbors_hashmap_.at(lattice_id);
   auto start_hashmap(initialized_cluster_hashmap_);
   auto end_hashmap(initialized_cluster_hashmap_);
 
@@ -87,7 +86,7 @@ double EnergyChangePredictorSite::GetDiffFromLatticeIdPair(
   return dE;
 }
 
-// double EnergyChangePredictorSite::GetDiffFromLatticeIdPairSet(
+// double EnergyChangePredictorSite::GetDeFromLatticeIdPairSet(
 //     const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
 //   auto [jump_id1, jump_id2] = lattice_id_jump_pair;
 //   std::pair<size_t, size_t>

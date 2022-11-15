@@ -1,7 +1,7 @@
 #include "SimulatedAnnealing.h"
 #include <utility>
 #include <chrono>
-#include "TotalEnergyPredictor.h"
+#include "EnergyPredictor.h"
 namespace ansys {
 constexpr double kBoltzmannConstant = 8.617333262145e-5;
 
@@ -83,8 +83,7 @@ void SimulatedAnnealing::Simulate() {
     temperature_ = initial_temperature_ / std::log(2 + steps_);
 
     auto atom_id_jump_pair = GenerateAtomIdJumpPair();
-    auto dE = energy_predictor_.GetDiffFromAtomIdPair(
-        config_, atom_id_jump_pair);
+    auto dE = energy_predictor_.GetDeFromAtomIdPair(config_, atom_id_jump_pair);
     if (dE < 0) {
       config_.AtomJump(atom_id_jump_pair);
       energy_ += dE;

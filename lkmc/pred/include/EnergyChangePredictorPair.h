@@ -15,10 +15,10 @@ class EnergyChangePredictorPair {
                               const cfg::Config &reference_config,
                               std::set<Element> element_set);
     virtual ~EnergyChangePredictorPair();
-    [[nodiscard]] double GetDiffFromAtomIdPair(
+    [[nodiscard]] double GetDeFromAtomIdPair(
         const cfg::Config &config, const std::pair<size_t, size_t> &atom_id_jump_pair) const;
   protected:
-    [[nodiscard]] double GetDiffFromLatticeIdPair(
+    [[nodiscard]] double GetDeFromLatticeIdPair(
         const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
 
     const std::set<Element> element_set_;

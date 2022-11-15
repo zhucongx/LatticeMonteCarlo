@@ -1,7 +1,7 @@
 #include "CanonicalMc.h"
 #include <utility>
 #include <chrono>
-#include "TotalEnergyPredictor.h"
+#include "EnergyPredictor.h"
 namespace ansys {
 constexpr double kBoltzmannConstant = 8.617333262145e-5;
 
@@ -24,8 +24,8 @@ CanonicalMc::CanonicalMc(cfg::Config config,
                      std::chrono::system_clock::now().time_since_epoch().count())),
       atom_index_selector_(0, config_.GetNumAtoms() - 1),
       neighbor_index_selector_(0, constants::kNumFirstNearestNeighbors - 1) {
-  pred::TotalEnergyPredictor total_energy_predictor(json_coefficients_filename,
-                                                    element_set);
+  pred::EnergyPredictor total_energy_predictor(json_coefficients_filename,
+                                               element_set);
 
   std::ofstream ofs("cmc_log.txt", std::ofstream::out);
   ofs.precision(16);
@@ -68,7 +68,7 @@ void CanonicalMc::Simulate() {
   while (steps_ <= maximum_number_) {
     Dump(ofs);
     auto atom_id_jump_pair = GenerateAtomIdJumpPair();
-    auto dE = energy_predictor_.GetDiffFromAtomIdPair(
+    auto dE = energy_predictor_.GetDeFromAtomIdPair(
         config_, atom_id_jump_pair);
     if (dE < 0) {
       config_.AtomJump(atom_id_jump_pair);

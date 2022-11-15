@@ -1,6 +1,6 @@
 #ifndef LKMC_LKMC_ANSYS_INCLUDE_ITERATOR_H_
 #define LKMC_LKMC_ANSYS_INCLUDE_ITERATOR_H_
-#include "TotalEnergyPredictor.h"
+#include "EnergyPredictor.h"
 #include "ClustersFinder.h"
 namespace ansys {
 
@@ -26,7 +26,7 @@ class Iterator {
     size_t smallest_cluster_criteria_;
     size_t solvent_bond_criteria_;
     std::unordered_map<unsigned long long, double> filename_info_hashset_{};
-    const pred::TotalEnergyPredictor energy_estimator_;
+    const pred::EnergyPredictor energy_estimator_;
     const std::string log_type_;
     const std::string config_type_;
 };

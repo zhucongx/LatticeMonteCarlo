@@ -17,10 +17,10 @@ class EnergyChangePredictorSite {
                               const cfg::Config &reference_config,
                               std::set<Element> element_set);
     virtual ~EnergyChangePredictorSite();
-    [[nodiscard]] double GetDiffFromAtomId(
+    [[nodiscard]] double GetDeFromAtomIdSite(
         const cfg::Config &config, size_t atom_id, Element new_element) const;
   private:
-    [[nodiscard]] double GetDiffFromLatticeIdPair(
+    [[nodiscard]] double GetDeFromLatticeIdSite(
         const cfg::Config &config, size_t lattice_id, Element new_element) const;
     const std::set<Element> element_set_;
     std::vector<double> base_theta_{};

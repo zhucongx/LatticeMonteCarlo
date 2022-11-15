@@ -1,5 +1,5 @@
 #include "ChainKmcOmpi.h"
-#include "TotalEnergyPredictor.h"
+#include "EnergyPredictor.h"
 namespace kmc {
 //  j -> k -> i ->l
 //       |
@@ -99,7 +99,7 @@ ChainKmcOmpi::ChainKmcOmpi(cfg::Config config,
     std::ofstream ofs("lkmc_log.txt", std::ofstream::out | std::ofstream::app);
     ofs.precision(16);
 
-    pred::TotalEnergyPredictor total_energy_predictor(json_coefficients_filename, element_set);
+    pred::EnergyPredictor total_energy_predictor(json_coefficients_filename, element_set);
     ofs << "initial_energy = " << total_energy_predictor.GetEnergy(config_) << std::endl;
     ofs << "steps\ttime\tenergy\tEa\tdE\ttype" << std::endl;
   }

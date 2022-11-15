@@ -12,7 +12,7 @@ kmc::FirstKmcMpi BuildFirstKmcMpiFromParameter(const Parameter &parameter) {
   } else {
     config = cfg::Config::ReadMap("lattice.txt", "element.txt", parameter.map_filename_);
   }
-  std::cout << "Finish config reading. Start kMC." << std::endl;
+  std::cout << "Finish config reading. Start KMC." << std::endl;
   return kmc::FirstKmcMpi{config,
                           parameter.log_dump_steps_,
                           parameter.config_dump_steps_,
@@ -36,7 +36,7 @@ kmc::ChainKmcMpi BuildChainKmcMpiFromParameter(const Parameter &parameter) {
   } else {
     config = cfg::Config::ReadMap("lattice.txt", "element.txt", parameter.map_filename_);
   }
-  std::cout << "Finish config reading. Start kMC." << std::endl;
+  std::cout << "Finish config reading. Start KMC." << std::endl;
   return kmc::ChainKmcMpi{config,
                           parameter.log_dump_steps_,
                           parameter.config_dump_steps_,
@@ -84,7 +84,7 @@ kmc::ChainKmcOmpi BuildChainKmcOmpiFromParameter(const Parameter &parameter) {
   } else {
     config = cfg::Config::ReadMap("lattice.txt", "element.txt", parameter.map_filename_);
   }
-  std::cout << "Finish config reading. Start kMC." << std::endl;
+  std::cout << "Finish config reading. Start KMC." << std::endl;
   return kmc::ChainKmcOmpi{config,
                            parameter.log_dump_steps_,
                            parameter.config_dump_steps_,
@@ -122,6 +122,7 @@ ansys::CanonicalMc BuildCanonicalMcFromParameter(const Parameter &parameter) {
   }
 
   auto config = cfg::Config::ReadCfg(parameter.config_filename_);
+  std::cout << "Finish config reading. Start CMC." << std::endl;
   return ansys::CanonicalMc{
       config,
       element_set,
@@ -138,6 +139,7 @@ ansys::CanonicalMcStepT BuildCanonicalMcStepTFromParameter(const Parameter &para
   }
 
   auto config = cfg::Config::ReadCfg(parameter.config_filename_);
+  std::cout << "Finish config reading. Start CMC." << std::endl;
   return ansys::CanonicalMcStepT{
       config,
       Element(parameter.solvent_element_),

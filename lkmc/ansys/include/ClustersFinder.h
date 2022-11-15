@@ -5,7 +5,7 @@
 #include <unordered_set>
 
 #include "Config.h"
-#include "TotalEnergyPredictor.h"
+#include "EnergyPredictor.h"
 
 namespace ansys {
 class ClustersFinder {
@@ -15,7 +15,7 @@ class ClustersFinder {
                    Element solvent_atom_type,
                    size_t smallest_cluster_criteria,
                    size_t solvent_bond_criteria,
-                   const pred::TotalEnergyPredictor &energy_estimator);
+                   const pred::EnergyPredictor &energy_estimator);
 
     ClusterElementNumMap FindClustersAndOutput(const std::string &output_folder,
                                                const std::string &output_name);
@@ -38,7 +38,7 @@ class ClustersFinder {
     const size_t smallest_cluster_criteria_;
     const size_t solvent_bond_criteria_;
 
-    const pred::TotalEnergyPredictor energy_estimator_;
+    const pred::EnergyPredictor energy_estimator_;
     double absolute_energy_solvent_config_;
 };
 } // namespace ansys

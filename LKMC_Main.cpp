@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  // pred::TotalEnergyPredictor a("quartic_coefficients.json",
+  // pred::EnergyPredictor a("quartic_coefficients.json",
   //                              std::set<Element>{Element("Al"), Element("Mg"),
   //                                                Element("Zn")});
   // auto conf = cfg::Config::ReadCfg("Large30_Mg25_Zn56.cfg");

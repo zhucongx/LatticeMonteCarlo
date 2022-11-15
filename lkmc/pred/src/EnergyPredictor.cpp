@@ -1,11 +1,11 @@
-#include "TotalEnergyPredictor.h"
+#include "EnergyPredictor.h"
 #include <omp.h>
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
 namespace pred {
-TotalEnergyPredictor::TotalEnergyPredictor(const std::string &predictor_filename,
-                                           std::set<Element> element_set)
+EnergyPredictor::EnergyPredictor(const std::string &predictor_filename,
+                                 std::set<Element> element_set)
     : element_set_(std::move(element_set)) {
   auto element_set_copy(element_set_);
   element_set_copy.emplace(ElementName::X);
@@ -24,8 +24,8 @@ TotalEnergyPredictor::TotalEnergyPredictor(const std::string &predictor_filename
     }
   }
 }
-TotalEnergyPredictor::~TotalEnergyPredictor() = default;
-std::vector<double> TotalEnergyPredictor::GetEncode(const cfg::Config &config) const {
+EnergyPredictor::~EnergyPredictor() = default;
+std::vector<double> EnergyPredictor::GetEncode(const cfg::Config &config) const {
   auto cluster_hashmap(initialized_cluster_hashmap_);
   static const std::vector<size_t>
       cluster_counter{256, 3072, 1536, 6144, 12288, 6144, 12288, 6144, 12288, 12288, 12288};
@@ -113,7 +113,7 @@ std::vector<double> TotalEnergyPredictor::GetEncode(const cfg::Config &config) c
   }
   return energy_encode;
 }
-std::vector<double> TotalEnergyPredictor::GetEncodeOfCluster(
+std::vector<double> EnergyPredictor::GetEncodeOfCluster(
     const cfg::Config &config, const std::vector<size_t> &atom_id_list) const {
   auto cluster_hashmap(initialized_cluster_hashmap_);
   std::unordered_set<size_t> lattice_id_hashset;
@@ -223,7 +223,7 @@ std::vector<double> TotalEnergyPredictor::GetEncodeOfCluster(
   }
   return energy_encode;
 }
-double TotalEnergyPredictor::GetEnergy(const cfg::Config &config) const {
+double EnergyPredictor::GetEnergy(const cfg::Config &config) const {
   auto encode = GetEncode(config);
   double E = 0;
   const size_t cluster_size = base_theta_.size();
@@ -232,7 +232,7 @@ double TotalEnergyPredictor::GetEnergy(const cfg::Config &config) const {
   }
   return E;
 }
-double TotalEnergyPredictor::GetEnergyOfCluster(
+double EnergyPredictor::GetEnergyOfCluster(
     const cfg::Config &config,
     const std::vector<size_t> &atom_id_list) const {
   auto encode = GetEncodeOfCluster(config, atom_id_list);
