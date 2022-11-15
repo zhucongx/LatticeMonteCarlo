@@ -22,16 +22,16 @@ EnergyChangePredictorPairAll::EnergyChangePredictorPairAll(const std::string &pr
   for (size_t i = 0; i < reference_config.GetNumAtoms(); ++i) {
     auto site_mapping = GetClusterParametersMappingStateOfLatticeId(reference_config, i);
     auto neighboring_hashset = GetNeighborsLatticeIdSetOfLatticeId(reference_config, i);
-    for (auto j: neighboring_hashset) {
-      if (j < i) {
-        continue;
-      }
-      auto bond_mapping = GetClusterParametersMappingStateOfBond(reference_config, {i, j});
-#pragma omp critical
-      {
-        bond_neighbors_hashmap_[{i, j}] = std::move(bond_mapping);
-      }
-    }
+//     for (auto j: neighboring_hashset) {
+//       if (j < i) {
+//         continue;
+//       }
+//       auto bond_mapping = GetClusterParametersMappingStateOfBond(reference_config, {i, j});
+// #pragma omp critical
+//       {
+//         bond_neighbors_hashmap_[{i, j}] = std::move(bond_mapping);
+//       }
+//     }
 #pragma omp critical
     {
       site_neighbors_hashmap_[i] = std::move(site_mapping);
@@ -58,9 +58,7 @@ double EnergyChangePredictorPairAll::GetDeFromLatticeIdPair(
   if (neighbors_of_lhs.find(lattice_id_jump_pair.second) == neighbors_of_lhs.end()) {
     return GetDeFromLatticeIdPairWithoutCoupling(config, lattice_id_jump_pair);
   }
-  const auto lattice_id_jump_pair_sorted =
-      std::minmax(lattice_id_jump_pair.first, lattice_id_jump_pair.second);
-  return GetDeFromLatticeIdPairWithCoupling(config, lattice_id_jump_pair_sorted);
+  return GetDeFromLatticeIdPairWithCoupling(config, lattice_id_jump_pair);
 }
 double EnergyChangePredictorPairAll::GetDeHelper(
     const std::unordered_map<cfg::ElementCluster, size_t,
@@ -93,7 +91,7 @@ double EnergyChangePredictorPairAll::GetDeFromLatticeIdPairWithCoupling(
   if (element_first == element_second) {
     return 0.0;
   }
-  const auto mapping = bond_neighbors_hashmap_.at(lattice_id_jump_pair);
+  const auto mapping = GetClusterParametersMappingStateOfBond(config, lattice_id_jump_pair);
   auto start_hashmap(initialized_cluster_hashmap_);
   auto end_hashmap(initialized_cluster_hashmap_);
   int label = 0;
