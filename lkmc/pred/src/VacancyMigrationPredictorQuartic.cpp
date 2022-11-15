@@ -17,6 +17,8 @@ VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::st
   auto element_set_copy(element_set_);
   element_set_copy.emplace(ElementName::X);
   initialized_cluster_hashmap_ = InitializeClusterHashMap(element_set_copy);
+  ordered_map_ = std::map<cfg::ElementCluster, int>(initialized_cluster_hashmap_.begin(),
+                                                    initialized_cluster_hashmap_.end());
 
   std::ifstream ifs(predictor_filename, std::ifstream::in);
   json all_parameters;
@@ -94,9 +96,9 @@ double VacancyMigrationPredictorQuartic::GetDe(const cfg::Config &config,
   const auto &lattice_id_vector = site_bond_cluster_state_hashmap_.at(lattice_id_jump_pair);
   auto start_hashmap(initialized_cluster_hashmap_);
   auto end_hashmap(initialized_cluster_hashmap_);
-
-  int label = 0;
-  for (const auto &cluster_vector: mapping_state_) {
+#pragma omp parallel for default(none) shared(config, lattice_id_jump_pair, lattice_id_vector, migration_element, start_hashmap, end_hashmap)
+  for (size_t label = 0; label < mapping_state_.size(); ++label) {
+    const auto &cluster_vector = mapping_state_.at(label);
     for (const auto &cluster: cluster_vector) {
       std::vector<Element> element_vector_start, element_vector_end;
       element_vector_start.reserve(cluster.size());
@@ -113,49 +115,33 @@ double VacancyMigrationPredictorQuartic::GetDe(const cfg::Config &config,
         }
         element_vector_end.push_back(config.GetElementAtLatticeId(lattice_id));
       }
-      start_hashmap[cfg::ElementCluster(label, element_vector_start)]++;
-      end_hashmap[cfg::ElementCluster(label, element_vector_end)]++;
+      auto cluster_start = cfg::ElementCluster(static_cast<int>(label), element_vector_start);
+      auto cluster_end = cfg::ElementCluster(static_cast<int>(label), element_vector_end);
+#pragma omp critical
+      {
+        start_hashmap[cluster_start]++;
+        end_hashmap[cluster_end]++;
+      }
     }
-    label++;
   }
-
-  std::map<cfg::ElementCluster, int>
-      ordered(initialized_cluster_hashmap_.begin(), initialized_cluster_hashmap_.end());
-  std::vector<double> de_encode;
-  de_encode.reserve(ordered.size());
-  for (const auto &cluster_count: ordered) {
-    const auto &cluster = cluster_count.first;
+  std::map<cfg::ElementCluster, int> ordered(ordered_map_);
+  std::vector<double> de_encode(ordered_map_.size());
+  static const std::vector<double>
+      cluster_counter{256, 1536, 768, 3072, 2048, 3072, 6144, 6144, 6144, 6144, 2048};
+#pragma omp parallel for default(none) shared(ordered, start_hashmap, end_hashmap, cluster_counter, de_encode)
+  for (size_t i = 0; i < ordered.size(); ++i) {
+    auto it = ordered.begin();
+    std::advance(it, i);
+    const auto &cluster = it->first;
     auto start = static_cast<double>(start_hashmap.at(cluster));
     auto end = static_cast<double>(end_hashmap.at(cluster));
-    double total_bond{};
-    switch (cluster.GetLabel()) {
-      case 0:total_bond = 256;
-        break;
-      case 1: total_bond = 1536;
-        break;
-      case 2: total_bond = 768;
-        break;
-      case 3: total_bond = 3072;
-        break;
-      case 4: total_bond = 2048;
-        break;
-      case 5: total_bond = 3072;
-        break;
-      case 6: total_bond = 6144;
-        break;
-      case 7: total_bond = 6144;
-        break;
-      case 8: total_bond = 6144;
-        break;
-      case 9: total_bond = 6144;
-        break;
-      case 10: total_bond = 2048;
-        break;
-    }
-    de_encode.push_back((end - start) / total_bond);
+    auto total_bond = cluster_counter[static_cast<size_t>(cluster.GetLabel())];
+    de_encode[i] = (end - start) / total_bond;
   }
+
   double dE = 0;
   const size_t cluster_size = base_theta_.size();
+  // #pragma omp parallel for default(none) shared(cluster_size, de_encode) reduction(+:dE)
   for (size_t i = 0; i < cluster_size; ++i) {
     dE += base_theta_[i] * de_encode[i];
   }
@@ -191,32 +177,26 @@ double VacancyMigrationPredictorQuartic::GetKs(const cfg::Config &config,
                                                         mapping_mm2_);
 
   const auto &element_parameters = element_parameters_hashmap_.at(migration_element);
-
-  const auto &mu_x = element_parameters.mu_x_mm2;
-  const auto &sigma_x = element_parameters.sigma_x_mm2;
-  const auto &U = element_parameters.U_mm2;
-  const auto &theta = element_parameters.theta_Ks;
-  const auto mu_y = element_parameters.mu_y_Ks;
-  const auto sigma_y = element_parameters.sigma_y_Ks;
-
-  const size_t old_size = mu_x.size();
-  const size_t new_size = theta.size();
-
+  const size_t old_size = element_parameters.mu_x_mm2.size();
+  const size_t new_size = element_parameters.theta_Ks.size();
+  // not necessary to parallelize this loop
   for (size_t i = 0; i < old_size; ++i) {
     encode_mm2_forward.at(i) += encode_mm2_backward.at(i);
-    encode_mm2_forward.at(i) -= mu_x.at(i);
-    encode_mm2_forward.at(i) /= sigma_x.at(i);
+    encode_mm2_forward.at(i) -= element_parameters.mu_x_mm2.at(i);
+    encode_mm2_forward.at(i) /= element_parameters.sigma_x_mm2.at(i);
   }
   double logKs = 0;
+#pragma omp parallel for default(none) shared(encode_mm2_forward, encode_mm2_backward, new_size, old_size, element_parameters) reduction(+:logKs)
   for (size_t j = 0; j < new_size; ++j) {
     double pca_dot = 0;
     for (size_t i = 0; i < old_size; ++i) {
-      pca_dot += encode_mm2_forward.at(i) * U.at(j).at(i);
+      pca_dot += encode_mm2_forward.at(i) * element_parameters.U_mm2.at(j).at(i);
     }
-    logKs += pca_dot * theta.at(j);
+    auto logKs_it = pca_dot * element_parameters.theta_Ks.at(j);
+    logKs += logKs_it;
   }
-  logKs *= sigma_y;
-  logKs += mu_y;
+  logKs *= element_parameters.sigma_y_Ks;
+  logKs += element_parameters.mu_y_Ks;
   return std::exp(logKs);
 }
 double VacancyMigrationPredictorQuartic::GetD(const cfg::Config &config,
@@ -234,39 +214,46 @@ double VacancyMigrationPredictorQuartic::GetD(const cfg::Config &config,
                                                element_set_.size(),
                                                mapping_mmm_);
   const auto &element_parameters = element_parameters_hashmap_.at(migration_element);
-
-  const auto &mu_x = element_parameters.mu_x_mmm;
-  const auto &sigma_x = element_parameters.sigma_x_mmm;
-  const auto &U = element_parameters.U_mmm;
-  const auto &theta = element_parameters.theta_D;
-  const auto mu_y = element_parameters.mu_y_D;
-  const auto sigma_y = element_parameters.sigma_y_D;
-
-  const size_t old_size = mu_x.size();
-  const size_t new_size = theta.size();
-
+  const size_t old_size = element_parameters.mu_x_mmm.size();
+  const size_t new_size = element_parameters.theta_D.size();
+  // not necessary to parallelize this loop
   for (size_t i = 0; i < old_size; ++i) {
-    encode_mmm.at(i) -= mu_x.at(i);
-    encode_mmm.at(i) /= sigma_x.at(i);
+    encode_mmm.at(i) -= element_parameters.mu_x_mmm.at(i);
+    encode_mmm.at(i) /= element_parameters.sigma_x_mmm.at(i);
   }
   double logD = 0;
+#pragma omp parallel for default(none) shared(encode_mmm, new_size, old_size, element_parameters) reduction(+:logD)
   for (size_t j = 0; j < new_size; ++j) {
     double pca_dot = 0;
     for (size_t i = 0; i < old_size; ++i) {
-      pca_dot += encode_mmm.at(i) * U.at(j).at(i);
+      pca_dot += encode_mmm.at(i) * element_parameters.U_mmm.at(j).at(i);
     }
-    logD += pca_dot * theta.at(j);
+    auto logD_it = pca_dot * element_parameters.theta_D.at(j);
+    logD += logD_it;
   }
-  logD *= sigma_y;
-  logD += mu_y;
+  logD *= element_parameters.sigma_y_D;
+  logD += element_parameters.mu_y_D;
   return std::exp(logD);
 }
 std::pair<double, double> VacancyMigrationPredictorQuartic::GetBarrierAndDiffFromLatticeIdPair(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
-  const auto dE = GetDe(config, lattice_id_jump_pair);
-  const auto D = GetD(config, lattice_id_jump_pair);
-  const auto Ks = GetKs(config, lattice_id_jump_pair);
+  double dE, D, Ks;
+#pragma omp parallel sections default(none) shared(config, lattice_id_jump_pair, dE, D, Ks)
+  {
+#pragma omp section
+    {
+      dE = GetDe(config, lattice_id_jump_pair);
+      D = GetD(config, lattice_id_jump_pair);
+    }
+#pragma omp section
+    {
+      Ks = GetKs(config, lattice_id_jump_pair);
+    }
+  }
+  // const auto dE = GetDe(config, lattice_id_jump_pair);
+  // const auto D = GetD(config, lattice_id_jump_pair);
+  // const auto Ks = GetKs(config, lattice_id_jump_pair);
   const auto b = 4 * dE / (D * D * D);
   const auto a = Ks / (4 * D * D);
   const auto c = (9 * b * b - 16 * a * a * D * D) / (32 * a);
