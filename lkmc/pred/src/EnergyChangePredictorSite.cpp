@@ -21,12 +21,12 @@ EnergyChangePredictorSite::EnergyChangePredictorSite(const std::string &predicto
       base_theta_ = std::vector<double>(parameters.at("theta"));
     }
   }
-#pragma omp parallel for default(none) shared(reference_config, std::cout)
+#pragma omp parallel for default(none) shared(reference_config)
   for (size_t i = 0; i < reference_config.GetNumAtoms(); ++i) {
-    auto bond_mapping = GetClusterParametersMappingStateOfLatticeId(reference_config, i);
+    auto site_mapping = GetClusterParametersMappingStateOfLatticeId(reference_config, i);
 #pragma omp critical
     {
-      site_neighbors_hashmap_[i] = std::move(bond_mapping);
+      site_neighbors_hashmap_[i] = std::move(site_mapping);
     }
   }
 }

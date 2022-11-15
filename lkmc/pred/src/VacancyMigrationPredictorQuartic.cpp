@@ -43,7 +43,7 @@ VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::st
         parameters.at("sigma_Ks")
     };
   }
-#pragma omp parallel for default(none) shared(reference_config, std::cout)
+#pragma omp parallel for default(none) shared(reference_config)
   for (size_t i = 0; i < reference_config.GetNumAtoms(); ++i) {
     for (auto j: reference_config.GetFirstNeighborsAdjacencyList()[i]) {
       auto sorted_lattice_vector =
