@@ -1,11 +1,11 @@
-#include "EnergyChangePredictorSmaller.h"
+#include "EnergyChangePredictorPair.h"
 #include <omp.h>
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 namespace pred {
-EnergyChangePredictorSmaller::EnergyChangePredictorSmaller(const std::string &predictor_filename,
-                                                           const cfg::Config &reference_config,
-                                                           std::set<Element> element_set)
+EnergyChangePredictorPair::EnergyChangePredictorPair(const std::string &predictor_filename,
+                                                     const cfg::Config &reference_config,
+                                                     std::set<Element> element_set)
     : element_set_(std::move(element_set)),
       mapping_state_(GetClusterParametersMappingState(reference_config)) {
   auto element_set_copy(element_set_);
@@ -37,15 +37,15 @@ EnergyChangePredictorSmaller::EnergyChangePredictorSmaller(const std::string &pr
     }
   }
 }
-EnergyChangePredictorSmaller::~EnergyChangePredictorSmaller() = default;
-double EnergyChangePredictorSmaller::GetDiffFromAtomIdPair(
+EnergyChangePredictorPair::~EnergyChangePredictorPair() = default;
+double EnergyChangePredictorPair::GetDiffFromAtomIdPair(
     const cfg::Config &config, const std::pair<size_t, size_t> &atom_id_jump_pair) const {
   return GetDiffFromLatticeIdPair(
       config,
       {config.GetLatticeIdFromAtomId(atom_id_jump_pair.first),
        config.GetLatticeIdFromAtomId(atom_id_jump_pair.second)});
 }
-double EnergyChangePredictorSmaller::GetDiffFromLatticeIdPair(
+double EnergyChangePredictorPair::GetDiffFromLatticeIdPair(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
 
@@ -89,24 +89,21 @@ double EnergyChangePredictorSmaller::GetDiffFromLatticeIdPair(
 
   std::map<cfg::ElementCluster, int>
       ordered(initialized_cluster_hashmap_.begin(), initialized_cluster_hashmap_.end());
-  std::vector<double> de_encode(ordered.size());
+  std::vector<double> de_encode;
+  de_encode.reserve(ordered.size());
   static const std::vector<double>
       cluster_counter{256, 1536, 768, 3072, 2048, 3072, 6144, 6144, 6144, 6144, 2048};
-#pragma omp parallel for default(none) shared(ordered, start_hashmap, end_hashmap, cluster_counter, de_encode)
-  for (size_t i = 0; i < ordered.size(); ++i) {
-    auto it = ordered.begin();
-    std::advance(it, i);
-    const auto &cluster = it->first;
+  for (const auto &cluster_count: ordered) {
+    const auto &cluster = cluster_count.first;
     auto start = static_cast<double>(start_hashmap.at(cluster));
     auto end = static_cast<double>(end_hashmap.at(cluster));
     auto total_bond = cluster_counter[static_cast<size_t>(cluster.GetLabel())];
-    de_encode[i] = (end - start) / total_bond;
+    de_encode.push_back((end - start) / total_bond);
   }
 
   double dE = 0;
   const size_t cluster_size = base_theta_.size();
   // not necessary to parallelize this loop
-// #pragma omp parallel for default(none) shared(cluster_size, de_encode) reduction(+:dE)
   for (size_t i = 0; i < cluster_size; ++i) {
     dE += base_theta_[i] * de_encode[i];
   }

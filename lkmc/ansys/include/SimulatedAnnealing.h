@@ -3,7 +3,7 @@
 #include <random>
 #include <mpi.h>
 #include <omp.h>
-#include "EnergyChangePredictorFaster.h"
+#include "EnergyChangePredictorSite.h"
 namespace ansys {
 class SimulatedAnnealing {
   public:
@@ -35,7 +35,7 @@ class SimulatedAnnealing {
     const double initial_temperature_;
     double temperature_{};
 
-    const pred::EnergyChangePredictorFaster energy_predictor_;
+    const pred::EnergyChangePredictorSite energy_predictor_;
     mutable std::mt19937_64 generator_;
     mutable std::uniform_int_distribution<size_t> solute_atom_selector_;
     mutable std::uniform_int_distribution<size_t> neighbor_index_selector_;

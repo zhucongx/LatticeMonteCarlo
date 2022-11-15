@@ -1,6 +1,5 @@
 #include <chrono>
 #include "Home.h"
-#include "EnergyChangePredictorFaster.h"
 int main(int argc, char *argv[]) {
   if (argc == 1) {
     std::cout << "No input parameter filename." << std::endl;

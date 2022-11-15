@@ -554,6 +554,85 @@ std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState
       std::move(first_second_third_triplets_vector), cluster_mapping);
   return cluster_mapping;
 }
+std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingStateOfLatticeId(
+    const cfg::Config &config, const size_t lattice_id) {
+  std::vector<std::vector<std::vector<size_t> > > cluster_mapping{};
+  std::vector<Singlet_State_t> singlet_vector;
+  std::vector<Pair_State_t> first_pair_vector;
+  std::vector<Pair_State_t> second_pair_vector;
+  std::vector<Pair_State_t> third_pair_vector;
+  std::vector<Triplet_State_t> first_first_first_triplets_vector;
+  std::vector<Triplet_State_t> first_first_second_triplets_vector;
+  std::vector<Triplet_State_t> first_first_third_triplets_vector;
+  std::vector<Triplet_State_t> first_second_third_triplets_vector;
+
+  auto lattice_id_hashset = cfg::GetNeighborsLatticeIdSetOfLatticeId(config, lattice_id);
+
+  for (auto it1 = lattice_id_hashset.begin(); it1 != lattice_id_hashset.end(); ++it1) {
+    auto index1 = *it1;
+    const auto &lattice1 = config.GetLatticeVector()[index1];
+    if (index1 == lattice_id) {
+      singlet_vector.emplace_back(std::array<cfg::Lattice, 1>{lattice1});
+    }
+    for (auto it2 = lattice_id_hashset.begin(); it2 != it1; ++it2) {
+      auto index2 = *it2;
+      const auto &lattice2 = config.GetLatticeVector()[index2];
+      if (index1 == lattice_id || index2 == lattice_id) {
+        switch (GetLabel({index1, index2}, config)) {
+          case 1: first_pair_vector.emplace_back(std::array<cfg::Lattice, 2>{lattice1, lattice2});
+            break;
+          case 2: second_pair_vector.emplace_back(std::array<cfg::Lattice, 2>{lattice1, lattice2});
+            break;
+          case 3: third_pair_vector.emplace_back(std::array<cfg::Lattice, 2>{lattice1, lattice2});
+            break;
+          default:continue;
+        }
+      }
+      for (auto it3 = lattice_id_hashset.begin(); it3 != it2; ++it3) {
+        auto index3 = *it3;
+        const auto &lattice3 = config.GetLatticeVector()[index3];
+        if (index1 == lattice_id || index2 == lattice_id || index3 == lattice_id) {
+          switch (GetLabel({index1, index2, index3}, config)) {
+            case 4:
+              first_first_first_triplets_vector.emplace_back(
+                  std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
+              break;
+            case 5:
+              first_first_second_triplets_vector.emplace_back(
+                  std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
+              break;
+            case 6:
+              first_first_third_triplets_vector.emplace_back(
+                  std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
+              break;
+            case 7:
+              first_second_third_triplets_vector.emplace_back(
+                  std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
+              break;
+            default:continue;
+          }
+        }
+      }
+    }
+  }
+  GetParametersMappingFromLatticeClusterVectorHelper(
+      std::move(singlet_vector), cluster_mapping);
+  GetParametersMappingFromLatticeClusterVectorHelper(
+      std::move(first_pair_vector), cluster_mapping);
+  GetParametersMappingFromLatticeClusterVectorHelper(
+      std::move(second_pair_vector), cluster_mapping);
+  GetParametersMappingFromLatticeClusterVectorHelper(
+      std::move(third_pair_vector), cluster_mapping);
+  GetParametersMappingFromLatticeClusterVectorHelper(
+      std::move(first_first_first_triplets_vector), cluster_mapping);
+  GetParametersMappingFromLatticeClusterVectorHelper(
+      std::move(first_first_second_triplets_vector), cluster_mapping);
+  GetParametersMappingFromLatticeClusterVectorHelper(
+      std::move(first_first_third_triplets_vector), cluster_mapping);
+  GetParametersMappingFromLatticeClusterVectorHelper(
+      std::move(first_second_third_triplets_vector), cluster_mapping);
+  return cluster_mapping;
+}
 std::vector<double> GetOneHotParametersFromMap(
     const std::vector<Element> &encode,
     const std::unordered_map<std::string, std::vector<double> > &one_hot_encode_hashmap,

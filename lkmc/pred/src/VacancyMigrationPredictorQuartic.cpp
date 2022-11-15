@@ -125,23 +125,22 @@ double VacancyMigrationPredictorQuartic::GetDe(const cfg::Config &config,
     }
   }
   std::map<cfg::ElementCluster, int> ordered(ordered_map_);
-  std::vector<double> de_encode(ordered_map_.size());
+  std::vector<double> de_encode;
+  de_encode.reserve(ordered.size());
   static const std::vector<double>
       cluster_counter{256, 1536, 768, 3072, 2048, 3072, 6144, 6144, 6144, 6144, 2048};
-#pragma omp parallel for default(none) shared(ordered, start_hashmap, end_hashmap, cluster_counter, de_encode)
-  for (size_t i = 0; i < ordered.size(); ++i) {
-    auto it = ordered.begin();
-    std::advance(it, i);
-    const auto &cluster = it->first;
+  // not necessary to parallelize this loop
+  for (const auto &cluster_count: ordered) {
+    const auto &cluster = cluster_count.first;
     auto start = static_cast<double>(start_hashmap.at(cluster));
     auto end = static_cast<double>(end_hashmap.at(cluster));
     auto total_bond = cluster_counter[static_cast<size_t>(cluster.GetLabel())];
-    de_encode[i] = (end - start) / total_bond;
+    de_encode.push_back((end - start) / total_bond);
   }
 
   double dE = 0;
   const size_t cluster_size = base_theta_.size();
-  // #pragma omp parallel for default(none) shared(cluster_size, de_encode) reduction(+:dE)
+  // not necessary to parallelize this loop
   for (size_t i = 0; i < cluster_size; ++i) {
     dE += base_theta_[i] * de_encode[i];
   }

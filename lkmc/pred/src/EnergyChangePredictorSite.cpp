@@ -1,12 +1,12 @@
-#include "EnergyChangePredictorFaster.h"
+#include "EnergyChangePredictorSite.h"
 #include <omp.h>
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
 namespace pred {
-EnergyChangePredictorFaster::EnergyChangePredictorFaster(const std::string &predictor_filename,
-                                                         const cfg::Config &reference_config,
-                                                         std::set<Element> element_set)
+EnergyChangePredictorSite::EnergyChangePredictorSite(const std::string &predictor_filename,
+                                                     const cfg::Config &reference_config,
+                                                     std::set<Element> element_set)
     : element_set_(std::move(element_set)) {
   auto element_set_copy(element_set_);
   element_set_copy.emplace(ElementName::X);
@@ -23,31 +23,24 @@ EnergyChangePredictorFaster::EnergyChangePredictorFaster(const std::string &pred
   }
 #pragma omp parallel for default(none) shared(reference_config, std::cout)
   for (size_t i = 0; i < reference_config.GetNumAtoms(); ++i) {
-    // for (auto j: GetNeighborsLatticeIdSetOfLattice()[i]) {
-    for (auto j: reference_config.GetFirstNeighborsAdjacencyList()[i]) {
-      auto bond_mapping = GetClusterParametersMappingStateOfBond(reference_config, {i, j});
+    auto bond_mapping = GetClusterParametersMappingStateOfLatticeId(reference_config, i);
 #pragma omp critical
-      {
-        site_bond_neighbors_hashmap_[{i, j}] = std::move(bond_mapping);
-      }
+    {
+      site_neighbors_hashmap_[i] = std::move(bond_mapping);
     }
   }
 }
-EnergyChangePredictorFaster::~EnergyChangePredictorFaster() = default;
-double EnergyChangePredictorFaster::GetDiffFromAtomIdPair(
-    const cfg::Config &config, const std::pair<size_t, size_t> &atom_id_jump_pair) const {
-  return GetDiffFromLatticeIdPair(
-      config,
-      {config.GetLatticeIdFromAtomId(atom_id_jump_pair.first),
-       config.GetLatticeIdFromAtomId(atom_id_jump_pair.second)});
+EnergyChangePredictorSite::~EnergyChangePredictorSite() = default;
+double EnergyChangePredictorSite::GetDiffFromAtomId(
+    const cfg::Config &config, const size_t atom_id, const Element new_element) const {
+  return GetDiffFromLatticeIdPair(config, config.GetLatticeIdFromAtomId(atom_id), new_element);
 }
-double EnergyChangePredictorFaster::GetDiffFromLatticeIdPair(
-    const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
-  const auto mapping = site_bond_neighbors_hashmap_.at(lattice_id_jump_pair);
+double EnergyChangePredictorSite::GetDiffFromLatticeIdPair(
+    const cfg::Config &config, const size_t lattice_id, const Element new_element) const {
+  const auto mapping = site_neighbors_hashmap_.at(lattice_id);
 
-  const auto element_first = config.GetElementAtLatticeId(lattice_id_jump_pair.first);
-  const auto element_second = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
-  if (element_first == element_second) {
+  const auto old_element = config.GetElementAtLatticeId(lattice_id);
+  if (old_element == new_element) {
     return 0.0;
   }
   auto start_hashmap(initialized_cluster_hashmap_);
@@ -59,16 +52,13 @@ double EnergyChangePredictorFaster::GetDiffFromLatticeIdPair(
       std::vector<Element> element_vector_start, element_vector_end;
       element_vector_start.reserve(cluster.size());
       element_vector_end.reserve(cluster.size());
-      for (auto lattice_id: cluster) {
-        element_vector_start.push_back(config.GetElementAtLatticeId(lattice_id));
-        if (lattice_id == lattice_id_jump_pair.first) {
-          element_vector_end.push_back(element_second);
-          continue;
-        } else if (lattice_id == lattice_id_jump_pair.second) {
-          element_vector_end.push_back(element_first);
+      for (auto lattice_id_in_cluster: cluster) {
+        element_vector_start.push_back(config.GetElementAtLatticeId(lattice_id_in_cluster));
+        if (lattice_id_in_cluster == lattice_id) {
+          element_vector_end.push_back(new_element);
           continue;
         }
-        element_vector_end.push_back(config.GetElementAtLatticeId(lattice_id));
+        element_vector_end.push_back(config.GetElementAtLatticeId(lattice_id_in_cluster));
       }
       start_hashmap[cfg::ElementCluster(label, element_vector_start)]++;
       end_hashmap[cfg::ElementCluster(label, element_vector_end)]++;
@@ -97,7 +87,7 @@ double EnergyChangePredictorFaster::GetDiffFromLatticeIdPair(
   return dE;
 }
 
-// double EnergyChangePredictorFaster::GetDiffFromLatticeIdPairSet(
+// double EnergyChangePredictorSite::GetDiffFromLatticeIdPairSet(
 //     const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
 //   auto [jump_id1, jump_id2] = lattice_id_jump_pair;
 //   std::pair<size_t, size_t>
