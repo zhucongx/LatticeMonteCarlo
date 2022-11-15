@@ -1,4 +1,4 @@
-#include "ChainKmcOmpi.h"
+#include "KineticMcChainOmpi.h"
 #include "EnergyPredictor.h"
 namespace mc {
 //  j -> k -> i ->l
@@ -52,16 +52,16 @@ void DefineStruct(MPI_Datatype *datatype) {
   MPI_Type_commit(datatype);
 }
 
-ChainKmcOmpi::ChainKmcOmpi(cfg::Config config,
-                           unsigned long long int log_dump_steps,
-                           unsigned long long int config_dump_steps,
-                           unsigned long long int maximum_number,
-                           double temperature,
-                           const std::set<Element> &element_set,
-                           unsigned long long int restart_steps,
-                           double restart_energy,
-                           double restart_time,
-                           const std::string &json_coefficients_filename)
+KineticMcChainOmpi::KineticMcChainOmpi(cfg::Config config,
+                                       unsigned long long int log_dump_steps,
+                                       unsigned long long int config_dump_steps,
+                                       unsigned long long int maximum_number,
+                                       double temperature,
+                                       const std::set<Element> &element_set,
+                                       unsigned long long int restart_steps,
+                                       double restart_energy,
+                                       double restart_time,
+                                       const std::string &json_coefficients_filename)
     : config_(std::move(config)),
       log_dump_steps_(log_dump_steps),
       config_dump_steps_(config_dump_steps),
@@ -104,11 +104,11 @@ ChainKmcOmpi::ChainKmcOmpi(cfg::Config config,
     ofs << "steps\ttime\tenergy\tEa\tdE\ttype" << std::endl;
   }
 }
-ChainKmcOmpi::~ChainKmcOmpi() {
+KineticMcChainOmpi::~KineticMcChainOmpi() {
   MPI_Op_free(&mpi_op_);
   MPI_Finalize();
 }
-void ChainKmcOmpi::Dump(std::ofstream &ofs) const {
+void KineticMcChainOmpi::Dump(std::ofstream &ofs) const {
   if (steps_ % log_dump_steps_ == 0) {
     ofs << steps_ << '\t' << time_ << '\t' << energy_ << '\t' << one_step_barrier_ << '\t'
         << one_step_energy_change_ << '\t' << migrating_element_.GetString() << std::endl;
@@ -122,7 +122,7 @@ void ChainKmcOmpi::Dump(std::ofstream &ofs) const {
   }
 }
 // update  first_event_ki and l_index_list for each process
-void ChainKmcOmpi::BuildFirstEventKIAndGetTotalRates() {
+void KineticMcChainOmpi::BuildFirstEventKIAndGetTotalRates() {
   const auto i_index = config_.GetFirstNeighborsAtomIdVectorOfAtom(
       vacancy_index_)[static_cast<size_t>(world_rank_)];
   size_t it = 0;
@@ -158,7 +158,7 @@ void ChainKmcOmpi::BuildFirstEventKIAndGetTotalRates() {
   event_k_i_.CalculateProbability(total_rate_k_);
 }
 
-double ChainKmcOmpi::UpdateIndirectProbabilityAndCalculateTime() {
+double KineticMcChainOmpi::UpdateIndirectProbabilityAndCalculateTime() {
   const auto probability_k_i = event_k_i_.GetProbability();
   const auto probability_i_k = event_k_i_.GetBackwardRate() / total_rate_i_;
   const double beta_bar_k_i = probability_k_i * probability_i_k;
@@ -218,7 +218,7 @@ double ChainKmcOmpi::UpdateIndirectProbabilityAndCalculateTime() {
 }
 
 // run this on this first process
-size_t ChainKmcOmpi::SelectEvent() const {
+size_t KineticMcChainOmpi::SelectEvent() const {
   static std::uniform_real_distribution<double> distribution(0.0, 1.0);
 
   const double random_number = distribution(generator_);
@@ -235,7 +235,7 @@ size_t ChainKmcOmpi::SelectEvent() const {
   return static_cast<size_t>(std::distance(event_k_i_list_.begin(), it));
 }
 
-void ChainKmcOmpi::Simulate() {
+void KineticMcChainOmpi::Simulate() {
   std::ofstream ofs("lkmc_log.txt", std::ofstream::out | std::ofstream::app);
   if (world_rank_ == 0) {
     ofs.precision(16);

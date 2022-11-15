@@ -8,19 +8,19 @@ namespace mc {
 //  j -> k -> i ->l
 //       |
 // current position
-class ChainKmcOmp {
+class KineticMcChainOmp {
   public:
-    ChainKmcOmp(const cfg::Config &config,
-                unsigned long long int log_dump_steps,
-                unsigned long long int config_dump_steps,
-                unsigned long long int maximum_number,
-                double temperature,
-                const std::set<Element> &element_set,
-                unsigned long long int restart_steps,
-                double restart_energy,
-                double restart_time,
-                const std::string &json_coefficients_filename);
-    virtual ~ChainKmcOmp();
+    KineticMcChainOmp(const cfg::Config &config,
+                      unsigned long long int log_dump_steps,
+                      unsigned long long int config_dump_steps,
+                      unsigned long long int maximum_number,
+                      double temperature,
+                      const std::set<Element> &element_set,
+                      unsigned long long int restart_steps,
+                      double restart_energy,
+                      double restart_time,
+                      const std::string &json_coefficients_filename);
+    virtual ~KineticMcChainOmp();
     virtual void Simulate();
 
   protected:

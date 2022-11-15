@@ -1,17 +1,17 @@
-#include "FirstKmcMpi.h"
+#include "KineticMcFirstMpi.h"
 #include <utility>
 #include <chrono>
 namespace mc {
-FirstKmcMpi::FirstKmcMpi(cfg::Config config,
-                         unsigned long long int log_dump_steps,
-                         unsigned long long int config_dump_steps,
-                         unsigned long long int maximum_number,
-                         double temperature,
-                         const std::set<Element> &element_set,
-                         unsigned long long int restart_steps,
-                         double restart_energy,
-                         double restart_time,
-                         const std::string &json_coefficients_filename)
+KineticMcFirstMpi::KineticMcFirstMpi(cfg::Config config,
+                                     unsigned long long int log_dump_steps,
+                                     unsigned long long int config_dump_steps,
+                                     unsigned long long int maximum_number,
+                                     double temperature,
+                                     const std::set<Element> &element_set,
+                                     unsigned long long int restart_steps,
+                                     double restart_energy,
+                                     double restart_time,
+                                     const std::string &json_coefficients_filename)
     : config_(std::move(config)),
       log_dump_steps_(log_dump_steps),
       config_dump_steps_(config_dump_steps),
@@ -39,10 +39,10 @@ FirstKmcMpi::FirstKmcMpi(cfg::Config config,
     std::cout << "Using " << mpi_size << " processes." << std::endl;
   }
 }
-FirstKmcMpi::~FirstKmcMpi() {
+KineticMcFirstMpi::~KineticMcFirstMpi() {
   MPI_Finalize();
 }
-void FirstKmcMpi::Dump(std::ofstream &ofs) const {
+void KineticMcFirstMpi::Dump(std::ofstream &ofs) const {
   if (steps_ % log_dump_steps_ == 0) {
     ofs << steps_ << '\t' << time_ << '\t' << energy_ << '\t' << one_step_barrier_ << '\t'
         << one_step_energy_change_ << '\t' << migrating_element_.GetString() << std::endl;
@@ -55,7 +55,7 @@ void FirstKmcMpi::Dump(std::ofstream &ofs) const {
     config_.WriteMap("map" + std::to_string(steps_) + ".txt");
   }
 }
-void FirstKmcMpi::BuildEventListParallel() {
+void KineticMcFirstMpi::BuildEventListParallel() {
   total_rate_ = 0;
   const auto neighbor_index =
       config_.GetFirstNeighborsAtomIdVectorOfAtom(vacancy_index_)[static_cast<size_t>(world_rank_)];
@@ -81,7 +81,7 @@ void FirstKmcMpi::BuildEventListParallel() {
     event_it.SetCumulativeProbability(cumulative_probability);
   }
 }
-size_t FirstKmcMpi::SelectEvent() const {
+size_t KineticMcFirstMpi::SelectEvent() const {
   static std::uniform_real_distribution<double> distribution(0.0, 1.0);
 
   const double random_number = distribution(generator_);
@@ -97,7 +97,7 @@ size_t FirstKmcMpi::SelectEvent() const {
   }
   return static_cast<size_t>(std::distance(event_list_.begin(), it));
 }
-void FirstKmcMpi::Simulate() {
+void KineticMcFirstMpi::Simulate() {
   std::ofstream ofs("kmc_log.txt", std::ofstream::out | std::ofstream::app);
   if (world_rank_ == 0) {
     ofs << "steps\ttime\tenergy\tEa\tdE\ttype\n";

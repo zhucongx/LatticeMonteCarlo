@@ -1,18 +1,18 @@
-#include "ChainKmcMpi.h"
+#include "KineticMcChainMpi.h"
 #include <utility>
 #include <chrono>
 namespace mc {
 
-ChainKmcMpi::ChainKmcMpi(cfg::Config config,
-                         unsigned long long int log_dump_steps,
-                         unsigned long long int config_dump_steps,
-                         unsigned long long int maximum_number,
-                         double temperature,
-                         const std::set<Element> &element_set,
-                         unsigned long long int restart_steps,
-                         double restart_energy,
-                         double restart_time,
-                         const std::string &json_coefficients_filename)
+KineticMcChainMpi::KineticMcChainMpi(cfg::Config config,
+                                     unsigned long long int log_dump_steps,
+                                     unsigned long long int config_dump_steps,
+                                     unsigned long long int maximum_number,
+                                     double temperature,
+                                     const std::set<Element> &element_set,
+                                     unsigned long long int restart_steps,
+                                     double restart_energy,
+                                     double restart_time,
+                                     const std::string &json_coefficients_filename)
     : config_(std::move(config)),
       log_dump_steps_(log_dump_steps),
       config_dump_steps_(config_dump_steps),
@@ -64,14 +64,14 @@ ChainKmcMpi::ChainKmcMpi(cfg::Config config,
     std::cout << "Using " << world_size << " processes." << std::endl;
   }
 }
-ChainKmcMpi::~ChainKmcMpi() {
+KineticMcChainMpi::~KineticMcChainMpi() {
   if (MPI_GROUP_NULL != first_group_) MPI_Group_free(&first_group_);
   if (MPI_GROUP_NULL != second_group_) MPI_Group_free(&second_group_);
   if (MPI_COMM_NULL != first_comm_) MPI_Comm_free(&first_comm_);
   if (MPI_COMM_NULL != second_comm_) MPI_Comm_free(&second_comm_);
   MPI_Finalize();
 }
-void ChainKmcMpi::Dump(std::ofstream &ofs) const {
+void KineticMcChainMpi::Dump(std::ofstream &ofs) const {
   if (steps_ % log_dump_steps_ == 0) {
     ofs << steps_ << '\t' << time_ << '\t' << energy_ << '\t' << one_step_barrier_ << '\t'
         << one_step_energy_change_ << '\t' << migrating_element_.GetString() << std::endl;
@@ -88,7 +88,7 @@ void ChainKmcMpi::Dump(std::ofstream &ofs) const {
 // Get the energy change and the probability from j to k, pjk by the reference.
 // And return the index of j and k. Only applied to 12 sub-primary processes.
 // And then pass to others, now we will have 12 different numbers for 12 different second groups.
-JumpEvent ChainKmcMpi::GetFirstEventKI() {
+JumpEvent KineticMcChainMpi::GetFirstEventKI() {
   JumpEvent event_k_i;
   if (first_comm_ != MPI_COMM_NULL) {
     total_rate_k_ = 0;
@@ -113,7 +113,7 @@ JumpEvent ChainKmcMpi::GetFirstEventKI() {
 }
 
 // Return the indexed of the corresponding second neighbors
-std::vector<size_t> ChainKmcMpi::GetLIndexList() {
+std::vector<size_t> KineticMcChainMpi::GetLIndexList() {
   std::vector<size_t> l_indexes;
   l_indexes.reserve(kSecondEventListSize);
   if (first_comm_ != MPI_COMM_NULL) {
@@ -135,7 +135,7 @@ std::vector<size_t> ChainKmcMpi::GetLIndexList() {
             second_comm_);
   return l_indexes;
 }
-double ChainKmcMpi::BuildEventILList() {
+double KineticMcChainMpi::BuildEventILList() {
   // double first_probability, first_energy_change, first_back_rate;
   auto event_k_i = GetFirstEventKI();
   const auto l_index_list = GetLIndexList();
@@ -224,7 +224,7 @@ double ChainKmcMpi::BuildEventILList() {
   return t_2;
 }
 // run this on this first process
-size_t ChainKmcMpi::SelectEvent() const {
+size_t KineticMcChainMpi::SelectEvent() const {
   static std::uniform_real_distribution<double> distribution(0.0, 1.0);
 
   const double random_number = distribution(generator_);
@@ -241,7 +241,7 @@ size_t ChainKmcMpi::SelectEvent() const {
   return static_cast<size_t>(std::distance(event_k_i_list_.begin(), it));
 }
 
-void ChainKmcMpi::Simulate() {
+void KineticMcChainMpi::Simulate() {
   std::ofstream ofs("kmc_log.txt", std::ofstream::out | std::ofstream::app);
   if (world_rank_ == 0) {
     ofs << "steps\ttime\tenergy\tEa\tdE\ttype\n";

@@ -1,4 +1,4 @@
-#include "ChainKmcOmp.h"
+#include "KineticMcChainOmp.h"
 
 #include <utility>
 #include <chrono>
@@ -7,16 +7,16 @@ namespace mc {
 //  j -> k -> i ->l
 //       |
 // current position
-ChainKmcOmp::ChainKmcOmp(const cfg::Config &config,
-                         unsigned long long int log_dump_steps,
-                         unsigned long long int config_dump_steps,
-                         unsigned long long int maximum_number,
-                         double temperature,
-                         const std::set<Element> &element_set,
-                         unsigned long long int restart_steps,
-                         double restart_energy,
-                         double restart_time,
-                         const std::string &json_coefficients_filename)
+KineticMcChainOmp::KineticMcChainOmp(const cfg::Config &config,
+                                     unsigned long long int log_dump_steps,
+                                     unsigned long long int config_dump_steps,
+                                     unsigned long long int maximum_number,
+                                     double temperature,
+                                     const std::set<Element> &element_set,
+                                     unsigned long long int restart_steps,
+                                     double restart_energy,
+                                     double restart_time,
+                                     const std::string &json_coefficients_filename)
     : log_dump_steps_(log_dump_steps),
       config_dump_steps_(config_dump_steps),
       maximum_number_(maximum_number),
@@ -37,8 +37,8 @@ ChainKmcOmp::ChainKmcOmp(const cfg::Config &config,
     std::cout << "Using " << omp_get_num_threads() << " threads." << std::endl;
   }
 }
-ChainKmcOmp::~ChainKmcOmp() = default;
-void ChainKmcOmp::Dump(std::ofstream &ofs) const{
+KineticMcChainOmp::~KineticMcChainOmp() = default;
+void KineticMcChainOmp::Dump(std::ofstream &ofs) const{
   if (steps_ % log_dump_steps_ == 0) {
     ofs << steps_ << '\t' << time_ << '\t' << energy_ << '\t' << one_step_barrier_ << '\t'
         << one_step_energy_change_ << '\t' << migrating_element_.GetString() << std::endl;
@@ -55,7 +55,7 @@ void ChainKmcOmp::Dump(std::ofstream &ofs) const{
 // Get the energy change and the probability from j to k, pjk by the reference.
 // Update event list and total rate of k and initial total i list. And find the indexes for l.
 // Applied to 12 threads.
-void ChainKmcOmp::BuildEventKIListAndLIndexList() {
+void KineticMcChainOmp::BuildEventKIListAndLIndexList() {
   total_rate_k_ = 0;
   const auto &config = config_list_[0];
   const auto &i_indexes = config.GetFirstNeighborsAtomIdVectorOfAtom(vacancy_index_);
@@ -88,7 +88,7 @@ void ChainKmcOmp::BuildEventKIListAndLIndexList() {
   }
 }
 
-void ChainKmcOmp::BuildTotalRateIList() {
+void KineticMcChainOmp::BuildTotalRateIList() {
 #pragma omp parallel for default(none)
   for (size_t it = 0; it < kFirstEventListSize * kSecondEventListSize; ++it) {
     size_t it1 = it / kSecondEventListSize;
@@ -111,7 +111,7 @@ void ChainKmcOmp::BuildTotalRateIList() {
   }
 }
 
-double ChainKmcOmp::CalculateTime() {
+double KineticMcChainOmp::CalculateTime() {
   BuildEventKIListAndLIndexList();
   BuildTotalRateIList();
   double beta_bar_k = 0.0, beta_k = 0.0, gamma_bar_k_j = 0.0, gamma_k_j = 0.0,
@@ -186,7 +186,7 @@ double ChainKmcOmp::CalculateTime() {
 
   return t_2;
 }
-size_t ChainKmcOmp::SelectEvent() const {
+size_t KineticMcChainOmp::SelectEvent() const {
   static std::uniform_real_distribution<double> distribution(0.0, 1.0);
   const double random_number = distribution(generator_);
   auto it = std::lower_bound(event_k_i_list_.begin(),
@@ -202,7 +202,7 @@ size_t ChainKmcOmp::SelectEvent() const {
   return static_cast<size_t>(std::distance(event_k_i_list_.begin(), it));
 }
 
-void ChainKmcOmp::Simulate() {
+void KineticMcChainOmp::Simulate() {
   std::ofstream ofs("kmc_log.txt", std::ofstream::out | std::ofstream::app);
   ofs << "steps\ttime\tenergy\tEa\tdE\ttype\n";
   ofs.precision(8);

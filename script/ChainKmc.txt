@@ -1,4 +1,4 @@
-simulation_method ChainKmc
+simulation_method KineticMcChainOmpi
 json_coefficients_filename quartic_coefficients.json
 #config_filename start.cfg
 map_filename map0.txt

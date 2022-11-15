@@ -96,8 +96,8 @@ void Parameter::ReadParam(const std::string &param_filename) {
 void Parameter::PrintParameters() const {
   std::cout << "Parameters" << std::endl;
   std::cout << "simulation_method: " << method << std::endl;
-  if (method == "FirstKmc" || method == "ChainKmcOmp" || method == "ChainKmcMpi"
-      || method == "ChainKmcOmpi") {
+  if (method == "KineticMcFirstMpi" || method == "KineticMcChainOmp" || method == "KineticMcChainMpi"
+      || method == "KineticMcChainOmpi") {
     std::cout << "json_coefficients_filename: " << json_coefficients_filename_ << std::endl;
     std::cout << "config_filename: " << config_filename_ << std::endl;
     std::cout << "map_filename: " << map_filename_ << std::endl;

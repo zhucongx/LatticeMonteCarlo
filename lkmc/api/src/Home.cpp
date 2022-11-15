@@ -1,6 +1,6 @@
 #include "Home.h"
 namespace api {
-mc::FirstKmcMpi BuildFirstKmcMpiFromParameter(const Parameter &parameter) {
+mc::KineticMcFirstMpi BuildKineticMcFirstMpiFromParameter(const Parameter &parameter) {
   std::set < Element > element_set;
   for (const auto &element_string: parameter.element_set_) {
     element_set.insert(Element(element_string));
@@ -13,18 +13,18 @@ mc::FirstKmcMpi BuildFirstKmcMpiFromParameter(const Parameter &parameter) {
     config = cfg::Config::ReadMap("lattice.txt", "element.txt", parameter.map_filename_);
   }
   std::cout << "Finish config reading. Start KMC." << std::endl;
-  return mc::FirstKmcMpi{config,
-                         parameter.log_dump_steps_,
-                         parameter.config_dump_steps_,
-                         parameter.maximum_steps_,
-                         parameter.temperature_,
-                         element_set,
-                         parameter.restart_steps_,
-                         parameter.restart_energy_,
-                         parameter.restart_time_,
-                         parameter.json_coefficients_filename_};
+  return mc::KineticMcFirstMpi{config,
+                               parameter.log_dump_steps_,
+                               parameter.config_dump_steps_,
+                               parameter.maximum_steps_,
+                               parameter.temperature_,
+                               element_set,
+                               parameter.restart_steps_,
+                               parameter.restart_energy_,
+                               parameter.restart_time_,
+                               parameter.json_coefficients_filename_};
 }
-mc::ChainKmcMpi BuildChainKmcMpiFromParameter(const Parameter &parameter) {
+mc::KineticMcChainMpi BuildKineticMcChainMpiFromParameter(const Parameter &parameter) {
   std::set < Element > element_set;
   for (const auto &element_string: parameter.element_set_) {
     element_set.insert(Element(element_string));
@@ -37,18 +37,18 @@ mc::ChainKmcMpi BuildChainKmcMpiFromParameter(const Parameter &parameter) {
     config = cfg::Config::ReadMap("lattice.txt", "element.txt", parameter.map_filename_);
   }
   std::cout << "Finish config reading. Start KMC." << std::endl;
-  return mc::ChainKmcMpi{config,
-                         parameter.log_dump_steps_,
-                         parameter.config_dump_steps_,
-                         parameter.maximum_steps_,
-                         parameter.temperature_,
-                         element_set,
-                         parameter.restart_steps_,
-                         parameter.restart_energy_,
-                         parameter.restart_time_,
-                         parameter.json_coefficients_filename_};
+  return mc::KineticMcChainMpi{config,
+                               parameter.log_dump_steps_,
+                               parameter.config_dump_steps_,
+                               parameter.maximum_steps_,
+                               parameter.temperature_,
+                               element_set,
+                               parameter.restart_steps_,
+                               parameter.restart_energy_,
+                               parameter.restart_time_,
+                               parameter.json_coefficients_filename_};
 }
-mc::ChainKmcOmp BuildChainKmcOmpFromParameter(const Parameter &parameter) {
+mc::KineticMcChainOmp BuildKineticMcChainOmpFromParameter(const Parameter &parameter) {
   std::set < Element > element_set;
   for (const auto &element_string: parameter.element_set_) {
     element_set.insert(Element(element_string));
@@ -61,18 +61,18 @@ mc::ChainKmcOmp BuildChainKmcOmpFromParameter(const Parameter &parameter) {
     config = cfg::Config::ReadMap("lattice.txt", "element.txt", parameter.map_filename_);
   }
   std::cout << "Finish config reading. Start kMC." << std::endl;
-  return mc::ChainKmcOmp{config,
-                         parameter.log_dump_steps_,
-                         parameter.config_dump_steps_,
-                         parameter.maximum_steps_,
-                         parameter.temperature_,
-                         element_set,
-                         parameter.restart_steps_,
-                         parameter.restart_energy_,
-                         parameter.restart_time_,
-                         parameter.json_coefficients_filename_};
+  return mc::KineticMcChainOmp{config,
+                               parameter.log_dump_steps_,
+                               parameter.config_dump_steps_,
+                               parameter.maximum_steps_,
+                               parameter.temperature_,
+                               element_set,
+                               parameter.restart_steps_,
+                               parameter.restart_energy_,
+                               parameter.restart_time_,
+                               parameter.json_coefficients_filename_};
 }
-mc::ChainKmcOmpi BuildChainKmcOmpiFromParameter(const Parameter &parameter) {
+mc::KineticMcChainOmpi BuildKineticMcChainOmpiFromParameter(const Parameter &parameter) {
   std::set < Element > element_set;
   for (const auto &element_string: parameter.element_set_) {
     element_set.insert(Element(element_string));
@@ -85,16 +85,16 @@ mc::ChainKmcOmpi BuildChainKmcOmpiFromParameter(const Parameter &parameter) {
     config = cfg::Config::ReadMap("lattice.txt", "element.txt", parameter.map_filename_);
   }
   std::cout << "Finish config reading. Start KMC." << std::endl;
-  return mc::ChainKmcOmpi{config,
-                          parameter.log_dump_steps_,
-                          parameter.config_dump_steps_,
-                          parameter.maximum_steps_,
-                          parameter.temperature_,
-                          element_set,
-                          parameter.restart_steps_,
-                          parameter.restart_energy_,
-                          parameter.restart_time_,
-                          parameter.json_coefficients_filename_};
+  return mc::KineticMcChainOmpi{config,
+                                parameter.log_dump_steps_,
+                                parameter.config_dump_steps_,
+                                parameter.maximum_steps_,
+                                parameter.temperature_,
+                                element_set,
+                                parameter.restart_steps_,
+                                parameter.restart_energy_,
+                                parameter.restart_time_,
+                                parameter.json_coefficients_filename_};
 }
 ansys::SimulatedAnnealing BuildSimulatedAnnealingFromParameter(const Parameter &parameter) {
   std::map < Element, size_t > solute_atom_count;

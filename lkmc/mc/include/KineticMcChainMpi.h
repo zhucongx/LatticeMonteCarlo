@@ -1,5 +1,5 @@
-#ifndef LKMC_LKMC_MC_INCLUDE_CHAINKMCMPI_H_
-#define LKMC_LKMC_MC_INCLUDE_CHAINKMCMPI_H_
+#ifndef LKMC_LKMC_MC_INCLUDE_KINETICMCCHAINMPI_H_
+#define LKMC_LKMC_MC_INCLUDE_KINETICMCCHAINMPI_H_
 #include <random>
 #include <mpi.h>
 #include "VacancyMigrationPredictorQuarticLru.h"
@@ -8,19 +8,19 @@ namespace mc {
 //  j -> k -> i -> l
 //       |
 // current position
-class ChainKmcMpi {
+class KineticMcChainMpi {
   public:
-    ChainKmcMpi(cfg::Config config,
-                unsigned long long int log_dump_steps,
-                unsigned long long int config_dump_steps,
-                unsigned long long int maximum_number,
-                double temperature,
-                const std::set<Element> &element_set,
-                unsigned long long int restart_steps,
-                double restart_energy,
-                double restart_time,
-                const std::string &json_coefficients_filename);
-    virtual ~ChainKmcMpi();
+    KineticMcChainMpi(cfg::Config config,
+                      unsigned long long int log_dump_steps,
+                      unsigned long long int config_dump_steps,
+                      unsigned long long int maximum_number,
+                      double temperature,
+                      const std::set<Element> &element_set,
+                      unsigned long long int restart_steps,
+                      double restart_energy,
+                      double restart_time,
+                      const std::string &json_coefficients_filename);
+    virtual ~KineticMcChainMpi();
     virtual void Simulate();
 
   protected:
@@ -76,4 +76,4 @@ class ChainKmcMpi {
 } // namespace mc
 
 
-#endif //LKMC_LKMC_MC_INCLUDE_CHAINKMCMPI_H_
+#endif //LKMC_LKMC_MC_INCLUDE_KINETICMCCHAINMPI_H_

@@ -8,18 +8,18 @@ int main(int argc, char *argv[]) {
   api::Parameter parameter(argc, argv);
   parameter.PrintParameters();
 
-  if (parameter.method == "FirstKmc") {
-    auto first_kmc = api::BuildFirstKmcMpiFromParameter(parameter);
-    first_kmc.Simulate();
-  } else if (parameter.method == "ChainKmcOmp") {
-    auto chain_kmc_omp = api::BuildChainKmcOmpFromParameter(parameter);
-    chain_kmc_omp.Simulate();
-  } else if (parameter.method == "ChainKmcMpi") {
-    auto chain_kmc_mpi = api::BuildChainKmcMpiFromParameter(parameter);
-    chain_kmc_mpi.Simulate();
-  } else if (parameter.method == "ChainKmcOmpi") {
-    auto chain_kmc_ompi = api::BuildChainKmcOmpiFromParameter(parameter);
-    chain_kmc_ompi.Simulate();
+  if (parameter.method == "KineticMcFirstMpi") {
+    auto kinetic_mc_first_mpi = api::BuildKineticMcFirstMpiFromParameter(parameter);
+    kinetic_mc_first_mpi.Simulate();
+  } else if (parameter.method == "KineticMcChainOmp") {
+    auto kinetic_mc_chain_omp = api::BuildKineticMcChainOmpFromParameter(parameter);
+    kinetic_mc_chain_omp.Simulate();
+  } else if (parameter.method == "KineticMcChainMpi") {
+    auto kinetic_mc_chain_mpi = api::BuildKineticMcChainMpiFromParameter(parameter);
+    kinetic_mc_chain_mpi.Simulate();
+  } else if (parameter.method == "KineticMcChainOmpi") {
+    auto kinetic_mc_chain_ompi = api::BuildKineticMcChainOmpiFromParameter(parameter);
+    kinetic_mc_chain_ompi.Simulate();
   } else if (parameter.method == "FindCluster") {
     auto iterator = api::BuildIteratorFromParameter(parameter);
     iterator.RunCluster();
