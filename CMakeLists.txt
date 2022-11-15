@@ -51,20 +51,20 @@ message(STATUS "Current build type is ${CMAKE_BUILD_TYPE}")
 #add_subdirectory(lkmc/cfg)
 #add_subdirectory(lkmc/gen)
 #add_subdirectory(lkmc/ansys)
-#add_subdirectory(lkmc/kmc)
-#target_link_libraries(${PROJECT_NAME} PUBLIC cfg gen ansys kmc)
+#add_subdirectory(lkmc/mc)
+#target_link_libraries(${PROJECT_NAME} PUBLIC cfg gen ansys mc)
 ############################################ BUILD SRCS ############################################
 file(GLOB PROJECT_SRC
         ${PROJECT_SOURCE_DIR}/lkmc/cfg/src/*.cpp
         ${PROJECT_SOURCE_DIR}/lkmc/pred/src/*.cpp
-        ${PROJECT_SOURCE_DIR}/lkmc/kmc/src/*.cpp
+        ${PROJECT_SOURCE_DIR}/lkmc/mc/src/*.cpp
         ${PROJECT_SOURCE_DIR}/lkmc/ansys/src/*.cpp
         ${PROJECT_SOURCE_DIR}/lkmc/api/src/*.cpp
         )
 set(PROJECT_INCLUDE
         ${PROJECT_SOURCE_DIR}/lkmc/cfg/include
         ${PROJECT_SOURCE_DIR}/lkmc/pred/include
-        ${PROJECT_SOURCE_DIR}/lkmc/kmc/include
+        ${PROJECT_SOURCE_DIR}/lkmc/mc/include
         ${PROJECT_SOURCE_DIR}/lkmc/ansys/include
         ${PROJECT_SOURCE_DIR}/lkmc/api/include
         )

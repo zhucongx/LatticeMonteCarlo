@@ -1,7 +1,7 @@
 #include "ChainKmcMpi.h"
 #include <utility>
 #include <chrono>
-namespace kmc {
+namespace mc {
 
 ChainKmcMpi::ChainKmcMpi(cfg::Config config,
                          unsigned long long int log_dump_steps,
@@ -276,4 +276,4 @@ void ChainKmcMpi::Simulate() {
     ++steps_;
   }
 }
-} // namespace kmc
+} // namespace mc

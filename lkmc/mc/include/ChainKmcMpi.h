@@ -1,16 +1,16 @@
-#ifndef LKMC_LKMC_KMC_INCLUDE_CHAINKMCOPENMP_H_
-#define LKMC_LKMC_KMC_INCLUDE_CHAINKMCOPENMP_H_
+#ifndef LKMC_LKMC_KMC_INCLUDE_CHAINKMCMPI_H_
+#define LKMC_LKMC_KMC_INCLUDE_CHAINKMCMPI_H_
 #include <random>
-#include <omp.h>
+#include <mpi.h>
 #include "VacancyMigrationPredictorQuarticLru.h"
 #include "JumpEvent.h"
-namespace kmc {
-//  j -> k -> i ->l
+namespace mc {
+//  j -> k -> i -> l
 //       |
 // current position
-class ChainKmcOmp {
+class ChainKmcMpi {
   public:
-    ChainKmcOmp(const cfg::Config &config,
+    ChainKmcMpi(cfg::Config config,
                 unsigned long long int log_dump_steps,
                 unsigned long long int config_dump_steps,
                 unsigned long long int maximum_number,
@@ -20,14 +20,16 @@ class ChainKmcOmp {
                 double restart_energy,
                 double restart_time,
                 const std::string &json_coefficients_filename);
-    virtual ~ChainKmcOmp();
+    virtual ~ChainKmcMpi();
     virtual void Simulate();
 
   protected:
+    // virtual bool CheckAndSolveEquilibrium(std::ofstream &ofs) { return false; }
     inline void Dump(std::ofstream &ofs) const;
-    void BuildEventKIListAndLIndexList();
-    void BuildTotalRateIList();
-    double CalculateTime();
+    JumpEvent GetFirstEventKI();
+    [[nodiscard]] double BuildEventILList();
+
+    std::vector<size_t> GetLIndexList();
     size_t SelectEvent() const;
 
     // constants
@@ -35,7 +37,7 @@ class ChainKmcOmp {
     static constexpr size_t kSecondEventListSize = kFirstEventListSize - 1;
 
     // config
-    std::array<cfg::Config, kFirstEventListSize * kSecondEventListSize> config_list_;
+    cfg::Config config_;
 
     // simulation parameters
     const unsigned long long int log_dump_steps_;
@@ -57,18 +59,21 @@ class ChainKmcOmp {
 
     // helpful properties
     double total_rate_k_{0.0};
-    std::array<double, kFirstEventListSize> total_rate_i_list_{};
-    std::array<size_t, kFirstEventListSize * kSecondEventListSize> l_index_list_{};
-    std::array<JumpEvent, kFirstEventListSize> event_k_i_list_{};
+    double total_rate_i_{0.0};
+    std::vector<JumpEvent> event_k_i_list_{};
 
     std::pair<size_t, size_t> atom_id_jump_pair_;
     size_t previous_j_;
 
+    int world_rank_{-1}, first_group_rank_{-1}, second_group_rank_{-1};
+    // double rij{0}, pij{0};
+    MPI_Group world_group_, first_group_, second_group_;
+    MPI_Comm first_comm_, second_comm_;
 
     const pred::VacancyMigrationPredictorQuarticLru energy_predictor_;
     mutable std::mt19937_64 generator_;
 };
+} // namespace mc
 
-} // namespace kmc
 
-#endif //LKMC_LKMC_KMC_INCLUDE_CHAINKMCOPENMP_H_
+#endif //LKMC_LKMC_KMC_INCLUDE_CHAINKMCMPI_H_

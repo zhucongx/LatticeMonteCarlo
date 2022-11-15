@@ -2,7 +2,7 @@
 #define LKMC_LKMC_KMC_INCLUDE_JUMPEVENT_H_
 #include <cstddef>
 #include <utility>
-namespace kmc {
+namespace mc {
 constexpr double kBoltzmannConstant = 8.617333262145e-5;
 constexpr double kPrefactor = 1e13;
 
@@ -37,5 +37,5 @@ class JumpEvent {
     double probability_{};
     double cumulative_probability_{};
 };
-} // namespace kmc
+} // namespace mc
 #endif //LKMC_LKMC_KMC_INCLUDE_JUMPEVENT_H_

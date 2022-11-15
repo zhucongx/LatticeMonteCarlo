@@ -5,7 +5,7 @@
 #include <mpi.h>
 #include "VacancyMigrationPredictorQuarticLru.h"
 #include "JumpEvent.h"
-namespace kmc {
+namespace mc {
 //  j -> k -> i -> l
 //       |
 // current position
@@ -71,6 +71,6 @@ class ChainKmcOmpi {
     MPI_Datatype mpi_datatype_{};
 };
 
-} // namespace kmc
+} // namespace mc
 
 #endif //LKMC_LKMC_KMC_INCLUDE_CHAINKMCOMPI_H_

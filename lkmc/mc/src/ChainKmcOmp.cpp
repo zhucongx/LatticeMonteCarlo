@@ -3,7 +3,7 @@
 #include <utility>
 #include <chrono>
 #include <utility>
-namespace kmc {
+namespace mc {
 //  j -> k -> i ->l
 //       |
 // current position
@@ -227,4 +227,4 @@ void ChainKmcOmp::Simulate() {
     ++steps_;
   }
 }
-} // namespace kmc
+} // namespace mc

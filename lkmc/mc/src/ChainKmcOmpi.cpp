@@ -1,6 +1,6 @@
 #include "ChainKmcOmpi.h"
 #include "EnergyPredictor.h"
-namespace kmc {
+namespace mc {
 //  j -> k -> i ->l
 //       |
 // current position
@@ -266,4 +266,4 @@ void ChainKmcOmpi::Simulate() {
   }
 }
 
-} // namespace kmc
+} // namespace mc

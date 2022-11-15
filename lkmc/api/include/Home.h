@@ -11,10 +11,10 @@
 #include "Iterator.h"
 
 namespace api {
-kmc::FirstKmcMpi BuildFirstKmcMpiFromParameter(const Parameter &parameter);
-kmc::ChainKmcMpi BuildChainKmcMpiFromParameter(const Parameter &parameter);
-kmc::ChainKmcOmp BuildChainKmcOmpFromParameter(const Parameter &parameter);
-kmc::ChainKmcOmpi BuildChainKmcOmpiFromParameter(const Parameter &parameter);
+mc::FirstKmcMpi BuildFirstKmcMpiFromParameter(const Parameter &parameter);
+mc::ChainKmcMpi BuildChainKmcMpiFromParameter(const Parameter &parameter);
+mc::ChainKmcOmp BuildChainKmcOmpFromParameter(const Parameter &parameter);
+mc::ChainKmcOmpi BuildChainKmcOmpiFromParameter(const Parameter &parameter);
 ansys::SimulatedAnnealing BuildSimulatedAnnealingFromParameter(const Parameter &parameter);
 ansys::CanonicalMc BuildCanonicalMcFromParameter(const Parameter &parameter);
 ansys::CanonicalMcStepT BuildCanonicalMcStepTFromParameter(const Parameter &parameter);

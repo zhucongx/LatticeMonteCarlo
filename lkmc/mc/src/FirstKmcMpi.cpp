@@ -1,7 +1,7 @@
 #include "FirstKmcMpi.h"
 #include <utility>
 #include <chrono>
-namespace kmc {
+namespace mc {
 FirstKmcMpi::FirstKmcMpi(cfg::Config config,
                          unsigned long long int log_dump_steps,
                          unsigned long long int config_dump_steps,
@@ -132,4 +132,4 @@ void FirstKmcMpi::Simulate() {
     ++steps_;
   }
 }
-} // namespace kmc
+} // namespace mc

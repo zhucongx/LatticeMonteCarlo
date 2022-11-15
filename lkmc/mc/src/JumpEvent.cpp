@@ -1,7 +1,7 @@
 #include <cmath>
 #include <utility>
 #include "JumpEvent.h"
-namespace kmc {
+namespace mc {
 JumpEvent::JumpEvent() = default;
 JumpEvent::JumpEvent(std::pair<size_t, size_t> atom_id_jump_pair,
                      const std::pair<double, double> &barrier_and_diff,
@@ -52,4 +52,4 @@ void JumpEvent::CalculateProbability(double total_rates) {
 JumpEvent JumpEvent::GetReverseJumpEvent() const {
   return JumpEvent{atom_id_jump_pair_, {barrier_ - energy_change_, -energy_change_}, beta_};
 }
-} // namespace kmc
+} // namespace mc
