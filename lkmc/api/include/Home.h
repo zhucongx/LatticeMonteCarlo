@@ -16,8 +16,8 @@ mc::ChainKmcMpi BuildChainKmcMpiFromParameter(const Parameter &parameter);
 mc::ChainKmcOmp BuildChainKmcOmpFromParameter(const Parameter &parameter);
 mc::ChainKmcOmpi BuildChainKmcOmpiFromParameter(const Parameter &parameter);
 ansys::SimulatedAnnealing BuildSimulatedAnnealingFromParameter(const Parameter &parameter);
-ansys::CanonicalMc BuildCanonicalMcFromParameter(const Parameter &parameter);
-ansys::CanonicalMcStepT BuildCanonicalMcStepTFromParameter(const Parameter &parameter);
+mc::CanonicalMc BuildCanonicalMcFromParameter(const Parameter &parameter);
+mc::CanonicalMcStepT BuildCanonicalMcStepTFromParameter(const Parameter &parameter);
 ansys::Iterator BuildIteratorFromParameter(const Parameter &parameter);
 } // namespace api
 

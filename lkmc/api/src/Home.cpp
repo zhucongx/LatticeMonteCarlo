@@ -115,7 +115,7 @@ ansys::SimulatedAnnealing BuildSimulatedAnnealingFromParameter(const Parameter &
       parameter.json_coefficients_filename_};
 
 }
-ansys::CanonicalMc BuildCanonicalMcFromParameter(const Parameter &parameter) {
+mc::CanonicalMc BuildCanonicalMcFromParameter(const Parameter &parameter) {
   std::set < Element > element_set;
   for (const auto &element_string: parameter.element_set_) {
     element_set.insert(Element(element_string));
@@ -123,7 +123,7 @@ ansys::CanonicalMc BuildCanonicalMcFromParameter(const Parameter &parameter) {
 
   auto config = cfg::Config::ReadCfg(parameter.config_filename_);
   std::cout << "Finish config reading. Start CMC." << std::endl;
-  return ansys::CanonicalMc{
+  return mc::CanonicalMc{
       config,
       element_set,
       parameter.log_dump_steps_,
@@ -132,7 +132,7 @@ ansys::CanonicalMc BuildCanonicalMcFromParameter(const Parameter &parameter) {
       parameter.temperature_,
       parameter.json_coefficients_filename_};
 }
-ansys::CanonicalMcStepT BuildCanonicalMcStepTFromParameter(const Parameter &parameter) {
+mc::CanonicalMcStepT BuildCanonicalMcStepTFromParameter(const Parameter &parameter) {
   std::set < Element > solute_element_set;
   for (const auto &element_string: parameter.solute_element_set_) {
     solute_element_set.insert(Element(element_string));
@@ -140,7 +140,7 @@ ansys::CanonicalMcStepT BuildCanonicalMcStepTFromParameter(const Parameter &para
 
   auto config = cfg::Config::ReadCfg(parameter.config_filename_);
   std::cout << "Finish config reading. Start CMC." << std::endl;
-  return ansys::CanonicalMcStepT{
+  return mc::CanonicalMcStepT{
       config,
       Element(parameter.solvent_element_),
       solute_element_set,
