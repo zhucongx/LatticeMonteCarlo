@@ -80,7 +80,7 @@ size_t GetVacancyAtomIndex(const Config &config);
 size_t GetVacancyLatticeIndex(const Config &config);
 std::unordered_set<size_t> GetNeighborsLatticeIdSetOfJumpPair(
     const Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair);
-std::unordered_set<size_t> GetNeighborsLatticeIdSetOfLattice(
+std::unordered_set<size_t> GetNeighborsLatticeIdSetOfLatticeId(
     const Config &config, size_t lattice_id);
 Config GetNeighborsConfigSetOfJumpPair(
     const Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair);

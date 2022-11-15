@@ -597,7 +597,7 @@ size_t GetVacancyLatticeIndex(const Config &config) {
   return 0;
 }
 
-std::unordered_set<size_t> GetNeighborsLatticeIdSetOfLattice(
+std::unordered_set<size_t> GetNeighborsLatticeIdSetOfLatticeId(
     const Config &config, size_t lattice_id) {
   std::unordered_set<size_t> near_neighbors_hashset;
   std::copy(config.GetFirstNeighborsAdjacencyList().at(lattice_id).begin(),
