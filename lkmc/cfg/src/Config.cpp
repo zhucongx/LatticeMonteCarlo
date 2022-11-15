@@ -600,6 +600,7 @@ size_t GetVacancyLatticeIndex(const Config &config) {
 std::unordered_set<size_t> GetNeighborsLatticeIdSetOfLatticeId(
     const Config &config, size_t lattice_id) {
   std::unordered_set<size_t> near_neighbors_hashset;
+  near_neighbors_hashset.insert(lattice_id);
   std::copy(config.GetFirstNeighborsAdjacencyList().at(lattice_id).begin(),
             config.GetFirstNeighborsAdjacencyList().at(lattice_id).end(),
             std::inserter(near_neighbors_hashset,
@@ -616,7 +617,6 @@ std::unordered_set<size_t> GetNeighborsLatticeIdSetOfLatticeId(
 }
 std::unordered_set<size_t> GetNeighborsLatticeIdSetOfJumpPair(
     const Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) {
-
   std::unordered_set<size_t> near_neighbors_hashset;
   for (const auto lattice_id: {lattice_id_jump_pair.first, lattice_id_jump_pair.second}) {
     near_neighbors_hashset.insert(lattice_id);
