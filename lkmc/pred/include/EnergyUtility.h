@@ -36,16 +36,16 @@ std::unordered_map<cfg::ElementCluster,
 int GetLabel(const std::vector<size_t> &lattice_index_list, const cfg::Config &config);
 // Returns forward and backward sorted lattice lists
 std::vector<cfg::Lattice> GetSortedLatticeVectorStateOfPair(
-    const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair);
+    const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_pair);
 std::vector<cfg::Lattice> GetSortedLatticeVectorStateOfSite(
     const cfg::Config &config, size_t lattice_id);
 std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingStatePair(
     const cfg::Config &config);
 std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingStateSite(
     const cfg::Config &config);
-std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingStateOfBond(
-    const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair);
-std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingStateOfLatticeId(
+std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingStatePairOf(
+    const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_pair);
+std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingStateSiteOf(
     const cfg::Config &config, size_t lattice_id);
 std::vector<double> GetOneHotParametersFromMap(
     const std::vector<Element> &encode,

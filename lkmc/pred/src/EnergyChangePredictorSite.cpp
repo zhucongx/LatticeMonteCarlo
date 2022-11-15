@@ -23,7 +23,7 @@ EnergyChangePredictorSite::EnergyChangePredictorSite(const std::string &predicto
   }
 #pragma omp parallel for default(none) shared(reference_config)
   for (size_t i = 0; i < reference_config.GetNumAtoms(); ++i) {
-    auto site_mapping = GetClusterParametersMappingStateOfLatticeId(reference_config, i);
+    auto site_mapping = GetClusterParametersMappingStateSiteOf(reference_config, i);
 #pragma omp critical
     {
       site_neighbors_hashmap_[i] = std::move(site_mapping);

@@ -88,7 +88,7 @@ double EnergyChangePredictorPairAll::GetDeFromLatticeIdPairWithCoupling(
   if (element_first == element_second) {
     return 0.0;
   }
-  const auto mapping = GetClusterParametersMappingStateOfBond(config, lattice_id_jump_pair);
+  const auto mapping = GetClusterParametersMappingStatePairOf(config, lattice_id_jump_pair);
   auto start_hashmap(initialized_cluster_hashmap_);
   auto end_hashmap(initialized_cluster_hashmap_);
   int label = 0;
