@@ -35,14 +35,14 @@ class EnergyChangePredictorPairAll {
         const std::map<cfg::ElementCluster, int> &ordered) const;
 
     const std::set<Element> element_set_;
+    const std::vector<std::vector<std::vector<size_t> > > site_mapping_state_;
+
     std::vector<double> base_theta_{};
     std::unordered_map<cfg::ElementCluster, size_t,
                        boost::hash<cfg::ElementCluster> > initialized_cluster_hashmap_;
-    // std::unordered_map<std::pair<size_t, size_t>,
-    //                    std::vector<std::vector<std::vector<size_t> > >,
-    //                    boost::hash<std::pair<size_t, size_t> > > bond_neighbors_hashmap_;
+
     std::unordered_map<size_t,
-                       std::vector<std::vector<std::vector<size_t> > > > site_neighbors_hashmap_;
+                       std::vector<size_t> > site_state_hashmap_;
     std::unordered_map<size_t,
                        std::unordered_set<size_t> > neighboring_sites_hashmap_;
 };

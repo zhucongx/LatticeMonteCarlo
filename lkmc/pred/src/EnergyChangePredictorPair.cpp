@@ -7,7 +7,7 @@ EnergyChangePredictorPair::EnergyChangePredictorPair(const std::string &predicto
                                                      const cfg::Config &reference_config,
                                                      std::set<Element> element_set)
     : element_set_(std::move(element_set)),
-      mapping_state_(GetClusterParametersMappingState(reference_config)) {
+      bond_mapping_state_(GetClusterParametersMappingStatePair(reference_config)) {
   auto element_set_copy(element_set_);
   element_set_copy.emplace(ElementName::X);
   initialized_cluster_hashmap_ = InitializeClusterHashMap(element_set_copy);
@@ -24,15 +24,14 @@ EnergyChangePredictorPair::EnergyChangePredictorPair(const std::string &predicto
 #pragma omp parallel for default(none) shared(reference_config)
   for (size_t i = 0; i < reference_config.GetNumAtoms(); ++i) {
     for (auto j: reference_config.GetFirstNeighborsAdjacencyList()[i]) {
-      auto sorted_lattice_vector =
-          GetSortedLatticeVectorState(reference_config, {i, j});
+      auto sorted_lattice_vector = GetSortedLatticeVectorStateOfPair(reference_config, {i, j});
       std::vector<size_t> lattice_id_vector_state;
       std::transform(sorted_lattice_vector.begin(), sorted_lattice_vector.end(),
                      std::back_inserter(lattice_id_vector_state),
                      [](const auto &lattice) { return lattice.GetId(); });
 #pragma omp critical
       {
-        site_bond_cluster_state_hashmap_[{i, j}] = lattice_id_vector_state;
+        bond_state_hashmap_[{i, j}] = lattice_id_vector_state;
       }
     }
   }
@@ -56,11 +55,11 @@ double EnergyChangePredictorPair::GetDeFromLatticeIdPair(
   }
   auto start_hashmap(initialized_cluster_hashmap_);
   auto end_hashmap(initialized_cluster_hashmap_);
-  const auto &lattice_id_vector = site_bond_cluster_state_hashmap_.at(lattice_id_jump_pair);
+  const auto &lattice_id_vector = bond_state_hashmap_.at(lattice_id_jump_pair);
 
 #pragma omp parallel for default(none) shared(config, lattice_id_jump_pair, lattice_id_vector, element_first, element_second, start_hashmap, end_hashmap)
-  for (size_t label = 0; label < mapping_state_.size(); ++label) {
-    const auto &cluster_vector = mapping_state_.at(label);
+  for (size_t label = 0; label < bond_mapping_state_.size(); ++label) {
+    const auto &cluster_vector = bond_mapping_state_.at(label);
     for (const auto &cluster: cluster_vector) {
       std::vector<Element> element_vector_start, element_vector_end;
       element_vector_start.reserve(cluster.size());

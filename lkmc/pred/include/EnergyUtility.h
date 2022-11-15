@@ -35,9 +35,13 @@ std::unordered_map<cfg::ElementCluster,
     const std::set<Element> &element_set);
 int GetLabel(const std::vector<size_t> &lattice_index_list, const cfg::Config &config);
 // Returns forward and backward sorted lattice lists
-std::vector<cfg::Lattice> GetSortedLatticeVectorState(
+std::vector<cfg::Lattice> GetSortedLatticeVectorStateOfPair(
     const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair);
-std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState(
+std::vector<cfg::Lattice> GetSortedLatticeVectorStateOfSite(
+    const cfg::Config &config, size_t lattice_id);
+std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingStatePair(
+    const cfg::Config &config);
+std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingStateSite(
     const cfg::Config &config);
 std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingStateOfBond(
     const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair);

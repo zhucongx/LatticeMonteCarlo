@@ -6,13 +6,16 @@ namespace pred {
 EnergyChangePredictorPairAll::EnergyChangePredictorPairAll(const std::string &predictor_filename,
                                                            const cfg::Config &reference_config,
                                                            std::set<Element> element_set)
-    : element_set_(std::move(element_set)) {
+    : element_set_(std::move(element_set)),
+      site_mapping_state_(GetClusterParametersMappingStateSite(reference_config)) {
   auto element_set_copy(element_set_);
   element_set_copy.emplace(ElementName::X);
   initialized_cluster_hashmap_ = InitializeClusterHashMap(element_set_copy);
+
   std::ifstream ifs(predictor_filename, std::ifstream::in);
   json all_parameters;
   ifs >> all_parameters;
+
   for (const auto &[element, parameters]: all_parameters.items()) {
     if (element == "Base") {
       base_theta_ = std::vector<double>(parameters.at("theta"));
@@ -20,21 +23,15 @@ EnergyChangePredictorPairAll::EnergyChangePredictorPairAll(const std::string &pr
   }
 #pragma omp parallel for default(none) shared(reference_config)
   for (size_t i = 0; i < reference_config.GetNumAtoms(); ++i) {
-    auto site_mapping = GetClusterParametersMappingStateOfLatticeId(reference_config, i);
-    auto neighboring_hashset = GetNeighborsLatticeIdSetOfLatticeId(reference_config, i);
-//     for (auto j: neighboring_hashset) {
-//       if (j < i) {
-//         continue;
-//       }
-//       auto bond_mapping = GetClusterParametersMappingStateOfBond(reference_config, {i, j});
-// #pragma omp critical
-//       {
-//         bond_neighbors_hashmap_[{i, j}] = std::move(bond_mapping);
-//       }
-//     }
+    auto neighboring_hashset = GetNeighborsLatticeIdSetOfSite(reference_config, i);
+    auto sorted_lattice_vector = GetSortedLatticeVectorStateOfSite(reference_config, i);
+    std::vector<size_t> lattice_id_vector_state;
+    std::transform(sorted_lattice_vector.begin(), sorted_lattice_vector.end(),
+                   std::back_inserter(lattice_id_vector_state),
+                   [](const auto &lattice) { return lattice.GetId(); });
 #pragma omp critical
     {
-      site_neighbors_hashmap_[i] = std::move(site_mapping);
+      site_state_hashmap_[i] = std::move(lattice_id_vector_state);
       neighboring_sites_hashmap_[i] = std::move(neighboring_hashset);
     }
   }
@@ -138,31 +135,31 @@ double EnergyChangePredictorPairAll::GetDeFromLatticeIdSite(const cfg::Config &c
   if (old_element == new_element) {
     return 0.0;
   }
-  const auto mapping = site_neighbors_hashmap_.at(lattice_id);
 
   auto start_hashmap(initialized_cluster_hashmap_);
   auto end_hashmap(initialized_cluster_hashmap_);
+  const auto &lattice_id_vector = site_state_hashmap_.at(lattice_id);
 
   int label = 0;
-  for (const auto &cluster_vector: mapping) {
+  for (const auto &cluster_vector: site_mapping_state_) {
     for (const auto &cluster: cluster_vector) {
       std::vector<Element> element_vector_start, element_vector_end;
       element_vector_start.reserve(cluster.size());
       element_vector_end.reserve(cluster.size());
-      for (auto lattice_id_in_cluster: cluster) {
+      for (auto index: cluster) {
+        size_t lattice_id_in_cluster = lattice_id_vector[index];
         element_vector_start.push_back(config.GetElementAtLatticeId(lattice_id_in_cluster));
         if (lattice_id_in_cluster == lattice_id) {
-          element_vector_end.push_back(new_element);
+          element_vector_end.emplace_back(new_element);
           continue;
         }
         element_vector_end.push_back(config.GetElementAtLatticeId(lattice_id_in_cluster));
       }
-      start_hashmap[cfg::ElementCluster(label, element_vector_start)]++;
-      end_hashmap[cfg::ElementCluster(label, element_vector_end)]++;
+      start_hashmap[cfg::ElementCluster(static_cast<int>(label), element_vector_start)]++;
+      end_hashmap[cfg::ElementCluster(static_cast<int>(label), element_vector_end)]++;
     }
     label++;
   }
-
   std::map<cfg::ElementCluster, int>
       ordered(initialized_cluster_hashmap_.begin(), initialized_cluster_hashmap_.end());
   return GetDeHelper(start_hashmap, end_hashmap, ordered);

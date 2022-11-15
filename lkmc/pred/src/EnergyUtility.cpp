@@ -43,7 +43,7 @@ std::vector<cfg::Lattice> GetSymmetricallySortedLatticeVectorMMM(
   // The number of first-, second-, and third-nearest neighbors of the jump pairs
   constexpr size_t kNumOfSites = 60;
   auto lattice_id_hashset =
-      GetNeighborsLatticeIdSetOfJumpPair(config, lattice_id_jump_pair);
+      GetNeighborsLatticeIdSetOfPair(config, lattice_id_jump_pair);
   const auto move_distance = Vector_t{0.5, 0.5, 0.5}
       - GetLatticePairCenter(config, lattice_id_jump_pair);
   std::vector<cfg::Lattice> lattice_list;
@@ -73,7 +73,7 @@ std::vector<cfg::Lattice> GetSymmetricallySortedLatticeVectorMM2(
   // The number of first-, second-, and third-nearest neighbors of the jump pairs
   constexpr size_t kNumOfSites = 60;
   auto lattice_id_hashset =
-      GetNeighborsLatticeIdSetOfJumpPair(config, lattice_id_jump_pair);
+      GetNeighborsLatticeIdSetOfPair(config, lattice_id_jump_pair);
   const auto move_distance = Vector_t{0.5, 0.5, 0.5}
       - GetLatticePairCenter(config, lattice_id_jump_pair);
   std::vector<cfg::Lattice> lattice_list;
@@ -252,12 +252,12 @@ std::vector<std::vector<std::vector<size_t> > > GetAverageClusterParametersMappi
   return cluster_mapping;
 }
 
-std::vector<cfg::Lattice> GetSortedLatticeVectorState(
+std::vector<cfg::Lattice> GetSortedLatticeVectorStateOfPair(
     const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) {
   // The number of first-, second-, and third-nearest neighbors of the jump pairs
   constexpr size_t kNumOfSites = 60;
   auto lattice_id_hashset =
-      GetNeighborsLatticeIdSetOfJumpPair(config, lattice_id_jump_pair);
+      GetNeighborsLatticeIdSetOfPair(config, lattice_id_jump_pair);
   const auto move_distance = Vector_t{0.5, 0.5, 0.5}
       - GetLatticePairCenter(config, lattice_id_jump_pair);
   std::vector<cfg::Lattice> lattice_list;
@@ -281,7 +281,32 @@ std::vector<cfg::Lattice> GetSortedLatticeVectorState(
 
   return lattice_list;
 }
+std::vector<cfg::Lattice> GetSortedLatticeVectorStateOfSite(
+    const cfg::Config &config, const size_t lattice_id) {
+  // The number of first-, second-, and third-nearest neighbors of the jump pairs
+  constexpr size_t kNumOfSites = 43;
+  auto lattice_id_hashset = GetNeighborsLatticeIdSetOfSite(config, lattice_id);
+  const auto move_distance =
+      Vector_t{0.5, 0.5, 0.5} - config.GetLatticeVector()[lattice_id].GetRelativePosition();
+  std::vector<cfg::Lattice> lattice_list;
+  lattice_list.reserve(kNumOfSites);
+  for (const auto id: lattice_id_hashset) {
+    cfg::Lattice lattice = config.GetLatticeVector()[id];
+    // move to center
+    auto relative_position = lattice.GetRelativePosition();
+    relative_position += move_distance;
+    relative_position -= ElementFloor(relative_position);
+    lattice.SetRelativePosition(relative_position);
+    lattice_list.push_back(lattice);
+  }
 
+  std::sort(lattice_list.begin(), lattice_list.end(),
+            [](const cfg::Lattice &lhs, const cfg::Lattice &rhs) -> bool {
+              return PositionCompareState(lhs, rhs);
+            });
+
+  return lattice_list;
+}
 std::unordered_map<
     cfg::ElementCluster, size_t, boost::hash<cfg::ElementCluster> > InitializeClusterHashMap(
     const std::set<Element> &element_set) {
@@ -365,11 +390,11 @@ static void GetParametersMappingFromLatticeClusterVectorHelper(
   cluster_mapping.push_back(cluster_index_vector);
 }
 
-std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState(
+std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingStatePair(
     const cfg::Config &config) {
   const std::pair<size_t, size_t>
       lattice_id_jump_pair = {0, config.GetFirstNeighborsAdjacencyList()[0][0]};
-  const auto lattice_vector = GetSortedLatticeVectorState(config, lattice_id_jump_pair);
+  const auto lattice_vector = GetSortedLatticeVectorStateOfPair(config, lattice_id_jump_pair);
   std::vector<std::vector<std::vector<size_t> > > cluster_mapping{};
   std::vector<Singlet_State_t> singlet_vector;
   std::vector<Pair_State_t> first_pair_vector;
@@ -472,6 +497,88 @@ std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState
   //     std::move(third_third_third_triplets_vector), cluster_mapping);
   return cluster_mapping;
 }
+std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingStateSite(
+    const cfg::Config &config) {
+  const size_t lattice_id = 0;
+  const auto lattice_vector = GetSortedLatticeVectorStateOfSite(config, lattice_id);
+  std::vector<std::vector<std::vector<size_t> > > cluster_mapping{};
+  std::vector<Singlet_State_t> singlet_vector;
+  std::vector<Pair_State_t> first_pair_vector;
+  std::vector<Pair_State_t> second_pair_vector;
+  std::vector<Pair_State_t> third_pair_vector;
+  std::vector<Triplet_State_t> first_first_first_triplets_vector;
+  std::vector<Triplet_State_t> first_first_second_triplets_vector;
+  std::vector<Triplet_State_t> first_first_third_triplets_vector;
+  std::vector<Triplet_State_t> first_second_third_triplets_vector;
+
+  for (size_t index1 = 0; index1 < lattice_vector.size(); ++index1) {
+    cfg::Lattice lattice1(lattice_vector[index1]);
+    const size_t id1 = lattice1.GetId();
+    lattice1.SetId(index1);
+    if (id1 == lattice_id) {
+      singlet_vector.emplace_back(std::array<cfg::Lattice, 1>{lattice1});
+    }
+    for (size_t index2 = 0; index2 < index1; ++index2) {
+      cfg::Lattice lattice2(lattice_vector[index2]);
+      const size_t id2 = lattice2.GetId();
+      lattice2.SetId(index2);
+      if (id1 == lattice_id || id2 == lattice_id) {
+        switch (GetLabel({id1, id2}, config)) {
+          case 1: first_pair_vector.emplace_back(std::array<cfg::Lattice, 2>{lattice1, lattice2});
+            break;
+          case 2: second_pair_vector.emplace_back(std::array<cfg::Lattice, 2>{lattice1, lattice2});
+            break;
+          case 3: third_pair_vector.emplace_back(std::array<cfg::Lattice, 2>{lattice1, lattice2});
+            break;
+          default:continue;
+        }
+      }
+      for (size_t index3 = 0; index3 < index2; ++index3) {
+        cfg::Lattice lattice3(lattice_vector[index3]);
+        const size_t id3 = lattice3.GetId();
+        lattice3.SetId(index3);
+        if (id1 == lattice_id || id2 == lattice_id || id3 == lattice_id) {
+          switch (GetLabel({id1, id2, id3}, config)) {
+            case 4:
+              first_first_first_triplets_vector.emplace_back(
+                  std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
+              break;
+            case 5:
+              first_first_second_triplets_vector.emplace_back(
+                  std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
+              break;
+            case 6:
+              first_first_third_triplets_vector.emplace_back(
+                  std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
+              break;
+            case 7:
+              first_second_third_triplets_vector.emplace_back(
+                  std::array<cfg::Lattice, 3>{lattice1, lattice2, lattice3});
+              break;
+            default:continue;
+          }
+        }
+      }
+    }
+  }
+  GetParametersMappingFromLatticeClusterVectorHelper(
+      std::move(singlet_vector), cluster_mapping);
+  GetParametersMappingFromLatticeClusterVectorHelper(
+      std::move(first_pair_vector), cluster_mapping);
+  GetParametersMappingFromLatticeClusterVectorHelper(
+      std::move(second_pair_vector), cluster_mapping);
+  GetParametersMappingFromLatticeClusterVectorHelper(
+      std::move(third_pair_vector), cluster_mapping);
+  GetParametersMappingFromLatticeClusterVectorHelper(
+      std::move(first_first_first_triplets_vector), cluster_mapping);
+  GetParametersMappingFromLatticeClusterVectorHelper(
+      std::move(first_first_second_triplets_vector), cluster_mapping);
+  GetParametersMappingFromLatticeClusterVectorHelper(
+      std::move(first_first_third_triplets_vector), cluster_mapping);
+  GetParametersMappingFromLatticeClusterVectorHelper(
+      std::move(first_second_third_triplets_vector), cluster_mapping);
+  return cluster_mapping;
+}
 std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingStateOfBond(
     const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) {
   std::vector<std::vector<std::vector<size_t> > > cluster_mapping{};
@@ -484,7 +591,7 @@ std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState
   std::vector<Triplet_State_t> first_first_third_triplets_vector;
   std::vector<Triplet_State_t> first_second_third_triplets_vector;
 
-  auto lattice_id_hashset = cfg::GetNeighborsLatticeIdSetOfJumpPair(config, lattice_id_jump_pair);
+  auto lattice_id_hashset = cfg::GetNeighborsLatticeIdSetOfPair(config, lattice_id_jump_pair);
 
   for (auto it1 = lattice_id_hashset.begin(); it1 != lattice_id_hashset.end(); ++it1) {
     auto index1 = *it1;
@@ -566,7 +673,7 @@ std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState
   std::vector<Triplet_State_t> first_first_third_triplets_vector;
   std::vector<Triplet_State_t> first_second_third_triplets_vector;
 
-  auto lattice_id_hashset = cfg::GetNeighborsLatticeIdSetOfLatticeId(config, lattice_id);
+  auto lattice_id_hashset = cfg::GetNeighborsLatticeIdSetOfSite(config, lattice_id);
 
   for (auto it1 = lattice_id_hashset.begin(); it1 != lattice_id_hashset.end(); ++it1) {
     auto index1 = *it1;

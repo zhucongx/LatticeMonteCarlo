@@ -22,7 +22,7 @@ class EnergyChangePredictorPair {
         const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
 
     const std::set<Element> element_set_;
-    const std::vector<std::vector<std::vector<size_t> > > mapping_state_;
+    const std::vector<std::vector<std::vector<size_t> > > bond_mapping_state_;
 
     std::vector<double> base_theta_{};
     std::unordered_map<cfg::ElementCluster, size_t,
@@ -30,7 +30,7 @@ class EnergyChangePredictorPair {
 
     std::unordered_map<std::pair<size_t, size_t>,
                        std::vector<size_t>,
-                       boost::hash<std::pair<size_t, size_t> > > site_bond_cluster_state_hashmap_;
+                       boost::hash<std::pair<size_t, size_t> > > bond_state_hashmap_;
 };
 } // namespace pred
 #endif //LKMC_LKMC_PRED_INCLUDE_ENERGYCHANGEPREDICTORPAIR_H_

@@ -13,7 +13,7 @@ VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::st
       one_hot_encode_hash_map_(GetOneHotEncodeHashmap(element_set_)),
       mapping_mmm_(GetAverageClusterParametersMappingMMM(reference_config)),
       mapping_mm2_(GetAverageClusterParametersMappingMM2(reference_config)),
-      mapping_state_(GetClusterParametersMappingState(reference_config)) {
+      mapping_state_(GetClusterParametersMappingStatePair(reference_config)) {
   auto element_set_copy(element_set_);
   element_set_copy.emplace(ElementName::X);
   initialized_cluster_hashmap_ = InitializeClusterHashMap(element_set_copy);
@@ -47,7 +47,7 @@ VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::st
   for (size_t i = 0; i < reference_config.GetNumAtoms(); ++i) {
     for (auto j: reference_config.GetFirstNeighborsAdjacencyList()[i]) {
       auto sorted_lattice_vector =
-          GetSortedLatticeVectorState(reference_config, {i, j});
+          GetSortedLatticeVectorStateOfPair(reference_config, {i, j});
       std::vector<size_t> lattice_id_vector_state;
       std::transform(sorted_lattice_vector.begin(), sorted_lattice_vector.end(),
                      std::back_inserter(lattice_id_vector_state),
