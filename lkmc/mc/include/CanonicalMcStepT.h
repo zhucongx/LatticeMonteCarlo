@@ -1,12 +1,12 @@
-#ifndef LKMC_LKMC_ANSYS_INCLUDE_CANONICALMCSTEPT_H_
-#define LKMC_LKMC_ANSYS_INCLUDE_CANONICALMCSTEPT_H_
+#ifndef LKMC_LKMC_MC_INCLUDE_CANONICALMCSTEPT_H_
+#define LKMC_LKMC_MC_INCLUDE_CANONICALMCSTEPT_H_
 #include <random>
 #include <mpi.h>
 #include <omp.h>
 #include "EnergyChangePredictorPair.h"
 #include "EnergyChangePredictorSite.h"
 #include "EnergyChangePredictorPairAll.h"
-namespace ansys {
+namespace mc {
 class CanonicalMcStepT {
   public:
     CanonicalMcStepT(cfg::Config config,
@@ -41,6 +41,6 @@ class CanonicalMcStepT {
     mutable std::uniform_int_distribution<size_t> atom_index_selector_;
     mutable std::uniform_real_distribution<double> one_distribution_{0.0, 1.0};
 };
-} // namespace ansys
+} // namespace mc
 
-#endif //LKMC_LKMC_ANSYS_INCLUDE_CANONICALMCSTEPT_H_
+#endif //LKMC_LKMC_MC_INCLUDE_CANONICALMCSTEPT_H_

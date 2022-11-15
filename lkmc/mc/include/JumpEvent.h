@@ -1,5 +1,5 @@
-#ifndef LKMC_LKMC_KMC_INCLUDE_JUMPEVENT_H_
-#define LKMC_LKMC_KMC_INCLUDE_JUMPEVENT_H_
+#ifndef LKMC_LKMC_MC_INCLUDE_JUMPEVENT_H_
+#define LKMC_LKMC_MC_INCLUDE_JUMPEVENT_H_
 #include <cstddef>
 #include <utility>
 namespace mc {
@@ -38,4 +38,4 @@ class JumpEvent {
     double cumulative_probability_{};
 };
 } // namespace mc
-#endif //LKMC_LKMC_KMC_INCLUDE_JUMPEVENT_H_
+#endif //LKMC_LKMC_MC_INCLUDE_JUMPEVENT_H_

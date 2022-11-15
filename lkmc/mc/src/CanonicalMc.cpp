@@ -2,7 +2,7 @@
 #include <utility>
 #include <chrono>
 #include "EnergyPredictor.h"
-namespace ansys {
+namespace mc {
 constexpr double kBoltzmannConstant = 8.617333262145e-5;
 
 CanonicalMc::CanonicalMc(cfg::Config config,
@@ -90,4 +90,4 @@ void CanonicalMc::Simulate() {
             << std::chrono::duration_cast<std::chrono::seconds>(t2 - t1).count() << " seconds.\n";
 }
 
-} // namespace ansys
+} // namespace mc

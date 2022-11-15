@@ -1,5 +1,5 @@
-#ifndef LKMC_LKMC_KMC_INCLUDE_FIRSTKMCMPI_H_
-#define LKMC_LKMC_KMC_INCLUDE_FIRSTKMCMPI_H_
+#ifndef LKMC_LKMC_MC_INCLUDE_FIRSTKMCMPI_H_
+#define LKMC_LKMC_MC_INCLUDE_FIRSTKMCMPI_H_
 #include <random>
 #include <mpi.h>
 #include "VacancyMigrationPredictorQuarticLru.h"
@@ -57,4 +57,4 @@ class FirstKmcMpi {
 };
 } // namespace mc
 
-#endif //LKMC_LKMC_KMC_INCLUDE_FIRSTKMCMPI_H_
+#endif //LKMC_LKMC_MC_INCLUDE_FIRSTKMCMPI_H_

@@ -1,5 +1,5 @@
-#ifndef LKMC_LKMC_KMC_INCLUDE_CHAINKMCOMPI_H_
-#define LKMC_LKMC_KMC_INCLUDE_CHAINKMCOMPI_H_
+#ifndef LKMC_LKMC_MC_INCLUDE_CHAINKMCOMPI_H_
+#define LKMC_LKMC_MC_INCLUDE_CHAINKMCOMPI_H_
 #include <random>
 #include <omp.h>
 #include <mpi.h>
@@ -73,4 +73,4 @@ class ChainKmcOmpi {
 
 } // namespace mc
 
-#endif //LKMC_LKMC_KMC_INCLUDE_CHAINKMCOMPI_H_
+#endif //LKMC_LKMC_MC_INCLUDE_CHAINKMCOMPI_H_

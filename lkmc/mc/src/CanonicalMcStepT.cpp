@@ -3,7 +3,7 @@
 #include <chrono>
 #include <omp.h>
 #include "EnergyPredictor.h"
-namespace ansys {
+namespace mc {
 constexpr double kBoltzmannConstant = 8.617333262145e-5;
 static std::set<Element> GetElementSetFromSolventAndSolute(
     Element solvent_element, const std::set<Element> &solute_element_set) {
@@ -117,4 +117,4 @@ void CanonicalMcStepT::Simulate() {
             << std::chrono::duration_cast<std::chrono::seconds>(t2 - t1).count() << " seconds.\n";
 }
 
-} // namespace ansys
+} // namespace mc
