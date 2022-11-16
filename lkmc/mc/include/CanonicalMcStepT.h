@@ -3,7 +3,6 @@
 #include <random>
 #include <mpi.h>
 #include <omp.h>
-#include "EnergyChangePredictorPair.h"
 #include "EnergyChangePredictorPairAll.h"
 namespace mc {
 class CanonicalMcStepT {

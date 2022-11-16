@@ -251,6 +251,14 @@ void Config::LatticeJump(const std::pair<size_t, size_t> &lattice_id_jump_pair) 
   lattice_to_atom_hashmap_.at(lattice_id_lhs) = atom_id_rhs;
   lattice_to_atom_hashmap_.at(lattice_id_rhs) = atom_id_lhs;
 }
+
+void Config::ChangeAtomElementTypeAtAtom(size_t atom_id, Element element) {
+  atom_vector_.at(atom_id).SetElement(element);
+}
+void Config::ChangeAtomElementTypeAtLattice(size_t lattice_id, Element element) {
+  atom_vector_.at(lattice_to_atom_hashmap_.at(lattice_id)).SetElement(element);
+}
+
 void Config::ReassignLatticeVector() {
   auto new_lattice_vector(lattice_vector_);
   std::sort(new_lattice_vector.begin(),
@@ -329,13 +337,6 @@ void Config::ReassignLatticeVector() {
   first_neighbors_adjacency_list_ = new_first_neighbors_adjacency_list;
   second_neighbors_adjacency_list_ = new_second_neighbors_adjacency_list;
   third_neighbors_adjacency_list_ = new_third_neighbors_adjacency_list;
-}
-
-void Config::ChangeAtomElementTypeAtAtom(size_t atom_id, Element element) {
-  atom_vector_.at(atom_id).SetElement(element);
-}
-void Config::ChangeAtomElementTypeAtLattice(size_t lattice_id, Element element) {
-  atom_vector_.at(lattice_to_atom_hashmap_.at(lattice_id)).SetElement(element);
 }
 
 Config Config::ReadCfg(const std::string &filename) {

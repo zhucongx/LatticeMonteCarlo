@@ -24,6 +24,7 @@ SemiGrandCanonicalMcStepT::SemiGrandCanonicalMcStepT(cfg::Config config,
                                                      double decrement_temperature,
                                                      const std::string &json_coefficients_filename)
     : config_(std::move(config)),
+      element_vector_(element_set.begin(), element_set.end()),
       log_dump_steps_(log_dump_steps),
       config_dump_steps_(config_dump_steps),
       maximum_number_(maximum_number),
@@ -36,7 +37,8 @@ SemiGrandCanonicalMcStepT::SemiGrandCanonicalMcStepT(cfg::Config config,
                         element_set),
       generator_(static_cast<unsigned long long int>(
                      std::chrono::system_clock::now().time_since_epoch().count())),
-      atom_index_selector_(0, config_.GetNumAtoms() - 1) {
+      atom_index_selector_(0, config_.GetNumAtoms() - 1),
+      element_index_selector_(0, element_vector_.size() - 1) {
   pred::EnergyPredictor total_energy_predictor(json_coefficients_filename, element_set);
 #pragma omp parallel master default(none) shared(std::cout)
   {
@@ -47,13 +49,14 @@ SemiGrandCanonicalMcStepT::SemiGrandCanonicalMcStepT(cfg::Config config,
   ofs << "initial_energy = " << total_energy_predictor.GetEnergy(config_) << std::endl;
   ofs << "steps\tenergy\ttemperature\n";
 }
-std::pair<size_t, size_t> SemiGrandCanonicalMcStepT::GenerateAtomIdJumpPair() {
-  size_t atom_id1, atom_id2;
+std::pair<size_t, Element> SemiGrandCanonicalMcStepT::GenerateAtomIdChangeSite() {
+  size_t atom_id;
+  Element element;
   do {
-    atom_id1 = atom_index_selector_(generator_);
-    atom_id2 = atom_index_selector_(generator_);
-  } while (atom_id1 == atom_id2);
-  return {atom_id1, atom_id2};
+    atom_id = atom_index_selector_(generator_);
+    element = element_vector_[element_index_selector_(generator_)];
+  } while (config_.GetElementAtAtomId(atom_id) == ElementName::X);
+  return {atom_id, element};
 }
 
 void SemiGrandCanonicalMcStepT::UpdateTemperature() {
@@ -92,16 +95,16 @@ void SemiGrandCanonicalMcStepT::Simulate() {
       * static_cast<unsigned long long int>(initial_temperature_ / decrement_temperature_ + 1)) {
     Dump(ofs);
     UpdateTemperature();
-    auto atom_id_jump_pair = GenerateAtomIdJumpPair();
-    auto dE = energy_predictor_.GetDeFromAtomIdPair(config_, atom_id_jump_pair);
+    auto [atom_id, element] = GenerateAtomIdChangeSite();
+    const auto dE = energy_predictor_.GetDeFromAtomIdSite(config_, atom_id, element);
     if (dE < 0) {
-      config_.AtomJump(atom_id_jump_pair);
+      config_.ChangeAtomElementTypeAtAtom(atom_id, element);
       energy_ += dE;
     } else {
       double possibility = std::exp(-dE * beta_);
       double random_number = one_distribution_(generator_);
       if (random_number < possibility) {
-        config_.AtomJump(atom_id_jump_pair);
+        config_.ChangeAtomElementTypeAtAtom(atom_id, element);
         energy_ += dE;
       }
     }
