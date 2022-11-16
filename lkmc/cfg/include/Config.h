@@ -43,6 +43,7 @@ class Config {
         const std::pair<size_t, size_t> &lattice_id_pair) const;
     [[nodiscard]] std::unordered_set<size_t> GetNeighborsLatticeIdSetOfSite(
         size_t lattice_id) const;
+    [[nodiscard]] int FindDistanceLabelBetweenLattice(size_t lattice_id1, size_t lattice_id2) const;
     /// Modify config
     void AtomJump(const std::pair<size_t, size_t> &atom_id_jump_pair);
     void LatticeJump(const std::pair<size_t, size_t> &lattice_id_jump_pair);
@@ -85,7 +86,6 @@ class Config {
 
 void RotateLatticeVector(std::vector<Lattice> &lattice_list, const Matrix_t &rotation_matrix);
 
-int FindDistanceLabelBetweenLattice(size_t index1, size_t index2, const Config &config);
 Config GenerateFCC(const Factor_t &factors, Element element);
 Config GenerateSoluteConfigFromExcitingPure(Config config,
                                             const std::map<Element, size_t> &solute_atom_count);

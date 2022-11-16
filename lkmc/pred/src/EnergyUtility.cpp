@@ -183,7 +183,7 @@ std::vector<std::vector<std::vector<size_t> > > GetAverageClusterParametersMappi
       cfg::Lattice lattice2(lattice_vector[index2]);
       const size_t id2 = lattice2.GetId();
       lattice2.SetId(index2);
-      switch (FindDistanceLabelBetweenLattice(id1, id2, config)) {
+      switch (config.FindDistanceLabelBetweenLattice(id1, id2)) {
         case 1: first_pair_set.emplace(std::array<cfg::Lattice, 2>{lattice1, lattice2});
           break;
         case 2: second_pair_set.emplace(std::array<cfg::Lattice, 2>{lattice1, lattice2});
@@ -228,7 +228,7 @@ std::vector<std::vector<std::vector<size_t> > > GetAverageClusterParametersMappi
       cfg::Lattice lattice2(lattice_vector[index2]);
       const size_t id2 = lattice2.GetId();
       lattice2.SetId(index2);
-      switch (FindDistanceLabelBetweenLattice(id1, id2, config)) {
+      switch (config.FindDistanceLabelBetweenLattice(id1, id2)) {
         case 1: first_pair_set.emplace(std::array<cfg::Lattice, 2>{lattice1, lattice2});
           break;
         case 2: second_pair_set.emplace(std::array<cfg::Lattice, 2>{lattice1, lattice2});
@@ -343,21 +343,17 @@ int GetLabel(const std::vector<size_t> &lattice_index_list, const cfg::Config &c
     return 0;
   }
   if (lattice_index_list.size() == 2) {
-    return cfg::FindDistanceLabelBetweenLattice(lattice_index_list[0],
-                                                lattice_index_list[1],
-                                                config);
+    return config.FindDistanceLabelBetweenLattice(lattice_index_list[0],
+                                                lattice_index_list[1]);
   }
   if (lattice_index_list.size() == 3) {
     std::vector<int>
-        bond_label_list{cfg::FindDistanceLabelBetweenLattice(lattice_index_list[0],
-                                                             lattice_index_list[1],
-                                                             config),
-                        cfg::FindDistanceLabelBetweenLattice(lattice_index_list[1],
-                                                             lattice_index_list[2],
-                                                             config),
-                        cfg::FindDistanceLabelBetweenLattice(lattice_index_list[2],
-                                                             lattice_index_list[0],
-                                                             config)};
+        bond_label_list{config.FindDistanceLabelBetweenLattice(lattice_index_list[0],
+                                                             lattice_index_list[1]),
+                        config.FindDistanceLabelBetweenLattice(lattice_index_list[1],
+                                                             lattice_index_list[2]),
+                        config.FindDistanceLabelBetweenLattice(lattice_index_list[2],
+                                                             lattice_index_list[0])};
     std::sort(bond_label_list.begin(), bond_label_list.end());
     if (bond_label_list[0] == 1 && bond_label_list[1] == 1 && bond_label_list[2] == 1) {
       return 4;

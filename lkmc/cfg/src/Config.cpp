@@ -210,6 +210,27 @@ std::unordered_set<size_t> Config::GetNeighborsLatticeIdSetOfPair(
   }
   return near_neighbors_hashset;
 }
+int Config::FindDistanceLabelBetweenLattice(size_t lattice_id1, size_t lattice_id2) const {
+  const auto &first_neighbors_adjacency_list = GetFirstNeighborsAdjacencyList()[lattice_id1];
+  const auto &second_neighbors_adjacency_list = GetSecondNeighborsAdjacencyList()[lattice_id1];
+  const auto &third_neighbors_adjacency_list = GetThirdNeighborsAdjacencyList()[lattice_id1];
+  if (std::find(first_neighbors_adjacency_list.begin(),
+                first_neighbors_adjacency_list.end(),
+                lattice_id2) != first_neighbors_adjacency_list.end()) {
+    return 1;
+  }
+  if (std::find(second_neighbors_adjacency_list.begin(),
+                second_neighbors_adjacency_list.end(),
+                lattice_id2) != second_neighbors_adjacency_list.end()) {
+    return 2;
+  }
+  if (std::find(third_neighbors_adjacency_list.begin(),
+                third_neighbors_adjacency_list.end(),
+                lattice_id2) != third_neighbors_adjacency_list.end()) {
+    return 3;
+  }
+  return -1;
+}
 void Config::AtomJump(const std::pair<size_t, size_t> &atom_id_jump_pair) {
   const auto [atom_id_lhs, atom_id_rhs] = atom_id_jump_pair;
   const auto lattice_id_lhs = atom_to_lattice_hashmap_.at(atom_id_lhs);
@@ -627,29 +648,21 @@ void Config::UpdateNeighbors() {
     }
   }
 }
-
-int FindDistanceLabelBetweenLattice(size_t index1, size_t index2, const Config &config) {
-  const auto &first_neighbors_adjacency_list = config.GetFirstNeighborsAdjacencyList()[index1];
-  const auto &second_neighbors_adjacency_list = config.GetSecondNeighborsAdjacencyList()[index1];
-  const auto &third_neighbors_adjacency_list = config.GetThirdNeighborsAdjacencyList()[index1];
-  if (std::find(first_neighbors_adjacency_list.begin(),
-                first_neighbors_adjacency_list.end(),
-                index2) != first_neighbors_adjacency_list.end()) {
-    return 1;
+void RotateLatticeVector(std::vector<Lattice> &lattice_list,
+                         const Matrix_t &rotation_matrix) {
+  const auto move_distance_after_rotation = Vector_t{0.5, 0.5, 0.5}
+      - (Vector_t{0.5, 0.5, 0.5} * rotation_matrix);
+  for (auto &lattice: lattice_list) {
+    auto relative_position = lattice.GetRelativePosition();
+    // rotate
+    relative_position = relative_position * rotation_matrix;
+    // move to new center
+    relative_position += move_distance_after_rotation;
+    relative_position -= ElementFloor(relative_position);
+    lattice.SetRelativePosition(relative_position);
   }
-  if (std::find(second_neighbors_adjacency_list.begin(),
-                second_neighbors_adjacency_list.end(),
-                index2) != second_neighbors_adjacency_list.end()) {
-    return 2;
-  }
-  if (std::find(third_neighbors_adjacency_list.begin(),
-                third_neighbors_adjacency_list.end(),
-                index2) != third_neighbors_adjacency_list.end()) {
-    return 3;
-  }
-  return -1;
-
 }
+
 Config GenerateFCC(const Factor_t &factors, Element element) {
   Matrix_t
       basis{{{constants::kLatticeConstant * static_cast<double>(factors[kXDimension]), 0, 0},
@@ -741,18 +754,5 @@ Config GenerateSoluteConfig(const Factor_t &factors,
 //   return Config();
 // }
 
-void RotateLatticeVector(std::vector<Lattice> &lattice_list,
-                         const Matrix_t &rotation_matrix) {
-  const auto move_distance_after_rotation = Vector_t{0.5, 0.5, 0.5}
-      - (Vector_t{0.5, 0.5, 0.5} * rotation_matrix);
-  for (auto &lattice: lattice_list) {
-    auto relative_position = lattice.GetRelativePosition();
-    // rotate
-    relative_position = relative_position * rotation_matrix;
-    // move to new center
-    relative_position += move_distance_after_rotation;
-    relative_position -= ElementFloor(relative_position);
-    lattice.SetRelativePosition(relative_position);
-  }
-}
+
 } // cfg
