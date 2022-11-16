@@ -242,7 +242,7 @@ size_t KineticMcChainMpi::SelectEvent() const {
 }
 
 void KineticMcChainMpi::Simulate() {
-  std::ofstream ofs("kmc_log.txt", std::ofstream::out | std::ofstream::app);
+  std::ofstream ofs("lkmc_log.txt", std::ofstream::out | std::ofstream::app);
   if (world_rank_ == 0) {
     ofs << "steps\ttime\tenergy\tEa\tdE\ttype\n";
     ofs.precision(8);

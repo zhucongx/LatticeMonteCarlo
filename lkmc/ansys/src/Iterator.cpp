@@ -23,7 +23,7 @@ Iterator::Iterator(unsigned long long int initial_steps,
       config_type_(std::move(config_type)) {
   std::string log_file_name;
   if (log_type_ == "kinetic_mc") {
-    log_file_name = "kmc_log.txt";
+    log_file_name = "lkmc_log.txt";
   } else if (log_type_ == "canonical_mc") {
     log_file_name = "cmc_log.txt";
   } else if (log_type_ == "canonical_mc_step_t") {
