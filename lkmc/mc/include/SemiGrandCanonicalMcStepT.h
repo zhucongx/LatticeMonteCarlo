@@ -1,7 +1,3 @@
-//
-// Created by Zhucong Xi on 11/16/22.
-//
-
 #ifndef LKMC_LKMC_MC_INCLUDE_SEMIGRANDCANONICALMCSTEPT_H_
 #define LKMC_LKMC_MC_INCLUDE_SEMIGRANDCANONICALMCSTEPT_H_
 #include <random>
@@ -41,7 +37,7 @@ class SemiGrandCanonicalMcStepT {
     const pred::EnergyChangePredictorSite energy_predictor_;
     mutable std::mt19937_64 generator_;
     mutable std::uniform_int_distribution<size_t> atom_index_selector_;
-    mutable std::uniform_real_distribution<size_t> element_index_selector_;
+    mutable std::uniform_int_distribution<size_t> element_index_selector_;
     mutable std::uniform_real_distribution<double> one_distribution_{0.0, 1.0};
 };
 } // mc
