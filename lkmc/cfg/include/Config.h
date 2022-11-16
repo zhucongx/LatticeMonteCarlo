@@ -33,6 +33,11 @@ class Config {
     [[nodiscard]] std::set<Element> GetElementSetWithoutVacancy() const;
     [[nodiscard]] std::map<Element, std::vector<size_t> > GetElementAtomIdVectorMap() const;
     [[nodiscard]] size_t GetStateHash() const;
+    [[nodiscard]] Vector_t GetLatticePairCenter(
+        const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
+    [[nodiscard]]  Matrix_t GetLatticePairRotationMatrix(
+        const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
+
     /// Modify config
     void AtomJump(const std::pair<size_t, size_t> &atom_id_jump_pair);
     void LatticeJump(const std::pair<size_t, size_t> &lattice_id_jump_pair);
@@ -72,10 +77,7 @@ class Config {
     // std::vector<std::vector<size_t> > sixth_neighbors_adjacency_list_{};
     // std::vector<std::vector<size_t> > seventh_neighbors_adjacency_list_{};
 };
-Vector_t GetLatticePairCenter(const Config &config,
-                              const std::pair<size_t, size_t> &lattice_id_jump_pair);
-Matrix_t GetLatticePairRotationMatrix(const Config &config,
-                                      const std::pair<size_t, size_t> &lattice_id_jump_pair);
+
 void RotateLatticeVector(std::vector<Lattice> &lattice_list, const Matrix_t &rotation_matrix);
 size_t GetVacancyAtomIndex(const Config &config);
 size_t GetVacancyLatticeIndex(const Config &config);

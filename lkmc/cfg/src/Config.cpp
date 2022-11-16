@@ -528,14 +528,13 @@ void Config::UpdateNeighbors() {
   }
 }
 
-Vector_t GetLatticePairCenter(const Config &config,
-                              const std::pair<size_t, size_t> &lattice_id_jump_pair) {
+Vector_t Config::GetLatticePairCenter(const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
   Vector_t center_position;
   for (const auto kDim: All_Dimensions) {
     double first_relative =
-        config.GetLatticeVector()[lattice_id_jump_pair.first].GetRelativePosition()[kDim];
+        GetLatticeVector()[lattice_id_jump_pair.first].GetRelativePosition()[kDim];
     const double second_relative =
-        config.GetLatticeVector()[lattice_id_jump_pair.second].GetRelativePosition()[kDim];
+        GetLatticeVector()[lattice_id_jump_pair.second].GetRelativePosition()[kDim];
 
     double distance = first_relative - second_relative;
     int period = static_cast<int>(distance / 0.5);
@@ -549,17 +548,17 @@ Vector_t GetLatticePairCenter(const Config &config,
   }
   return center_position;
 }
-Matrix_t GetLatticePairRotationMatrix(const Config &config,
-                                      const std::pair<size_t, size_t> &lattice_id_jump_pair) {
-  const auto &first_lattice = config.GetLatticeVector()[lattice_id_jump_pair.first];
-  const auto &second_lattice = config.GetLatticeVector()[lattice_id_jump_pair.second];
+Matrix_t Config::GetLatticePairRotationMatrix(
+    const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
+  const auto &first_lattice = GetLatticeVector()[lattice_id_jump_pair.first];
+  const auto &second_lattice = GetLatticeVector()[lattice_id_jump_pair.second];
 
   const Vector_t
       pair_direction = Normalize(GetRelativeDistanceVectorLattice(first_lattice, second_lattice));
   Vector_t vertical_vector{};
-  for (const auto index: config.GetFirstNeighborsAdjacencyList().at(lattice_id_jump_pair.first)) {
+  for (const auto index: GetFirstNeighborsAdjacencyList().at(lattice_id_jump_pair.first)) {
     const Vector_t jump_vector =
-        GetRelativeDistanceVectorLattice(first_lattice, config.GetLatticeVector()[index]);
+        GetRelativeDistanceVectorLattice(first_lattice, GetLatticeVector()[index]);
     const double dot_prod = Dot(pair_direction, jump_vector);
     if (std::abs(dot_prod) < 1e-6) {
       vertical_vector = Normalize(jump_vector);

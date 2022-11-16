@@ -45,7 +45,7 @@ std::vector<cfg::Lattice> GetSymmetricallySortedLatticeVectorMMM(
   auto lattice_id_hashset =
       GetNeighborsLatticeIdSetOfPair(config, lattice_id_jump_pair);
   const auto move_distance = Vector_t{0.5, 0.5, 0.5}
-      - GetLatticePairCenter(config, lattice_id_jump_pair);
+      - config.GetLatticePairCenter(lattice_id_jump_pair);
   std::vector<cfg::Lattice> lattice_list;
   lattice_list.reserve(kNumOfSites);
   for (const auto id: lattice_id_hashset) {
@@ -61,7 +61,7 @@ std::vector<cfg::Lattice> GetSymmetricallySortedLatticeVectorMMM(
     lattice_list.push_back(lattice);
   }
   RotateLatticeVector(lattice_list,
-                      GetLatticePairRotationMatrix(config, lattice_id_jump_pair));
+                      config.GetLatticePairRotationMatrix(lattice_id_jump_pair));
   std::sort(lattice_list.begin(), lattice_list.end(),
             [](const cfg::Lattice &lhs, const cfg::Lattice &rhs) -> bool {
               return PositionCompareMMM(lhs, rhs);
@@ -75,7 +75,7 @@ std::vector<cfg::Lattice> GetSymmetricallySortedLatticeVectorMM2(
   auto lattice_id_hashset =
       GetNeighborsLatticeIdSetOfPair(config, lattice_id_jump_pair);
   const auto move_distance = Vector_t{0.5, 0.5, 0.5}
-      - GetLatticePairCenter(config, lattice_id_jump_pair);
+      - config.GetLatticePairCenter(lattice_id_jump_pair);
   std::vector<cfg::Lattice> lattice_list;
   lattice_list.reserve(kNumOfSites);
   for (const auto id: lattice_id_hashset) {
@@ -91,7 +91,7 @@ std::vector<cfg::Lattice> GetSymmetricallySortedLatticeVectorMM2(
     lattice_list.push_back(lattice);
   }
   RotateLatticeVector(lattice_list,
-                      GetLatticePairRotationMatrix(config, lattice_id_jump_pair));
+                      config.GetLatticePairRotationMatrix(lattice_id_jump_pair));
   std::sort(lattice_list.begin(), lattice_list.end(),
             [](const cfg::Lattice &lhs, const cfg::Lattice &rhs) -> bool {
               return PositionCompareMM2(lhs, rhs);
@@ -259,7 +259,7 @@ std::vector<cfg::Lattice> GetSortedLatticeVectorStateOfPair(
   auto lattice_id_hashset =
       GetNeighborsLatticeIdSetOfPair(config, lattice_id_pair);
   const auto move_distance = Vector_t{0.5, 0.5, 0.5}
-      - GetLatticePairCenter(config, lattice_id_pair);
+      - config.GetLatticePairCenter(lattice_id_pair);
   std::vector<cfg::Lattice> lattice_list;
   lattice_list.reserve(kNumOfSites);
   for (const auto id: lattice_id_hashset) {
@@ -273,7 +273,7 @@ std::vector<cfg::Lattice> GetSortedLatticeVectorStateOfPair(
   }
 
   RotateLatticeVector(lattice_list,
-                      GetLatticePairRotationMatrix(config, lattice_id_pair));
+                      config.GetLatticePairRotationMatrix(lattice_id_pair));
   std::sort(lattice_list.begin(), lattice_list.end(),
             [](const cfg::Lattice &lhs, const cfg::Lattice &rhs) -> bool {
               return PositionCompareState(lhs, rhs);
