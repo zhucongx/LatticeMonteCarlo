@@ -172,6 +172,44 @@ size_t Config::GetVacancyLatticeIndex() const {
   }
   return 0;
 }
+std::unordered_set<size_t> Config::GetNeighborsLatticeIdSetOfSite(
+    size_t lattice_id) const {
+  std::unordered_set<size_t> near_neighbors_hashset;
+  near_neighbors_hashset.insert(lattice_id);
+  std::copy(GetFirstNeighborsAdjacencyList().at(lattice_id).begin(),
+            GetFirstNeighborsAdjacencyList().at(lattice_id).end(),
+            std::inserter(near_neighbors_hashset,
+                          near_neighbors_hashset.begin()));
+  std::copy(GetSecondNeighborsAdjacencyList().at(lattice_id).begin(),
+            GetSecondNeighborsAdjacencyList().at(lattice_id).end(),
+            std::inserter(near_neighbors_hashset,
+                          near_neighbors_hashset.begin()));
+  std::copy(GetThirdNeighborsAdjacencyList().at(lattice_id).begin(),
+            GetThirdNeighborsAdjacencyList().at(lattice_id).end(),
+            std::inserter(near_neighbors_hashset,
+                          near_neighbors_hashset.begin()));
+  return near_neighbors_hashset;
+}
+std::unordered_set<size_t> Config::GetNeighborsLatticeIdSetOfPair(
+    const std::pair<size_t, size_t> &lattice_id_pair) const {
+  std::unordered_set<size_t> near_neighbors_hashset;
+  for (const auto lattice_id: {lattice_id_pair.first, lattice_id_pair.second}) {
+    near_neighbors_hashset.insert(lattice_id);
+    std::copy(GetFirstNeighborsAdjacencyList().at(lattice_id).begin(),
+              GetFirstNeighborsAdjacencyList().at(lattice_id).end(),
+              std::inserter(near_neighbors_hashset,
+                            near_neighbors_hashset.begin()));
+    std::copy(GetSecondNeighborsAdjacencyList().at(lattice_id).begin(),
+              GetSecondNeighborsAdjacencyList().at(lattice_id).end(),
+              std::inserter(near_neighbors_hashset,
+                            near_neighbors_hashset.begin()));
+    std::copy(GetThirdNeighborsAdjacencyList().at(lattice_id).begin(),
+              GetThirdNeighborsAdjacencyList().at(lattice_id).end(),
+              std::inserter(near_neighbors_hashset,
+                            near_neighbors_hashset.begin()));
+  }
+  return near_neighbors_hashset;
+}
 void Config::AtomJump(const std::pair<size_t, size_t> &atom_id_jump_pair) {
   const auto [atom_id_lhs, atom_id_rhs] = atom_id_jump_pair;
   const auto lattice_id_lhs = atom_to_lattice_hashmap_.at(atom_id_lhs);
@@ -590,44 +628,6 @@ void Config::UpdateNeighbors() {
   }
 }
 
-std::unordered_set<size_t> GetNeighborsLatticeIdSetOfSite(
-    const Config &config, size_t lattice_id) {
-  std::unordered_set<size_t> near_neighbors_hashset;
-  near_neighbors_hashset.insert(lattice_id);
-  std::copy(config.GetFirstNeighborsAdjacencyList().at(lattice_id).begin(),
-            config.GetFirstNeighborsAdjacencyList().at(lattice_id).end(),
-            std::inserter(near_neighbors_hashset,
-                          near_neighbors_hashset.begin()));
-  std::copy(config.GetSecondNeighborsAdjacencyList().at(lattice_id).begin(),
-            config.GetSecondNeighborsAdjacencyList().at(lattice_id).end(),
-            std::inserter(near_neighbors_hashset,
-                          near_neighbors_hashset.begin()));
-  std::copy(config.GetThirdNeighborsAdjacencyList().at(lattice_id).begin(),
-            config.GetThirdNeighborsAdjacencyList().at(lattice_id).end(),
-            std::inserter(near_neighbors_hashset,
-                          near_neighbors_hashset.begin()));
-  return near_neighbors_hashset;
-}
-std::unordered_set<size_t> GetNeighborsLatticeIdSetOfPair(
-    const Config &config, const std::pair<size_t, size_t> &lattice_id_pair) {
-  std::unordered_set<size_t> near_neighbors_hashset;
-  for (const auto lattice_id: {lattice_id_pair.first, lattice_id_pair.second}) {
-    near_neighbors_hashset.insert(lattice_id);
-    std::copy(config.GetFirstNeighborsAdjacencyList().at(lattice_id).begin(),
-              config.GetFirstNeighborsAdjacencyList().at(lattice_id).end(),
-              std::inserter(near_neighbors_hashset,
-                            near_neighbors_hashset.begin()));
-    std::copy(config.GetSecondNeighborsAdjacencyList().at(lattice_id).begin(),
-              config.GetSecondNeighborsAdjacencyList().at(lattice_id).end(),
-              std::inserter(near_neighbors_hashset,
-                            near_neighbors_hashset.begin()));
-    std::copy(config.GetThirdNeighborsAdjacencyList().at(lattice_id).begin(),
-              config.GetThirdNeighborsAdjacencyList().at(lattice_id).end(),
-              std::inserter(near_neighbors_hashset,
-                            near_neighbors_hashset.begin()));
-  }
-  return near_neighbors_hashset;
-}
 int FindDistanceLabelBetweenLattice(size_t index1, size_t index2, const Config &config) {
   const auto &first_neighbors_adjacency_list = config.GetFirstNeighborsAdjacencyList()[index1];
   const auto &second_neighbors_adjacency_list = config.GetSecondNeighborsAdjacencyList()[index1];

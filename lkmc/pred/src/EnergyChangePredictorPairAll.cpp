@@ -23,7 +23,7 @@ EnergyChangePredictorPairAll::EnergyChangePredictorPairAll(const std::string &pr
   }
 #pragma omp parallel for default(none) shared(reference_config)
   for (size_t i = 0; i < reference_config.GetNumAtoms(); ++i) {
-    auto neighboring_hashset = GetNeighborsLatticeIdSetOfSite(reference_config, i);
+    auto neighboring_hashset = reference_config.GetNeighborsLatticeIdSetOfSite(i);
     auto sorted_lattice_vector = GetSortedLatticeVectorStateOfSite(reference_config, i);
     std::vector<size_t> lattice_id_vector_state;
     std::transform(sorted_lattice_vector.begin(), sorted_lattice_vector.end(),
