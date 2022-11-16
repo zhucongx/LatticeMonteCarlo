@@ -20,7 +20,7 @@ KineticMcFirstMpi::KineticMcFirstMpi(cfg::Config config,
       steps_(restart_steps),
       energy_(restart_energy),
       time_(restart_time),
-      vacancy_index_(cfg::GetVacancyAtomIndex(config_)),
+      vacancy_index_(config_.GetVacancyAtomIndex()),
       energy_predictor_(json_coefficients_filename,
                         config_, element_set, 100000),
       generator_(static_cast<unsigned long long int>(

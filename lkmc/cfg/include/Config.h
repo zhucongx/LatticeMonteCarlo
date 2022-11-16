@@ -35,9 +35,10 @@ class Config {
     [[nodiscard]] size_t GetStateHash() const;
     [[nodiscard]] Vector_t GetLatticePairCenter(
         const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
-    [[nodiscard]]  Matrix_t GetLatticePairRotationMatrix(
+    [[nodiscard]] Matrix_t GetLatticePairRotationMatrix(
         const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
-
+    [[nodiscard]] size_t GetVacancyAtomIndex() const;
+    [[nodiscard]] size_t GetVacancyLatticeIndex() const;
     /// Modify config
     void AtomJump(const std::pair<size_t, size_t> &atom_id_jump_pair);
     void LatticeJump(const std::pair<size_t, size_t> &lattice_id_jump_pair);
@@ -79,8 +80,7 @@ class Config {
 };
 
 void RotateLatticeVector(std::vector<Lattice> &lattice_list, const Matrix_t &rotation_matrix);
-size_t GetVacancyAtomIndex(const Config &config);
-size_t GetVacancyLatticeIndex(const Config &config);
+
 std::unordered_set<size_t> GetNeighborsLatticeIdSetOfPair(
     const Config &config, const std::pair<size_t, size_t> &lattice_id_pair);
 std::unordered_set<size_t> GetNeighborsLatticeIdSetOfSite(

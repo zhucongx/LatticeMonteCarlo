@@ -110,6 +110,68 @@ size_t Config::GetStateHash() const {
   }
   return seed;
 }
+
+Vector_t Config::GetLatticePairCenter(const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
+  Vector_t center_position;
+  for (const auto kDim: All_Dimensions) {
+    double first_relative =
+        GetLatticeVector()[lattice_id_jump_pair.first].GetRelativePosition()[kDim];
+    const double second_relative =
+        GetLatticeVector()[lattice_id_jump_pair.second].GetRelativePosition()[kDim];
+
+    double distance = first_relative - second_relative;
+    int period = static_cast<int>(distance / 0.5);
+    // make sure distance is the range (0, 0.5)
+    while (period != 0) {
+      first_relative -= static_cast<double>(period);
+      distance = first_relative - second_relative;
+      period = static_cast<int>(distance / 0.5);
+    }
+    center_position[kDim] = 0.5 * (first_relative + second_relative);
+  }
+  return center_position;
+}
+Matrix_t Config::GetLatticePairRotationMatrix(
+    const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
+  const auto &first_lattice = GetLatticeVector()[lattice_id_jump_pair.first];
+  const auto &second_lattice = GetLatticeVector()[lattice_id_jump_pair.second];
+
+  const Vector_t
+      pair_direction = Normalize(GetRelativeDistanceVectorLattice(first_lattice, second_lattice));
+  Vector_t vertical_vector{};
+  for (const auto index: GetFirstNeighborsAdjacencyList().at(lattice_id_jump_pair.first)) {
+    const Vector_t jump_vector =
+        GetRelativeDistanceVectorLattice(first_lattice, GetLatticeVector()[index]);
+    const double dot_prod = Dot(pair_direction, jump_vector);
+    if (std::abs(dot_prod) < 1e-6) {
+      vertical_vector = Normalize(jump_vector);
+      break;
+    }
+  }
+  // The third row is normalized since it is a cross product of two normalized vectors.
+  // We use transposed matrix here because transpose of an orthogonal matrix equals its inverse
+  return TransposeMatrix({pair_direction, vertical_vector,
+                          Cross(pair_direction, vertical_vector)});
+}
+
+size_t Config::GetVacancyAtomIndex() const {
+  return GetAtomIdFromLatticeId(GetVacancyLatticeIndex());
+}
+
+size_t Config::GetVacancyLatticeIndex() const {
+  const auto &atom_vector = GetAtomVector();
+  auto it = std::find_if(atom_vector.cbegin(),
+                         atom_vector.cend(),
+                         [](const auto &atom) {
+                           return atom.GetElement() == ElementName::X;
+                         });
+  if (it != atom_vector.end()) {
+    return GetLatticeIdFromAtomId(it->GetId());
+  } else {
+    std::cerr << "Warning: vacancy not found" << std::endl;
+  }
+  return 0;
+}
 void Config::AtomJump(const std::pair<size_t, size_t> &atom_id_jump_pair) {
   const auto [atom_id_lhs, atom_id_rhs] = atom_id_jump_pair;
   const auto lattice_id_lhs = atom_to_lattice_hashmap_.at(atom_id_lhs);
@@ -528,81 +590,6 @@ void Config::UpdateNeighbors() {
   }
 }
 
-Vector_t Config::GetLatticePairCenter(const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
-  Vector_t center_position;
-  for (const auto kDim: All_Dimensions) {
-    double first_relative =
-        GetLatticeVector()[lattice_id_jump_pair.first].GetRelativePosition()[kDim];
-    const double second_relative =
-        GetLatticeVector()[lattice_id_jump_pair.second].GetRelativePosition()[kDim];
-
-    double distance = first_relative - second_relative;
-    int period = static_cast<int>(distance / 0.5);
-    // make sure distance is the range (0, 0.5)
-    while (period != 0) {
-      first_relative -= static_cast<double>(period);
-      distance = first_relative - second_relative;
-      period = static_cast<int>(distance / 0.5);
-    }
-    center_position[kDim] = 0.5 * (first_relative + second_relative);
-  }
-  return center_position;
-}
-Matrix_t Config::GetLatticePairRotationMatrix(
-    const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
-  const auto &first_lattice = GetLatticeVector()[lattice_id_jump_pair.first];
-  const auto &second_lattice = GetLatticeVector()[lattice_id_jump_pair.second];
-
-  const Vector_t
-      pair_direction = Normalize(GetRelativeDistanceVectorLattice(first_lattice, second_lattice));
-  Vector_t vertical_vector{};
-  for (const auto index: GetFirstNeighborsAdjacencyList().at(lattice_id_jump_pair.first)) {
-    const Vector_t jump_vector =
-        GetRelativeDistanceVectorLattice(first_lattice, GetLatticeVector()[index]);
-    const double dot_prod = Dot(pair_direction, jump_vector);
-    if (std::abs(dot_prod) < 1e-6) {
-      vertical_vector = Normalize(jump_vector);
-      break;
-    }
-  }
-  // The third row is normalized since it is a cross product of two normalized vectors.
-  // We use transposed matrix here because transpose of an orthogonal matrix equals its inverse
-  return TransposeMatrix({pair_direction, vertical_vector,
-                          Cross(pair_direction, vertical_vector)});
-}
-void RotateLatticeVector(std::vector<Lattice> &lattice_list,
-                         const Matrix_t &rotation_matrix) {
-  const auto move_distance_after_rotation = Vector_t{0.5, 0.5, 0.5}
-      - (Vector_t{0.5, 0.5, 0.5} * rotation_matrix);
-  for (auto &lattice: lattice_list) {
-    auto relative_position = lattice.GetRelativePosition();
-    // rotate
-    relative_position = relative_position * rotation_matrix;
-    // move to new center
-    relative_position += move_distance_after_rotation;
-    relative_position -= ElementFloor(relative_position);
-    lattice.SetRelativePosition(relative_position);
-  }
-}
-size_t GetVacancyAtomIndex(const Config &config) {
-  return config.GetAtomIdFromLatticeId(GetVacancyLatticeIndex(config));
-}
-
-size_t GetVacancyLatticeIndex(const Config &config) {
-  const auto &atom_vector = config.GetAtomVector();
-  auto it = std::find_if(atom_vector.cbegin(),
-                         atom_vector.cend(),
-                         [](const auto &atom) {
-                           return atom.GetElement() == ElementName::X;
-                         });
-  if (it != atom_vector.end()) {
-    return config.GetLatticeIdFromAtomId(it->GetId());
-  } else {
-    std::cerr << "Warning: vacancy not found" << std::endl;
-  }
-  return 0;
-}
-
 std::unordered_set<size_t> GetNeighborsLatticeIdSetOfSite(
     const Config &config, size_t lattice_id) {
   std::unordered_set<size_t> near_neighbors_hashset;
@@ -754,4 +741,18 @@ Config GenerateSoluteConfig(const Factor_t &factors,
 //   return Config();
 // }
 
+void RotateLatticeVector(std::vector<Lattice> &lattice_list,
+                         const Matrix_t &rotation_matrix) {
+  const auto move_distance_after_rotation = Vector_t{0.5, 0.5, 0.5}
+      - (Vector_t{0.5, 0.5, 0.5} * rotation_matrix);
+  for (auto &lattice: lattice_list) {
+    auto relative_position = lattice.GetRelativePosition();
+    // rotate
+    relative_position = relative_position * rotation_matrix;
+    // move to new center
+    relative_position += move_distance_after_rotation;
+    relative_position -= ElementFloor(relative_position);
+    lattice.SetRelativePosition(relative_position);
+  }
+}
 } // cfg

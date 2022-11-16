@@ -13,7 +13,7 @@
 // Demonstrate some basic assertions.
 TEST(HelloTest, BasicAssertions) {
   cfg::Config a = cfg::Config::ReadCfg("test.cfg");
-  auto lattice_id = GetVacancyLatticeIndex(a);
+  auto lattice_id = a.GetVacancyLatticeIndex();
   EXPECT_EQ(lattice_id, 18);
   auto atom_id = a.GetLatticeToAtomHashmap().at(lattice_id);
   EXPECT_EQ(atom_id, 18);
