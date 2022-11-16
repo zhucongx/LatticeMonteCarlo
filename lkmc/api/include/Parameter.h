@@ -18,9 +18,6 @@ struct Parameter {
     // read parameter file
     void ReadParam(const std::string &param_filename);
 
-    // show parameters
-    void PrintParameters() const;
-
     std::string parameters_filename{};
     std::string method{};
 

@@ -29,6 +29,8 @@ Iterator::Iterator(unsigned long long int initial_steps,
     log_file_name = "cmc_log.txt";
   } else if (log_type_ == "canonical_mc_step_t") {
     log_file_name = "cmc_log.txt";
+  } else if (log_type_ == "semi_grand_canonical_mc_step_t") {
+    log_file_name = "sgcmc_log.txt";
   } else {
     std::cerr << "Unknown log type: " << log_type_ << std::endl;
   }
@@ -57,6 +59,8 @@ Iterator::Iterator(unsigned long long int initial_steps,
       ifs >> step_number >> energy;
     } else if (log_type_ == "canonical_mc_step_t") {
       ifs >> step_number >> energy >> temperature;
+    } else if (log_type_ == "semi_grand_canonical_mc_step_t") {
+      ifs >> step_number >> energy >> temperature;
     } else {
       std::cerr << "Unknown log type: " << log_type_ << std::endl;
     }
@@ -68,6 +72,8 @@ Iterator::Iterator(unsigned long long int initial_steps,
       } else if (log_type_ == "canonical_mc") {
         filename_info_hashset_[step_number] = 0;
       } else if (log_type_ == "canonical_mc_step_t") {
+        filename_info_hashset_[step_number] = temperature;
+      } else if (log_type_ == "semi_grand_canonical_mc_step_t") {
         filename_info_hashset_[step_number] = temperature;
       } else {
         std::cerr << "Unknown log type: " << log_type_ << std::endl;
