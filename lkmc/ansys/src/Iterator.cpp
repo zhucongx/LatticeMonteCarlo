@@ -78,10 +78,8 @@ Iterator::Iterator(unsigned long long int initial_steps,
 }
 Iterator::~Iterator() = default;
 void Iterator::RunCluster() const {
-  // start
   std::ofstream ofs("cluster_info.json", std::ofstream::out);
   ofs << "[ \n";
-
   for (unsigned long long i = 0; i <= final_number_; i += increment_steps_) {
     std::cout << i << " / " << final_number_ << std::endl;
 
