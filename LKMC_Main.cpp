@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
   } else if (parameter.method == "KineticMcChainOmpi") {
     auto kinetic_mc_chain_ompi = api::BuildKineticMcChainOmpiFromParameter(parameter);
     kinetic_mc_chain_ompi.Simulate();
-  } else if (parameter.method == "FindCluster") {
+  } else if (parameter.method == "Cluster") {
     auto iterator = api::BuildIteratorFromParameter(parameter);
     iterator.RunCluster();
   } else if (parameter.method == "Reformat") {

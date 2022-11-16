@@ -96,11 +96,11 @@ void Iterator::RunCluster() const {
     } else {
       throw std::invalid_argument("Unknown config type: " + config_type_);
     }
-    ClustersFinder cluster_finder(config,
-                                  solvent_element_,
-                                  smallest_cluster_criteria_,
-                                  solvent_bond_criteria_,
-                                  energy_estimator_);
+    Cluster cluster_finder(config,
+                           solvent_element_,
+                           smallest_cluster_criteria_,
+                           solvent_bond_criteria_,
+                           energy_estimator_);
     auto num_different_element =
         cluster_finder.FindClustersAndOutput("cluster", std::to_string(i) + "_cluster.cfg");
 

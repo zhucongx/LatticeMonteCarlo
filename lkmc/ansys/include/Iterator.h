@@ -1,7 +1,7 @@
 #ifndef LKMC_LKMC_ANSYS_INCLUDE_ITERATOR_H_
 #define LKMC_LKMC_ANSYS_INCLUDE_ITERATOR_H_
 #include "EnergyPredictor.h"
-#include "ClustersFinder.h"
+#include "Cluster.h"
 namespace ansys {
 
 class Iterator {

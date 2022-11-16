@@ -1,4 +1,4 @@
-simulation_method FindCluster
+simulation_method Cluster
 log_type kinetic_mc
 #log_type canonical_mc
 #log_type canonical_mc_step_t

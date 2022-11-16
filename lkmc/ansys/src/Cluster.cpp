@@ -1,4 +1,4 @@
-#include "ClustersFinder.h"
+#include "Cluster.h"
 
 #include <queue>
 #include <unordered_map>
@@ -6,11 +6,11 @@
 #include <filesystem>
 #include <omp.h>
 namespace ansys {
-ClustersFinder::ClustersFinder(const cfg::Config &config,
-                               Element solvent_atom_type,
-                               size_t smallest_cluster_criteria,
-                               size_t solvent_bond_criteria,
-                               const pred::EnergyPredictor &energy_estimator)
+Cluster::Cluster(const cfg::Config &config,
+                 Element solvent_atom_type,
+                 size_t smallest_cluster_criteria,
+                 size_t solvent_bond_criteria,
+                 const pred::EnergyPredictor &energy_estimator)
     : config_(config),
       solvent_config_(config),
       solvent_element_(solvent_atom_type),
@@ -24,7 +24,7 @@ ClustersFinder::ClustersFinder(const cfg::Config &config,
   absolute_energy_solvent_config_ = energy_estimator_.GetEnergy(solvent_config_);
 }
 
-ClustersFinder::ClusterElementNumMap ClustersFinder::FindClustersAndOutput(
+Cluster::ClusterElementNumMap Cluster::FindClustersAndOutput(
     const std::string &output_folder, const std::string &output_name) {
   auto cluster_to_atom_vector = FindAtomListOfClusters();
 
@@ -68,7 +68,7 @@ ClustersFinder::ClusterElementNumMap ClustersFinder::FindClustersAndOutput(
   return cluster_element_num_map;
 }
 
-std::unordered_set<size_t> ClustersFinder::FindSoluteAtomIndexes() const {
+std::unordered_set<size_t> Cluster::FindSoluteAtomIndexes() const {
   std::unordered_set<size_t> solute_atoms_hashset;
   for (const auto &atom: config_.GetAtomVector()) {
     if (atom.GetElement() == solvent_element_ || atom.GetElement() == ElementName::X) { continue; }
@@ -77,7 +77,7 @@ std::unordered_set<size_t> ClustersFinder::FindSoluteAtomIndexes() const {
   return solute_atoms_hashset;
 }
 
-std::vector<std::vector<size_t> > ClustersFinder::FindAtomListOfClustersBFSHelper(
+std::vector<std::vector<size_t> > Cluster::FindAtomListOfClustersBFSHelper(
     std::unordered_set<size_t> unvisited_atoms_id_set) const {
   std::vector<std::vector<size_t> > cluster_atom_list;
   std::queue<size_t> visit_id_queue;
@@ -114,7 +114,7 @@ std::vector<std::vector<size_t> > ClustersFinder::FindAtomListOfClustersBFSHelpe
   return cluster_atom_list;
 }
 
-std::vector<std::vector<size_t> > ClustersFinder::FindAtomListOfClusters() const {
+std::vector<std::vector<size_t> > Cluster::FindAtomListOfClusters() const {
   auto cluster_atom_list = FindAtomListOfClustersBFSHelper(FindSoluteAtomIndexes());
 
   // remove small clusters
@@ -152,7 +152,7 @@ std::vector<std::vector<size_t> > ClustersFinder::FindAtomListOfClusters() const
   cluster_atom_list = FindAtomListOfClustersBFSHelper(all_found_solute_set);
   return cluster_atom_list;
 }
-double ClustersFinder::GetAbsoluteEnergyOfCluster(const std::vector<size_t> &atom_id_list) const {
+double Cluster::GetAbsoluteEnergyOfCluster(const std::vector<size_t> &atom_id_list) const {
   cfg::Config solute_config(solvent_config_);
   for (size_t atom_id: atom_id_list) {
     solute_config.ChangeAtomElementTypeAtAtom(atom_id, config_.GetElementAtAtomId(atom_id));
@@ -160,7 +160,7 @@ double ClustersFinder::GetAbsoluteEnergyOfCluster(const std::vector<size_t> &ato
   // solute_config.WriteCfg("cluster/" + std::to_string(atom_id_list.size()) + ".cfg", false);
   return energy_estimator_.GetEnergy(solute_config);
 }
-double ClustersFinder::GetRelativeEnergyOfCluster(const std::vector<size_t> &atom_id_list) const {
+double Cluster::GetRelativeEnergyOfCluster(const std::vector<size_t> &atom_id_list) const {
   cfg::Config solute_config(solvent_config_);
   for (size_t atom_id: atom_id_list) {
     solute_config.ChangeAtomElementTypeAtAtom(atom_id, config_.GetElementAtAtomId(atom_id));

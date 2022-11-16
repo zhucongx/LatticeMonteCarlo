@@ -1,5 +1,5 @@
-#ifndef LKMC_LKMC_ANSYS_INCLUDE_CLUSTERFINDER_H_
-#define LKMC_LKMC_ANSYS_INCLUDE_CLUSTERFINDER_H_
+#ifndef LKMC_LKMC_ANSYS_INCLUDE_CLUSTER_H_
+#define LKMC_LKMC_ANSYS_INCLUDE_CLUSTER_H_
 #include <vector>
 #include <set>
 #include <unordered_set>
@@ -8,14 +8,14 @@
 #include "EnergyPredictor.h"
 
 namespace ansys {
-class ClustersFinder {
+class Cluster {
   public:
     using ClusterElementNumMap = std::vector<std::pair<std::map<Element, size_t>, double> >;
-    ClustersFinder(const cfg::Config &config,
-                   Element solvent_atom_type,
-                   size_t smallest_cluster_criteria,
-                   size_t solvent_bond_criteria,
-                   const pred::EnergyPredictor &energy_estimator);
+    Cluster(const cfg::Config &config,
+            Element solvent_atom_type,
+            size_t smallest_cluster_criteria,
+            size_t solvent_bond_criteria,
+            const pred::EnergyPredictor &energy_estimator);
 
     ClusterElementNumMap FindClustersAndOutput(const std::string &output_folder,
                                                const std::string &output_name);
@@ -43,4 +43,4 @@ class ClustersFinder {
 };
 } // ansys
 
-#endif //LKMC_LKMC_ANSYS_INCLUDE_CLUSTERFINDER_H_
+#endif //LKMC_LKMC_ANSYS_INCLUDE_CLUSTER_H_
