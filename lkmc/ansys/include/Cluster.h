@@ -13,6 +13,7 @@ class Cluster {
     using ClusterElementNumMap = std::vector<std::pair<std::map<Element, size_t>, double> >;
     Cluster(const cfg::Config &config,
             Element solvent_atom_type,
+            std::set<Element> element_set,
             size_t smallest_cluster_criteria,
             size_t solvent_bond_criteria,
             const pred::EnergyPredictor &energy_estimator);

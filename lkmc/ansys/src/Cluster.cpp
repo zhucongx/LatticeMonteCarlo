@@ -8,13 +8,14 @@
 namespace ansys {
 Cluster::Cluster(const cfg::Config &config,
                  Element solvent_atom_type,
+                 std::set<Element> element_set,
                  size_t smallest_cluster_criteria,
                  size_t solvent_bond_criteria,
                  const pred::EnergyPredictor &energy_estimator)
     : config_(config),
       solvent_config_(config),
       solvent_element_(solvent_atom_type),
-      element_set_(config_.GetElementSetWithoutVacancy()),
+      element_set_(std::move(element_set)),
       smallest_cluster_criteria_(smallest_cluster_criteria),
       solvent_bond_criteria_(solvent_bond_criteria),
       energy_estimator_(energy_estimator) {

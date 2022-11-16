@@ -96,6 +96,13 @@ std::set<Element> Config::GetElementSetWithoutVacancy() const {
   }
   return res;
 }
+std::map<Element, std::vector<size_t> > Config::GetElementAtomIdVectorMap() const {
+  std::map<Element, std::vector<size_t> > element_list_map;
+  for (const auto &atom: atom_vector_) {
+    element_list_map[atom.GetElement()].push_back(atom.GetId());
+  }
+  return element_list_map;
+}
 size_t Config::GetStateHash() const {
   size_t seed = 0;
   for (size_t i = 0; i < GetNumAtoms(); ++i) {

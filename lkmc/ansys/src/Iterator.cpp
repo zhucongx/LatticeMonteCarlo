@@ -16,9 +16,10 @@ Iterator::Iterator(unsigned long long int initial_steps,
       increment_steps_(increment_steps),
       final_number_(increment_steps),
       solvent_element_(solvent_element),
+      element_set_(std::move(element_set)),
       smallest_cluster_criteria_(smallest_cluster_criteria),
       solvent_bond_criteria_(solvent_bond_criteria),
-      energy_estimator_(predictor_filename, std::move(element_set)),
+      energy_estimator_(predictor_filename, element_set_),
       log_type_(std::move(log_type)),
       config_type_(std::move(config_type)) {
   std::string log_file_name;
@@ -96,6 +97,7 @@ void Iterator::RunCluster() const {
     }
     Cluster cluster_finder(config,
                            solvent_element_,
+                           element_set_,
                            smallest_cluster_criteria_,
                            solvent_bond_criteria_,
                            energy_estimator_);
