@@ -164,4 +164,4 @@ double EnergyChangePredictorPairAll::GetDeFromLatticeIdSite(const cfg::Config &c
       ordered(initialized_cluster_hashmap_.begin(), initialized_cluster_hashmap_.end());
   return GetDeHelper(start_hashmap, end_hashmap, ordered);
 }
-} // namespace pred
+} // pred

@@ -37,5 +37,5 @@ class JumpEvent {
     double probability_{};
     double cumulative_probability_{};
 };
-} // namespace mc
+} // mc
 #endif //LKMC_LKMC_MC_INCLUDE_JUMPEVENT_H_

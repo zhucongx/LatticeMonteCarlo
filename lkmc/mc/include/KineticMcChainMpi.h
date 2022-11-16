@@ -73,7 +73,7 @@ class KineticMcChainMpi {
     const pred::VacancyMigrationPredictorQuarticLru energy_predictor_;
     mutable std::mt19937_64 generator_;
 };
-} // namespace mc
+} // mc
 
 
 #endif //LKMC_LKMC_MC_INCLUDE_KINETICMCCHAINMPI_H_

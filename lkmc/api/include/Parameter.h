@@ -51,5 +51,5 @@ struct Parameter {
     std::vector<size_t> solute_number_set_{};
     unsigned long long int early_stop_steps_{};
 };
-} // namespace api
+} // api
 #endif //LKMC_LKMC_API_INCLUDE_PARAMETER_H_

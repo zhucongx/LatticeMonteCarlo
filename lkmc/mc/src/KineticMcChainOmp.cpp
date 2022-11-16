@@ -227,4 +227,4 @@ void KineticMcChainOmp::Simulate() {
     ++steps_;
   }
 }
-} // namespace mc
+} // mc

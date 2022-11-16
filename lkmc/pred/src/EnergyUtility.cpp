@@ -794,4 +794,4 @@ std::vector<double> GetOneHotParametersFromMap(
   }
   return res_encode;
 }
-} // namespace pred
+} // pred

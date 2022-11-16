@@ -96,5 +96,5 @@ Config GenerateSoluteConfig(const Factor_t &factors,
 // Config GenerateClusteredConfig(const Factor_t &factors,
 //                             Element solvent_element,
 //                             const std::map<Element, size_t> &solute_atom_count);
-} // namespace cfg
+} // cfg
 #endif //LKMC_LKMC_CFG_INCLUDE_CONFIG_H_

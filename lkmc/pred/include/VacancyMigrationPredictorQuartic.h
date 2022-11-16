@@ -57,5 +57,5 @@ class VacancyMigrationPredictorQuartic {
     std::map<cfg::ElementCluster, int> ordered_map_;
 
 };
-} // namespace pred
+} // pred
 #endif //LKMC_LKMC_PRED_INCLUDE_VACANCYMIGRATIONPREDICTORQUARTIC_H_

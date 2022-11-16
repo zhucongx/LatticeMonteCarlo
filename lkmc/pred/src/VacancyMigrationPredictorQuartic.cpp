@@ -261,4 +261,4 @@ std::pair<double, double> VacancyMigrationPredictorQuartic::GetBarrierAndDiffFro
       / std::pow(a, 3) / 2048;
   return {Ea, dE};
 }
-} // namespace pred
+} // pred

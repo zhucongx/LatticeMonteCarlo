@@ -31,7 +31,7 @@ class EnergyChangePredictorSite {
         site_neighbors_hashmap_;
 };
 
-} // namespace pred
+} // pred
 
 
 #endif //LKMC_LKMC_PRED_INCLUDE_ENERGYCHANGEPREDICTORSITE_H_

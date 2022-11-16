@@ -19,6 +19,6 @@ inline std::vector<std::string> split(const std::string &s, const char *delim) {
   free(dup);
   return res;
 }
-} // namespace api
+} // api
 
 #endif //LKMC_LKMC_API_INCLUDE_UTILITY_H_

@@ -71,6 +71,6 @@ class KineticMcChainOmpi {
     MPI_Datatype mpi_datatype_{};
 };
 
-} // namespace mc
+} // mc
 
 #endif //LKMC_LKMC_MC_INCLUDE_KINETICMCCHAINOMPI_H_

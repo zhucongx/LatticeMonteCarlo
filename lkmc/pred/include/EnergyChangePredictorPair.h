@@ -32,5 +32,5 @@ class EnergyChangePredictorPair {
                        std::vector<size_t>,
                        boost::hash<std::pair<size_t, size_t> > > bond_state_hashmap_;
 };
-} // namespace pred
+} // pred
 #endif //LKMC_LKMC_PRED_INCLUDE_ENERGYCHANGEPREDICTORPAIR_H_

@@ -46,5 +46,5 @@ class EnergyChangePredictorPairAll {
     std::unordered_map<size_t,
                        std::unordered_set<size_t> > neighboring_sites_hashmap_;
 };
-} // namespace pred
+} // pred
 #endif //LKMC_LKMC_PRED_INCLUDE_ENERGYCHANGEPREDICTORPAIRALL_H_

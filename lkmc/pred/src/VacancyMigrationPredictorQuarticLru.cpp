@@ -41,4 +41,4 @@ size_t VacancyMigrationPredictorQuarticLru::GetHashFromConfigAndLatticeIdPair(
   }
   return seed;
 }
-} // namespace pred
+} // pred

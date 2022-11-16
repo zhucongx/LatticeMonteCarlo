@@ -41,6 +41,6 @@ class CanonicalMcStepT {
     mutable std::uniform_int_distribution<size_t> atom_index_selector_;
     mutable std::uniform_real_distribution<double> one_distribution_{0.0, 1.0};
 };
-} // namespace mc
+} // mc
 
 #endif //LKMC_LKMC_MC_INCLUDE_CANONICALMCSTEPT_H_

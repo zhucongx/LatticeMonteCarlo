@@ -169,4 +169,4 @@ double ClustersFinder::GetRelativeEnergyOfCluster(const std::vector<size_t> &ato
       energy_estimator_.GetEnergyOfCluster(solvent_config_, atom_id_list)
       + absolute_energy_solvent_config_;
 }
-} // namespace kn
+} // kn

@@ -114,4 +114,4 @@ void SimulatedAnnealing::Simulate() {
             << std::chrono::duration_cast<std::chrono::seconds>(t2 - t1).count() << " seconds.\n";
 }
 
-} // namespace ansys
+} // ansys

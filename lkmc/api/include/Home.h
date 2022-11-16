@@ -19,6 +19,6 @@ ansys::SimulatedAnnealing BuildSimulatedAnnealingFromParameter(const Parameter &
 mc::CanonicalMc BuildCanonicalMcFromParameter(const Parameter &parameter);
 mc::CanonicalMcStepT BuildCanonicalMcStepTFromParameter(const Parameter &parameter);
 ansys::Iterator BuildIteratorFromParameter(const Parameter &parameter);
-} // namespace api
+} // api
 
 #endif //LKMC_LKMC_API_INCLUDE_HOME_H_

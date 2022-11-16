@@ -30,5 +30,5 @@ class EnergyPredictor {
     // std::vector<cfg::ElementCluster> sorted_cluster_type_vector;
 };
 
-} // namespace pred
+} // pred
 #endif //LKMC_LKMC_ANSYS_INCLUDE_ENERGYESTIMATOR_H_

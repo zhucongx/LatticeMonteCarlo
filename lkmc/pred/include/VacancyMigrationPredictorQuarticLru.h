@@ -59,6 +59,6 @@ class VacancyMigrationPredictorQuarticLru : public VacancyMigrationPredictorQuar
         const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
     mutable LruCache<size_t, std::pair<double, double> > lru_cache_;
 };
-} // namespace pred
+} // pred
 
 #endif //LKMC_LKMC_PRED_INCLUDE_VACANCYMIGRATIONPREDICTORQUARTICLRU_H_

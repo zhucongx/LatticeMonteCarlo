@@ -108,4 +108,4 @@ double EnergyChangePredictorPair::GetDeFromLatticeIdPair(
   }
   return dE;
 }
-} // namespace pred
+} // pred

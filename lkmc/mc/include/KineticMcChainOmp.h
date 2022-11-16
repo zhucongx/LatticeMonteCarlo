@@ -69,6 +69,6 @@ class KineticMcChainOmp {
     mutable std::mt19937_64 generator_;
 };
 
-} // namespace mc
+} // mc
 
 #endif //LKMC_LKMC_MC_INCLUDE_CHAINKMCOPENMP_H_

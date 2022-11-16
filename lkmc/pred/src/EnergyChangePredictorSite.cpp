@@ -195,4 +195,4 @@ double EnergyChangePredictorSite::GetDeFromLatticeIdSite(
 //   }
 //   return dE;
 // }
-} // namespace pred
+} // pred

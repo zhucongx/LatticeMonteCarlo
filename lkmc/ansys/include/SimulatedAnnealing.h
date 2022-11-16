@@ -41,6 +41,6 @@ class SimulatedAnnealing {
     mutable std::uniform_int_distribution<size_t> neighbor_index_selector_;
     mutable std::uniform_real_distribution<double> one_distribution_{0.0, 1.0};
 };
-} // namespace ansys
+} // ansys
 
 #endif //LKMC_LKMC_ANSYS_INCLUDE_SIMULATEDANNEALING_H_

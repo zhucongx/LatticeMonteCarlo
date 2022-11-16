@@ -147,4 +147,4 @@ void Iterator::RunReformat() const {
     config.WriteMap("map" + std::to_string(i) + ".txt");
   }
 }
-} // namespace ansys
+} // ansys

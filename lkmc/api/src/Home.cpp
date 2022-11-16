@@ -165,4 +165,4 @@ ansys::Iterator BuildIteratorFromParameter(const Parameter &parameter) {
                          parameter.log_type_,
                          parameter.config_type_};
 }
-} // namespace api
+} // api

@@ -62,5 +62,5 @@ inline Vector_t GetRelativeDistanceVectorLattice(const Lattice &first, const Lat
   }
   return relative_distance_vector;
 }
-} // namespace cfg
+} // cfg
 #endif //LKMC_LKMC_CFG_INCLUDE_LATTICE_HPP_

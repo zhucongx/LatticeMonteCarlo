@@ -243,5 +243,4 @@ double EnergyPredictor::GetEnergyOfCluster(
   }
   return E;
 }
-
-} // namespace pred
+} // pred

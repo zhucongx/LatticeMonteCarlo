@@ -748,4 +748,4 @@ Config GenerateSoluteConfig(const Factor_t &factors,
 //   return Config();
 // }
 
-} // namespace cfg
+} // cfg

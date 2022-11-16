@@ -276,4 +276,4 @@ void KineticMcChainMpi::Simulate() {
     ++steps_;
   }
 }
-} // namespace mc
+} // mc

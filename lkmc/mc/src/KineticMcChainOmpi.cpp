@@ -266,4 +266,4 @@ void KineticMcChainOmpi::Simulate() {
   }
 }
 
-} // namespace mc
+} // mc

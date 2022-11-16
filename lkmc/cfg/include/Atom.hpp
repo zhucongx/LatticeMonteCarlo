@@ -38,6 +38,6 @@ struct Atom {
     // element type
     Element element_{};
 };
-} // namespace cfg
+} // cfg
 
 #endif //LKMC_LKMC_CFG_INCLUDE_ATOM_HPP_

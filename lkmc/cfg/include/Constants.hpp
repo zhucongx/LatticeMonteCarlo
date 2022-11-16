@@ -25,5 +25,5 @@ constexpr size_t kNumThirdNearestNeighbors = 24;
 // constexpr size_t kNumFifthNearestNeighbors = 24;
 // constexpr size_t kNumSixthNearestNeighbors = 8;
 // constexpr size_t kNumSeventhNearestNeighbors = 48;
-} // namespace constants
+} // constants
 #endif //LKMC_LKMC_CFG_INCLUDE_CONSTANTS_HPP_

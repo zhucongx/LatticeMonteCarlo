@@ -132,4 +132,4 @@ void KineticMcFirstMpi::Simulate() {
     ++steps_;
   }
 }
-} // namespace mc
+} // mc

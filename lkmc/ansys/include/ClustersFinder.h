@@ -41,6 +41,6 @@ class ClustersFinder {
     const pred::EnergyPredictor energy_estimator_;
     double absolute_energy_solvent_config_;
 };
-} // namespace ansys
+} // ansys
 
 #endif //LKMC_LKMC_ANSYS_INCLUDE_CLUSTERFINDER_H_

@@ -231,6 +231,6 @@ inline bool IsClusterSmallerSymmetricallyMM2(const cfg::LatticeClusterMM2<DataSi
   // if it reaches here, it means that the clusters are same symmetrically. Returns false.
   return false;
 }
-} // namespace cfg
+} // cfg
 
 #endif //LKMC_LKMC_CFG_INCLUDE_LATTICECLUSTER_HPP_

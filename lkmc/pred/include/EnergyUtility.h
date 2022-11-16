@@ -83,6 +83,6 @@ struct ParametersDE {
   std::vector<std::vector<double> > U{};
   std::vector<double> theta{};
 };
-} // namespace pred
+} // pred
 
 #endif //LKMC_LKMC_PRED_INCLUDE_ENERGYUTILITY_H_

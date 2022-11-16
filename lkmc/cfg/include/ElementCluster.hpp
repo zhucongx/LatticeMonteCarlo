@@ -78,5 +78,5 @@ class ElementCluster {
     std::vector<Element> element_vector_;
 };
 
-} // namespace cfg
+} // cfg
 #endif //LKMC_LKMC_CFG_INCLUDE_ELEMENTCLUSTER_HPP_

@@ -31,6 +31,6 @@ class Iterator {
     const std::string config_type_;
 };
 
-} // namespace ansys
+} // ansys
 
 #endif //LKMC_LKMC_ANSYS_INCLUDE_ITERATOR_H_
