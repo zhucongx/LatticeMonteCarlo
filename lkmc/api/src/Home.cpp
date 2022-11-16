@@ -133,17 +133,16 @@ mc::CanonicalMc BuildCanonicalMcFromParameter(const Parameter &parameter) {
       parameter.json_coefficients_filename_};
 }
 mc::CanonicalMcStepT BuildCanonicalMcStepTFromParameter(const Parameter &parameter) {
-  std::set < Element > solute_element_set;
-  for (const auto &element_string: parameter.solute_element_set_) {
-    solute_element_set.insert(Element(element_string));
+  std::set < Element > element_set;
+  for (const auto &element_string: parameter.element_set_) {
+    element_set.insert(Element(element_string));
   }
 
   auto config = cfg::Config::ReadCfg(parameter.config_filename_);
   std::cout << "Finish config reading. Start CMC." << std::endl;
   return mc::CanonicalMcStepT{
       config,
-      Element(parameter.solvent_element_),
-      solute_element_set,
+      element_set,
       parameter.log_dump_steps_,
       parameter.config_dump_steps_,
       parameter.maximum_steps_,

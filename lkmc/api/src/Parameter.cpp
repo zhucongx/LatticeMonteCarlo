@@ -141,12 +141,11 @@ void Parameter::PrintParameters() const {
     std::cout << "config_dump_steps: " << config_dump_steps_ << std::endl;
     std::cout << "maximum_steps: " << maximum_steps_ << std::endl;
     std::cout << "temperature: " << temperature_ << std::endl;
-  } else if (method == "CanonicalMcStepT") {
+  } else if (method == "CanonicalMcStepT" || method == "SemiGrandCanonicalMcStepT") {
     std::cout << "json_coefficients_filename: " << json_coefficients_filename_ << std::endl;
     std::cout << "config_filename: " << config_filename_ << std::endl;
-    std::cout << "solvent_element: " << solvent_element_ << std::endl;
-    std::cout << "solute_element_set: ";
-    std::copy(solute_element_set_.begin(), solute_element_set_.end(),
+    std::cout << "element_set: ";
+    std::copy(element_set_.begin(), element_set_.end(),
               std::ostream_iterator<std::string>(std::cout, " "));
     std::cout << std::endl;
     std::cout << "log_dump_steps: " << log_dump_steps_ << std::endl;

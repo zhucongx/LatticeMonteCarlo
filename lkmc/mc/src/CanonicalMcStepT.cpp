@@ -5,19 +5,18 @@
 #include "EnergyPredictor.h"
 namespace mc {
 constexpr double kBoltzmannConstant = 8.617333262145e-5;
-static std::set<Element> GetElementSetFromSolventAndSolute(
-    Element solvent_element, const std::set<Element> &solute_element_set) {
-
-  std::set<Element> element_set;
-  element_set.insert(solvent_element);
-  for (const auto &solute_element: solute_element_set) {
-    element_set.insert(solute_element);
-  }
-  return element_set;
-}
+// static std::set<Element> GetElementSetFromSolventAndSolute(
+//     Element solvent_element, const std::set<Element> &solute_element_set) {
+//
+//   std::set<Element> element_set;
+//   element_set.insert(solvent_element);
+//   for (const auto &solute_element: solute_element_set) {
+//     element_set.insert(solute_element);
+//   }
+//   return element_set;
+// }
 CanonicalMcStepT::CanonicalMcStepT(cfg::Config config,
-                                   Element solvent_element,
-                                   const std::set<Element> &solute_element_set,
+                                   const std::set<Element> &element_set,
                                    const unsigned long long int log_dump_steps,
                                    const unsigned long long int config_dump_steps,
                                    const unsigned long long int maximum_number,
@@ -34,13 +33,11 @@ CanonicalMcStepT::CanonicalMcStepT(cfg::Config config,
       beta_(1 / kBoltzmannConstant / initial_temperature_),
       energy_predictor_(json_coefficients_filename,
                         config_,
-                        GetElementSetFromSolventAndSolute(solvent_element, solute_element_set)),
+                        element_set),
       generator_(static_cast<unsigned long long int>(
                      std::chrono::system_clock::now().time_since_epoch().count())),
       atom_index_selector_(0, config_.GetNumAtoms() - 1) {
-  pred::EnergyPredictor total_energy_predictor(
-      json_coefficients_filename,
-      GetElementSetFromSolventAndSolute(solvent_element, solute_element_set));
+  pred::EnergyPredictor total_energy_predictor(json_coefficients_filename, element_set);
 #pragma omp parallel master default(none) shared(std::cout)
   {
     std::cout << "Using " << omp_get_num_threads() << " threads." << std::endl;

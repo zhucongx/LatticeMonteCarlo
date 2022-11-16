@@ -24,8 +24,7 @@ CanonicalMc::CanonicalMc(cfg::Config config,
                      std::chrono::system_clock::now().time_since_epoch().count())),
       atom_index_selector_(0, config_.GetNumAtoms() - 1),
       neighbor_index_selector_(0, constants::kNumFirstNearestNeighbors - 1) {
-  pred::EnergyPredictor total_energy_predictor(json_coefficients_filename,
-                                               element_set);
+  pred::EnergyPredictor total_energy_predictor(json_coefficients_filename, element_set);
 
   std::ofstream ofs("cmc_log.txt", std::ofstream::out);
   ofs.precision(16);

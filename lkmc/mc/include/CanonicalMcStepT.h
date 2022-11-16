@@ -4,14 +4,12 @@
 #include <mpi.h>
 #include <omp.h>
 #include "EnergyChangePredictorPair.h"
-#include "EnergyChangePredictorSite.h"
 #include "EnergyChangePredictorPairAll.h"
 namespace mc {
 class CanonicalMcStepT {
   public:
     CanonicalMcStepT(cfg::Config config,
-                     Element solvent_element,
-                     const std::set<Element> &solute_element_set,
+                     const std::set<Element> &element_set,
                      unsigned long long int log_dump_steps,
                      unsigned long long int config_dump_steps,
                      unsigned long long int maximum_number,
