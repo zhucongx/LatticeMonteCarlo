@@ -26,6 +26,7 @@ class Config {
     [[nodiscard]] const std::vector<std::vector<size_t> > &GetThirdNeighborsAdjacencyList() const;
     [[nodiscard]] std::vector<size_t> GetFirstNeighborsAtomIdVectorOfAtom(size_t atom_id) const;
     [[nodiscard]] std::vector<size_t> GetSecondNeighborsAtomIdVectorOfAtom(size_t atom_id) const;
+    [[nodiscard]] std::vector<size_t> GetThirdNeighborsAtomIdVectorOfAtom(size_t atom_id) const;
     [[nodiscard]] size_t GetAtomIdFromLatticeId(size_t lattice_id) const;
     [[nodiscard]] size_t GetLatticeIdFromAtomId(size_t atom_id) const;
     [[nodiscard]] Element GetElementAtAtomId(size_t atom_id) const;

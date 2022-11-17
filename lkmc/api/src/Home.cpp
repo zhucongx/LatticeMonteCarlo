@@ -66,7 +66,8 @@ void Print(const Parameter &parameter) {
     std::cout << "initial_temperature: " << parameter.initial_temperature_ << std::endl;
     std::cout << "decrement_temperature: " << parameter.decrement_temperature_ << std::endl;
 
-  } else if (parameter.method == "FindCluster" || parameter.method == "Reformat") {
+  } else if (parameter.method == "FindCluster" || parameter.method == "ShortRangeOrder"
+      || parameter.method == "Reformat") {
     std::cout << "json_coefficients_filename: " << parameter.json_coefficients_filename_
               << std::endl;
     std::cout << "solvent_element: " << parameter.solvent_element_ << std::endl;
@@ -98,6 +99,9 @@ void Run(const Parameter &parameter) {
   } else if (parameter.method == "Cluster") {
     auto iterator = api::BuildIteratorFromParameter(parameter);
     iterator.RunCluster();
+  } else if (parameter.method == "ShortRangeOrder") {
+    auto iterator = api::BuildIteratorFromParameter(parameter);
+    iterator.RunShortRangeOrder();
   } else if (parameter.method == "Reformat") {
     auto iterator = api::BuildIteratorFromParameter(parameter);
     iterator.RunReformat();

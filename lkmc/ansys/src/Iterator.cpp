@@ -137,6 +137,51 @@ void Iterator::RunCluster() const {
   }
   ofs << " ]" << std::endl;
 }
+void Iterator::RunShortRangeOrder() const {
+  // start
+  std::ofstream ofs1("sro1_log.txt", std::ofstream::out);
+  std::ofstream ofs2("sro2_log.txt", std::ofstream::out);
+  std::ofstream ofs3("sro3_log.txt", std::ofstream::out);
+
+  for (unsigned long long i = 0; i <= final_number_; i += increment_steps_) {
+    std::cout << i << " / " << final_number_ << std::endl;
+    cfg::Config config;
+    if (config_type_ == "config") {
+      config = cfg::Config::ReadCfg(std::to_string(i) + ".cfg");
+      config.ReassignLatticeVector();
+    } else if (config_type_ == "map") {
+      config = cfg::Config::ReadMap("lattice.txt",
+                                    "element.txt",
+                                    "map" + std::to_string(i) + ".txt");
+    } else {
+      throw std::invalid_argument("Unknown config type: " + config_type_);
+    }
+    ShortRangeOrder short_range_order(config, element_set_);
+    for (size_t j = 1; j <= 3; ++j) {
+      std::ofstream *ofs;
+      switch (j) {
+        case 1:ofs = &ofs1;
+          break;
+        case 2:ofs = &ofs2;
+          break;
+        case 3:ofs = &ofs3;
+          break;
+        default:throw std::invalid_argument("Unknown short range order type: " + std::to_string(j));
+      }
+      if (i == 0) {
+        for (const auto &[pair, value]: short_range_order.FindWarrenCowley(j)) {
+          *ofs << pair << "\t";
+        }
+        *ofs << '\n';
+      }
+      *ofs << i << "\t";
+      for (const auto &[pair, value]: short_range_order.FindWarrenCowley(j)) {
+        *ofs << value << "\t";
+      }
+      *ofs << std::endl;
+    }
+  }
+}
 void Iterator::RunReformat() const {
   if (config_type_ == "map") {
     std::cerr << "Reformat map already done" << std::endl;

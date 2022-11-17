@@ -68,13 +68,23 @@ std::vector<size_t> Config::GetFirstNeighborsAtomIdVectorOfAtom(size_t atom_id) 
 }
 std::vector<size_t> Config::GetSecondNeighborsAtomIdVectorOfAtom(size_t atom_id) const {
   auto lattice_id = atom_to_lattice_hashmap_.at(atom_id);
-  std::vector<size_t> first_neighbors_atom_id_vector;
-  first_neighbors_atom_id_vector.reserve(constants::kNumFirstNearestNeighbors);
+  std::vector<size_t> second_neighbors_atom_id_vector;
+  second_neighbors_atom_id_vector.reserve(constants::kNumSecondNearestNeighbors);
   for (auto neighbor_lattice_id: second_neighbors_adjacency_list_[lattice_id]) {
-    first_neighbors_atom_id_vector.push_back(lattice_to_atom_hashmap_.at(neighbor_lattice_id));
+    second_neighbors_atom_id_vector.push_back(lattice_to_atom_hashmap_.at(neighbor_lattice_id));
   }
-  return first_neighbors_atom_id_vector;
+  return second_neighbors_atom_id_vector;
 }
+std::vector<size_t> Config::GetThirdNeighborsAtomIdVectorOfAtom(size_t atom_id) const {
+  auto lattice_id = atom_to_lattice_hashmap_.at(atom_id);
+  std::vector<size_t> third_neighbors_atom_id_vector;
+  third_neighbors_atom_id_vector.reserve(constants::kNumThirdNearestNeighbors);
+  for (auto neighbor_lattice_id: third_neighbors_adjacency_list_[lattice_id]) {
+    third_neighbors_atom_id_vector.push_back(lattice_to_atom_hashmap_.at(neighbor_lattice_id));
+  }
+  return third_neighbors_atom_id_vector;
+}
+
 size_t Config::GetAtomIdFromLatticeId(size_t lattice_id) const {
   return lattice_to_atom_hashmap_.at(lattice_id);
 }
