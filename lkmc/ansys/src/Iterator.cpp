@@ -169,12 +169,13 @@ void Iterator::RunShortRangeOrder() const {
         default:throw std::invalid_argument("Unknown short range order type: " + std::to_string(j));
       }
       if (i == 0) {
+        *ofs << "index\tinfo\t";
         for (const auto &[pair, value]: short_range_order.FindWarrenCowley(j)) {
           *ofs << pair << "\t";
         }
         *ofs << '\n';
       }
-      *ofs << i << "\t";
+      *ofs << i << '\t' << filename_info_hashset_.at(i) << '\t';
       for (const auto &[pair, value]: short_range_order.FindWarrenCowley(j)) {
         *ofs << value << "\t";
       }

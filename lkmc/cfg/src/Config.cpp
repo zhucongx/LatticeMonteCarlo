@@ -451,7 +451,7 @@ Config Config::ReadCfg(const std::string &filename) {
     config.third_neighbors_adjacency_list_ = third_neighbors_adjacency_list;
     return config;
   } else {
-    std::cout << "Updating neighbor list..." << std::endl;
+    // std::cout << "Updating neighbor list..." << std::endl;
     return Config{basis, lattice_vector, atom_vector, true};
   }
 }
