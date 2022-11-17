@@ -35,6 +35,8 @@ class SemiGrandCanonicalMcStepT {
     double beta_;
 
     const pred::EnergyChangePredictorSite energy_predictor_;
+    std::unordered_map<Element, double, boost::hash<Element>> chemical_potential_;
+
     mutable std::mt19937_64 generator_;
     mutable std::uniform_int_distribution<size_t> atom_index_selector_;
     mutable std::uniform_int_distribution<size_t> element_index_selector_;

@@ -40,13 +40,20 @@ SemiGrandCanonicalMcStepT::SemiGrandCanonicalMcStepT(cfg::Config config,
       atom_index_selector_(0, config_.GetNumAtoms() - 1),
       element_index_selector_(0, element_vector_.size() - 1) {
   pred::EnergyPredictor total_energy_predictor(json_coefficients_filename, element_set);
+  chemical_potential_ = total_energy_predictor.GetChemicalPotential();
 #pragma omp parallel master default(none) shared(std::cout)
   {
     std::cout << "Using " << omp_get_num_threads() << " threads." << std::endl;
   }
   std::ofstream ofs("sgcmc_log.txt", std::ofstream::out);
   ofs.precision(16);
-  ofs << "initial_energy = " << total_energy_predictor.GetEnergy(config_) << std::endl;
+  double total_energy = total_energy_predictor.GetEnergy(config_);
+  for (const auto &element_vector: config_.GetElementAtomIdVectorMap()) {
+    total_energy -= chemical_potential_[element_vector.first]
+        * static_cast<double>(element_vector.second.size());
+  }
+
+  ofs << "initial_energy = " << total_energy << std::endl;
   ofs << "steps\tenergy\ttemperature\n";
 }
 std::pair<size_t, Element> SemiGrandCanonicalMcStepT::GenerateAtomIdChangeSite() {
@@ -95,16 +102,19 @@ void SemiGrandCanonicalMcStepT::Simulate() {
       * static_cast<unsigned long long int>(initial_temperature_ / decrement_temperature_ + 1)) {
     Dump(ofs);
     UpdateTemperature();
-    auto [atom_id, element] = GenerateAtomIdChangeSite();
-    const auto dE = energy_predictor_.GetDeFromAtomIdSite(config_, atom_id, element);
+    auto [atom_id, new_element] = GenerateAtomIdChangeSite();
+    auto old_element = config_.GetElementAtAtomId(atom_id);
+    const auto dE = energy_predictor_.GetDeFromAtomIdSite(config_, atom_id, new_element)
+        - (chemical_potential_[new_element] - chemical_potential_[old_element]);
+    // std::cerr << "element = " << new_element.GetString() << " dE = " << dE << std::endl;
     if (dE < 0) {
-      config_.ChangeAtomElementTypeAtAtom(atom_id, element);
+      config_.ChangeAtomElementTypeAtAtom(atom_id, new_element);
       energy_ += dE;
     } else {
       double possibility = std::exp(-dE * beta_);
       double random_number = one_distribution_(generator_);
       if (random_number < possibility) {
-        config_.ChangeAtomElementTypeAtAtom(atom_id, element);
+        config_.ChangeAtomElementTypeAtAtom(atom_id, new_element);
         energy_ += dE;
       }
     }
