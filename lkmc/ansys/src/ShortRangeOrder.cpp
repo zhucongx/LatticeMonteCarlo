@@ -33,6 +33,9 @@ std::map<std::string, double> ShortRangeOrder::FindWarrenCowley(const size_t she
   for (const auto &element1: element_set_) {
     size_t num_all_bonds = element_list_map.at(element1).size() * num_bonds;
     std::map<Element, size_t> ct_this_pair_map{};
+    for (const auto &element2: element_set_) {
+      ct_this_pair_map[element2] = 0;
+    }
     for (const auto &atom_id1: element_list_map.at(element1)) {
       std::vector<size_t> neighbor_list;
       switch (shell_number) {
