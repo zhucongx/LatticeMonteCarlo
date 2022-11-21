@@ -1,6 +1,10 @@
 #include "Iterator.h"
 
 #include <utility>
+#include <algorithm>
+#include <iostream>
+#include <iterator>
+#include <experimental/iterator>
 namespace ansys {
 
 Iterator::Iterator(unsigned long long int initial_steps,
@@ -173,14 +177,14 @@ void Iterator::RunShortRangeOrder() const {
         *ofs << "index\tinfo\t";
         std::transform(sro_map.cbegin(),
                        sro_map.cend(),
-                       std::ostream_iterator<std::string>(*ofs, "\t"),
+                       std::experimental::make_ostream_joiner(*ofs, "\t"),
                        [](const auto &ii) { return ii.first; });
         *ofs << std::endl;
       }
       *ofs << i << '\t' << filename_info_hashset_.at(i) << '\t';
       std::transform(sro_map.cbegin(),
                      sro_map.cend(),
-                     std::ostream_iterator<double>(*ofs, "\t"),
+                     std::experimental::make_ostream_joiner(*ofs, "\t"),
                      [](const auto &ii) { return ii.second; });
       *ofs << std::endl;
     }
