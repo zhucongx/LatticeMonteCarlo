@@ -41,7 +41,7 @@ std::unordered_map<std::string, std::vector<double> > GetOneHotEncodeHashmap(
 std::vector<cfg::Lattice> GetSymmetricallySortedLatticeVectorMMM(
     const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) {
   // The number of first-, second-, and third-nearest neighbors of the jump pairs
-  constexpr size_t kNumOfSites = 60;
+  constexpr size_t kNumOfSites = constants::kNumThirdNearestSetSizeOfPair;
   auto lattice_id_hashset =
       config.GetNeighborsLatticeIdSetOfPair(lattice_id_jump_pair);
   const auto move_distance = Vector_t{0.5, 0.5, 0.5}
@@ -71,7 +71,7 @@ std::vector<cfg::Lattice> GetSymmetricallySortedLatticeVectorMMM(
 std::vector<cfg::Lattice> GetSymmetricallySortedLatticeVectorMM2(
     const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) {
   // The number of first-, second-, and third-nearest neighbors of the jump pairs
-  constexpr size_t kNumOfSites = 60;
+  constexpr size_t kNumOfSites = constants::kNumThirdNearestSetSizeOfPair;
   auto lattice_id_hashset =
       config.GetNeighborsLatticeIdSetOfPair(lattice_id_jump_pair);
   const auto move_distance = Vector_t{0.5, 0.5, 0.5}
@@ -255,7 +255,7 @@ std::vector<std::vector<std::vector<size_t> > > GetAverageClusterParametersMappi
 std::vector<cfg::Lattice> GetSortedLatticeVectorStateOfPair(
     const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_pair) {
   // The number of first-, second-, and third-nearest neighbors of the jump pairs
-  constexpr size_t kNumOfSites = 60;
+  constexpr size_t kNumOfSites = constants::kNumThirdNearestSetSizeOfPair;
   auto lattice_id_hashset =
       config.GetNeighborsLatticeIdSetOfPair(lattice_id_pair);
   const auto move_distance = Vector_t{0.5, 0.5, 0.5}
@@ -283,8 +283,8 @@ std::vector<cfg::Lattice> GetSortedLatticeVectorStateOfPair(
 }
 std::vector<cfg::Lattice> GetSortedLatticeVectorStateOfSite(
     const cfg::Config &config, const size_t lattice_id) {
-  // The number of first-, second-, and third-nearest neighbors of the jump pairs
-  constexpr size_t kNumOfSites = 43;
+  // The number of first-, second-, and third-nearest neighbors of the lattice sites
+  constexpr size_t kNumOfSites = constants::kNumThirdNearestSetSizeOfSite;
   auto lattice_id_hashset = config.GetNeighborsLatticeIdSetOfSite(lattice_id);
   const auto move_distance =
       Vector_t{0.5, 0.5, 0.5} - config.GetLatticeVector()[lattice_id].GetRelativePosition();
@@ -344,16 +344,16 @@ int GetLabel(const std::vector<size_t> &lattice_index_list, const cfg::Config &c
   }
   if (lattice_index_list.size() == 2) {
     return config.FindDistanceLabelBetweenLattice(lattice_index_list[0],
-                                                lattice_index_list[1]);
+                                                  lattice_index_list[1]);
   }
   if (lattice_index_list.size() == 3) {
     std::vector<int>
         bond_label_list{config.FindDistanceLabelBetweenLattice(lattice_index_list[0],
-                                                             lattice_index_list[1]),
+                                                               lattice_index_list[1]),
                         config.FindDistanceLabelBetweenLattice(lattice_index_list[1],
-                                                             lattice_index_list[2]),
+                                                               lattice_index_list[2]),
                         config.FindDistanceLabelBetweenLattice(lattice_index_list[2],
-                                                             lattice_index_list[0])};
+                                                               lattice_index_list[0])};
     std::sort(bond_label_list.begin(), bond_label_list.end());
     if (bond_label_list[0] == 1 && bond_label_list[1] == 1 && bond_label_list[2] == 1) {
       return 4;

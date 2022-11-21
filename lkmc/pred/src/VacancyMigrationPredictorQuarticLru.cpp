@@ -30,13 +30,13 @@ size_t VacancyMigrationPredictorQuarticLru::GetHashFromConfigAndLatticeIdPair(
   const auto &lattice_id_list_mm2 = site_bond_cluster_mm2_hashmap_.at(lattice_id_jump_pair);
 
   size_t seed = 0;
-  for (size_t i = 0; i < constants::kNumThirdNearestSetSize; i++) {
+  for (size_t i = 0; i < constants::kNumThirdNearestSetSizeOfPair; i++) {
     boost::hash_combine(seed, config.GetAtomIdFromLatticeId(lattice_id_list_state[i]));
   }
-  for (size_t i = 0; i < (constants::kNumThirdNearestSetSize - 2); i++) {
+  for (size_t i = 0; i < (constants::kNumThirdNearestSetSizeOfPair - 2); i++) {
     boost::hash_combine(seed, config.GetAtomIdFromLatticeId(lattice_id_list_mmm[i]));
   }
-  for (size_t i = 0; i < (constants::kNumThirdNearestSetSize - 2); i++) {
+  for (size_t i = 0; i < (constants::kNumThirdNearestSetSizeOfPair - 2); i++) {
     boost::hash_combine(seed, config.GetAtomIdFromLatticeId(lattice_id_list_mm2[i]));
   }
   return seed;
