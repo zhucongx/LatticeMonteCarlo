@@ -243,7 +243,7 @@ double EnergyPredictor::GetEnergyOfCluster(
   }
   return E;
 }
-/// Todo: add a function to get the chemical potential of a given composition
+// Todo: add a function to get the chemical potential of a given composition
 std::unordered_map<Element, double, boost::hash<Element> > EnergyPredictor::GetChemicalPotential() const  {
   std::unordered_map<Element, double, boost::hash<Element> > chemical_potential;
   for (auto element: element_set_) {
