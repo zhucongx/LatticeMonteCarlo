@@ -96,7 +96,7 @@ void Iterator::RunCluster() const {
 
     cfg::Config config;
     if (config_type_ == "config") {
-      config = cfg::Config::ReadCfg(std::to_string(i) + ".cfg");
+      config = cfg::Config::ReadConfig(std::to_string(i) + ".cfg");
       config.ReassignLatticeVector();
     } else if (config_type_ == "map") {
       config = cfg::Config::ReadMap("lattice.txt",
@@ -151,7 +151,7 @@ void Iterator::RunShortRangeOrder() const {
     std::cout << i << " / " << final_number_ << std::endl;
     cfg::Config config;
     if (config_type_ == "config") {
-      config = cfg::Config::ReadCfg(std::to_string(i) + ".cfg");
+      config = cfg::Config::ReadConfig(std::to_string(i) + ".cfg");
       config.ReassignLatticeVector();
     } else if (config_type_ == "map") {
       config = cfg::Config::ReadMap("lattice.txt",
@@ -197,7 +197,7 @@ void Iterator::RunReformat() const {
   }
   for (unsigned long long i = 0; i <= final_number_; i += increment_steps_) {
     std::cout << i << " / " << final_number_ << std::endl;
-    auto config = cfg::Config::ReadCfg(std::to_string(i) + ".cfg");
+    auto config = cfg::Config::ReadConfig(std::to_string(i) + ".cfg");
     config.ReassignLatticeVector();
     if (i == 0) {
       config.WriteLattice("lattice.txt");

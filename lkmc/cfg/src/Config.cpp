@@ -349,7 +349,7 @@ void Config::ReassignLatticeVector() {
   third_neighbors_adjacency_list_ = new_third_neighbors_adjacency_list;
 }
 
-Config Config::ReadCfg(const std::string &filename) {
+Config Config::ReadConfig(const std::string &filename) {
   std::ifstream ifs(filename, std::ifstream::in);
   if (!ifs.is_open()) {
     std::cerr << "Cannot open " + filename + "\n";
@@ -455,7 +455,7 @@ Config Config::ReadCfg(const std::string &filename) {
     return Config{basis, lattice_vector, atom_vector, true};
   }
 }
-void Config::WriteCfg(const std::string &filename, bool neighbors_info) const {
+void Config::WriteConfig(const std::string &filename, bool neighbors_info) const {
   std::ofstream ofs(filename, std::ofstream::out);
   ofs.precision(16);
   ofs << "Number of particles = " << GetNumAtoms() << '\n';

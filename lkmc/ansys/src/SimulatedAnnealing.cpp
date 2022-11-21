@@ -62,7 +62,7 @@ std::pair<size_t, size_t> SimulatedAnnealing::GenerateAtomIdJumpPair() {
 void SimulatedAnnealing::Dump(std::ofstream &ofs) {
   if (energy_ < lowest_energy_ - kEpsilon) {
     lowest_energy_ = energy_;
-    config_.WriteCfg("lowest_energy.cfg", false);
+    config_.WriteConfig("lowest_energy.cfg", false);
     ofs << steps_ << '\t' << energy_ << '\t' << lowest_energy_ << '\t'
         << temperature_ / kBoltzmannConstant << '\t' << count_ << std::endl;
   }
@@ -71,7 +71,7 @@ void SimulatedAnnealing::Dump(std::ofstream &ofs) {
         << temperature_ / kBoltzmannConstant << '\t' << count_ << std::endl;
   }
   if (steps_ % config_dump_steps_ == 0) {
-    config_.WriteCfg(std::to_string(steps_) + ".cfg", false);
+    config_.WriteConfig(std::to_string(steps_) + ".cfg", false);
   }
 }
 

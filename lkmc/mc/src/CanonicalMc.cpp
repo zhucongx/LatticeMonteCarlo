@@ -56,7 +56,7 @@ void CanonicalMc::Dump(std::ofstream &ofs) {
     ofs << steps_ << '\t' << energy_ << std::endl;
   }
   if (steps_ % config_dump_steps_ == 0) {
-    config_.WriteCfg(std::to_string(steps_) + ".cfg", false);
+    config_.WriteConfig(std::to_string(steps_) + ".cfg", false);
   }
 }
 
@@ -83,7 +83,7 @@ void CanonicalMc::Simulate() {
     ++steps_;
   }
 
-  config_.WriteCfg("final.cfg", false);
+  config_.WriteConfig("final.cfg", false);
   auto t2 = std::chrono::high_resolution_clock::now();
   std::cout << "Canonical Monte Carlo finished in " << std::setprecision(16)
             << std::chrono::duration_cast<std::chrono::seconds>(t2 - t1).count() << " seconds.\n";

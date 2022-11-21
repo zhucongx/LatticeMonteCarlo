@@ -58,8 +58,8 @@ std::pair<size_t, size_t> CanonicalMcStepT::GenerateAtomIdJumpPair() {
 
 void CanonicalMcStepT::UpdateTemperature() {
   if (steps_ % maximum_number_ == 0 && steps_ != 0) {
-    config_.WriteCfg("end_" + std::to_string(static_cast<int>(temperature_)) + "K.cfg",
-                     false);
+    config_.WriteConfig("end_" + std::to_string(static_cast<int>(temperature_)) + "K.cfg",
+                        false);
     temperature_ -= decrement_temperature_;
     beta_ = 1.0 / kBoltzmannConstant / temperature_;
   }
@@ -80,7 +80,7 @@ void CanonicalMcStepT::Dump(std::ofstream &ofs) {
     ofs << steps_ << '\t' << energy_ << '\t' << temperature_ << std::endl;
   }
   if (steps_ % config_dump_steps_ == 0) {
-    config_.WriteCfg(std::to_string(steps_) + ".cfg", false);
+    config_.WriteConfig(std::to_string(steps_) + ".cfg", false);
   }
 }
 
@@ -108,7 +108,7 @@ void CanonicalMcStepT::Simulate() {
     ++steps_;
   }
 
-  config_.WriteCfg("final.cfg", false);
+  config_.WriteConfig("final.cfg", false);
   auto t2 = std::chrono::high_resolution_clock::now();
   std::cout << "Canonical Monte Carlo finished in " << std::setprecision(16)
             << std::chrono::duration_cast<std::chrono::seconds>(t2 - t1).count() << " seconds.\n";

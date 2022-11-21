@@ -52,8 +52,8 @@ class Config {
     void ChangeAtomElementTypeAtLattice(size_t lattice_id, Element element);
     void ReassignLatticeVector();
     /// IO
-    static Config ReadCfg(const std::string &filename);
-    void WriteCfg(const std::string &filename, bool neighbors_info) const;
+    static Config ReadConfig(const std::string &filename);
+    void WriteConfig(const std::string &filename, bool neighbors_info) const;
     static Config ReadMap(const std::string &lattice_filename,
                           const std::string &element_filename,
                           const std::string &map_filename);

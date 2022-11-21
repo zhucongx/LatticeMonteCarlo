@@ -61,10 +61,10 @@ Cluster::ClusterElementNumMap Cluster::FindClustersAndOutput(
   cfg::Config config_out(config_.GetBasis(), lattice_vector, atom_vector, false);
 
   if (output_folder.empty()) {
-    config_out.WriteCfg(output_name, false);
+    config_out.WriteConfig(output_name, false);
   } else {
     std::filesystem::create_directories(output_folder);
-    config_out.WriteCfg(output_folder + "/" + output_name, false);
+    config_out.WriteConfig(output_folder + "/" + output_name, false);
   }
   return cluster_element_num_map;
 }
@@ -158,7 +158,7 @@ double Cluster::GetAbsoluteEnergyOfCluster(const std::vector<size_t> &atom_id_li
   for (size_t atom_id: atom_id_list) {
     solute_config.ChangeAtomElementTypeAtAtom(atom_id, config_.GetElementAtAtomId(atom_id));
   }
-  // solute_config.WriteCfg("cluster/" + std::to_string(atom_id_list.size()) + ".cfg", false);
+  // solute_config.WriteConfig("cluster/" + std::to_string(atom_id_list.size()) + ".cfg", false);
   return energy_estimator_.GetEnergy(solute_config);
 }
 double Cluster::GetRelativeEnergyOfCluster(const std::vector<size_t> &atom_id_list) const {

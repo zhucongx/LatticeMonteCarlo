@@ -130,7 +130,7 @@ mc::KineticMcFirstMpi BuildKineticMcFirstMpiFromParameter(const Parameter &param
   }
   cfg::Config config;
   if (parameter.map_filename_.empty()) {
-    config = cfg::Config::ReadCfg(parameter.config_filename_);
+    config = cfg::Config::ReadConfig(parameter.config_filename_);
     config.ReassignLatticeVector();
   } else {
     config = cfg::Config::ReadMap("lattice.txt", "element.txt", parameter.map_filename_);
@@ -154,7 +154,7 @@ mc::KineticMcChainMpi BuildKineticMcChainMpiFromParameter(const Parameter &param
   }
   cfg::Config config;
   if (parameter.map_filename_.empty()) {
-    config = cfg::Config::ReadCfg(parameter.config_filename_);
+    config = cfg::Config::ReadConfig(parameter.config_filename_);
     config.ReassignLatticeVector();
   } else {
     config = cfg::Config::ReadMap("lattice.txt", "element.txt", parameter.map_filename_);
@@ -178,7 +178,7 @@ mc::KineticMcChainOmp BuildKineticMcChainOmpFromParameter(const Parameter &param
   }
   cfg::Config config;
   if (parameter.map_filename_.empty()) {
-    config = cfg::Config::ReadCfg(parameter.config_filename_);
+    config = cfg::Config::ReadConfig(parameter.config_filename_);
     config.ReassignLatticeVector();
   } else {
     config = cfg::Config::ReadMap("lattice.txt", "element.txt", parameter.map_filename_);
@@ -202,7 +202,7 @@ mc::KineticMcChainOmpi BuildKineticMcChainOmpiFromParameter(const Parameter &par
   }
   cfg::Config config;
   if (parameter.map_filename_.empty()) {
-    config = cfg::Config::ReadCfg(parameter.config_filename_);
+    config = cfg::Config::ReadConfig(parameter.config_filename_);
     config.ReassignLatticeVector();
   } else {
     config = cfg::Config::ReadMap("lattice.txt", "element.txt", parameter.map_filename_);
@@ -244,7 +244,7 @@ mc::CanonicalMc BuildCanonicalMcFromParameter(const Parameter &parameter) {
     element_set.insert(Element(element_string));
   }
 
-  auto config = cfg::Config::ReadCfg(parameter.config_filename_);
+  auto config = cfg::Config::ReadConfig(parameter.config_filename_);
   std::cout << "Finish config reading. Start CMC." << std::endl;
   return mc::CanonicalMc{
       config,
@@ -261,7 +261,7 @@ mc::CanonicalMcStepT BuildCanonicalMcStepTFromParameter(const Parameter &paramet
     element_set.insert(Element(element_string));
   }
 
-  auto config = cfg::Config::ReadCfg(parameter.config_filename_);
+  auto config = cfg::Config::ReadConfig(parameter.config_filename_);
   std::cout << "Finish config reading. Start CMC." << std::endl;
   return mc::CanonicalMcStepT{
       config,
@@ -279,7 +279,7 @@ mc::SemiGrandCanonicalMcStepT BuildSemiGrandCanonicalMcStepTFromParameter(const 
     element_set.insert(Element(element_string));
   }
 
-  auto config = cfg::Config::ReadCfg(parameter.config_filename_);
+  auto config = cfg::Config::ReadConfig(parameter.config_filename_);
   std::cout << "Finish config reading. Start SGCMC." << std::endl;
   return mc::SemiGrandCanonicalMcStepT{
       config,
