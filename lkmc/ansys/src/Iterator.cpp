@@ -168,17 +168,20 @@ void Iterator::RunShortRangeOrder() const {
           break;
         default:throw std::invalid_argument("Unknown short range order type: " + std::to_string(j));
       }
+      auto sro_map = short_range_order.FindWarrenCowley(j);
       if (i == 0) {
         *ofs << "index\tinfo\t";
-        for (const auto &[pair, value]: short_range_order.FindWarrenCowley(j)) {
-          *ofs << pair << "\t";
-        }
-        *ofs << '\n';
+        std::transform(sro_map.cbegin(),
+                       sro_map.cend(),
+                       std::ostream_iterator<std::string>(*ofs, "\t"),
+                       [](const auto &ii) { return ii.first; });
+        *ofs << std::endl;
       }
       *ofs << i << '\t' << filename_info_hashset_.at(i) << '\t';
-      for (const auto &[pair, value]: short_range_order.FindWarrenCowley(j)) {
-        *ofs << value << "\t";
-      }
+      std::transform(sro_map.cbegin(),
+                     sro_map.cend(),
+                     std::ostream_iterator<double>(*ofs, "\t"),
+                     [](const auto &ii) { return ii.second; });
       *ofs << std::endl;
     }
   }
