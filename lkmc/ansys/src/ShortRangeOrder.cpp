@@ -53,8 +53,9 @@ std::map<std::string, double> ShortRangeOrder::FindWarrenCowley(const size_t she
     for (auto [element2, ct_this_pair]: ct_this_pair_map) {
       std::string key = element1.GetString() + "-" + element2.GetString();
       double pij = static_cast<double>(ct_this_pair) / static_cast<double>(num_all_bonds);
-      res[key] = (pij - concentration[element2])
-          / ((static_cast<double>(element1 == element2) - concentration[element2]));
+      res[key] = 1- (pij / concentration[element2]);
+      // std::cout << key << ": " << pij << ",  " << concentration[element2] << ",  "
+      //           << res[key] << std::endl;
     }
   }
   return res;
