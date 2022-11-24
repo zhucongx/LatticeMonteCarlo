@@ -47,11 +47,7 @@ std::map<std::string, double> ShortRangeOrder::FindWarrenCowley(const size_t she
           break;
       }
       for (const auto &atom_id2: neighbor_list) {
-        const auto &this_element = config_.GetElementAtAtomId(atom_id2);
-        if (this_element ==ElementName::X){
-            continue;
-        }
-        ct_this_pair_map[this_element]++;
+        ct_this_pair_map[config_.GetElementAtAtomId(atom_id2)]++;
       }
     }
     for (auto [element2, ct_this_pair]: ct_this_pair_map) {
