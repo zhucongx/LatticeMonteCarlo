@@ -78,7 +78,7 @@ void CanonicalMcStepT::Dump(std::ofstream &ofs) {
     log_dump_steps = std::min(log_dump_steps, log_dump_steps_);
   }
   if (steps_ % log_dump_steps == 0) {
-    ofs << steps_ << '\t' << temperature_ << '\t' << energy_
+    ofs << steps_ << '\t' << temperature_ << '\t' << energy_ << '\t'
         << thermodynamic_averaging_.GetThermodynamicAverage(temperature_) << std::endl;
   }
   if (steps_ % config_dump_steps_ == 0) {
