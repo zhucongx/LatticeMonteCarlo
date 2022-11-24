@@ -2,8 +2,9 @@ simulation_method CanonicalMcStepT
 json_coefficients_filename quartic_coefficients.json
 config_filename start.cfg
 element_set Al Mg Zn
-log_dump_steps 100000
-config_dump_steps 100000000
+log_dump_steps 1000
+config_dump_steps 10000000
 maximum_steps 1000000000
-initial_temperature 725
-decrement_temperature 25
+thermodynamic_averaging_steps 100000
+initial_temperature 800
+decrement_temperature 5
