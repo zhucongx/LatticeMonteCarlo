@@ -3,7 +3,6 @@
 #include <chrono>
 #include "EnergyPredictor.h"
 namespace mc {
-constexpr double kBoltzmannConstant = 8.617333262145e-5;
 
 CanonicalMc::CanonicalMc(cfg::Config config,
                          const std::set<Element> &element_set,

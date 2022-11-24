@@ -4,7 +4,6 @@
 #include <omp.h>
 #include "EnergyPredictor.h"
 namespace mc {
-constexpr double kBoltzmannConstant = 8.617333262145e-5;
 // static std::set<Element> GetElementSetFromSolventAndSolute(
 //     Element solvent_element, const std::set<Element> &solute_element_set) {
 //
@@ -19,7 +18,8 @@ SemiGrandCanonicalMcStepT::SemiGrandCanonicalMcStepT(cfg::Config config,
                                                      const std::set<Element> &element_set,
                                                      const unsigned long long int log_dump_steps,
                                                      const unsigned long long int config_dump_steps,
-                                                     const unsigned long long int maximum_number,
+                                                     const unsigned long long int maximum_steps,
+                                                     const unsigned long long int thermodynamic_averaging_steps,
                                                      double initial_temperature,
                                                      double decrement_temperature,
                                                      const std::string &json_coefficients_filename)
@@ -27,11 +27,11 @@ SemiGrandCanonicalMcStepT::SemiGrandCanonicalMcStepT(cfg::Config config,
       element_vector_(element_set.begin(), element_set.end()),
       log_dump_steps_(log_dump_steps),
       config_dump_steps_(config_dump_steps),
-      maximum_number_(maximum_number),
+      maximum_steps_(maximum_steps),
       initial_temperature_(initial_temperature),
       decrement_temperature_(decrement_temperature),
       temperature_(initial_temperature),
-      beta_(1 / kBoltzmannConstant / initial_temperature_),
+      beta_(1 / constants::kBoltzmannConstant / initial_temperature_),
       energy_predictor_(json_coefficients_filename,
                         config_,
                         element_set),
@@ -54,7 +54,7 @@ SemiGrandCanonicalMcStepT::SemiGrandCanonicalMcStepT(cfg::Config config,
   }
 
   ofs << "initial_energy = " << total_energy << std::endl;
-  ofs << "steps\tenergy\ttemperature\n";
+  ofs << "steps\ttemperature\tenergy\taverage_energy\n";
 }
 std::pair<size_t, Element> SemiGrandCanonicalMcStepT::GenerateAtomIdChangeSite() {
   size_t atom_id;
@@ -67,11 +67,11 @@ std::pair<size_t, Element> SemiGrandCanonicalMcStepT::GenerateAtomIdChangeSite()
 }
 
 void SemiGrandCanonicalMcStepT::UpdateTemperature() {
-  if (steps_ % maximum_number_ == 0 && steps_ != 0) {
+  if (steps_ % maximum_steps_ == 0 && steps_ != 0) {
     config_.WriteConfig("end_" + std::to_string(static_cast<int>(temperature_)) + "K.cfg",
                         false);
     temperature_ -= decrement_temperature_;
-    beta_ = 1.0 / kBoltzmannConstant / temperature_;
+    beta_ = 1.0 / constants::kBoltzmannConstant / temperature_;
   }
 }
 
@@ -87,7 +87,7 @@ void SemiGrandCanonicalMcStepT::Dump(std::ofstream &ofs) {
     log_dump_steps = std::min(log_dump_steps, log_dump_steps_);
   }
   if (steps_ % log_dump_steps == 0) {
-    ofs << steps_ << '\t' << energy_ << '\t' << temperature_ << std::endl;
+    ofs << steps_ << '\t' << temperature_ << '\t' << energy_ << '\t'  << std::endl;
   }
   if (steps_ % config_dump_steps_ == 0) {
     config_.WriteConfig(std::to_string(steps_) + ".cfg", false);
@@ -98,7 +98,7 @@ void SemiGrandCanonicalMcStepT::Simulate() {
   std::ofstream ofs("sgcmc_log.txt", std::ofstream::out | std::ofstream::app);
   ofs.precision(16);
   auto t1 = std::chrono::high_resolution_clock::now();
-  while (steps_ <= maximum_number_
+  while (steps_ <= maximum_steps_
       * static_cast<unsigned long long int>(initial_temperature_ / decrement_temperature_ + 1)) {
     Dump(ofs);
     UpdateTemperature();
@@ -120,8 +120,6 @@ void SemiGrandCanonicalMcStepT::Simulate() {
     }
     ++steps_;
   }
-
-  config_.WriteConfig("final.cfg", false);
   auto t2 = std::chrono::high_resolution_clock::now();
   std::cout << "Semi Grand Canonical Monte Carlo finished in " << std::setprecision(16)
             << std::chrono::duration_cast<std::chrono::seconds>(t2 - t1).count() << " seconds.\n";

@@ -49,6 +49,8 @@ void Parameter::ReadParam(const std::string &param_filename) {
       config_dump_steps_ = stoull(segs[1]);
     } else if (segs[0] == "maximum_steps") {
       maximum_steps_ = stoull(segs[1]);
+    } else if (segs[0] == "thermodynamic_averaging_steps") {
+      thermodynamic_averaging_steps_ = stoull(segs[1]);
     } else if (segs[0] == "temperature") {
       temperature_ = stod(segs[1]);
     } else if (segs[0] == "initial_temperature") {

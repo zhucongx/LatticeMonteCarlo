@@ -29,6 +29,7 @@ struct Parameter {
     unsigned long long int log_dump_steps_{};
     unsigned long long int config_dump_steps_{};
     unsigned long long int maximum_steps_{};
+    unsigned long long int thermodynamic_averaging_steps_{};
     double temperature_{};
     double initial_temperature_{};
     double decrement_temperature_{};

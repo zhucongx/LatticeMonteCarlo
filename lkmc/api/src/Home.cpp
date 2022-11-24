@@ -39,18 +39,6 @@ void Print(const Parameter &parameter) {
     std::cout << "maximum_steps: " << parameter.maximum_steps_ << std::endl;
     std::cout << "early_stop_steps: " << parameter.early_stop_steps_ << std::endl;
     std::cout << "initial_temperature: " << parameter.initial_temperature_ << std::endl;
-  } else if (parameter.method == "CanonicalMc") {
-    std::cout << "json_coefficients_filename: " << parameter.json_coefficients_filename_
-              << std::endl;
-    std::cout << "config_filename: " << parameter.config_filename_ << std::endl;
-    std::cout << "element_set: ";
-    std::copy(parameter.element_set_.begin(), parameter.element_set_.end(),
-              std::ostream_iterator<std::string>(std::cout, " "));
-    std::cout << std::endl;
-    std::cout << "log_dump_steps: " << parameter.log_dump_steps_ << std::endl;
-    std::cout << "config_dump_steps: " << parameter.config_dump_steps_ << std::endl;
-    std::cout << "maximum_steps: " << parameter.maximum_steps_ << std::endl;
-    std::cout << "temperature: " << parameter.temperature_ << std::endl;
   } else if (parameter.method == "CanonicalMcStepT"
       || parameter.method == "SemiGrandCanonicalMcStepT") {
     std::cout << "json_coefficients_filename: " << parameter.json_coefficients_filename_
@@ -63,6 +51,8 @@ void Print(const Parameter &parameter) {
     std::cout << "log_dump_steps: " << parameter.log_dump_steps_ << std::endl;
     std::cout << "config_dump_steps: " << parameter.config_dump_steps_ << std::endl;
     std::cout << "maximum_steps: " << parameter.maximum_steps_ << std::endl;
+    std::cout << "thermodynamic_averaging_steps: " << parameter.thermodynamic_averaging_steps_
+              << std::endl;
     std::cout << "initial_temperature: " << parameter.initial_temperature_ << std::endl;
     std::cout << "decrement_temperature: " << parameter.decrement_temperature_ << std::endl;
 
@@ -108,16 +98,13 @@ void Run(const Parameter &parameter) {
   } else if (parameter.method == "SimulatedAnnealing") {
     auto simulated_annealing = api::BuildSimulatedAnnealingFromParameter(parameter);
     simulated_annealing.Simulate();
-  } else if (parameter.method == "CanonicalMc") {
-    auto canonical_mc = api::BuildCanonicalMcFromParameter(parameter);
-    canonical_mc.Simulate();
   } else if (parameter.method == "CanonicalMcStepT") {
     auto canonical_mc_step_t = api::BuildCanonicalMcStepTFromParameter(parameter);
     canonical_mc_step_t.Simulate();
-  } else if (parameter.method == "SemiGrandCanonicalMcStepT") {
-    auto semi_grand_canonical_mc_step_t =
-        api::BuildSemiGrandCanonicalMcStepTFromParameter(parameter);
-    semi_grand_canonical_mc_step_t.Simulate();
+  // } else if (parameter.method == "SemiGrandCanonicalMcStepT") {
+  //   auto semi_grand_canonical_mc_step_t =
+  //       api::BuildSemiGrandCanonicalMcStepTFromParameter(parameter);
+  //   semi_grand_canonical_mc_step_t.Simulate();
   } else {
     std::cout << "No such method: " << parameter.method << std::endl;
   }
@@ -236,24 +223,6 @@ ansys::SimulatedAnnealing BuildSimulatedAnnealingFromParameter(const Parameter &
       parameter.early_stop_steps_,
       parameter.initial_temperature_,
       parameter.json_coefficients_filename_};
-
-}
-mc::CanonicalMc BuildCanonicalMcFromParameter(const Parameter &parameter) {
-  std::set<Element> element_set;
-  for (const auto &element_string: parameter.element_set_) {
-    element_set.insert(Element(element_string));
-  }
-
-  auto config = cfg::Config::ReadConfig(parameter.config_filename_);
-  std::cout << "Finish config reading. Start CMC." << std::endl;
-  return mc::CanonicalMc{
-      config,
-      element_set,
-      parameter.log_dump_steps_,
-      parameter.config_dump_steps_,
-      parameter.maximum_steps_,
-      parameter.temperature_,
-      parameter.json_coefficients_filename_};
 }
 mc::CanonicalMcStepT BuildCanonicalMcStepTFromParameter(const Parameter &parameter) {
   std::set<Element> element_set;
@@ -269,28 +238,30 @@ mc::CanonicalMcStepT BuildCanonicalMcStepTFromParameter(const Parameter &paramet
       parameter.log_dump_steps_,
       parameter.config_dump_steps_,
       parameter.maximum_steps_,
+      parameter.thermodynamic_averaging_steps_,
       parameter.initial_temperature_,
       parameter.decrement_temperature_,
       parameter.json_coefficients_filename_};
 }
-mc::SemiGrandCanonicalMcStepT BuildSemiGrandCanonicalMcStepTFromParameter(const Parameter &parameter) {
-  std::set<Element> element_set;
-  for (const auto &element_string: parameter.element_set_) {
-    element_set.insert(Element(element_string));
-  }
-
-  auto config = cfg::Config::ReadConfig(parameter.config_filename_);
-  std::cout << "Finish config reading. Start SGCMC." << std::endl;
-  return mc::SemiGrandCanonicalMcStepT{
-      config,
-      element_set,
-      parameter.log_dump_steps_,
-      parameter.config_dump_steps_,
-      parameter.maximum_steps_,
-      parameter.initial_temperature_,
-      parameter.decrement_temperature_,
-      parameter.json_coefficients_filename_};
-}
+// mc::SemiGrandCanonicalMcStepT BuildSemiGrandCanonicalMcStepTFromParameter(const Parameter &parameter) {
+//   std::set<Element> element_set;
+//   for (const auto &element_string: parameter.element_set_) {
+//     element_set.insert(Element(element_string));
+//   }
+//
+//   auto config = cfg::Config::ReadConfig(parameter.config_filename_);
+//   std::cout << "Finish config reading. Start SGCMC." << std::endl;
+//   return mc::SemiGrandCanonicalMcStepT{
+//       config,
+//       element_set,
+//       parameter.log_dump_steps_,
+//       parameter.config_dump_steps_,
+//       parameter.maximum_steps_,
+//       parameter.thermodynamic_averaging_steps_,
+//       parameter.initial_temperature_,
+//       parameter.decrement_temperature_,
+//       parameter.json_coefficients_filename_};
+// }
 ansys::Iterator BuildIteratorFromParameter(const Parameter &parameter) {
   std::set<Element> element_set;
   for (const auto &element_string: parameter.element_set_) {

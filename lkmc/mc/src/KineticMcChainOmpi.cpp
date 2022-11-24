@@ -66,7 +66,7 @@ KineticMcChainOmpi::KineticMcChainOmpi(cfg::Config config,
       log_dump_steps_(log_dump_steps),
       config_dump_steps_(config_dump_steps),
       maximum_number_(maximum_number),
-      beta_(1.0 / kBoltzmannConstant / temperature),
+      beta_(1.0 / constants::kBoltzmannConstant / temperature),
       steps_(restart_steps),
       energy_(restart_energy),
       time_(restart_time),
@@ -166,9 +166,9 @@ double KineticMcChainOmpi::UpdateIndirectProbabilityAndCalculateTime() {
   bool is_previous_event = event_k_i_.GetAtomIdJumpPair().second == previous_j_;
 
   // Time in first order Kmc, same for all
-  const double t_1 = 1 / total_rate_k_ / kPrefactor;
+  const double t_1 = 1 / total_rate_k_ / constants::kPrefactor;
   // Time in neighbors, different for each process
-  const double t_i = 1 / total_rate_i_ / kPrefactor;
+  const double t_i = 1 / total_rate_i_ / constants::kPrefactor;
   MpiData mpi_data_helper{
       beta_bar_k_i,
       beta_k_i,

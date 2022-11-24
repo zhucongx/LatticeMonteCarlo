@@ -16,7 +16,7 @@ KineticMcFirstMpi::KineticMcFirstMpi(cfg::Config config,
       log_dump_steps_(log_dump_steps),
       config_dump_steps_(config_dump_steps),
       maximum_number_(maximum_number),
-      beta_(1 / kBoltzmannConstant / temperature),
+      beta_(1 / constants::kBoltzmannConstant / temperature),
       steps_(restart_steps),
       energy_(restart_energy),
       time_(restart_time),
@@ -121,7 +121,7 @@ void KineticMcFirstMpi::Simulate() {
     // if (!CheckAndSolveEquilibrium(ofs)) {
     // update time and energy
     static std::uniform_real_distribution<double> distribution(0.0, 1.0);
-    one_step_time_change_ = -log(distribution(generator_)) / total_rate_ / kPrefactor;
+    one_step_time_change_ = -log(distribution(generator_)) / total_rate_ / constants::kPrefactor;
     time_ += one_step_time_change_;
     one_step_energy_change_ = selected_event.GetEnergyChange();
     energy_ += one_step_energy_change_;

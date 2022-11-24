@@ -3,8 +3,6 @@
 #include <cstddef>
 #include <utility>
 namespace mc {
-constexpr double kBoltzmannConstant = 8.617333262145e-5;
-constexpr double kPrefactor = 1e13;
 
 class JumpEvent {
   public:

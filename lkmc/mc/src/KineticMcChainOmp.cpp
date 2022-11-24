@@ -20,7 +20,7 @@ KineticMcChainOmp::KineticMcChainOmp(const cfg::Config &config,
     : log_dump_steps_(log_dump_steps),
       config_dump_steps_(config_dump_steps),
       maximum_number_(maximum_number),
-      beta_(1 / kBoltzmannConstant / temperature),
+      beta_(1 / constants::kBoltzmannConstant / temperature),
       steps_(restart_steps),
       energy_(restart_energy),
       time_(restart_time),
@@ -38,7 +38,7 @@ KineticMcChainOmp::KineticMcChainOmp(const cfg::Config &config,
   }
 }
 KineticMcChainOmp::~KineticMcChainOmp() = default;
-void KineticMcChainOmp::Dump(std::ofstream &ofs) const{
+void KineticMcChainOmp::Dump(std::ofstream &ofs) const {
   if (steps_ % log_dump_steps_ == 0) {
     ofs << steps_ << '\t' << time_ << '\t' << energy_ << '\t' << one_step_barrier_ << '\t'
         << one_step_energy_change_ << '\t' << migrating_element_.GetString() << std::endl;
@@ -165,12 +165,12 @@ double KineticMcChainOmp::CalculateTime() {
     cumulative_probability += event.GetProbability();
     event.SetCumulativeProbability(cumulative_probability);
   }
-  double t = 1 / total_rate_k_ / kPrefactor;
+  double t = 1 / total_rate_k_ / constants::kPrefactor;
   double ts_numerator = 0.0, ts_j_numerator = 0.0;
   for (size_t it = 0; it < kFirstEventListSize; ++it) {
     const auto &event_k_i = event_k_i_list_.at(it);
     const auto total_rate_i = total_rate_i_list_.at(it);
-    double t_i = 1 / total_rate_i / kPrefactor;
+    double t_i = 1 / total_rate_i / constants::kPrefactor;
     double ts_numerator_helper = (t + t_i) * beta_bar_k_i_list[it];
     ts_numerator += ts_numerator_helper;
 

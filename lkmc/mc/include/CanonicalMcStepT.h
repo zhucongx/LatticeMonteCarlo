@@ -4,6 +4,7 @@
 #include <mpi.h>
 #include <omp.h>
 #include "EnergyChangePredictorPairAll.h"
+#include "ThermodynamicAveraging.h"
 namespace mc {
 class CanonicalMcStepT {
   public:
@@ -11,7 +12,8 @@ class CanonicalMcStepT {
                      const std::set<Element> &element_set,
                      unsigned long long int log_dump_steps,
                      unsigned long long int config_dump_steps,
-                     unsigned long long int maximum_number,
+                     unsigned long long int maximum_steps,
+                     unsigned long long int thermodynamic_averaging_steps,
                      double initial_temperature,
                      double decrement_temperature,
                      const std::string &json_coefficients_filename);
@@ -24,10 +26,11 @@ class CanonicalMcStepT {
     cfg::Config config_;
     const unsigned long long int log_dump_steps_;
     const unsigned long long int config_dump_steps_;
-    const unsigned long long int maximum_number_;
+    const unsigned long long int maximum_steps_;
     // simulation statistics
     unsigned long long int steps_{0};
     double energy_{0.0};
+    ThermodynamicAveraging thermodynamic_averaging_;
     const double initial_temperature_;
     const double decrement_temperature_;
     double temperature_;

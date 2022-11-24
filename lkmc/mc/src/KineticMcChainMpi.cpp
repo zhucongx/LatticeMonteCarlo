@@ -17,7 +17,7 @@ KineticMcChainMpi::KineticMcChainMpi(cfg::Config config,
       log_dump_steps_(log_dump_steps),
       config_dump_steps_(config_dump_steps),
       maximum_number_(maximum_number),
-      beta_(1 / kBoltzmannConstant / temperature),
+      beta_(1 / constants::kBoltzmannConstant / temperature),
       steps_(restart_steps),
       energy_(restart_energy),
       time_(restart_time),
@@ -205,8 +205,8 @@ double KineticMcChainMpi::BuildEventILList() {
       event.SetCumulativeProbability(cumulative_probability);
     }
 
-    double t = 1 / total_rate_k_ / kPrefactor;
-    double t_i = 1 / total_rate_i_ / kPrefactor;
+    double t = 1 / total_rate_k_ / constants::kPrefactor;
+    double t_i = 1 / total_rate_i_ / constants::kPrefactor;
     double ts_numerator = 0.0, ts_j_numerator = 0.0;
     double ts_numerator_helper = (t + t_i) * beta_bar_k_i;
     MPI_Allreduce(&ts_numerator_helper, &ts_numerator, 1, MPI_DOUBLE, MPI_SUM, first_comm_);
