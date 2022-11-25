@@ -6,20 +6,18 @@ mc::ThermodynamicAveraging::ThermodynamicAveraging(size_t size)
     : size_(size) {
 }
 void ThermodynamicAveraging::AddEnergy(double value) {
-  energy_list_.push_back(value);
-  if (energy_list_.size() > size_) {
-    energy_list_.pop_front();
-  }
+    if (energy_list_.size() == size_) {
+        sum_ -= energy_list_.front();
+        energy_list_.pop_front();
+    }
+    energy_list_.push_back(value);
+    sum_ += value;
 }
 double ThermodynamicAveraging::GetAverage() const {
   if (energy_list_.empty()) {
     return 0;
   }
-  double sum = 0.0;
-  for (auto energy: energy_list_) {
-    sum += energy;
-  }
-  return sum / static_cast<double>(energy_list_.size());
+  return sum_ / static_cast<double>(energy_list_.size());
 }
 double ThermodynamicAveraging::GetThermodynamicAverage(double temperature) const {
   const auto average = GetAverage();

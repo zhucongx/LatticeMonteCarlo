@@ -14,6 +14,7 @@ class ThermodynamicAveraging {
     [[nodiscard]] double GetAverage() const;
     std::list<double> energy_list_;
     const size_t size_;
+    double sum_{};
 };
 
 } // mc
