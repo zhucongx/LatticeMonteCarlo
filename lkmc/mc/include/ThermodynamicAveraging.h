@@ -1,6 +1,7 @@
 #ifndef LKMC_LKMC_MC_INCLUDE_THERMODYNAMICAVERAGING_H_
 #define LKMC_LKMC_MC_INCLUDE_THERMODYNAMICAVERAGING_H_
 #include <list>
+#include <deque>
 #include <iterator>
 
 namespace mc {
@@ -12,7 +13,7 @@ class ThermodynamicAveraging {
     [[nodiscard]] double GetThermodynamicAverage(double temperature) const;
   private:
     [[nodiscard]] double GetAverage() const;
-    std::list<double> energy_list_;
+    std::deque<double> energy_list_;
     const size_t size_;
     double sum_{};
 };
