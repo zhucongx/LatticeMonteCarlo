@@ -743,7 +743,7 @@ std::vector<double> GetOneHotParametersFromMap(
     const std::vector<std::vector<std::vector<size_t> > > &cluster_mapping) {
 
   std::vector<double> res_encode;
-  res_encode.reserve(1500); // Todo 711 for mmm and 1401 for mmm2
+  res_encode.reserve(1401); // Todo 711 for mmm and 1401 for mmm2
   for (const auto &cluster_vector: cluster_mapping) {
     size_t list_length;
     if (cluster_vector[0][0] == SIZE_MAX) {
