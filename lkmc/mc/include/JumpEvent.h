@@ -8,11 +8,11 @@ class JumpEvent {
   public:
     /// Constructor
     JumpEvent();
-    JumpEvent(std::pair<size_t, size_t> atom_id_jump_pair,
+    JumpEvent(std::pair<size_t, size_t> jump_pair,
               const std::pair<double, double> &barrier_and_diff,
               double beta);
     /// Getter
-    [[nodiscard]] const std::pair<size_t, size_t> &GetAtomIdJumpPair() const;
+    [[nodiscard]] const std::pair<size_t, size_t> &GetIdJumpPair() const;
     [[nodiscard]] double GetForwardBarrier() const;
     [[nodiscard]] double GetForwardRate() const;
     [[nodiscard]] double GetBackwardBarrier() const;
@@ -27,7 +27,7 @@ class JumpEvent {
     void CalculateProbability(double total_rates);
   private:
     double beta_{};
-    std::pair<size_t, size_t> atom_id_jump_pair_{};
+    std::pair<size_t, size_t> jump_pair_{};
     double barrier_{};
     double energy_change_{};
     double forward_rate_{};

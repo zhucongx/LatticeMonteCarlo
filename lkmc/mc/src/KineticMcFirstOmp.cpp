@@ -1,12 +1,13 @@
-#include "KineticMcFirstMpi.h"
+#include "KineticMcFirstOmp.h"
 #include <utility>
 #include <chrono>
 namespace mc {
-KineticMcFirstMpi::KineticMcFirstMpi(cfg::Config config,
+
+KineticMcFirstOmp::KineticMcFirstOmp(cfg::Config config,
                                      unsigned long long int log_dump_steps,
                                      unsigned long long int config_dump_steps,
                                      unsigned long long int maximum_steps,
-                                     const unsigned long long int thermodynamic_averaging_steps,
+                                     unsigned long long int thermodynamic_averaging_steps,
                                      double temperature,
                                      const std::set<Element> &element_set,
                                      unsigned long long int restart_steps,
@@ -24,42 +25,28 @@ KineticMcFirstMpi::KineticMcFirstMpi(cfg::Config config,
                         restart_energy,
                         restart_time,
                         json_coefficients_filename) {
-  MPI_Init(nullptr, nullptr);
-  MPI_Comm_rank(MPI_COMM_WORLD, &world_rank_);
-  int mpi_size;
-  MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-  if (mpi_size != kEventListSize) {
-    std::cout << "Must use " << kEventListSize << " precesses. Terminating...\n" << std::endl;
-    MPI_Finalize();
-    exit(0);
-  }
-  if (world_rank_ == 0) {
-    std::cout << "Using " << mpi_size << " processes." << std::endl;
+#pragma omp parallel master default(none) shared(std::cout)
+  {
+    std::cout << "Using " << omp_get_num_threads() << " threads." << std::endl;
   }
 }
-KineticMcFirstMpi::~KineticMcFirstMpi() {
-  MPI_Finalize();
-}
-void KineticMcFirstMpi::BuildEventList() {
-  total_rate_k_ = 0;
+KineticMcFirstOmp::~KineticMcFirstOmp() = default;
+void KineticMcFirstOmp::BuildEventList() {
+  total_rate_k_ = 0.0;
   auto vacancy_lattice_id = config_.GetLatticeIdFromAtomId(vacancy_atom_id_);
-  const auto neighbor_vacancy_id =
-      config_.GetFirstNeighborsAdjacencyList()[vacancy_lattice_id][static_cast<size_t>(world_rank_)];
-
-  JumpEvent lattice_jump_event(
-      {vacancy_lattice_id, neighbor_vacancy_id},
-      energy_predictor_.GetBarrierAndDiffFromAtomIdPair(
-          config_, {vacancy_lattice_id, neighbor_vacancy_id}),
-          beta_);
-  const double this_rate = lattice_jump_event.GetForwardRate();
-  MPI_Allgather(&lattice_jump_event,
-                sizeof(JumpEvent),
-                MPI_BYTE,
-                event_k_i_list_.data(),
-                sizeof(JumpEvent),
-                MPI_BYTE,
-                MPI_COMM_WORLD);
-  MPI_Allreduce(&this_rate, &total_rate_k_, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+  const auto neighbor_vacancy_id_vector =
+      config_.GetFirstNeighborsAdjacencyList()[vacancy_lattice_id];
+#pragma omp parallel for default(none) shared(vacancy_lattice_id, neighbor_vacancy_id_vector) reduction(+: total_rate_k_)
+  for (size_t i = 0; i < kEventListSize; ++i) {
+    const auto neighbor_vacancy_id = neighbor_vacancy_id_vector[i];
+    JumpEvent lattice_jump_event(
+        {vacancy_lattice_id, neighbor_vacancy_id},
+        energy_predictor_.GetBarrierAndDiffFromLatticeIdPair(
+            config_, {vacancy_lattice_id, neighbor_vacancy_id}),
+        beta_);
+    event_k_i_list_[i] = lattice_jump_event;
+    total_rate_k_ += lattice_jump_event.GetForwardRate();
+  }
 
   double cumulative_probability = 0.0;
   for (auto &event_it: event_k_i_list_) {
@@ -68,21 +55,15 @@ void KineticMcFirstMpi::BuildEventList() {
     event_it.SetCumulativeProbability(cumulative_probability);
   }
 }
-double KineticMcFirstMpi::CalculateTime() {
+double KineticMcFirstOmp::CalculateTime() {
   static std::uniform_real_distribution<double> uniform_distribution(0.0, 1.0);
   return -std::log(uniform_distribution(generator_)) / total_rate_k_ / constants::kPrefactor;
 }
-void KineticMcFirstMpi::Simulate() {
+void KineticMcFirstOmp::Simulate() {
   while (steps_ <= maximum_steps_) {
-    if (world_rank_ == 0) {
-      Dump();
-    }
+    Dump();
     BuildEventList();
-    if (world_rank_ == 0) {
-      selected_event_ = event_k_i_list_[SelectEvent()];
-    }
-    MPI_Bcast(&selected_event_, sizeof(JumpEvent), MPI_BYTE, 0, MPI_COMM_WORLD);
-
+    selected_event_ = event_k_i_list_[SelectEvent()];
     // update time and energy
     time_ += CalculateTime();
     energy_ += selected_event_.GetEnergyChange();

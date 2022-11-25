@@ -2,6 +2,7 @@
 #define LKMC_LKMC_API_INCLUDE_HOME_H_
 #include "Parameter.h"
 #include "KineticMcFirstMpi.h"
+#include "KineticMcFirstOmp.h"
 #include "KineticMcChainMpi.h"
 #include "KineticMcChainOmp.h"
 #include "KineticMcChainOmpi.h"
@@ -14,6 +15,7 @@ namespace api {
 void Print(const Parameter &parameter);
 void Run(const Parameter &parameter);
 mc::KineticMcFirstMpi BuildKineticMcFirstMpiFromParameter(const Parameter &parameter);
+mc::KineticMcFirstOmp BuildKineticMcFirstOmpFromParameter(const Parameter &parameter);
 mc::KineticMcChainMpi BuildKineticMcChainMpiFromParameter(const Parameter &parameter);
 mc::KineticMcChainOmp BuildKineticMcChainOmpFromParameter(const Parameter &parameter);
 mc::KineticMcChainOmpi BuildKineticMcChainOmpiFromParameter(const Parameter &parameter);

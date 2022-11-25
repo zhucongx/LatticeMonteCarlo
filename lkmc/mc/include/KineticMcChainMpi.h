@@ -13,7 +13,7 @@ class KineticMcChainMpi {
     KineticMcChainMpi(cfg::Config config,
                       unsigned long long int log_dump_steps,
                       unsigned long long int config_dump_steps,
-                      unsigned long long int maximum_number,
+                      unsigned long long int maximum_steps,
                       double temperature,
                       const std::set<Element> &element_set,
                       unsigned long long int restart_steps,
@@ -42,7 +42,7 @@ class KineticMcChainMpi {
     // simulation parameters
     const unsigned long long int log_dump_steps_;
     const unsigned long long int config_dump_steps_;
-    const unsigned long long int maximum_number_;
+    const unsigned long long int maximum_steps_;
     const double beta_;
 
     // simulation statistics
@@ -67,8 +67,8 @@ class KineticMcChainMpi {
 
     int world_rank_{-1}, first_group_rank_{-1}, second_group_rank_{-1};
     // double rij{0}, pij{0};
-    MPI_Group world_group_, first_group_, second_group_;
-    MPI_Comm first_comm_, second_comm_;
+    MPI_Group world_group_{}, first_group_{}, second_group_{};
+    MPI_Comm first_comm_{}, second_comm_{};
 
     const pred::VacancyMigrationPredictorQuarticLru energy_predictor_;
     mutable std::mt19937_64 generator_;

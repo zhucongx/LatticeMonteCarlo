@@ -3,16 +3,16 @@
 #include "JumpEvent.h"
 namespace mc {
 JumpEvent::JumpEvent() = default;
-JumpEvent::JumpEvent(std::pair<size_t, size_t> atom_id_jump_pair,
+JumpEvent::JumpEvent(std::pair<size_t, size_t> jump_pair,
                      const std::pair<double, double> &barrier_and_diff,
                      double beta)
     : beta_(beta),
-      atom_id_jump_pair_(std::move(atom_id_jump_pair)),
+      jump_pair_(std::move(jump_pair)),
       barrier_(barrier_and_diff.first),
       energy_change_(barrier_and_diff.second),
       forward_rate_(std::exp(-barrier_ * beta_)) {}
-const std::pair<size_t, size_t> &JumpEvent::GetAtomIdJumpPair() const {
-  return atom_id_jump_pair_;
+const std::pair<size_t, size_t> &JumpEvent::GetIdJumpPair() const {
+  return jump_pair_;
 }
 double JumpEvent::GetForwardBarrier() const {
   return barrier_;
@@ -50,6 +50,6 @@ void JumpEvent::CalculateProbability(double total_rates) {
   probability_ = forward_rate_ / total_rates;
 }
 JumpEvent JumpEvent::GetReverseJumpEvent() const {
-  return JumpEvent{atom_id_jump_pair_, {barrier_ - energy_change_, -energy_change_}, beta_};
+  return JumpEvent{jump_pair_, {barrier_ - energy_change_, -energy_change_}, beta_};
 }
 } // mc

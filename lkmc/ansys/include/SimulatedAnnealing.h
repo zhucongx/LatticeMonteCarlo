@@ -12,7 +12,7 @@ class SimulatedAnnealing {
                        const std::map<Element, size_t> &solute_atom_count,
                        unsigned long long int log_dump_steps,
                        unsigned long long int config_dump_steps,
-                       unsigned long long int maximum_number,
+                       unsigned long long int maximum_steps,
                        unsigned long long int early_stop_number,
                        double initial_temperature,
                        const std::string &json_coefficients_filename);
@@ -25,7 +25,7 @@ class SimulatedAnnealing {
     const std::vector<size_t> solute_atom_id_vector_;
     const unsigned long long int log_dump_steps_;
     const unsigned long long int config_dump_steps_;
-    const unsigned long long int maximum_number_;
+    const unsigned long long int maximum_steps_;
     const unsigned long long int early_stop_number_;
     // simulation statistics
     unsigned long long int steps_{0};

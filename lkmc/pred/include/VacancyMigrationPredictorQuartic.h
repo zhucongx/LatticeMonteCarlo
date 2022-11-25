@@ -19,6 +19,9 @@ class VacancyMigrationPredictorQuartic {
     [[nodiscard]] std::pair<double, double> GetBarrierAndDiffFromAtomIdPair(
         const cfg::Config &config,
         const std::pair<size_t, size_t> &atom_id_jump_pair) const;
+    [[nodiscard]] virtual std::pair<double, double> GetBarrierAndDiffFromLatticeIdPair(
+        const cfg::Config &config,
+        const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
   protected:
     [[nodiscard]] double GetDe(const cfg::Config &config,
                                const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
@@ -26,10 +29,6 @@ class VacancyMigrationPredictorQuartic {
                                const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
     [[nodiscard]] double GetD(const cfg::Config &config,
                               const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
-    [[nodiscard]] virtual std::pair<double, double> GetBarrierAndDiffFromLatticeIdPair(
-        const cfg::Config &config,
-        const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
-
     const std::set<Element> element_set_;
     const std::unordered_map<std::string, std::vector<double> > one_hot_encode_hash_map_;
     const std::vector<std::vector<std::vector<size_t> > > mapping_mmm_;

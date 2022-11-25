@@ -50,10 +50,10 @@ class VacancyMigrationPredictorQuarticLru : public VacancyMigrationPredictorQuar
                                         const std::set<Element> &element_set,
                                         size_t cache_size);
     ~VacancyMigrationPredictorQuarticLru() override;
-  private:
     [[nodiscard]] std::pair<double, double> GetBarrierAndDiffFromLatticeIdPair(
         const cfg::Config &config,
         const std::pair<size_t, size_t> &lattice_id_jump_pair) const override;
+  private:
     [[nodiscard]] size_t GetHashFromConfigAndLatticeIdPair(
         const cfg::Config &config,
         const std::pair<size_t, size_t> &lattice_id_jump_pair) const;

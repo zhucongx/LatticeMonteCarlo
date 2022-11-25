@@ -7,10 +7,11 @@ namespace mc {
 //  j -> k -> i ->l
 //       |
 // current position
+// Todo: calculate ik event rather than kj event
 KineticMcChainOmp::KineticMcChainOmp(const cfg::Config &config,
                                      unsigned long long int log_dump_steps,
                                      unsigned long long int config_dump_steps,
-                                     unsigned long long int maximum_number,
+                                     unsigned long long int maximum_steps,
                                      double temperature,
                                      const std::set<Element> &element_set,
                                      unsigned long long int restart_steps,
@@ -19,7 +20,7 @@ KineticMcChainOmp::KineticMcChainOmp(const cfg::Config &config,
                                      const std::string &json_coefficients_filename)
     : log_dump_steps_(log_dump_steps),
       config_dump_steps_(config_dump_steps),
-      maximum_number_(maximum_number),
+      maximum_steps_(maximum_steps),
       beta_(1.0 / constants::kBoltzmann / temperature),
       steps_(restart_steps),
       energy_(restart_energy),
@@ -95,13 +96,13 @@ void KineticMcChainOmp::BuildTotalRateIList() {
 
     const auto event_k_i = event_k_i_list_.at(it1);
     auto &config = config_list_.at(it);
-    config.AtomJump(event_k_i.GetAtomIdJumpPair());
+    config.AtomJump(event_k_i.GetIdJumpPair());
     const auto l_index = l_index_list_.at(it);
     JumpEvent event_i_l({vacancy_index_, l_index},
                         energy_predictor_.GetBarrierAndDiffFromAtomIdPair(
                             config, {vacancy_index_, l_index}),
                         beta_);
-    config.AtomJump(event_k_i.GetAtomIdJumpPair());
+    config.AtomJump(event_k_i.GetIdJumpPair());
     // get sum r_{k to l}
     auto r_i_l = event_i_l.GetForwardRate();
 #pragma omp critical
@@ -132,7 +133,7 @@ double KineticMcChainOmp::CalculateTime() {
 
     double gamma_bar_k_j_helper = 0.0, gamma_k_j_helper = 0.0,
         beta_k_j_helper = 0.0, alpha_k_j_helper = 0.0;
-    if (event_k_i.GetAtomIdJumpPair().second == previous_j_) {
+    if (event_k_i.GetIdJumpPair().second == previous_j_) {
       beta_k_j_helper = beta_k_i;
       alpha_k_j_helper = probability_k_i;
     } else {
@@ -153,7 +154,7 @@ double KineticMcChainOmp::CalculateTime() {
     const auto beta_k_i = beta_k_i_list[it];
     const double
         indirect_probability_k_i = one_over_one_minus_a_j * (1 + gamma_bar_k_j / beta_k) * beta_k_i;
-    if (event_k_i.GetAtomIdJumpPair().second == previous_j_) {
+    if (event_k_i.GetIdJumpPair().second == previous_j_) {
       event_k_i.SetProbability(indirect_probability_k_j);
     } else {
       event_k_i.SetProbability(indirect_probability_k_i);
@@ -174,7 +175,7 @@ double KineticMcChainOmp::CalculateTime() {
     double ts_numerator_helper = (t + t_i) * beta_bar_k_i_list[it];
     ts_numerator += ts_numerator_helper;
 
-    if (event_k_i.GetAtomIdJumpPair().second == previous_j_) {
+    if (event_k_i.GetIdJumpPair().second == previous_j_) {
       ts_numerator_helper = 0;
     }
     ts_j_numerator += ts_numerator_helper;
@@ -207,12 +208,12 @@ void KineticMcChainOmp::Simulate() {
   ofs << "steps\ttime\tenergy\tEa\tdE\ttype\n";
   ofs.precision(8);
 
-  while (steps_ <= maximum_number_) {
+  while (steps_ <= maximum_steps_) {
     Dump(ofs);
 
     one_step_time_change_ = CalculateTime();
     const JumpEvent &selected_event = event_k_i_list_[SelectEvent()];
-    atom_id_jump_pair_ = selected_event.GetAtomIdJumpPair();
+    atom_id_jump_pair_ = selected_event.GetIdJumpPair();
     // update time and energy
     time_ += one_step_time_change_;
     one_step_energy_change_ = selected_event.GetEnergyChange();

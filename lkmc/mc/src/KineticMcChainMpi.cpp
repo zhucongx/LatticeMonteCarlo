@@ -2,11 +2,11 @@
 #include <utility>
 #include <chrono>
 namespace mc {
-
+// Todo: calculate ik event rather than kj event
 KineticMcChainMpi::KineticMcChainMpi(cfg::Config config,
                                      unsigned long long int log_dump_steps,
                                      unsigned long long int config_dump_steps,
-                                     unsigned long long int maximum_number,
+                                     unsigned long long int maximum_steps,
                                      double temperature,
                                      const std::set<Element> &element_set,
                                      unsigned long long int restart_steps,
@@ -16,7 +16,7 @@ KineticMcChainMpi::KineticMcChainMpi(cfg::Config config,
     : config_(std::move(config)),
       log_dump_steps_(log_dump_steps),
       config_dump_steps_(config_dump_steps),
-      maximum_number_(maximum_number),
+      maximum_steps_(maximum_steps),
       beta_(1.0 / constants::kBoltzmann / temperature),
       steps_(restart_steps),
       energy_(restart_energy),
@@ -140,7 +140,7 @@ double KineticMcChainMpi::BuildEventILList() {
   auto event_k_i = GetFirstEventKI();
   const auto l_index_list = GetLIndexList();
   const auto probability_k_i = event_k_i.GetProbability();
-  config_.AtomJump(event_k_i.GetAtomIdJumpPair());
+  config_.AtomJump(event_k_i.GetIdJumpPair());
   total_rate_i_ = 0.0;
   const auto l_index = l_index_list[static_cast<size_t>(second_group_rank_)];
   JumpEvent event_i_l
@@ -148,7 +148,7 @@ double KineticMcChainMpi::BuildEventILList() {
        energy_predictor_.GetBarrierAndDiffFromAtomIdPair(config_,
                                                          {vacancy_index_, l_index}),
        beta_);
-  config_.AtomJump(event_k_i.GetAtomIdJumpPair());
+  config_.AtomJump(event_k_i.GetIdJumpPair());
 
   // get sum r_{k to l}
   const auto r_i_l = event_i_l.GetForwardRate();
@@ -168,7 +168,7 @@ double KineticMcChainMpi::BuildEventILList() {
     beta_k = 1 - beta_bar_k;
     double gamma_bar_k_j_helper = 0.0, gamma_k_j_helper = 0.0, beta_k_j_helper = 0.0,
         alpha_k_j_helper = 0.0;
-    if (event_k_i.GetAtomIdJumpPair().second == previous_j_) {
+    if (event_k_i.GetIdJumpPair().second == previous_j_) {
       beta_k_j_helper = beta_k_i;
       alpha_k_j_helper = probability_k_i;
     } else {
@@ -185,7 +185,7 @@ double KineticMcChainMpi::BuildEventILList() {
         indirect_probability_k_j = one_over_one_minus_a_j * (gamma_bar_k_j / beta_k) * beta_k_j;
     const double
         indirect_probability_k_i = one_over_one_minus_a_j * (1 + gamma_bar_k_j / beta_k) * beta_k_i;
-    if (event_k_i.GetAtomIdJumpPair().second == previous_j_) {
+    if (event_k_i.GetIdJumpPair().second == previous_j_) {
       event_k_i.SetProbability(indirect_probability_k_j);
     } else {
       event_k_i.SetProbability(indirect_probability_k_i);
@@ -211,7 +211,7 @@ double KineticMcChainMpi::BuildEventILList() {
     double ts_numerator_helper = (t + t_i) * beta_bar_k_i;
     MPI_Allreduce(&ts_numerator_helper, &ts_numerator, 1, MPI_DOUBLE, MPI_SUM, first_comm_);
     double ts = ts_numerator / beta_bar_k;
-    if (event_k_i.GetAtomIdJumpPair().second == previous_j_) {
+    if (event_k_i.GetIdJumpPair().second == previous_j_) {
       ts_numerator_helper = 0;
     }
     MPI_Allreduce(&ts_numerator_helper, &ts_j_numerator, 1, MPI_DOUBLE, MPI_SUM, first_comm_);
@@ -248,7 +248,7 @@ void KineticMcChainMpi::Simulate() {
     ofs.precision(8);
   }
 
-  while (steps_ <= maximum_number_) {
+  while (steps_ <= maximum_steps_) {
     if (world_rank_ == 0) {
       Dump(ofs);
     }
@@ -261,7 +261,7 @@ void KineticMcChainMpi::Simulate() {
     }
     MPI_Bcast(&selected_event, sizeof(JumpEvent), MPI_BYTE, 0, MPI_COMM_WORLD);
 
-    atom_id_jump_pair_ = selected_event.GetAtomIdJumpPair();
+    atom_id_jump_pair_ = selected_event.GetIdJumpPair();
 
     // if (!CheckAndSolveEquilibrium(ofs)) {
     // update time and energy

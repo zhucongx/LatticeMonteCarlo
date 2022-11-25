@@ -29,7 +29,7 @@ SimulatedAnnealing::SimulatedAnnealing(const Factor_t &factors,
                                        const std::map<Element, size_t> &solute_atom_count,
                                        const unsigned long long int log_dump_steps,
                                        const unsigned long long int config_dump_steps,
-                                       const unsigned long long int maximum_number,
+                                       const unsigned long long int maximum_steps,
                                        unsigned long long int early_stop_number,
                                        double initial_temperature,
                                        const std::string &json_coefficients_filename)
@@ -37,7 +37,7 @@ SimulatedAnnealing::SimulatedAnnealing(const Factor_t &factors,
       solute_atom_id_vector_(GetSoluteAtomIdVector(config_, solute_atom_count)),
       log_dump_steps_(log_dump_steps),
       config_dump_steps_(config_dump_steps),
-      maximum_number_(maximum_number),
+      maximum_steps_(maximum_steps),
       early_stop_number_(early_stop_number),
       initial_temperature_(initial_temperature * constants::kBoltzmann),
       energy_predictor_(json_coefficients_filename,
@@ -78,7 +78,7 @@ void SimulatedAnnealing::Simulate() {
   std::ofstream ofs("sa_log.txt", std::ofstream::out | std::ofstream::app);
   ofs.precision(8);
   auto t1 = std::chrono::high_resolution_clock::now();
-  while (steps_ <= maximum_number_) {
+  while (steps_ <= maximum_steps_) {
     temperature_ = initial_temperature_ / std::log(2 + steps_);
 
     auto atom_id_jump_pair = GenerateAtomIdJumpPair();

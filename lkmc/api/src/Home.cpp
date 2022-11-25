@@ -12,6 +12,8 @@ void Print(const Parameter &parameter) {
     std::cout << "log_dump_steps: " << parameter.log_dump_steps_ << std::endl;
     std::cout << "config_dump_steps: " << parameter.config_dump_steps_ << std::endl;
     std::cout << "maximum_steps: " << parameter.maximum_steps_ << std::endl;
+    std::cout << "thermodynamic_averaging_steps: " << parameter.thermodynamic_averaging_steps_
+              << std::endl;
     std::cout << "temperature: " << parameter.temperature_ << std::endl;
     std::cout << "element_set: ";
     std::copy(parameter.element_set_.begin(), parameter.element_set_.end(),
@@ -77,12 +79,15 @@ void Run(const Parameter &parameter) {
   if (parameter.method == "KineticMcFirstMpi") {
     auto kinetic_mc_first_mpi = api::BuildKineticMcFirstMpiFromParameter(parameter);
     kinetic_mc_first_mpi.Simulate();
-  } else if (parameter.method == "KineticMcChainOmp") {
-    auto kinetic_mc_chain_omp = api::BuildKineticMcChainOmpFromParameter(parameter);
-    kinetic_mc_chain_omp.Simulate();
+  } else if (parameter.method == "KineticMcFirstOmp") {
+    auto kinetic_mc_first_omp = api::BuildKineticMcFirstOmpFromParameter(parameter);
+    kinetic_mc_first_omp.Simulate();
   } else if (parameter.method == "KineticMcChainMpi") {
     auto kinetic_mc_chain_mpi = api::BuildKineticMcChainMpiFromParameter(parameter);
     kinetic_mc_chain_mpi.Simulate();
+  } else if (parameter.method == "KineticMcChainOmp") {
+    auto kinetic_mc_chain_omp = api::BuildKineticMcChainOmpFromParameter(parameter);
+    kinetic_mc_chain_omp.Simulate();
   } else if (parameter.method == "KineticMcChainOmpi") {
     auto kinetic_mc_chain_ompi = api::BuildKineticMcChainOmpiFromParameter(parameter);
     kinetic_mc_chain_ompi.Simulate();
@@ -101,10 +106,10 @@ void Run(const Parameter &parameter) {
   } else if (parameter.method == "CanonicalMcStepT") {
     auto canonical_mc_step_t = api::BuildCanonicalMcStepTFromParameter(parameter);
     canonical_mc_step_t.Simulate();
-  // } else if (parameter.method == "SemiGrandCanonicalMcStepT") {
-  //   auto semi_grand_canonical_mc_step_t =
-  //       api::BuildSemiGrandCanonicalMcStepTFromParameter(parameter);
-  //   semi_grand_canonical_mc_step_t.Simulate();
+    // } else if (parameter.method == "SemiGrandCanonicalMcStepT") {
+    //   auto semi_grand_canonical_mc_step_t =
+    //       api::BuildSemiGrandCanonicalMcStepTFromParameter(parameter);
+    //   semi_grand_canonical_mc_step_t.Simulate();
   } else {
     std::cout << "No such method: " << parameter.method << std::endl;
   }
@@ -127,6 +132,32 @@ mc::KineticMcFirstMpi BuildKineticMcFirstMpiFromParameter(const Parameter &param
                                parameter.log_dump_steps_,
                                parameter.config_dump_steps_,
                                parameter.maximum_steps_,
+                               parameter.thermodynamic_averaging_steps_,
+                               parameter.temperature_,
+                               element_set,
+                               parameter.restart_steps_,
+                               parameter.restart_energy_,
+                               parameter.restart_time_,
+                               parameter.json_coefficients_filename_};
+}
+mc::KineticMcFirstOmp BuildKineticMcFirstOmpFromParameter(const Parameter &parameter) {
+  std::set<Element> element_set;
+  for (const auto &element_string: parameter.element_set_) {
+    element_set.insert(Element(element_string));
+  }
+  cfg::Config config;
+  if (parameter.map_filename_.empty()) {
+    config = cfg::Config::ReadConfig(parameter.config_filename_);
+    config.ReassignLatticeVector();
+  } else {
+    config = cfg::Config::ReadMap("lattice.txt", "element.txt", parameter.map_filename_);
+  }
+  std::cout << "Finish config reading. Start KMC." << std::endl;
+  return mc::KineticMcFirstOmp{config,
+                               parameter.log_dump_steps_,
+                               parameter.config_dump_steps_,
+                               parameter.maximum_steps_,
+                               parameter.thermodynamic_averaging_steps_,
                                parameter.temperature_,
                                element_set,
                                parameter.restart_steps_,

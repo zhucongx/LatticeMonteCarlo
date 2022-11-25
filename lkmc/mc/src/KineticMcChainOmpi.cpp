@@ -55,7 +55,7 @@ void DefineStruct(MPI_Datatype *datatype) {
 KineticMcChainOmpi::KineticMcChainOmpi(cfg::Config config,
                                        unsigned long long int log_dump_steps,
                                        unsigned long long int config_dump_steps,
-                                       unsigned long long int maximum_number,
+                                       unsigned long long int maximum_steps,
                                        double temperature,
                                        const std::set<Element> &element_set,
                                        unsigned long long int restart_steps,
@@ -65,7 +65,7 @@ KineticMcChainOmpi::KineticMcChainOmpi(cfg::Config config,
     : config_(std::move(config)),
       log_dump_steps_(log_dump_steps),
       config_dump_steps_(config_dump_steps),
-      maximum_number_(maximum_number),
+      maximum_steps_(maximum_steps),
       beta_(1.0 / constants::kBoltzmann / temperature),
       steps_(restart_steps),
       energy_(restart_energy),
@@ -163,7 +163,7 @@ double KineticMcChainOmpi::UpdateIndirectProbabilityAndCalculateTime() {
   const auto probability_i_k = event_k_i_.GetBackwardRate() / total_rate_i_;
   const double beta_bar_k_i = probability_k_i * probability_i_k;
   const double beta_k_i = probability_k_i * (1 - probability_i_k);
-  bool is_previous_event = event_k_i_.GetAtomIdJumpPair().second == previous_j_;
+  bool is_previous_event = event_k_i_.GetIdJumpPair().second == previous_j_;
 
   // Time in first order Kmc, same for all
   const double t_1 = 1 / total_rate_k_ / constants::kPrefactor;
@@ -240,7 +240,7 @@ void KineticMcChainOmpi::Simulate() {
   if (world_rank_ == 0) {
     ofs.precision(16);
   }
-  while (steps_ <= maximum_number_) {
+  while (steps_ <= maximum_steps_) {
     if (world_rank_ == 0) {
       Dump(ofs);
     }
@@ -254,7 +254,7 @@ void KineticMcChainOmpi::Simulate() {
       selected_event = event_k_i_list_[SelectEvent()];
     }
     MPI_Bcast(&selected_event, sizeof(JumpEvent), MPI_BYTE, 0, MPI_COMM_WORLD);
-    atom_id_jump_pair_ = selected_event.GetAtomIdJumpPair();
+    atom_id_jump_pair_ = selected_event.GetIdJumpPair();
 
     one_step_energy_change_ = selected_event.GetEnergyChange();
     energy_ += one_step_energy_change_;

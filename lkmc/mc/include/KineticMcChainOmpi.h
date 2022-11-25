@@ -15,7 +15,7 @@ class KineticMcChainOmpi {
     KineticMcChainOmpi(cfg::Config config,
                        unsigned long long int log_dump_steps,
                        unsigned long long int config_dump_steps,
-                       unsigned long long int maximum_number,
+                       unsigned long long int maximum_steps,
                        double temperature,
                        const std::set<Element> &element_set,
                        unsigned long long int restart_steps,
@@ -38,7 +38,7 @@ class KineticMcChainOmpi {
     // simulation parameters
     const unsigned long long int log_dump_steps_;
     const unsigned long long int config_dump_steps_;
-    const unsigned long long int maximum_number_;
+    const unsigned long long int maximum_steps_;
     double beta_;
     // simulation statistics
     unsigned long long int steps_;
