@@ -28,7 +28,7 @@ class Iterator {
     const std::set<Element> element_set_;
     size_t smallest_cluster_criteria_;
     size_t solvent_bond_criteria_;
-    std::unordered_map<unsigned long long, double> filename_info_hashset_{};
+    std::unordered_map<unsigned long long, std::pair<double, double> > filename_energy_info_hashset_{};
     const pred::EnergyPredictor energy_estimator_;
     const std::string log_type_;
     const std::string config_type_;

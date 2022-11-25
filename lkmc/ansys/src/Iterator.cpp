@@ -29,8 +29,6 @@ Iterator::Iterator(unsigned long long int initial_steps,
   std::string log_file_name;
   if (log_type_ == "kinetic_mc") {
     log_file_name = "lkmc_log.txt";
-  } else if (log_type_ == "canonical_mc") {
-    log_file_name = "cmc_log.txt";
   } else if (log_type_ == "canonical_mc_step_t") {
     log_file_name = "cmc_log.txt";
   } else if (log_type_ == "semi_grand_canonical_mc_step_t") {
@@ -59,12 +57,9 @@ Iterator::Iterator(unsigned long long int initial_steps,
     }
     if (log_type_ == "kinetic_mc") {
       ifs >> step_number >> time >> energy;
-    } else if (log_type_ == "canonical_mc") {
-      ifs >> step_number >> energy;
-    } else if (log_type_ == "canonical_mc_step_t") {
-      ifs >> step_number >> energy >> temperature;
-    } else if (log_type_ == "semi_grand_canonical_mc_step_t") {
-      ifs >> step_number >> energy >> temperature;
+    } else if (log_type_ == "canonical_mc_step_t"
+        || log_type_ == "semi_grand_canonical_mc_step_t") {
+      ifs >> step_number >> temperature >> energy;
     } else {
       std::cerr << "Unknown log type: " << log_type_ << std::endl;
     }
@@ -72,13 +67,10 @@ Iterator::Iterator(unsigned long long int initial_steps,
     ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     if (step_number >= initial_steps_ && (step_number - initial_steps_) % increment_steps == 0) {
       if (log_type_ == "kinetic_mc") {
-        filename_info_hashset_[step_number] = time;
-      } else if (log_type_ == "canonical_mc") {
-        filename_info_hashset_[step_number] = 0;
-      } else if (log_type_ == "canonical_mc_step_t") {
-        filename_info_hashset_[step_number] = temperature;
-      } else if (log_type_ == "semi_grand_canonical_mc_step_t") {
-        filename_info_hashset_[step_number] = temperature;
+        filename_energy_info_hashset_[step_number] = std::make_pair(energy, time);
+      } else if (log_type_ == "canonical_mc_step_t"
+          || log_type_ == "semi_grand_canonical_mc_step_t") {
+        filename_energy_info_hashset_[step_number] = std::make_pair(energy, temperature);
       } else {
         std::cerr << "Unknown log type: " << log_type_ << std::endl;
       }
@@ -117,7 +109,8 @@ void Iterator::RunCluster() const {
     ofs << "{ \n"
         << "\"index\" : "
         << "\"" << std::to_string(i) << "\",\n"
-        << "\"info\" : " << filename_info_hashset_.at(i) << ",\n"
+        << "\"energy\" : " << filename_energy_info_hashset_.at(i).first << ",\n"
+        << "\"info\" : " << filename_energy_info_hashset_.at(i).second << ",\n"
         << "\"clusters\" : [ \n";
     for (auto it = num_different_element.cbegin(); it < num_different_element.cend(); ++it) {
       ofs << "[ ";
@@ -174,14 +167,15 @@ void Iterator::RunShortRangeOrder() const {
       }
       auto sro_map = short_range_order.FindWarrenCowley(j);
       if (i == 0) {
-        *ofs << "index\tinfo\t";
+        *ofs << "index\tenergy\tinfo\t";
         std::transform(sro_map.cbegin(),
                        sro_map.cend(),
                        std::experimental::make_ostream_joiner(*ofs, "\t"),
                        [](const auto &ii) { return ii.first; });
         *ofs << std::endl;
       }
-      *ofs << i << '\t' << filename_info_hashset_.at(i) << '\t';
+      *ofs << i << '\t' << filename_energy_info_hashset_.at(i).first << '\t'
+           << filename_energy_info_hashset_.at(i).second << '\t';
       std::transform(sro_map.cbegin(),
                      sro_map.cend(),
                      std::experimental::make_ostream_joiner(*ofs, "\t"),
