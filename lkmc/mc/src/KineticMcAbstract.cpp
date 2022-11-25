@@ -62,8 +62,9 @@ void KineticMcAbstract::Dump() const {
     ofs_ << steps_ << '\t' << time_ << '\t' << energy_ << '\t'
          << thermodynamic_averaging_.GetThermodynamicAverage(beta_) << '\t'
          << initial_absolute_energy_ + energy_ << '\t'
-         << selected_event_.GetForwardBarrier() << '\t' << selected_event_.GetEnergyChange() << '\t'
-         << config_.GetElementAtLatticeId(selected_event_.GetIdJumpPair().second).GetString()
+         << selected_event_.GetForwardBarrier() << '\t'
+         << selected_event_.GetEnergyChange() << '\t'
+         << config_.GetElementAtLatticeId(selected_event_.GetIdJumpPair().first).GetString()
          << std::endl;
   }
 }
