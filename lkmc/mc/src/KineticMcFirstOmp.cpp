@@ -63,11 +63,11 @@ void KineticMcFirstOmp::Simulate() {
   while (steps_ <= maximum_steps_) {
     Dump();
     BuildEventList();
-    selected_event_ = event_k_i_list_[SelectEvent()];
+    selected_event_k_i_ = event_k_i_list_[SelectEvent()];
     // update time and energy
     time_ += CalculateTime();
-    energy_ += selected_event_.GetEnergyChange();
-    config_.LatticeJump(selected_event_.GetIdJumpPair());
+    energy_ += selected_event_k_i_.GetEnergyChange();
+    config_.LatticeJump(selected_event_k_i_.GetIdJumpPair());
     ++steps_;
   }
 }

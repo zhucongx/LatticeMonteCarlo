@@ -3,13 +3,13 @@
 #include <mpi.h>
 #include "KineticMcAbstract.h"
 namespace mc {
-class KineticMcFirstMpi: public KineticMcAbstract  {
+class KineticMcFirstMpi : public KineticMcAbstract {
   public:
     KineticMcFirstMpi(cfg::Config config,
                       unsigned long long int log_dump_steps,
                       unsigned long long int config_dump_steps,
                       unsigned long long int maximum_steps,
-                       unsigned long long int thermodynamic_averaging_steps,
+                      unsigned long long int thermodynamic_averaging_steps,
                       double temperature,
                       const std::set<Element> &element_set,
                       unsigned long long int restart_steps,

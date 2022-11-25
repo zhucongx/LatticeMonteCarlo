@@ -38,8 +38,8 @@ class Config {
         const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
     [[nodiscard]] Matrix_t GetLatticePairRotationMatrix(
         const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
-    [[nodiscard]] size_t GetVacancyAtomIndex() const;
-    [[nodiscard]] size_t GetVacancyLatticeIndex() const;
+    [[nodiscard]] size_t GetVacancyAtomId() const;
+    [[nodiscard]] size_t GetVacancyLatticeId() const;
     [[nodiscard]] std::unordered_set<size_t> GetNeighborsLatticeIdSetOfPair(
         const std::pair<size_t, size_t> &lattice_id_pair) const;
     [[nodiscard]] std::unordered_set<size_t> GetNeighborsLatticeIdSetOfSite(

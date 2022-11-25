@@ -164,11 +164,10 @@ Matrix_t Config::GetLatticePairRotationMatrix(
                           Cross(pair_direction, vertical_vector)});
 }
 
-size_t Config::GetVacancyAtomIndex() const {
-  return GetAtomIdFromLatticeId(GetVacancyLatticeIndex());
+size_t Config::GetVacancyAtomId() const {
+  return GetAtomIdFromLatticeId(GetVacancyLatticeId());
 }
-
-size_t Config::GetVacancyLatticeIndex() const {
+size_t Config::GetVacancyLatticeId() const {
   const auto &atom_vector = GetAtomVector();
   auto it = std::find_if(atom_vector.cbegin(),
                          atom_vector.cend(),

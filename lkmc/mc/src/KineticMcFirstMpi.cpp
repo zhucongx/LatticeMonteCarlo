@@ -79,14 +79,14 @@ void KineticMcFirstMpi::Simulate() {
     }
     BuildEventList();
     if (world_rank_ == 0) {
-      selected_event_ = event_k_i_list_[SelectEvent()];
+      selected_event_k_i_ = event_k_i_list_[SelectEvent()];
     }
-    MPI_Bcast(&selected_event_, sizeof(JumpEvent), MPI_BYTE, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&selected_event_k_i_, sizeof(JumpEvent), MPI_BYTE, 0, MPI_COMM_WORLD);
 
     // update time and energy
     time_ += CalculateTime();
-    energy_ += selected_event_.GetEnergyChange();
-    config_.LatticeJump(selected_event_.GetIdJumpPair());
+    energy_ += selected_event_k_i_.GetEnergyChange();
+    config_.LatticeJump(selected_event_k_i_.GetIdJumpPair());
     ++steps_;
   }
 }
