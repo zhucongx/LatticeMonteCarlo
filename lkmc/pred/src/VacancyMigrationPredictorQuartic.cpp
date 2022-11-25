@@ -238,14 +238,14 @@ std::pair<double, double> VacancyMigrationPredictorQuartic::GetBarrierAndDiffFro
     const cfg::Config &config,
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
   double dE, D, Ks;
-// #pragma omp parallel sections default(none) shared(config, lattice_id_jump_pair, dE, D, Ks)
+#pragma omp parallel sections default(none) shared(config, lattice_id_jump_pair, dE, D, Ks)
   {
-// #pragma omp section
+#pragma omp section
     {
       dE = GetDe(config, lattice_id_jump_pair);
       D = GetD(config, lattice_id_jump_pair);
     }
-// #pragma omp section
+#pragma omp section
     {
       Ks = GetKs(config, lattice_id_jump_pair);
     }
