@@ -10,7 +10,7 @@ class ThermodynamicAveraging {
   public:
     explicit ThermodynamicAveraging(size_t size);
     void AddEnergy(double value);
-    [[nodiscard]] double GetThermodynamicAverage(double temperature) const;
+    [[nodiscard]] double GetThermodynamicAverage(double beta) const;
   private:
     [[nodiscard]] double GetAverage() const;
     std::deque<double> energy_list_;
