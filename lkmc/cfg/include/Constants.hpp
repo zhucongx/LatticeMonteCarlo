@@ -26,7 +26,7 @@ constexpr size_t kNumFifthNearestNeighbors = 24;
 constexpr size_t kNumSixthNearestNeighbors = 8;
 constexpr size_t kNumSeventhNearestNeighbors = 48;
 
-constexpr double kBoltzmannConstant = 8.617333262145e-5;
+constexpr double kBoltzmann = 8.617333262145e-5;
 constexpr double kPrefactor = 1e13;
 } // constants
 #endif //LKMC_LKMC_CFG_INCLUDE_CONSTANTS_HPP_

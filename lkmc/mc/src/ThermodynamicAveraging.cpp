@@ -23,7 +23,7 @@ double ThermodynamicAveraging::GetThermodynamicAverage(double temperature) const
   const auto average = GetAverage();
   double partition = 0.0;
   double thermodynamic_average_energy = 0.0;
-  double beta = 1.0 / (constants::kBoltzmannConstant * temperature);
+  double beta = 1.0 / (constants::kBoltzmann * temperature);
   for (auto energy: energy_list_) {
     energy -= average;
     const double exp_value = std::exp(-energy * beta);

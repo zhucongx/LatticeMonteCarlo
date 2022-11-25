@@ -31,7 +31,7 @@ CanonicalMcStepT::CanonicalMcStepT(cfg::Config config,
       initial_temperature_(initial_temperature),
       decrement_temperature_(decrement_temperature),
       temperature_(initial_temperature),
-      beta_(1 / constants::kBoltzmannConstant / initial_temperature_),
+      beta_(1.0 / constants::kBoltzmann / initial_temperature_),
       energy_predictor_(json_coefficients_filename,
                         config_,
                         element_set),
@@ -62,7 +62,7 @@ void CanonicalMcStepT::UpdateTemperature() {
     config_.WriteConfig("end_" + std::to_string(static_cast<int>(temperature_)) + "K.cfg",
                         false);
     temperature_ -= decrement_temperature_;
-    beta_ = 1.0 / constants::kBoltzmannConstant / temperature_;
+    beta_ = 1.0 / constants::kBoltzmann / temperature_;
   }
 }
 

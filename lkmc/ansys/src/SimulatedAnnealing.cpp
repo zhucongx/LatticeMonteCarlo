@@ -39,7 +39,7 @@ SimulatedAnnealing::SimulatedAnnealing(const Factor_t &factors,
       config_dump_steps_(config_dump_steps),
       maximum_number_(maximum_number),
       early_stop_number_(early_stop_number),
-      initial_temperature_(initial_temperature * constants::kBoltzmannConstant),
+      initial_temperature_(initial_temperature * constants::kBoltzmann),
       energy_predictor_(json_coefficients_filename,
                         config_,
                         GetElementSetFromSolventAndSolute(solvent_element, solute_atom_count)),
@@ -63,11 +63,11 @@ void SimulatedAnnealing::Dump(std::ofstream &ofs) {
     lowest_energy_ = energy_;
     config_.WriteConfig("lowest_energy.cfg", false);
     ofs << steps_ << '\t' << energy_ << '\t' << lowest_energy_ << '\t'
-        << temperature_ / constants::kBoltzmannConstant << '\t' << count_ << std::endl;
+        << temperature_ / constants::kBoltzmann << '\t' << count_ << std::endl;
   }
   if (steps_ % log_dump_steps_ == 0) {
     ofs << steps_ << '\t' << energy_ << '\t' << lowest_energy_ << '\t'
-        << temperature_ / constants::kBoltzmannConstant << '\t' << count_ << std::endl;
+        << temperature_ / constants::kBoltzmann << '\t' << count_ << std::endl;
   }
   if (steps_ % config_dump_steps_ == 0) {
     config_.WriteConfig(std::to_string(steps_) + ".cfg", false);
