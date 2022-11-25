@@ -96,7 +96,7 @@ double VacancyMigrationPredictorQuartic::GetDe(const cfg::Config &config,
   const auto &lattice_id_vector = site_bond_cluster_state_hashmap_.at(lattice_id_jump_pair);
   auto start_hashmap(initialized_cluster_hashmap_);
   auto end_hashmap(initialized_cluster_hashmap_);
-#pragma omp parallel for default(none) shared(config, lattice_id_jump_pair, lattice_id_vector, migration_element, start_hashmap, end_hashmap)
+// #pragma omp parallel for default(none) shared(config, lattice_id_jump_pair, lattice_id_vector, migration_element, start_hashmap, end_hashmap)
   for (size_t label = 0; label < mapping_state_.size(); ++label) {
     const auto &cluster_vector = mapping_state_.at(label);
     for (const auto &cluster: cluster_vector) {
@@ -117,7 +117,7 @@ double VacancyMigrationPredictorQuartic::GetDe(const cfg::Config &config,
       }
       auto cluster_start = cfg::ElementCluster(static_cast<int>(label), element_vector_start);
       auto cluster_end = cfg::ElementCluster(static_cast<int>(label), element_vector_end);
-#pragma omp critical
+// #pragma omp critical
       {
         start_hashmap[cluster_start]++;
         end_hashmap[cluster_end]++;
@@ -185,7 +185,7 @@ double VacancyMigrationPredictorQuartic::GetKs(const cfg::Config &config,
     encode_mm2_forward.at(i) /= element_parameters.sigma_x_mm2.at(i);
   }
   double logKs = 0;
-#pragma omp parallel for default(none) shared(encode_mm2_forward, encode_mm2_backward, new_size, old_size, element_parameters) reduction(+:logKs)
+// #pragma omp parallel for default(none) shared(encode_mm2_forward, encode_mm2_backward, new_size, old_size, element_parameters) reduction(+:logKs)
   for (size_t j = 0; j < new_size; ++j) {
     double pca_dot = 0;
     for (size_t i = 0; i < old_size; ++i) {
@@ -221,7 +221,7 @@ double VacancyMigrationPredictorQuartic::GetD(const cfg::Config &config,
     encode_mmm.at(i) /= element_parameters.sigma_x_mmm.at(i);
   }
   double logD = 0;
-#pragma omp parallel for default(none) shared(encode_mmm, new_size, old_size, element_parameters) reduction(+:logD)
+// #pragma omp parallel for default(none) shared(encode_mmm, new_size, old_size, element_parameters) reduction(+:logD)
   for (size_t j = 0; j < new_size; ++j) {
     double pca_dot = 0;
     for (size_t i = 0; i < old_size; ++i) {
@@ -238,14 +238,14 @@ std::pair<double, double> VacancyMigrationPredictorQuartic::GetBarrierAndDiffFro
     const cfg::Config &config,
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
   double dE, D, Ks;
-#pragma omp parallel sections default(none) shared(config, lattice_id_jump_pair, dE, D, Ks)
+// #pragma omp parallel sections default(none) shared(config, lattice_id_jump_pair, dE, D, Ks)
   {
-#pragma omp section
+// #pragma omp section
     {
       dE = GetDe(config, lattice_id_jump_pair);
       D = GetD(config, lattice_id_jump_pair);
     }
-#pragma omp section
+// #pragma omp section
     {
       Ks = GetKs(config, lattice_id_jump_pair);
     }
