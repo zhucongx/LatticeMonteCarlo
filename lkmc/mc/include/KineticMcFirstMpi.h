@@ -16,7 +16,7 @@ class KineticMcFirstMpi: public KineticMcAbstract  {
                       double restart_energy,
                       double restart_time,
                       const std::string &json_coefficients_filename);
-    virtual ~KineticMcFirstMpi() override;
+    ~KineticMcFirstMpi() override;
     void Simulate() override;
   protected:
     void BuildEventList();
