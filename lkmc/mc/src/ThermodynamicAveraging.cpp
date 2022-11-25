@@ -19,11 +19,10 @@ double ThermodynamicAveraging::GetAverage() const {
   }
   return sum_ / static_cast<double>(energy_list_.size());
 }
-double ThermodynamicAveraging::GetThermodynamicAverage(double temperature) const {
+double ThermodynamicAveraging::GetThermodynamicAverage(double beta) const {
   const auto average = GetAverage();
   double partition = 0.0;
   double thermodynamic_average_energy = 0.0;
-  double beta = 1.0 / (constants::kBoltzmann * temperature);
   for (auto energy: energy_list_) {
     energy -= average;
     const double exp_value = std::exp(-energy * beta);
