@@ -82,12 +82,12 @@ void Run(const Parameter &parameter) {
   } else if (parameter.method == "KineticMcFirstOmp") {
     auto kinetic_mc_first_omp = api::BuildKineticMcFirstOmpFromParameter(parameter);
     kinetic_mc_first_omp.Simulate();
-  } else if (parameter.method == "KineticMcChainMpi") {
-    auto kinetic_mc_chain_mpi = api::BuildKineticMcChainMpiFromParameter(parameter);
-    kinetic_mc_chain_mpi.Simulate();
-  } else if (parameter.method == "KineticMcChainOmp") {
-    auto kinetic_mc_chain_omp = api::BuildKineticMcChainOmpFromParameter(parameter);
-    kinetic_mc_chain_omp.Simulate();
+  // } else if (parameter.method == "KineticMcChainMpi") {
+  //   auto kinetic_mc_chain_mpi = api::BuildKineticMcChainMpiFromParameter(parameter);
+  //   kinetic_mc_chain_mpi.Simulate();
+  // } else if (parameter.method == "KineticMcChainOmp") {
+  //   auto kinetic_mc_chain_omp = api::BuildKineticMcChainOmpFromParameter(parameter);
+  //   kinetic_mc_chain_omp.Simulate();
   } else if (parameter.method == "KineticMcChainOmpi") {
     auto kinetic_mc_chain_ompi = api::BuildKineticMcChainOmpiFromParameter(parameter);
     kinetic_mc_chain_ompi.Simulate();
@@ -165,54 +165,56 @@ mc::KineticMcFirstOmp BuildKineticMcFirstOmpFromParameter(const Parameter &param
                                parameter.restart_time_,
                                parameter.json_coefficients_filename_};
 }
-mc::KineticMcChainMpi BuildKineticMcChainMpiFromParameter(const Parameter &parameter) {
-  std::set<Element> element_set;
-  for (const auto &element_string: parameter.element_set_) {
-    element_set.insert(Element(element_string));
-  }
-  cfg::Config config;
-  if (parameter.map_filename_.empty()) {
-    config = cfg::Config::ReadConfig(parameter.config_filename_);
-    config.ReassignLatticeVector();
-  } else {
-    config = cfg::Config::ReadMap("lattice.txt", "element.txt", parameter.map_filename_);
-  }
-  std::cout << "Finish config reading. Start KMC." << std::endl;
-  return mc::KineticMcChainMpi{config,
-                               parameter.log_dump_steps_,
-                               parameter.config_dump_steps_,
-                               parameter.maximum_steps_,
-                               parameter.temperature_,
-                               element_set,
-                               parameter.restart_steps_,
-                               parameter.restart_energy_,
-                               parameter.restart_time_,
-                               parameter.json_coefficients_filename_};
-}
-mc::KineticMcChainOmp BuildKineticMcChainOmpFromParameter(const Parameter &parameter) {
-  std::set<Element> element_set;
-  for (const auto &element_string: parameter.element_set_) {
-    element_set.insert(Element(element_string));
-  }
-  cfg::Config config;
-  if (parameter.map_filename_.empty()) {
-    config = cfg::Config::ReadConfig(parameter.config_filename_);
-    config.ReassignLatticeVector();
-  } else {
-    config = cfg::Config::ReadMap("lattice.txt", "element.txt", parameter.map_filename_);
-  }
-  std::cout << "Finish config reading. Start kMC." << std::endl;
-  return mc::KineticMcChainOmp{config,
-                               parameter.log_dump_steps_,
-                               parameter.config_dump_steps_,
-                               parameter.maximum_steps_,
-                               parameter.temperature_,
-                               element_set,
-                               parameter.restart_steps_,
-                               parameter.restart_energy_,
-                               parameter.restart_time_,
-                               parameter.json_coefficients_filename_};
-}
+// mc::KineticMcChainMpi BuildKineticMcChainMpiFromParameter(const Parameter &parameter) {
+//   std::set<Element> element_set;
+//   for (const auto &element_string: parameter.element_set_) {
+//     element_set.insert(Element(element_string));
+//   }
+//   cfg::Config config;
+//   if (parameter.map_filename_.empty()) {
+//     config = cfg::Config::ReadConfig(parameter.config_filename_);
+//     config.ReassignLatticeVector();
+//   } else {
+//     config = cfg::Config::ReadMap("lattice.txt", "element.txt", parameter.map_filename_);
+//   }
+//   std::cout << "Finish config reading. Start KMC." << std::endl;
+//   return mc::KineticMcChainMpi{config,
+//                                parameter.log_dump_steps_,
+//                                parameter.config_dump_steps_,
+//                                parameter.maximum_steps_,
+//                                parameter.thermodynamic_averaging_steps_,
+//                                parameter.temperature_,
+//                                element_set,
+//                                parameter.restart_steps_,
+//                                parameter.restart_energy_,
+//                                parameter.restart_time_,
+//                                parameter.json_coefficients_filename_};
+// }
+// mc::KineticMcChainOmp BuildKineticMcChainOmpFromParameter(const Parameter &parameter) {
+//   std::set<Element> element_set;
+//   for (const auto &element_string: parameter.element_set_) {
+//     element_set.insert(Element(element_string));
+//   }
+//   cfg::Config config;
+//   if (parameter.map_filename_.empty()) {
+//     config = cfg::Config::ReadConfig(parameter.config_filename_);
+//     config.ReassignLatticeVector();
+//   } else {
+//     config = cfg::Config::ReadMap("lattice.txt", "element.txt", parameter.map_filename_);
+//   }
+//   std::cout << "Finish config reading. Start kMC." << std::endl;
+//   return mc::KineticMcChainOmp{config,
+//                                parameter.log_dump_steps_,
+//                                parameter.config_dump_steps_,
+//                                parameter.maximum_steps_,
+//                                parameter.thermodynamic_averaging_steps_,
+//                                parameter.temperature_,
+//                                element_set,
+//                                parameter.restart_steps_,
+//                                parameter.restart_energy_,
+//                                parameter.restart_time_,
+//                                parameter.json_coefficients_filename_};
+// }
 mc::KineticMcChainOmpi BuildKineticMcChainOmpiFromParameter(const Parameter &parameter) {
   std::set<Element> element_set;
   for (const auto &element_string: parameter.element_set_) {
@@ -230,6 +232,7 @@ mc::KineticMcChainOmpi BuildKineticMcChainOmpiFromParameter(const Parameter &par
                                 parameter.log_dump_steps_,
                                 parameter.config_dump_steps_,
                                 parameter.maximum_steps_,
+                                parameter.thermodynamic_averaging_steps_,
                                 parameter.temperature_,
                                 element_set,
                                 parameter.restart_steps_,

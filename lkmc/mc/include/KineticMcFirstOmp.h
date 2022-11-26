@@ -6,7 +6,7 @@
 #include "JumpEvent.h"
 #include "KineticMcAbstract.h"
 namespace mc {
-class KineticMcFirstOmp : public KineticMcAbstract {
+class KineticMcFirstOmp : public KineticMcFirstAbstract {
   public:
     KineticMcFirstOmp(cfg::Config config,
                       unsigned long long int log_dump_steps,
@@ -20,12 +20,10 @@ class KineticMcFirstOmp : public KineticMcAbstract {
                       double restart_time,
                       const std::string &json_coefficients_filename);
     ~KineticMcFirstOmp() override;
-    void Simulate() override;
   protected:
-    void BuildEventList();
-    double CalculateTime();
+    void BuildEventList() override;
+    double CalculateTime() override;
 };
-
 } // mc
 
 #endif //LKMC_LKMC_MC_INCLUDE_KINETICMCFIRSTOMP_H_

@@ -8,32 +8,32 @@
 #include "VacancyMigrationPredictorQuarticLru.h"
 namespace mc {
 
-class KineticMcAbstract {
+class KineticMcFirstAbstract {
     // it is lattice id jump pair based
   public:
-    KineticMcAbstract(cfg::Config config,
-                      unsigned long long int log_dump_steps,
-                      unsigned long long int config_dump_steps,
-                      unsigned long long int maximum_steps,
-                      unsigned long long int thermodynamic_averaging_steps,
-                      double temperature,
-                      const std::set<Element> &element_set,
-                      unsigned long long int restart_steps,
-                      double restart_energy,
-                      double restart_time,
-                      const std::string &json_coefficients_filename);
-    virtual ~KineticMcAbstract();
-    virtual void Simulate() = 0;
+    KineticMcFirstAbstract(cfg::Config config,
+                           unsigned long long int log_dump_steps,
+                           unsigned long long int config_dump_steps,
+                           unsigned long long int maximum_steps,
+                           unsigned long long int thermodynamic_averaging_steps,
+                           double temperature,
+                           const std::set<Element> &element_set,
+                           unsigned long long int restart_steps,
+                           double restart_energy,
+                           double restart_time,
+                           const std::string &json_coefficients_filename);
+    virtual ~KineticMcFirstAbstract();
+    virtual void Simulate();
   protected:
     void Dump() const;
     size_t SelectEvent() const;
-
+    virtual void BuildEventList() = 0;
+    virtual double CalculateTime() = 0;
+    virtual void OneStepSimulation();
     // constants
     static constexpr size_t kEventListSize = constants::kNumFirstNearestNeighbors;
-
     // config
     cfg::Config config_;
-    const size_t vacancy_atom_id_;
     // simulation parameters
     const unsigned long long int log_dump_steps_;
     const unsigned long long int config_dump_steps_;
@@ -51,9 +51,37 @@ class KineticMcAbstract {
     mutable std::ofstream ofs_;
 
     // simulation variables
+    size_t vacancy_lattice_id_;
     std::array<JumpEvent, kEventListSize> event_k_i_list_{};
-    JumpEvent selected_event_k_i_{};
+    JumpEvent event_k_i_{};
     double total_rate_k_{0.0}; // k would be same for all
+
+    int world_rank_{-1};
+    int world_size_{-1};
+};
+class KineticMcChainAbstract : public KineticMcFirstAbstract {
+  public:
+    KineticMcChainAbstract(cfg::Config config,
+                           unsigned long long int log_dump_steps,
+                           unsigned long long int config_dump_steps,
+                           unsigned long long int maximum_steps,
+                           unsigned long long int thermodynamic_averaging_steps,
+                           double temperature,
+                           const std::set<Element> &element_set,
+                           unsigned long long int restart_steps,
+                           double restart_energy,
+                           double restart_time,
+                           const std::string &json_coefficients_filename);
+    ~KineticMcChainAbstract() override;
+  protected:
+    void OneStepSimulation() override;
+    // helpful properties
+    size_t previous_j_lattice_id_;
+    double total_rate_i_{0.0}; // i would be different
+    std::array<size_t, kEventListSize> l_lattice_id_list_{};
+
+    MPI_Op mpi_op_{};
+    MPI_Datatype mpi_datatype_{};
 };
 struct MpiData {
   double beta_bar_k{0.0};
@@ -65,7 +93,6 @@ struct MpiData {
   double ts_numerator{0.0};
   double ts_j_numerator{0.0};
 };
-
 inline void DataSum(void *input_buffer,
                     void *output_buffer,
                     int *len,
@@ -104,7 +131,6 @@ inline void DefineStruct(MPI_Datatype *datatype) {
   MPI_Type_create_struct(count, block_lens, displacements, types, datatype);
   MPI_Type_commit(datatype);
 }
-
 } // mc
 
 #endif //LKMC_LKMC_MC_INCLUDE_KINETICMCABSTRACT_H_

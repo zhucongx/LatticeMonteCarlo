@@ -3,8 +3,8 @@
 #include "Parameter.h"
 #include "KineticMcFirstMpi.h"
 #include "KineticMcFirstOmp.h"
-#include "KineticMcChainMpi.h"
-#include "KineticMcChainOmp.h"
+// #include "KineticMcChainMpi.h"
+// #include "KineticMcChainOmp.h"
 #include "KineticMcChainOmpi.h"
 #include "SimulatedAnnealing.h"
 #include "CanonicalMcStepT.h"
@@ -16,8 +16,8 @@ void Print(const Parameter &parameter);
 void Run(const Parameter &parameter);
 mc::KineticMcFirstMpi BuildKineticMcFirstMpiFromParameter(const Parameter &parameter);
 mc::KineticMcFirstOmp BuildKineticMcFirstOmpFromParameter(const Parameter &parameter);
-mc::KineticMcChainMpi BuildKineticMcChainMpiFromParameter(const Parameter &parameter);
-mc::KineticMcChainOmp BuildKineticMcChainOmpFromParameter(const Parameter &parameter);
+// mc::KineticMcChainMpi BuildKineticMcChainMpiFromParameter(const Parameter &parameter);
+// mc::KineticMcChainOmp BuildKineticMcChainOmpFromParameter(const Parameter &parameter);
 mc::KineticMcChainOmpi BuildKineticMcChainOmpiFromParameter(const Parameter &parameter);
 ansys::SimulatedAnnealing BuildSimulatedAnnealingFromParameter(const Parameter &parameter);
 mc::CanonicalMcStepT BuildCanonicalMcStepTFromParameter(const Parameter &parameter);
