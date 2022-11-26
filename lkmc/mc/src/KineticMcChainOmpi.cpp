@@ -59,7 +59,7 @@ void KineticMcChainOmpi::BuildEventList() {
   for (size_t ii = 0; ii < kEventListSize; ++ii) {
     const auto l_lattice_id = l_lattice_id_list_[ii];
     JumpEvent event_i_l({i_lattice_id, l_lattice_id},
-                        energy_predictor_.GetBarrierAndDiffFromAtomIdPair(
+                        energy_predictor_.GetBarrierAndDiffFromLatticeIdPair(
                             config_, {i_lattice_id, l_lattice_id}),
                         beta_);
     if (l_lattice_id == k_lattice_id) {

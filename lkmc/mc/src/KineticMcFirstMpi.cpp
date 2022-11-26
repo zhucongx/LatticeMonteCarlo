@@ -41,7 +41,7 @@ void KineticMcFirstMpi::BuildEventList() {
 
   event_k_i_ = JumpEvent(
       {vacancy_lattice_id_, neighbor_vacancy_id},
-      energy_predictor_.GetBarrierAndDiffFromAtomIdPair(
+      energy_predictor_.GetBarrierAndDiffFromLatticeIdPair(
           config_, {vacancy_lattice_id_, neighbor_vacancy_id}),
       beta_);
   const double this_rate = event_k_i_.GetForwardRate();
