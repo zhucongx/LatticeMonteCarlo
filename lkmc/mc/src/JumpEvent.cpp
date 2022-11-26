@@ -50,6 +50,7 @@ void JumpEvent::CalculateProbability(double total_rates) {
   probability_ = forward_rate_ / total_rates;
 }
 JumpEvent JumpEvent::GetReverseJumpEvent() const {
-  return JumpEvent{jump_pair_, {barrier_ - energy_change_, -energy_change_}, beta_};
+  return JumpEvent{{jump_pair_.second, jump_pair_.first},
+                   {barrier_ - energy_change_, -energy_change_}, beta_};
 }
 } // mc

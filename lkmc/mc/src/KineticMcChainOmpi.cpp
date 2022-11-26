@@ -68,7 +68,7 @@ void KineticMcChainOmpi::BuildEventList() {
     auto r_i_l = event_i_l.GetForwardRate();
     total_rate_i_ += r_i_l;
   }
-  config_.LatticeJump({k_lattice_id, i_lattice_id});
+  config_.LatticeJump({i_lattice_id, k_lattice_id});
 
   double rate_k_i = event_k_i_.GetForwardRate();
   MPI_Allreduce(&rate_k_i, &total_rate_k_, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
