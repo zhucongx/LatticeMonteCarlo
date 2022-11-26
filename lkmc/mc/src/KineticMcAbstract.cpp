@@ -147,7 +147,6 @@ void KineticMcChainAbstract::OneStepSimulation() {
 KineticMcChainAbstract::~KineticMcChainAbstract() {
   MPI_Op_free(&mpi_op_);
   MPI_Type_free(&mpi_datatype_);
-  KineticMcFirstAbstract::~KineticMcFirstAbstract();
 }
 
 } // mc
