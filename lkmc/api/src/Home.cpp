@@ -3,8 +3,9 @@ namespace api {
 void Print(const Parameter &parameter) {
   std::cout << "Parameters" << std::endl;
   std::cout << "simulation_method: " << parameter.method << std::endl;
-  if (parameter.method == "KineticMcFirstMpi" || parameter.method == "KineticMcChainOmp"
-      || parameter.method == "KineticMcChainMpi" || parameter.method == "KineticMcChainOmpi") {
+  if (parameter.method == "KineticMcFirstMpi" || parameter.method == "KineticMcFirstOmp" ||
+      parameter.method == "KineticMcChainOmp" || parameter.method == "KineticMcChainMpi" ||
+      parameter.method == "KineticMcChainOmpi") {
     std::cout << "json_coefficients_filename: " << parameter.json_coefficients_filename_
               << std::endl;
     std::cout << "config_filename: " << parameter.config_filename_ << std::endl;
@@ -82,12 +83,12 @@ void Run(const Parameter &parameter) {
   } else if (parameter.method == "KineticMcFirstOmp") {
     auto kinetic_mc_first_omp = api::BuildKineticMcFirstOmpFromParameter(parameter);
     kinetic_mc_first_omp.Simulate();
-  // } else if (parameter.method == "KineticMcChainMpi") {
-  //   auto kinetic_mc_chain_mpi = api::BuildKineticMcChainMpiFromParameter(parameter);
-  //   kinetic_mc_chain_mpi.Simulate();
-  // } else if (parameter.method == "KineticMcChainOmp") {
-  //   auto kinetic_mc_chain_omp = api::BuildKineticMcChainOmpFromParameter(parameter);
-  //   kinetic_mc_chain_omp.Simulate();
+    // } else if (parameter.method == "KineticMcChainMpi") {
+    //   auto kinetic_mc_chain_mpi = api::BuildKineticMcChainMpiFromParameter(parameter);
+    //   kinetic_mc_chain_mpi.Simulate();
+    // } else if (parameter.method == "KineticMcChainOmp") {
+    //   auto kinetic_mc_chain_omp = api::BuildKineticMcChainOmpFromParameter(parameter);
+    //   kinetic_mc_chain_omp.Simulate();
   } else if (parameter.method == "KineticMcChainOmpi") {
     auto kinetic_mc_chain_ompi = api::BuildKineticMcChainOmpiFromParameter(parameter);
     kinetic_mc_chain_ompi.Simulate();
