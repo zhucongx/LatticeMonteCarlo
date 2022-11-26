@@ -27,6 +27,7 @@ KineticMcChainOmpi::KineticMcChainOmpi(cfg::Config config,
                              restart_time,
                              json_coefficients_filename) {
   if (world_size_ != kEventListSize) {
+    std::cout << "Using " << world_size_ << " processes." << std::endl;
     std::cout << "Must use " << kEventListSize << " precesses. Terminating...\n" << std::endl;
     MPI_Finalize();
     exit(0);
