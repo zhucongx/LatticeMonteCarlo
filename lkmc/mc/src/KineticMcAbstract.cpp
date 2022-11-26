@@ -42,7 +42,7 @@ KineticMcFirstAbstract::KineticMcFirstAbstract(cfg::Config config,
 }
 KineticMcFirstAbstract::~KineticMcFirstAbstract() {
   MPI_Finalize();
-};
+}
 
 void KineticMcFirstAbstract::Dump() const {
   if (world_rank_ != 0) {
