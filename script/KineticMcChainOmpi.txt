@@ -3,7 +3,7 @@ json_coefficients_filename quartic_coefficients.json
 config_filename start.cfg
 #map_filename map0.txt
 log_dump_steps                  100000
-config_dump_steps             10000000
+config_dump_steps              1000000
 maximum_steps         1000000000000000
 thermodynamic_averaging_steps 10000000
 temperature 650
