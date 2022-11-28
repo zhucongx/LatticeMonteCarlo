@@ -45,7 +45,8 @@ class KineticMcFirstAbstract {
     double initial_absolute_energy_;
     double time_;
     // helpful properties
-    mutable ThermodynamicAveraging thermodynamic_averaging_;
+    bool is_restarted_;
+    ThermodynamicAveraging thermodynamic_averaging_;
     const pred::VacancyMigrationPredictorQuarticLru energy_predictor_;
     mutable std::mt19937_64 generator_;
     mutable std::ofstream ofs_;

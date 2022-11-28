@@ -25,12 +25,13 @@ KineticMcFirstAbstract::KineticMcFirstAbstract(cfg::Config config,
       energy_(restart_energy),
       initial_absolute_energy_(0.0),
       time_(restart_time),
+      is_restarted_(restart_steps > 0),
       thermodynamic_averaging_(thermodynamic_averaging_steps),
       energy_predictor_(json_coefficients_filename,
                         config_, element_set, 100000),
       generator_(static_cast<unsigned long long int>(
                      std::chrono::system_clock::now().time_since_epoch().count())),
-      ofs_("lkmc_log.txt", std::ofstream::out | std::ofstream::app),
+      ofs_("lkmc_log.txt", is_restarted_ ? std::ofstream::app : std::ofstream::out),
       vacancy_lattice_id_(config_.GetVacancyLatticeId()) {
   ofs_.precision(16);
   pred::EnergyPredictor total_energy_predictor(json_coefficients_filename, element_set);
@@ -48,7 +49,6 @@ void KineticMcFirstAbstract::Dump() const {
   if (world_rank_ != 0) {
     return;
   }
-  thermodynamic_averaging_.AddEnergy(energy_);
   if (steps_ == 0) {
     config_.WriteLattice("lattice.txt");
     config_.WriteElement("element.txt");
@@ -99,7 +99,12 @@ size_t KineticMcFirstAbstract::SelectEvent() const {
   }
 }
 void KineticMcFirstAbstract::OneStepSimulation() {
-  Dump();
+  thermodynamic_averaging_.AddEnergy(energy_);
+  if (is_restarted_) {
+    is_restarted_ = false;
+  } else {
+    Dump();
+  }
   BuildEventList();
   time_ += CalculateTime();
   event_k_i_ = event_k_i_list_[SelectEvent()];

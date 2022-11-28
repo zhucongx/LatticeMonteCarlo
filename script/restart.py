@@ -36,42 +36,57 @@ def reverse_readline(filename, buf_size=8192):
             yield segment
 
 
-for s in ['s1', 's2', 's3', 's4', 's5']:
-    for T in [275, 300, 325, 350, 375, 400, 425, 450, 475, 500, 525, 550, 575, 600, 625, 650, 675, 700]:
-        if exists(f'{s}/{T}/lkmc_log.txt'):
-            rename(f'{s}/{T}/lkmc_log.txt', f'{s}/{T}/lkmc_log_backup.txt')
-        last_i = None
-        last_step = None
-        last_time = None
-        last_energy = None
+def read_parameters(filename):
+    param = {}
+    with open(filename) as f:
+        for line in f:
+            if line.startswith('#'):
+                continue
+            line_split = line.split(' ', 1)
+            if len(line_split) == 2:
+                param[line_split[0]] = line_split[1].strip('\n')
+    return param
 
-        for i, line in enumerate(reverse_readline(f'{s}/{T}/lkmc_log_backup.txt')):
-            line = line.split()
-            if exists(f'{s}/{T}/map{line[0]}.txt'):
-                last_i = i
-                last_step = line[0]
-                last_time = line[1]
-                last_energy = line[2]
+
+if __name__ == '__main__':
+    if exists(f'./lkmc_log.txt'):
+        rename(f'./lkmc_log.txt', f'./lkmc_log_backup.txt')
+    last_i = None
+    last_step = None
+    last_time = None
+    last_energy = None
+
+    for i, line in enumerate(reverse_readline(f'./lkmc_log_backup.txt')):
+        line = line.split()
+        if exists(f'./map{line[0]}.txt'):
+            last_i = i
+            last_step = line[0]
+            last_time = line[1]
+            last_energy = line[2]
+            break
+    print(f"{last_i}, {last_step}, {last_time}, {last_energy}")
+    with open(f'./lkmc_log_backup.txt', 'r') as f1, open(f'./lkmc_log.txt', 'w') as f2:
+        for i, line in enumerate(f1):
+            f2.write(line)
+            step = line.split()[0]
+            if step == last_step:
+                f2.flush()
                 break
-        print(f"{s}, {T}K, {last_i}, {last_step}, {last_time}, {last_energy}")
-        with open(f'{s}/{T}/lkmc_log_backup.txt', 'r') as f1, open(f'{s}/{T}/lkmc_log.txt', 'w') as f2:
-            for i, line in enumerate(f1):
-                f2.write(line)
-                step = line.split()[0]
-                if step == last_step:
-                    f2.flush()
-                    break
-        with open(f'{s}/{T}/lkmc_param.txt', 'w') as f4:
-            f4.write(f"simulation_method ChainKmc\n")
-            f4.write(f"map_filename map{last_step}.txt\n")
-            f4.write(f"json_coefficients_filename quartic_coefficients.json\n")
-            f4.write(f"log_dump_steps 100\n")
-            f4.write(f"config_dump_steps 10000\n")
-            f4.write(f"maximum_steps 1000000000000000\n")
-            f4.write(f"temperature {T}\n")
-            f4.write(f"element_set Al Mg Zn\n")
-            f4.write(f"restart_steps {last_step}\n")
-            f4.write(f"restart_energy {last_energy}\n")
-            f4.write(f"restart_time {last_time}\n")
-            f4.flush()
-        print(f"Done with {s} {T}K")
+    if exists(f'./lkmc_param.txt'):
+        rename(f'./lkmc_param.txt', f'./lkmc_param_backup.txt')
+    old_param = read_parameters(f'./lkmc_param_backup.txt')
+    with open(f'./lkmc_param.txt', 'w') as f4:
+        f4.write(f"simulation_method {old_param['simulation_method']}\n")
+        f4.write(f"json_coefficients_filename {old_param['json_coefficients_filename']}\n")
+        f4.write(f"map_filename map{last_step}.txt\n")
+        f4.write(f"log_dump_steps {old_param['log_dump_steps']}\n")
+        f4.write(f"config_dump_steps {old_param['config_dump_steps']}\n")
+        f4.write(f"maximum_steps {old_param['maximum_steps']}\n")
+        f4.write(f"thermodynamic_averaging_steps {old_param['thermodynamic_averaging_steps']}\n")
+        f4.write(f"temperature {old_param['temperature']}\n")
+        f4.write(f"element_set {old_param['element_set']}\n")
+        f4.write(f"restart_steps {last_step}\n")
+        f4.write(f"restart_energy {last_energy}\n")
+        f4.write(f"restart_time {last_time}\n")
+        f4.flush()
+    print(f"Done...")
