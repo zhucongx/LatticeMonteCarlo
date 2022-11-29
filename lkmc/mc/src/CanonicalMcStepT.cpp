@@ -39,7 +39,7 @@ CanonicalMcStepT::CanonicalMcStepT(cfg::Config config,
       energy_predictor_(json_coefficients_filename,
                         config_,
                         element_set),
-      atom_index_selector_(0, config_.GetNumAtoms() - 1){
+      atom_index_selector_(0, config_.GetNumAtoms() - 1) {
   if (world_size_ != 1) {
     std::cout << "Must use 1 precesses. Terminating...\n" << std::endl;
     MPI_Finalize();
@@ -70,9 +70,12 @@ void CanonicalMcStepT::UpdateTemperature() {
 
 void CanonicalMcStepT::Dump() {
   if (steps_ == 0) {
+    config_.WriteLattice("lattice.txt");
+    config_.WriteElement("element.txt");
     ofs_ << "steps\ttemperature\tenergy\taverage_energy\tabsolute_energy" << std::endl;
   }
   if (steps_ % config_dump_steps_ == 0) {
+    config_.WriteMap("map" + std::to_string(steps_) + ".txt");
     config_.WriteConfig(std::to_string(steps_) + ".cfg", false);
   }
 
@@ -88,7 +91,7 @@ void CanonicalMcStepT::Dump() {
   }
   if (steps_ % log_dump_steps == 0) {
     ofs_ << steps_ << '\t' << temperature_ << '\t' << energy_ << '\t'
-         << thermodynamic_averaging_.GetThermodynamicAverage(beta_)
+         << thermodynamic_averaging_.GetThermodynamicAverage(beta_) << '\t'
          << initial_temperature_ + energy_
          << std::endl;
   }
