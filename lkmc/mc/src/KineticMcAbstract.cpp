@@ -27,10 +27,10 @@ KineticMcFirstAbstract::KineticMcFirstAbstract(cfg::Config config,
                  element_set,
                  json_coefficients_filename,
                  "lkmc_log.txt"),
-      energy_predictor_(json_coefficients_filename,
-                        config_,
-                        element_set,
-                        100000),
+      vacancy_migration_predictor_lru_(json_coefficients_filename,
+                                       config_,
+                                       element_set,
+                                       100000),
       vacancy_lattice_id_(config_.GetVacancyLatticeId()) {
 }
 KineticMcFirstAbstract::~KineticMcFirstAbstract() = default;

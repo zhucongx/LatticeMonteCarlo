@@ -36,9 +36,9 @@ CanonicalMcStepT::CanonicalMcStepT(cfg::Config config,
                  "cmc_log.txt"),
       initial_temperature_(initial_temperature),
       decrement_temperature_(decrement_temperature),
-      energy_predictor_(json_coefficients_filename,
-                        config_,
-                        element_set),
+      energy_change_predictor_(json_coefficients_filename,
+                               config_,
+                               element_set),
       atom_index_selector_(0, config_.GetNumAtoms() - 1) {
   if (world_size_ != 1) {
     std::cout << "Must use 1 precesses. Terminating...\n" << std::endl;
@@ -105,7 +105,7 @@ void CanonicalMcStepT::Simulate() {
     Dump();
     UpdateTemperature();
     auto lattice_id_jump_pair = GenerateLatticeIdJumpPair();
-    auto dE = energy_predictor_.GetDeFromLatticeIdPair(config_, lattice_id_jump_pair);
+    auto dE = energy_change_predictor_.GetDeFromLatticeIdPair(config_, lattice_id_jump_pair);
     if (dE < 0) {
       config_.LatticeJump(lattice_id_jump_pair);
       energy_ += dE;

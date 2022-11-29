@@ -28,7 +28,7 @@ class CanonicalMcStepT : public McAbstract {
     const double decrement_temperature_;
 
     // helpful properties
-    const pred::EnergyChangePredictorPairAll energy_predictor_;
+    const pred::EnergyChangePredictorPairAll energy_change_predictor_;
     mutable std::uniform_int_distribution<size_t> atom_index_selector_;
 };
 } // mc

@@ -34,7 +34,7 @@ class KineticMcFirstAbstract : public McAbstract {
     static constexpr size_t kEventListSize = constants::kNumFirstNearestNeighbors;
 
     // helpful properties
-    const pred::VacancyMigrationPredictorQuarticLru energy_predictor_;
+    const pred::VacancyMigrationPredictorQuarticLru vacancy_migration_predictor_lru_;
     size_t vacancy_lattice_id_;
     std::array<JumpEvent, kEventListSize> event_k_i_list_{};
     JumpEvent event_k_i_{};

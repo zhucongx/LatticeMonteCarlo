@@ -45,7 +45,7 @@ void KineticMcFirstOmp::BuildEventList() {
     const auto neighbor_vacancy_id = neighbor_vacancy_id_vector[i];
     JumpEvent lattice_jump_event(
         {vacancy_lattice_id_, neighbor_vacancy_id},
-        energy_predictor_.GetBarrierAndDiffFromLatticeIdPair(
+        vacancy_migration_predictor_lru_.GetBarrierAndDiffFromLatticeIdPair(
             config_, {vacancy_lattice_id_, neighbor_vacancy_id}),
         beta_);
     total_rate_k_ += lattice_jump_event.GetForwardRate();
