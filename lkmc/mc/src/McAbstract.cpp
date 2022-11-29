@@ -1,8 +1,9 @@
 #include "McAbstract.h"
-#include "EnergyPredictor.h"
 #include <utility>
 #include <chrono>
 #include <mpi.h>
+#include "EnergyPredictor.h"
+
 namespace mc {
 McAbstract::McAbstract(cfg::Config config,
                        const unsigned long long int log_dump_steps,
@@ -31,6 +32,7 @@ McAbstract::McAbstract(cfg::Config config,
       thermodynamic_averaging_(thermodynamic_averaging_steps),
       generator_(static_cast<unsigned long long int>(
                      std::chrono::system_clock::now().time_since_epoch().count())),
+      unit_distribution_(0.0, 1.0),
       ofs_(log_filename, is_restarted_ ? std::ofstream::app : std::ofstream::out) {
   ofs_.precision(16);
 

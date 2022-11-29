@@ -3,43 +3,33 @@
 #include <random>
 #include <mpi.h>
 #include <omp.h>
+#include "McAbstract.h"
 #include "EnergyChangePredictorPairAll.h"
-#include "ThermodynamicAveraging.h"
 namespace mc {
-class CanonicalMcStepT {
+class CanonicalMcStepT : public McAbstract {
   public:
     CanonicalMcStepT(cfg::Config config,
-                     const std::set<Element> &element_set,
                      unsigned long long int log_dump_steps,
                      unsigned long long int config_dump_steps,
                      unsigned long long int maximum_steps,
                      unsigned long long int thermodynamic_averaging_steps,
                      double initial_temperature,
                      double decrement_temperature,
+                     const std::set<Element> &element_set,
                      const std::string &json_coefficients_filename);
-    void Simulate();
+    void Simulate() override;
   private:
     inline void UpdateTemperature();
-    inline void Dump(std::ofstream &ofs);
-    std::pair<size_t, size_t> GenerateAtomIdJumpPair();
+    inline void Dump();
+    std::pair<size_t, size_t> GenerateLatticeIdJumpPair();
+
     // simulation parameters
-    cfg::Config config_;
-    const unsigned long long int log_dump_steps_;
-    const unsigned long long int config_dump_steps_;
-    const unsigned long long int maximum_steps_;
-    // simulation statistics
-    unsigned long long int steps_{0};
-    double energy_{0.0};
-    ThermodynamicAveraging thermodynamic_averaging_;
     const double initial_temperature_;
     const double decrement_temperature_;
-    double temperature_;
-    double beta_;
 
+    // helpful properties
     const pred::EnergyChangePredictorPairAll energy_predictor_;
-    mutable std::mt19937_64 generator_;
     mutable std::uniform_int_distribution<size_t> atom_index_selector_;
-    mutable std::uniform_real_distribution<double> one_distribution_{0.0, 1.0};
 };
 } // mc
 

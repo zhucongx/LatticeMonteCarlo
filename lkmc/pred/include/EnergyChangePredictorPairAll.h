@@ -18,9 +18,9 @@ class EnergyChangePredictorPairAll {
     virtual ~EnergyChangePredictorPairAll();
     [[nodiscard]] double GetDeFromAtomIdPair(
         const cfg::Config &config, const std::pair<size_t, size_t> &atom_id_jump_pair) const;
-  private:
     [[nodiscard]] double GetDeFromLatticeIdPair(
         const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
+  private:
     [[nodiscard]] double GetDeFromLatticeIdPairWithCoupling(
         const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
     [[nodiscard]] double GetDeFromLatticeIdPairWithoutCoupling(

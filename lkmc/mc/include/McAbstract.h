@@ -41,6 +41,7 @@ class McAbstract {
     // helpful properties
     ThermodynamicAveraging thermodynamic_averaging_;
     mutable std::mt19937_64 generator_;
+    mutable std::uniform_real_distribution<double> unit_distribution_;
     mutable std::ofstream ofs_;
 
     int world_rank_{-1};

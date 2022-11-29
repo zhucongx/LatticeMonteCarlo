@@ -248,16 +248,15 @@ ansys::SimulatedAnnealing BuildSimulatedAnnealingFromParameter(const Parameter &
                                             parameter.solute_number_set_[i]));
   }
 
-  return ansys::SimulatedAnnealing{
-      {parameter.factor_, parameter.factor_, parameter.factor_},
-      Element(parameter.solvent_element_),
-      solute_atom_count,
-      parameter.log_dump_steps_,
-      parameter.config_dump_steps_,
-      parameter.maximum_steps_,
-      parameter.early_stop_steps_,
-      parameter.initial_temperature_,
-      parameter.json_coefficients_filename_};
+  return ansys::SimulatedAnnealing{{parameter.factor_, parameter.factor_, parameter.factor_},
+                                   Element(parameter.solvent_element_),
+                                   solute_atom_count,
+                                   parameter.log_dump_steps_,
+                                   parameter.config_dump_steps_,
+                                   parameter.maximum_steps_,
+                                   parameter.early_stop_steps_,
+                                   parameter.initial_temperature_,
+                                   parameter.json_coefficients_filename_};
 }
 mc::CanonicalMcStepT BuildCanonicalMcStepTFromParameter(const Parameter &parameter) {
   std::set<Element> element_set;
@@ -267,16 +266,15 @@ mc::CanonicalMcStepT BuildCanonicalMcStepTFromParameter(const Parameter &paramet
 
   auto config = cfg::Config::ReadConfig(parameter.config_filename_);
   std::cout << "Finish config reading. Start CMC." << std::endl;
-  return mc::CanonicalMcStepT{
-      config,
-      element_set,
-      parameter.log_dump_steps_,
-      parameter.config_dump_steps_,
-      parameter.maximum_steps_,
-      parameter.thermodynamic_averaging_steps_,
-      parameter.initial_temperature_,
-      parameter.decrement_temperature_,
-      parameter.json_coefficients_filename_};
+  return mc::CanonicalMcStepT{config,
+                              parameter.log_dump_steps_,
+                              parameter.config_dump_steps_,
+                              parameter.maximum_steps_,
+                              parameter.thermodynamic_averaging_steps_,
+                              parameter.initial_temperature_,
+                              parameter.decrement_temperature_,
+                              element_set,
+                              parameter.json_coefficients_filename_};
 }
 // mc::SemiGrandCanonicalMcStepT BuildSemiGrandCanonicalMcStepTFromParameter(const Parameter &parameter) {
 //   std::set<Element> element_set;

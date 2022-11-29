@@ -1,5 +1,4 @@
 #include "KineticMcAbstract.h"
-#include "EnergyPredictor.h"
 #include <utility>
 #include <chrono>
 #include <mpi.h>
@@ -29,7 +28,9 @@ KineticMcFirstAbstract::KineticMcFirstAbstract(cfg::Config config,
                  json_coefficients_filename,
                  "lkmc_log.txt"),
       energy_predictor_(json_coefficients_filename,
-                        config_, element_set, 100000),
+                        config_,
+                        element_set,
+                        100000),
       vacancy_lattice_id_(config_.GetVacancyLatticeId()) {
 }
 KineticMcFirstAbstract::~KineticMcFirstAbstract() = default;
@@ -67,8 +68,7 @@ void KineticMcFirstAbstract::Dump() const {
   }
 }
 size_t KineticMcFirstAbstract::SelectEvent() const {
-  static std::uniform_real_distribution<double> distribution(0.0, 1.0);
-  const double random_number = distribution(generator_);
+  const double random_number = unit_distribution_(generator_);
   auto it = std::lower_bound(event_k_i_list_.begin(),
                              event_k_i_list_.end(),
                              random_number,
