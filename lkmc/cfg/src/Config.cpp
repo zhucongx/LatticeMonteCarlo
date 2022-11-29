@@ -641,15 +641,21 @@ void Config::UpdateNeighbors() {
         if (std::abs(absolute_distance_vector[kZDimension])
             > constants::kNearNeighborsCutoff) { continue; }
         const double absolute_distance_square = Inner(absolute_distance_vector);
+        if (absolute_distance_square < first_r_cutoff_square) {
 #pragma omp critical
-        {
-          if (absolute_distance_square < first_r_cutoff_square) {
+          {
             first_neighbors_adjacency_list_[first_lattice_id].push_back(second_lattice_id);
             first_neighbors_adjacency_list_[second_lattice_id].push_back(first_lattice_id);
-          } else if (absolute_distance_square < second_r_cutoff_square) {
+          }
+        } else if (absolute_distance_square < second_r_cutoff_square) {
+#pragma omp critical
+          {
             second_neighbors_adjacency_list_[first_lattice_id].push_back(second_lattice_id);
             second_neighbors_adjacency_list_[second_lattice_id].push_back(first_lattice_id);
-          } else if (absolute_distance_square < third_r_cutoff_square) {
+          }
+        } else if (absolute_distance_square < third_r_cutoff_square) {
+#pragma omp critical
+          {
             third_neighbors_adjacency_list_[first_lattice_id].push_back(second_lattice_id);
             third_neighbors_adjacency_list_[second_lattice_id].push_back(first_lattice_id);
           }
