@@ -10,40 +10,29 @@ KineticMcFirstAbstract::KineticMcFirstAbstract(cfg::Config config,
                                                const unsigned long long int config_dump_steps,
                                                const unsigned long long int maximum_steps,
                                                const unsigned long long int thermodynamic_averaging_steps,
-                                               const double temperature,
-                                               const std::set<Element> &element_set,
                                                const unsigned long long int restart_steps,
                                                const double restart_energy,
                                                const double restart_time,
+                                               const double temperature,
+                                               const std::set<Element> &element_set,
                                                const std::string &json_coefficients_filename)
-    : config_(std::move(config)),
-      log_dump_steps_(log_dump_steps),
-      config_dump_steps_(config_dump_steps),
-      maximum_steps_(maximum_steps),
-      beta_(1.0 / constants::kBoltzmann / temperature),
-      steps_(restart_steps),
-      energy_(restart_energy),
-      initial_absolute_energy_(0.0),
-      time_(restart_time),
-      is_restarted_(restart_steps > 0),
-      thermodynamic_averaging_(thermodynamic_averaging_steps),
+    : McAbstract(std::move(config),
+                 log_dump_steps,
+                 config_dump_steps,
+                 maximum_steps,
+                 thermodynamic_averaging_steps,
+                 restart_steps,
+                 restart_energy,
+                 restart_time,
+                 temperature,
+                 element_set,
+                 json_coefficients_filename,
+                 "lkmc_log.txt"),
       energy_predictor_(json_coefficients_filename,
                         config_, element_set, 100000),
-      generator_(static_cast<unsigned long long int>(
-                     std::chrono::system_clock::now().time_since_epoch().count())),
-      ofs_("lkmc_log.txt", is_restarted_ ? std::ofstream::app : std::ofstream::out),
       vacancy_lattice_id_(config_.GetVacancyLatticeId()) {
-  ofs_.precision(16);
-  pred::EnergyPredictor total_energy_predictor(json_coefficients_filename, element_set);
-  initial_absolute_energy_ = total_energy_predictor.GetEnergy(config_);
-
-  MPI_Init(nullptr, nullptr);
-  MPI_Comm_rank(MPI_COMM_WORLD, &world_rank_);
-  MPI_Comm_size(MPI_COMM_WORLD, &world_size_);
 }
-KineticMcFirstAbstract::~KineticMcFirstAbstract() {
-  MPI_Finalize();
-}
+KineticMcFirstAbstract::~KineticMcFirstAbstract() = default;
 
 void KineticMcFirstAbstract::Dump() const {
   if (world_rank_ != 0) {
@@ -124,22 +113,22 @@ KineticMcChainAbstract::KineticMcChainAbstract(cfg::Config config,
                                                const unsigned long long int config_dump_steps,
                                                const unsigned long long int maximum_steps,
                                                const unsigned long long int thermodynamic_averaging_steps,
-                                               const double temperature,
-                                               const std::set<Element> &element_set,
                                                const unsigned long long int restart_steps,
                                                const double restart_energy,
                                                const double restart_time,
+                                               const double temperature,
+                                               const std::set<Element> &element_set,
                                                const std::string &json_coefficients_filename)
     : KineticMcFirstAbstract(std::move(config),
                              log_dump_steps,
                              config_dump_steps,
                              maximum_steps,
                              thermodynamic_averaging_steps,
-                             temperature,
-                             element_set,
                              restart_steps,
                              restart_energy,
                              restart_time,
+                             temperature,
+                             element_set,
                              json_coefficients_filename),
       previous_j_lattice_id_(config_.GetFirstNeighborsAdjacencyList()[vacancy_lattice_id_][0]) {
   MPI_Op_create(DataSum, 1, &mpi_op_);
@@ -154,4 +143,5 @@ KineticMcChainAbstract::~KineticMcChainAbstract() {
   MPI_Type_free(&mpi_datatype_);
 }
 
-} // mc
+}
+// mc

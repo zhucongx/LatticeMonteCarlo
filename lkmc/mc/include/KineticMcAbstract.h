@@ -3,12 +3,12 @@
 #include <random>
 #include <omp.h>
 #include <mpi.h>
+#include "McAbstract.h"
 #include "JumpEvent.h"
-#include "ThermodynamicAveraging.h"
 #include "VacancyMigrationPredictorQuarticLru.h"
 namespace mc {
 
-class KineticMcFirstAbstract {
+class KineticMcFirstAbstract : public McAbstract {
     // it is lattice id jump pair based
   public:
     KineticMcFirstAbstract(cfg::Config config,
@@ -16,14 +16,14 @@ class KineticMcFirstAbstract {
                            unsigned long long int config_dump_steps,
                            unsigned long long int maximum_steps,
                            unsigned long long int thermodynamic_averaging_steps,
-                           double temperature,
-                           const std::set<Element> &element_set,
                            unsigned long long int restart_steps,
                            double restart_energy,
                            double restart_time,
+                           double temperature,
+                           const std::set<Element> &element_set,
                            const std::string &json_coefficients_filename);
     virtual ~KineticMcFirstAbstract();
-    virtual void Simulate();
+    void Simulate() override;
   protected:
     void Dump() const;
     size_t SelectEvent() const;
@@ -32,33 +32,13 @@ class KineticMcFirstAbstract {
     virtual void OneStepSimulation();
     // constants
     static constexpr size_t kEventListSize = constants::kNumFirstNearestNeighbors;
-    // config
-    cfg::Config config_;
-    // simulation parameters
-    const unsigned long long int log_dump_steps_;
-    const unsigned long long int config_dump_steps_;
-    const unsigned long long int maximum_steps_;
-    const double beta_;
-    // simulation statistics
-    unsigned long long int steps_;
-    double energy_;
-    double initial_absolute_energy_;
-    double time_;
-    // helpful properties
-    bool is_restarted_;
-    ThermodynamicAveraging thermodynamic_averaging_;
-    const pred::VacancyMigrationPredictorQuarticLru energy_predictor_;
-    mutable std::mt19937_64 generator_;
-    mutable std::ofstream ofs_;
 
-    // simulation variables
+    // helpful properties
+    const pred::VacancyMigrationPredictorQuarticLru energy_predictor_;
     size_t vacancy_lattice_id_;
     std::array<JumpEvent, kEventListSize> event_k_i_list_{};
     JumpEvent event_k_i_{};
     double total_rate_k_{0.0}; // k would be same for all
-
-    int world_rank_{-1};
-    int world_size_{-1};
 };
 class KineticMcChainAbstract : public KineticMcFirstAbstract {
   public:
@@ -67,11 +47,11 @@ class KineticMcChainAbstract : public KineticMcFirstAbstract {
                            unsigned long long int config_dump_steps,
                            unsigned long long int maximum_steps,
                            unsigned long long int thermodynamic_averaging_steps,
-                           double temperature,
-                           const std::set<Element> &element_set,
                            unsigned long long int restart_steps,
                            double restart_energy,
                            double restart_time,
+                           double temperature,
+                           const std::set<Element> &element_set,
                            const std::string &json_coefficients_filename);
     ~KineticMcChainAbstract() override;
   protected:
