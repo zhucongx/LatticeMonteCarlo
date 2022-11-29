@@ -13,11 +13,11 @@ class KineticMcFirstOmp : public KineticMcFirstAbstract {
                       unsigned long long int config_dump_steps,
                       unsigned long long int maximum_steps,
                       unsigned long long int thermodynamic_averaging_steps,
-                      double temperature,
-                      const std::set<Element> &element_set,
                       unsigned long long int restart_steps,
                       double restart_energy,
                       double restart_time,
+                      double temperature,
+                      const std::set<Element> &element_set,
                       const std::string &json_coefficients_filename);
     ~KineticMcFirstOmp() override;
   protected:

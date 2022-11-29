@@ -3,26 +3,26 @@
 #include <chrono>
 namespace mc {
 KineticMcFirstMpi::KineticMcFirstMpi(cfg::Config config,
-                                     unsigned long long int log_dump_steps,
-                                     unsigned long long int config_dump_steps,
-                                     unsigned long long int maximum_steps,
+                                     const unsigned long long int log_dump_steps,
+                                     const unsigned long long int config_dump_steps,
+                                     const unsigned long long int maximum_steps,
                                      const unsigned long long int thermodynamic_averaging_steps,
-                                     double temperature,
+                                     const unsigned long long int restart_steps,
+                                     const double restart_energy,
+                                     const double restart_time,
+                                     const double temperature,
                                      const std::set<Element> &element_set,
-                                     unsigned long long int restart_steps,
-                                     double restart_energy,
-                                     double restart_time,
                                      const std::string &json_coefficients_filename)
     : KineticMcFirstAbstract(std::move(config),
                              log_dump_steps,
                              config_dump_steps,
                              maximum_steps,
                              thermodynamic_averaging_steps,
-                             temperature,
-                             element_set,
                              restart_steps,
                              restart_energy,
                              restart_time,
+                             temperature,
+                             element_set,
                              json_coefficients_filename) {
   if (world_size_ != kEventListSize) {
     std::cout << "Must use " << kEventListSize << " precesses. Terminating...\n" << std::endl;
