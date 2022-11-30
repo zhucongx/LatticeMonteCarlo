@@ -92,7 +92,7 @@ void CanonicalMcStepT::Dump() {
   if (steps_ % log_dump_steps == 0) {
     ofs_ << steps_ << '\t' << temperature_ << '\t' << energy_ << '\t'
          << thermodynamic_averaging_.GetThermodynamicAverage(beta_) << '\t'
-         << initial_temperature_ + energy_
+         << initial_absolute_energy_ + energy_
          << std::endl;
   }
 }
