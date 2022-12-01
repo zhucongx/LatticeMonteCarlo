@@ -185,19 +185,24 @@ void Iterator::RunShortRangeOrder() const {
   }
 }
 void Iterator::RunReformat() const {
-  if (config_type_ == "map") {
-    std::cerr << "Reformat map already done" << std::endl;
-    return;
-  }
   for (unsigned long long i = 0; i <= final_number_; i += increment_steps_) {
     std::cout << i << " / " << final_number_ << std::endl;
-    auto config = cfg::Config::ReadConfig(std::to_string(i) + ".cfg");
-    config.ReassignLatticeVector();
-    if (i == 0) {
-      config.WriteLattice("lattice.txt");
-      config.WriteElement("element.txt");
+    if (config_type_ == "map") {
+      auto config = cfg::Config::ReadMap("lattice.txt",
+                                         "element.txt",
+                                         "map" + std::to_string(i) + ".txt");
+      config.WriteConfig(std::to_string(i) + ".cfg", false);
+    } else if (config_type_ == "config") {
+      auto config = cfg::Config::ReadConfig(std::to_string(i) + ".cfg");
+      config.ReassignLatticeVector();
+      if (i == 0) {
+        config.WriteLattice("lattice.txt");
+        config.WriteElement("element.txt");
+      }
+      config.WriteMap("map" + std::to_string(i) + ".txt");
+    } else {
+      throw std::invalid_argument("Unknown config type: " + config_type_);
     }
-    config.WriteMap("map" + std::to_string(i) + ".txt");
   }
 }
 } // ansys
