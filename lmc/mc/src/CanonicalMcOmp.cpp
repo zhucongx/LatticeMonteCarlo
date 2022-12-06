@@ -27,33 +27,44 @@ CanonicalMcOmp::CanonicalMcOmp(cfg::Config config,
 #pragma omp parallel master default(none) shared(std::cout)
   {
     std::cout << "Using " << omp_get_num_threads() << " threads." << std::endl;
-    event_vector_.resize(static_cast<size_t>(omp_get_num_threads()));
+    num_threads_ = omp_get_num_threads();
   }
+  event_vector_.reserve(static_cast<size_t>(omp_get_num_threads()));
 }
 void CanonicalMcOmp::BuildEventVector() {
-  std::unordered_set<size_t> unavailable_position{};
+  event_vector_.clear();
+  unavailable_position_.clear();
+
   std::pair<size_t, size_t> lattice_id_jump_pair;
-  for (auto &event: event_vector_) {
+  for (size_t i = 0; i < num_threads_; ++i) {
+    size_t ct = 0;
     do {
       lattice_id_jump_pair = GenerateLatticeIdJumpPair();
-    } while (unavailable_position.find(lattice_id_jump_pair.first) != unavailable_position.end() ||
-        unavailable_position.find(lattice_id_jump_pair.second) != unavailable_position.end());
+      ct++;
+      if (ct > 50) {
+        break;
+      }
+    } while (unavailable_position_.find(lattice_id_jump_pair.first) != unavailable_position_.end()
+        || unavailable_position_.find(lattice_id_jump_pair.second) != unavailable_position_.end());
+    if (ct > 50) {
+      break;
+    }
     for (auto selected_lattice_index: {lattice_id_jump_pair.first, lattice_id_jump_pair.second}) {
-      unavailable_position.emplace(selected_lattice_index);
+      unavailable_position_.emplace(selected_lattice_index);
       std::copy(config_.GetFirstNeighborsAdjacencyList().at(selected_lattice_index).begin(),
                 config_.GetFirstNeighborsAdjacencyList().at(selected_lattice_index).end(),
-                std::inserter(unavailable_position,
-                              unavailable_position.end()));
+                std::inserter(unavailable_position_,
+                              unavailable_position_.end()));
       std::copy(config_.GetSecondNeighborsAdjacencyList().at(selected_lattice_index).begin(),
                 config_.GetSecondNeighborsAdjacencyList().at(selected_lattice_index).end(),
-                std::inserter(unavailable_position,
-                              unavailable_position.end()));
+                std::inserter(unavailable_position_,
+                              unavailable_position_.end()));
       std::copy(config_.GetThirdNeighborsAdjacencyList().at(selected_lattice_index).begin(),
                 config_.GetThirdNeighborsAdjacencyList().at(selected_lattice_index).end(),
-                std::inserter(unavailable_position,
-                              unavailable_position.end()));
+                std::inserter(unavailable_position_,
+                              unavailable_position_.end()));
     }
-    event = {lattice_id_jump_pair, 0};
+    event_vector_.emplace_back(lattice_id_jump_pair, 0);
   }
 #pragma omp parallel for default(none)
   for (auto &event: event_vector_) {
