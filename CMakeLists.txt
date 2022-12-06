@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.14)
 ########################################## SET  COMPILERS ##########################################
 set(CMAKE_C_COMPILER "gcc") # {gcc, clang, mpicc, icc, gcc-12}
 set(CMAKE_CXX_COMPILER "g++") # {g++, clang++, mpic/xx, icpc, g++-12}
-project(LKMC)
+project(LMC)
 set(CMAKE_CXX_STANDARD 20)
 ############################################ SET  PATHS ############################################
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
@@ -47,31 +47,31 @@ endif ()
 message(STATUS "Detecting ${CMAKE_CXX_COMPILER_ID} compiler")
 message(STATUS "Current build type is ${CMAKE_BUILD_TYPE}")
 ############################################ BUILD LIBS ############################################
-#add_executable(${PROJECT_NAME} LKMC_Main.cpp)
-#add_subdirectory(lkmc/cfg)
-#add_subdirectory(lkmc/gen)
-#add_subdirectory(lkmc/ansys)
-#add_subdirectory(lkmc/mc)
+#add_executable(${PROJECT_NAME} LMC_Main.cpp)
+#add_subdirectory(lmc/cfg)
+#add_subdirectory(lmc/gen)
+#add_subdirectory(lmc/ansys)
+#add_subdirectory(lmc/mc)
 #target_link_libraries(${PROJECT_NAME} PUBLIC cfg gen ansys mc)
 ############################################ BUILD SRCS ############################################
 file(GLOB PROJECT_SRC
-        ${PROJECT_SOURCE_DIR}/lkmc/cfg/src/*.cpp
-        ${PROJECT_SOURCE_DIR}/lkmc/pred/src/*.cpp
-        ${PROJECT_SOURCE_DIR}/lkmc/mc/src/*.cpp
-        ${PROJECT_SOURCE_DIR}/lkmc/ansys/src/*.cpp
-        ${PROJECT_SOURCE_DIR}/lkmc/api/src/*.cpp
+        ${PROJECT_SOURCE_DIR}/lmc/cfg/src/*.cpp
+        ${PROJECT_SOURCE_DIR}/lmc/pred/src/*.cpp
+        ${PROJECT_SOURCE_DIR}/lmc/mc/src/*.cpp
+        ${PROJECT_SOURCE_DIR}/lmc/ansys/src/*.cpp
+        ${PROJECT_SOURCE_DIR}/lmc/api/src/*.cpp
         )
 set(PROJECT_INCLUDE
-        ${PROJECT_SOURCE_DIR}/lkmc/cfg/include
-        ${PROJECT_SOURCE_DIR}/lkmc/pred/include
-        ${PROJECT_SOURCE_DIR}/lkmc/mc/include
-        ${PROJECT_SOURCE_DIR}/lkmc/ansys/include
-        ${PROJECT_SOURCE_DIR}/lkmc/api/include
+        ${PROJECT_SOURCE_DIR}/lmc/cfg/include
+        ${PROJECT_SOURCE_DIR}/lmc/pred/include
+        ${PROJECT_SOURCE_DIR}/lmc/mc/include
+        ${PROJECT_SOURCE_DIR}/lmc/ansys/include
+        ${PROJECT_SOURCE_DIR}/lmc/api/include
         )
 
-add_executable(${PROJECT_NAME} LKMC_Main.cpp ${PROJECT_SRC})
+add_executable(${PROJECT_NAME} LMC_Main.cpp ${PROJECT_SRC})
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_INCLUDE})
-set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "lkmc.exe")
+set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "lmc.exe")
 #################################### BOOST #####################################
 #set(Boost_NO_SYSTEM_PATHS TRUE)
 #if (Boost_NO_SYSTEM_PATHS)
@@ -132,50 +132,50 @@ target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
 #        ${TensorFlow_LIBRARIES})
 ############################################ GOOGLETEST ############################################
 #set(TEST "on")
-IF(TEST)
-    message(STATUS "TEST mode on")
-    include(FetchContent)
-    FetchContent_Declare(
-            googletest
-            GIT_REPOSITORY https://github.com/google/googletest/
-            GIT_TAG release-1.11.0)
-    # For Windows: Prevent overriding the parent project's compiler/linker settings
-    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-    FetchContent_MakeAvailable(googletest)
-
-    enable_testing()
-    include(GoogleTest)
-#    macro(package_add_test TESTNAME)
-#        add_executable(${TESTNAME} ${ARGN})
-#        target_link_libraries(${TESTNAME} gtest gmock gtest_main)
-#        gtest_discover_tests(${TESTNAME}
-#                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test
-#                PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/test"
-#                )
-#        set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
-#    endmacro()
-
-#    macro(package_add_test_with_libraries TESTNAME FILES LIBRARIES)
-#        add_executable(${TESTNAME} ${FILES})
-#        target_link_libraries(${TESTNAME} gtest gmock gtest_main ${LIBRARIES})
-#        gtest_discover_tests(${TESTNAME}
-#                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test
-#                PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/test"
-#                )
-#        set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
-#    endmacro()
-    set(TEST_NAME my_test)
-    add_executable(${TEST_NAME} LKMC_Gtest.cpp ${PROJECT_SRC})
-    set_target_properties(${TEST_NAME} PROPERTIES
-            OUTPUT_NAME "${TEST_NAME}.exe")
-    target_include_directories(${TEST_NAME} PUBLIC
-            ${PROJECT_INCLUDE}
-            ${Boost_INCLUDE_DIR})
-
-    target_link_libraries(${TEST_NAME} gtest gmock gtest_main )
-    gtest_discover_tests(${TEST_NAME})
-ELSE()
-    message(STATUS "TEST mode off")
-ENDIF()
+#IF(TEST)
+#    message(STATUS "TEST mode on")
+#    include(FetchContent)
+#    FetchContent_Declare(
+#            googletest
+#            GIT_REPOSITORY https://github.com/google/googletest/
+#            GIT_TAG release-1.11.0)
+#    # For Windows: Prevent overriding the parent project's compiler/linker settings
+#    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+#    FetchContent_MakeAvailable(googletest)
+#
+#    enable_testing()
+#    include(GoogleTest)
+##    macro(package_add_test TESTNAME)
+##        add_executable(${TESTNAME} ${ARGN})
+##        target_link_libraries(${TESTNAME} gtest gmock gtest_main)
+##        gtest_discover_tests(${TESTNAME}
+##                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test
+##                PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/test"
+##                )
+##        set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
+##    endmacro()
+#
+##    macro(package_add_test_with_libraries TESTNAME FILES LIBRARIES)
+##        add_executable(${TESTNAME} ${FILES})
+##        target_link_libraries(${TESTNAME} gtest gmock gtest_main ${LIBRARIES})
+##        gtest_discover_tests(${TESTNAME}
+##                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test
+##                PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/test"
+##                )
+##        set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
+##    endmacro()
+#    set(TEST_NAME my_test)
+#    add_executable(${TEST_NAME} LMC_Gtest.cpp ${PROJECT_SRC})
+#    set_target_properties(${TEST_NAME} PROPERTIES
+#            OUTPUT_NAME "${TEST_NAME}.exe")
+#    target_include_directories(${TEST_NAME} PUBLIC
+#            ${PROJECT_INCLUDE}
+#            ${Boost_INCLUDE_DIR})
+#
+#    target_link_libraries(${TEST_NAME} gtest gmock gtest_main )
+#    gtest_discover_tests(${TEST_NAME})
+#ELSE()
+#    message(STATUS "TEST mode off")
+#ENDIF()
 
 
