@@ -3,10 +3,10 @@
 #include <random>
 #include <mpi.h>
 #include <omp.h>
-#include "McAbstract.h"
+#include "CanonicalMcAbstract.h"
 #include "EnergyChangePredictorPairAll.h"
 namespace mc {
-class CanonicalMcSerial : public McAbstract {
+class CanonicalMcSerial : public CanonicalMcAbstract {
   public:
     CanonicalMcSerial(cfg::Config config,
                       unsigned long long int log_dump_steps,
@@ -18,18 +18,6 @@ class CanonicalMcSerial : public McAbstract {
                       const std::set<Element> &element_set,
                       const std::string &json_coefficients_filename);
     void Simulate() override;
-  private:
-    inline void UpdateTemperature();
-    inline void Dump();
-    std::pair<size_t, size_t> GenerateLatticeIdJumpPair();
-
-    // simulation parameters
-    const double initial_temperature_;
-    const double decrement_temperature_;
-
-    // helpful properties
-    const pred::EnergyChangePredictorPairAll energy_change_predictor_;
-    mutable std::uniform_int_distribution<size_t> atom_index_selector_;
 };
 } // mc
 

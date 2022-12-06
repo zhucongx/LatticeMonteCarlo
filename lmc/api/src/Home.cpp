@@ -57,7 +57,6 @@ void Print(const Parameter &parameter) {
               << std::endl;
     std::cout << "initial_temperature: " << parameter.initial_temperature_ << std::endl;
     std::cout << "decrement_temperature: " << parameter.decrement_temperature_ << std::endl;
-
   } else if (parameter.method == "FindCluster" || parameter.method == "ShortRangeOrder"
       || parameter.method == "Reformat") {
     std::cout << "json_coefficients_filename: " << parameter.json_coefficients_filename_
@@ -98,8 +97,11 @@ void Run(const Parameter &parameter) {
     auto simulated_annealing = api::BuildSimulatedAnnealingFromParameter(parameter);
     simulated_annealing.Simulate();
   } else if (parameter.method == "CanonicalMcSerial") {
-    auto canonical_mc_step_t = api::BuildCanonicalMcSerialFromParameter(parameter);
-    canonical_mc_step_t.Simulate();
+    auto canonical_mc_serial = api::BuildCanonicalMcSerialFromParameter(parameter);
+    canonical_mc_serial.Simulate();
+  } else if (parameter.method == "CanonicalMcOmp") {
+    auto canonical_mc_omp = api::BuildCanonicalMcOmpFromParameter(parameter);
+    canonical_mc_omp.Simulate();
   } else {
     std::cout << "No such method: " << parameter.method << std::endl;
   }
@@ -214,6 +216,24 @@ mc::CanonicalMcSerial BuildCanonicalMcSerialFromParameter(const Parameter &param
                                parameter.decrement_temperature_,
                                element_set,
                                parameter.json_coefficients_filename_};
+}
+mc::CanonicalMcOmp BuildCanonicalMcOmpFromParameter(const Parameter &parameter) {
+  std::set<Element> element_set;
+  for (const auto &element_string: parameter.element_set_) {
+    element_set.insert(Element(element_string));
+  }
+
+  auto config = cfg::Config::ReadConfig(parameter.config_filename_);
+  std::cout << "Finish config reading. Start CMC." << std::endl;
+  return mc::CanonicalMcOmp{config,
+                            parameter.log_dump_steps_,
+                            parameter.config_dump_steps_,
+                            parameter.maximum_steps_,
+                            parameter.thermodynamic_averaging_steps_,
+                            parameter.initial_temperature_,
+                            parameter.decrement_temperature_,
+                            element_set,
+                            parameter.json_coefficients_filename_};
 }
 ansys::Iterator BuildIteratorFromParameter(const Parameter &parameter) {
   std::set<Element> element_set;
