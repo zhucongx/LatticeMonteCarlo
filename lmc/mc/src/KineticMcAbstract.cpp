@@ -1,7 +1,4 @@
 #include "KineticMcAbstract.h"
-#include <utility>
-#include <chrono>
-#include <mpi.h>
 namespace mc {
 
 KineticMcFirstAbstract::KineticMcFirstAbstract(cfg::Config config,

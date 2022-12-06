@@ -1,5 +1,5 @@
 #include "CanonicalMcOmp.h"
-
+#include <omp.h>
 namespace mc {
 CanonicalMcOmp::CanonicalMcOmp(cfg::Config config,
                                const unsigned long long int log_dump_steps,
@@ -27,7 +27,7 @@ CanonicalMcOmp::CanonicalMcOmp(cfg::Config config,
 #pragma omp parallel master default(none) shared(std::cout)
   {
     std::cout << "Using " << omp_get_num_threads() << " threads." << std::endl;
-    event_vector_.resize(omp_get_num_threads());
+    event_vector_.resize(static_cast<size_t>(omp_get_num_threads()));
   }
 }
 void CanonicalMcOmp::BuildEventVector() {
@@ -43,15 +43,15 @@ void CanonicalMcOmp::BuildEventVector() {
       std::copy(config_.GetFirstNeighborsAdjacencyList().at(selected_lattice_index).begin(),
                 config_.GetFirstNeighborsAdjacencyList().at(selected_lattice_index).end(),
                 std::inserter(unavailable_position,
-                              unavailable_position.begin()));
+                              unavailable_position.end()));
       std::copy(config_.GetSecondNeighborsAdjacencyList().at(selected_lattice_index).begin(),
                 config_.GetSecondNeighborsAdjacencyList().at(selected_lattice_index).end(),
                 std::inserter(unavailable_position,
-                              unavailable_position.begin()));
+                              unavailable_position.end()));
       std::copy(config_.GetThirdNeighborsAdjacencyList().at(selected_lattice_index).begin(),
                 config_.GetThirdNeighborsAdjacencyList().at(selected_lattice_index).end(),
                 std::inserter(unavailable_position,
-                              unavailable_position.begin()));
+                              unavailable_position.end()));
     }
     event = {lattice_id_jump_pair, 0};
   }
