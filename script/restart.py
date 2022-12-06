@@ -49,14 +49,14 @@ def read_parameters(filename):
 
 
 if __name__ == '__main__':
-    if exists(f'./lkmc_log.txt'):
-        rename(f'./lkmc_log.txt', f'./lkmc_log_backup.txt')
+    if exists(f'./kmc_log.txt'):
+        rename(f'./kmc_log.txt', f'./kmc_log_backup.txt')
     last_i = None
     last_step = None
     last_time = None
     last_energy = None
 
-    for i, line in enumerate(reverse_readline(f'./lkmc_log_backup.txt')):
+    for i, line in enumerate(reverse_readline(f'./kmc_log_backup.txt')):
         line = line.split()
         if exists(f'./map{line[0]}.txt'):
             last_i = i
@@ -65,7 +65,7 @@ if __name__ == '__main__':
             last_energy = line[2]
             break
     print(f"{last_i}, {last_step}, {last_time}, {last_energy}")
-    with open(f'./lkmc_log_backup.txt', 'r') as f1, open(f'./lkmc_log.txt', 'w') as f2:
+    with open(f'./kmc_log_backup.txt', 'r') as f1, open(f'./kmc_log.txt', 'w') as f2:
         for i, line in enumerate(f1):
             f2.write(line)
             step = line.split()[0]
