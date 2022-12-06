@@ -34,13 +34,7 @@ void CanonicalMcOmp::BuildEventVector() {
   std::unordered_set<size_t> unavailable_position{};
   std::pair<size_t, size_t> lattice_id_jump_pair;
   for (auto &event: event_vector_) {
-    size_t ct = 0;
     do {
-      if (ct > 10000) {
-        break;
-      }
-      ++ct;
-      std::cerr << ct << '\n';
       lattice_id_jump_pair = GenerateLatticeIdJumpPair();
     } while (unavailable_position.find(lattice_id_jump_pair.first) != unavailable_position.end() &&
         unavailable_position.find(lattice_id_jump_pair.second) != unavailable_position.end());
