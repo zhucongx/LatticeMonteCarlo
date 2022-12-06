@@ -36,7 +36,7 @@ void CanonicalMcOmp::BuildEventVector() {
   for (auto &event: event_vector_) {
     do {
       lattice_id_jump_pair = GenerateLatticeIdJumpPair();
-    } while (unavailable_position.find(lattice_id_jump_pair.first) != unavailable_position.end() &&
+    } while (unavailable_position.find(lattice_id_jump_pair.first) != unavailable_position.end() ||
         unavailable_position.find(lattice_id_jump_pair.second) != unavailable_position.end());
     for (auto selected_lattice_index: {lattice_id_jump_pair.first, lattice_id_jump_pair.second}) {
       unavailable_position.emplace(selected_lattice_index);
