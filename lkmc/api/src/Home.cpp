@@ -42,8 +42,7 @@ void Print(const Parameter &parameter) {
     std::cout << "maximum_steps: " << parameter.maximum_steps_ << std::endl;
     std::cout << "early_stop_steps: " << parameter.early_stop_steps_ << std::endl;
     std::cout << "initial_temperature: " << parameter.initial_temperature_ << std::endl;
-  } else if (parameter.method == "CanonicalMcStepT"
-      || parameter.method == "SemiGrandCanonicalMcStepT") {
+  } else if (parameter.method == "CanonicalMcSerial" || parameter.method == "CanonicalMcOmp") {
     std::cout << "json_coefficients_filename: " << parameter.json_coefficients_filename_
               << std::endl;
     std::cout << "config_filename: " << parameter.config_filename_ << std::endl;
@@ -83,12 +82,6 @@ void Run(const Parameter &parameter) {
   } else if (parameter.method == "KineticMcFirstOmp") {
     auto kinetic_mc_first_omp = api::BuildKineticMcFirstOmpFromParameter(parameter);
     kinetic_mc_first_omp.Simulate();
-    // } else if (parameter.method == "KineticMcChainMpi") {
-    //   auto kinetic_mc_chain_mpi = api::BuildKineticMcChainMpiFromParameter(parameter);
-    //   kinetic_mc_chain_mpi.Simulate();
-    // } else if (parameter.method == "KineticMcChainOmp") {
-    //   auto kinetic_mc_chain_omp = api::BuildKineticMcChainOmpFromParameter(parameter);
-    //   kinetic_mc_chain_omp.Simulate();
   } else if (parameter.method == "KineticMcChainOmpi") {
     auto kinetic_mc_chain_ompi = api::BuildKineticMcChainOmpiFromParameter(parameter);
     kinetic_mc_chain_ompi.Simulate();
@@ -104,13 +97,9 @@ void Run(const Parameter &parameter) {
   } else if (parameter.method == "SimulatedAnnealing") {
     auto simulated_annealing = api::BuildSimulatedAnnealingFromParameter(parameter);
     simulated_annealing.Simulate();
-  } else if (parameter.method == "CanonicalMcStepT") {
-    auto canonical_mc_step_t = api::BuildCanonicalMcStepTFromParameter(parameter);
+  } else if (parameter.method == "CanonicalMcSerial") {
+    auto canonical_mc_step_t = api::BuildCanonicalMcSerialFromParameter(parameter);
     canonical_mc_step_t.Simulate();
-    // } else if (parameter.method == "SemiGrandCanonicalMcStepT") {
-    //   auto semi_grand_canonical_mc_step_t =
-    //       api::BuildSemiGrandCanonicalMcStepTFromParameter(parameter);
-    //   semi_grand_canonical_mc_step_t.Simulate();
   } else {
     std::cout << "No such method: " << parameter.method << std::endl;
   }
@@ -166,56 +155,6 @@ mc::KineticMcFirstOmp BuildKineticMcFirstOmpFromParameter(const Parameter &param
                                element_set,
                                parameter.json_coefficients_filename_};
 }
-// mc::KineticMcChainMpi BuildKineticMcChainMpiFromParameter(const Parameter &parameter) {
-//   std::set<Element> element_set;
-//   for (const auto &element_string: parameter.element_set_) {
-//     element_set.insert(Element(element_string));
-//   }
-//   cfg::Config config;
-//   if (parameter.map_filename_.empty()) {
-//     config = cfg::Config::ReadConfig(parameter.config_filename_);
-//     config.ReassignLatticeVector();
-//   } else {
-//     config = cfg::Config::ReadMap("lattice.txt", "element.txt", parameter.map_filename_);
-//   }
-//   std::cout << "Finish config reading. Start KMC." << std::endl;
-//   return mc::KineticMcChainMpi{config,
-//                                parameter.log_dump_steps_,
-//                                parameter.config_dump_steps_,
-//                                parameter.maximum_steps_,
-//                                parameter.thermodynamic_averaging_steps_,
-//                                parameter.temperature_,
-//                                element_set,
-//                                parameter.restart_steps_,
-//                                parameter.restart_energy_,
-//                                parameter.restart_time_,
-//                                parameter.json_coefficients_filename_};
-// }
-// mc::KineticMcChainOmp BuildKineticMcChainOmpFromParameter(const Parameter &parameter) {
-//   std::set<Element> element_set;
-//   for (const auto &element_string: parameter.element_set_) {
-//     element_set.insert(Element(element_string));
-//   }
-//   cfg::Config config;
-//   if (parameter.map_filename_.empty()) {
-//     config = cfg::Config::ReadConfig(parameter.config_filename_);
-//     config.ReassignLatticeVector();
-//   } else {
-//     config = cfg::Config::ReadMap("lattice.txt", "element.txt", parameter.map_filename_);
-//   }
-//   std::cout << "Finish config reading. Start kMC." << std::endl;
-//   return mc::KineticMcChainOmp{config,
-//                                parameter.log_dump_steps_,
-//                                parameter.config_dump_steps_,
-//                                parameter.maximum_steps_,
-//                                parameter.thermodynamic_averaging_steps_,
-//                                parameter.temperature_,
-//                                element_set,
-//                                parameter.restart_steps_,
-//                                parameter.restart_energy_,
-//                                parameter.restart_time_,
-//                                parameter.json_coefficients_filename_};
-// }
 mc::KineticMcChainOmpi BuildKineticMcChainOmpiFromParameter(const Parameter &parameter) {
   std::set<Element> element_set;
   for (const auto &element_string: parameter.element_set_) {
@@ -258,7 +197,7 @@ ansys::SimulatedAnnealing BuildSimulatedAnnealingFromParameter(const Parameter &
                                    parameter.initial_temperature_,
                                    parameter.json_coefficients_filename_};
 }
-mc::CanonicalMcStepT BuildCanonicalMcStepTFromParameter(const Parameter &parameter) {
+mc::CanonicalMcSerial BuildCanonicalMcSerialFromParameter(const Parameter &parameter) {
   std::set<Element> element_set;
   for (const auto &element_string: parameter.element_set_) {
     element_set.insert(Element(element_string));
@@ -266,35 +205,16 @@ mc::CanonicalMcStepT BuildCanonicalMcStepTFromParameter(const Parameter &paramet
 
   auto config = cfg::Config::ReadConfig(parameter.config_filename_);
   std::cout << "Finish config reading. Start CMC." << std::endl;
-  return mc::CanonicalMcStepT{config,
-                              parameter.log_dump_steps_,
-                              parameter.config_dump_steps_,
-                              parameter.maximum_steps_,
-                              parameter.thermodynamic_averaging_steps_,
-                              parameter.initial_temperature_,
-                              parameter.decrement_temperature_,
-                              element_set,
-                              parameter.json_coefficients_filename_};
+  return mc::CanonicalMcSerial{config,
+                               parameter.log_dump_steps_,
+                               parameter.config_dump_steps_,
+                               parameter.maximum_steps_,
+                               parameter.thermodynamic_averaging_steps_,
+                               parameter.initial_temperature_,
+                               parameter.decrement_temperature_,
+                               element_set,
+                               parameter.json_coefficients_filename_};
 }
-// mc::SemiGrandCanonicalMcStepT BuildSemiGrandCanonicalMcStepTFromParameter(const Parameter &parameter) {
-//   std::set<Element> element_set;
-//   for (const auto &element_string: parameter.element_set_) {
-//     element_set.insert(Element(element_string));
-//   }
-//
-//   auto config = cfg::Config::ReadConfig(parameter.config_filename_);
-//   std::cout << "Finish config reading. Start SGCMC." << std::endl;
-//   return mc::SemiGrandCanonicalMcStepT{
-//       config,
-//       element_set,
-//       parameter.log_dump_steps_,
-//       parameter.config_dump_steps_,
-//       parameter.maximum_steps_,
-//       parameter.thermodynamic_averaging_steps_,
-//       parameter.initial_temperature_,
-//       parameter.decrement_temperature_,
-//       parameter.json_coefficients_filename_};
-// }
 ansys::Iterator BuildIteratorFromParameter(const Parameter &parameter) {
   std::set<Element> element_set;
   for (const auto &element_string: parameter.element_set_) {

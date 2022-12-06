@@ -1,4 +1,4 @@
-#include "CanonicalMcStepT.h"
+#include "CanonicalMcSerial.h"
 #include <utility>
 #include <chrono>
 #include <omp.h>
@@ -13,15 +13,15 @@ namespace mc {
 //   }
 //   return element_set;
 // }
-CanonicalMcStepT::CanonicalMcStepT(cfg::Config config,
-                                   const unsigned long long int log_dump_steps,
-                                   const unsigned long long int config_dump_steps,
-                                   const unsigned long long int maximum_steps,
-                                   const unsigned long long int thermodynamic_averaging_steps,
-                                   const double initial_temperature,
-                                   const double decrement_temperature,
-                                   const std::set<Element> &element_set,
-                                   const std::string &json_coefficients_filename)
+CanonicalMcSerial::CanonicalMcSerial(cfg::Config config,
+                                     const unsigned long long int log_dump_steps,
+                                     const unsigned long long int config_dump_steps,
+                                     const unsigned long long int maximum_steps,
+                                     const unsigned long long int thermodynamic_averaging_steps,
+                                     const double initial_temperature,
+                                     const double decrement_temperature,
+                                     const std::set<Element> &element_set,
+                                     const std::string &json_coefficients_filename)
     : McAbstract(std::move(config),
                  log_dump_steps,
                  config_dump_steps,
@@ -50,7 +50,7 @@ CanonicalMcStepT::CanonicalMcStepT(cfg::Config config,
     std::cout << "Using " << omp_get_num_threads() << " threads." << std::endl;
   }
 }
-std::pair<size_t, size_t> CanonicalMcStepT::GenerateLatticeIdJumpPair() {
+std::pair<size_t, size_t> CanonicalMcSerial::GenerateLatticeIdJumpPair() {
   size_t lattice_id1, lattice_id2;
   do {
     lattice_id1 = atom_index_selector_(generator_);
@@ -59,7 +59,7 @@ std::pair<size_t, size_t> CanonicalMcStepT::GenerateLatticeIdJumpPair() {
   return {lattice_id1, lattice_id2};
 }
 
-void CanonicalMcStepT::UpdateTemperature() {
+void CanonicalMcSerial::UpdateTemperature() {
   if (steps_ % maximum_steps_ == 0 && steps_ != 0) {
     config_.WriteConfig("end_" + std::to_string(static_cast<int>(temperature_)) + "K.cfg",
                         false);
@@ -68,7 +68,7 @@ void CanonicalMcStepT::UpdateTemperature() {
   }
 }
 
-void CanonicalMcStepT::Dump() {
+void CanonicalMcSerial::Dump() {
   if (steps_ == 0) {
     config_.WriteLattice("lattice.txt");
     config_.WriteElement("element.txt");
@@ -97,7 +97,7 @@ void CanonicalMcStepT::Dump() {
   }
 }
 
-void CanonicalMcStepT::Simulate() {
+void CanonicalMcSerial::Simulate() {
   auto t1 = std::chrono::high_resolution_clock::now();
   while (steps_ <= maximum_steps_
       * static_cast<unsigned long long int>(initial_temperature_ / decrement_temperature_ + 1)) {
