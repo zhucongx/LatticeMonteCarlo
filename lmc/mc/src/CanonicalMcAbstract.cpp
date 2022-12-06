@@ -46,7 +46,8 @@ std::pair<size_t, size_t> CanonicalMcAbstract::GenerateLatticeIdJumpPair() {
   do {
     lattice_id1 = atom_index_selector_(generator_);
     lattice_id2 = atom_index_selector_(generator_);
-  } while (lattice_id1 == lattice_id2);
+  } while (config_.GetElementAtLatticeId(lattice_id1)
+      == config_.GetElementAtLatticeId(lattice_id2));
   return {lattice_id1, lattice_id2};
 }
 void CanonicalMcAbstract::UpdateTemperature() {
