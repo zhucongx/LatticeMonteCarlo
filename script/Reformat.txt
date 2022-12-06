@@ -1,7 +1,6 @@
 simulation_method Reformat
 log_type kinetic_mc
-#log_type canonical_mc_step_t
-#log_type semi_grand_canonical_mc_step_t
+#log_type canonical_mc
 #config_type config
 config_type map
 json_coefficients_filename quartic_coefficients.json
