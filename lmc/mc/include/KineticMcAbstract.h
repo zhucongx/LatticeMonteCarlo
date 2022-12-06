@@ -22,7 +22,7 @@ class KineticMcFirstAbstract : public McAbstract {
                            double temperature,
                            const std::set<Element> &element_set,
                            const std::string &json_coefficients_filename);
-    virtual ~KineticMcFirstAbstract();
+    ~KineticMcFirstAbstract() override;
     void Simulate() override;
   protected:
     void Dump() const;

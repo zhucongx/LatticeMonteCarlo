@@ -21,7 +21,7 @@ class McAbstract {
                const std::set<Element> &element_set,
                const std::string &json_coefficients_filename,
                const std::string &log_filename);
-    ~McAbstract();
+    virtual ~McAbstract();
     virtual void Simulate() = 0;
   protected:
     // config
