@@ -41,12 +41,12 @@ void CanonicalMcOmp::BuildEventVector() {
     do {
       lattice_id_jump_pair = GenerateLatticeIdJumpPair();
       ct++;
-      if (ct > 50) {
+      if (ct == 50) {
         break;
       }
     } while (unavailable_position_.find(lattice_id_jump_pair.first) != unavailable_position_.end()
         || unavailable_position_.find(lattice_id_jump_pair.second) != unavailable_position_.end());
-    if (ct > 50) {
+    if (ct == 50) {
       break;
     }
     for (auto selected_lattice_index: {lattice_id_jump_pair.first, lattice_id_jump_pair.second}) {
