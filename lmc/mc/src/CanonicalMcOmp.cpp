@@ -27,7 +27,7 @@ CanonicalMcOmp::CanonicalMcOmp(cfg::Config config,
 #pragma omp parallel master default(none) shared(std::cout)
   {
     std::cout << "Using " << omp_get_num_threads() << " threads." << std::endl;
-    num_threads_ = omp_get_num_threads();
+    num_threads_ = static_cast<size_t>(omp_get_num_threads());
   }
   event_vector_.reserve(static_cast<size_t>(omp_get_num_threads()));
 }
