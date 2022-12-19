@@ -11,7 +11,8 @@ KineticMcFirstAbstract::KineticMcFirstAbstract(cfg::Config config,
                                                const double restart_time,
                                                const double temperature,
                                                const std::set<Element> &element_set,
-                                               const std::string &json_coefficients_filename)
+                                               const std::string &json_coefficients_filename,
+                                               const std::string &time_temperature_filename)
     : McAbstract(std::move(config),
                  log_dump_steps,
                  config_dump_steps,
@@ -28,10 +29,17 @@ KineticMcFirstAbstract::KineticMcFirstAbstract(cfg::Config config,
                                        config_,
                                        element_set,
                                        100000),
+      time_temperature_interpolator_(time_temperature_filename),
+      is_time_temperature_interpolator_(!time_temperature_filename.empty()),
       vacancy_lattice_id_(config_.GetVacancyLatticeId()) {
 }
 KineticMcFirstAbstract::~KineticMcFirstAbstract() = default;
-
+void KineticMcFirstAbstract::UpdateTemperature() {
+  if (is_time_temperature_interpolator_) {
+    temperature_ = time_temperature_interpolator_.GetTemperature(time_);
+    beta_ = 1.0 / constants::kBoltzmann / temperature_;
+  }
+}
 void KineticMcFirstAbstract::Dump() const {
   if (world_rank_ != 0) {
     return;
@@ -39,7 +47,8 @@ void KineticMcFirstAbstract::Dump() const {
   if (steps_ == 0) {
     config_.WriteLattice("lattice.txt");
     config_.WriteElement("element.txt");
-    ofs_ << "steps\ttime\tenergy\taverage_energy\tabsolute_energy\tEa\tdE\ttype" << std::endl;
+    ofs_ << "steps\ttime\ttemperature\tenergy\taverage_energy\tabsolute_energy\tEa\tdE\ttype"
+         << std::endl;
   }
   if (steps_ % config_dump_steps_ == 0) {
     config_.WriteMap("map" + std::to_string(steps_) + ".txt");
@@ -56,7 +65,7 @@ void KineticMcFirstAbstract::Dump() const {
     log_dump_steps = std::min(log_dump_steps, log_dump_steps_);
   }
   if (steps_ % log_dump_steps == 0) {
-    ofs_ << steps_ << '\t' << time_ << '\t' << energy_ << '\t'
+    ofs_ << steps_ << '\t' << time_ << '\t' << temperature_ << '\t' << energy_ << '\t'
          << thermodynamic_averaging_.GetThermodynamicAverage(beta_) << '\t'
          << initial_absolute_energy_ + energy_ << '\t'
          << event_k_i_.GetForwardBarrier() << '\t'
@@ -86,6 +95,7 @@ size_t KineticMcFirstAbstract::SelectEvent() const {
   }
 }
 void KineticMcFirstAbstract::OneStepSimulation() {
+  UpdateTemperature();
   thermodynamic_averaging_.AddEnergy(energy_);
   if (is_restarted_) {
     is_restarted_ = false;
@@ -116,7 +126,8 @@ KineticMcChainAbstract::KineticMcChainAbstract(cfg::Config config,
                                                const double restart_time,
                                                const double temperature,
                                                const std::set<Element> &element_set,
-                                               const std::string &json_coefficients_filename)
+                                               const std::string &json_coefficients_filename,
+                                               const std::string &time_temperature_filename)
     : KineticMcFirstAbstract(std::move(config),
                              log_dump_steps,
                              config_dump_steps,
@@ -127,7 +138,8 @@ KineticMcChainAbstract::KineticMcChainAbstract(cfg::Config config,
                              restart_time,
                              temperature,
                              element_set,
-                             json_coefficients_filename),
+                             json_coefficients_filename,
+                             time_temperature_filename),
       previous_j_lattice_id_(config_.GetFirstNeighborsAdjacencyList()[vacancy_lattice_id_][0]) {
   MPI_Op_create(DataSum, 1, &mpi_op_);
   DefineStruct(&mpi_datatype_);

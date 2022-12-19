@@ -18,7 +18,8 @@ class KineticMcFirstOmp : public KineticMcFirstAbstract {
                       double restart_time,
                       double temperature,
                       const std::set<Element> &element_set,
-                      const std::string &json_coefficients_filename);
+                      const std::string &json_coefficients_filename,
+                      const std::string &time_temperature_filename);
     ~KineticMcFirstOmp() override;
   protected:
     void BuildEventList() override;

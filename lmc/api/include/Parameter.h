@@ -24,6 +24,7 @@ struct Parameter {
     std::string config_filename_{};
     std::string map_filename_{};
     std::string json_coefficients_filename_{};
+    std::string time_temperature_filename_{};
     std::string log_type_{};
     std::string config_type_{};
     unsigned long long int log_dump_steps_{};

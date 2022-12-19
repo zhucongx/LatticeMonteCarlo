@@ -6,6 +6,7 @@
 #include "McAbstract.h"
 #include "JumpEvent.h"
 #include "VacancyMigrationPredictorQuarticLru.h"
+#include "TimeTemperatureInterpolator.h"
 namespace mc {
 
 class KineticMcFirstAbstract : public McAbstract {
@@ -21,10 +22,12 @@ class KineticMcFirstAbstract : public McAbstract {
                            double restart_time,
                            double temperature,
                            const std::set<Element> &element_set,
-                           const std::string &json_coefficients_filename);
+                           const std::string &json_coefficients_filename,
+                           const std::string &time_temperature_filename);
     ~KineticMcFirstAbstract() override;
     void Simulate() override;
   protected:
+    void UpdateTemperature();
     void Dump() const;
     size_t SelectEvent() const;
     virtual void BuildEventList() = 0;
@@ -35,6 +38,8 @@ class KineticMcFirstAbstract : public McAbstract {
 
     // helpful properties
     const pred::VacancyMigrationPredictorQuarticLru vacancy_migration_predictor_lru_;
+    const pred::TimeTemperatureInterpolator time_temperature_interpolator_;
+    const bool is_time_temperature_interpolator_;
     size_t vacancy_lattice_id_;
     std::array<JumpEvent, kEventListSize> event_k_i_list_{};
     JumpEvent event_k_i_{};
@@ -52,7 +57,8 @@ class KineticMcChainAbstract : public KineticMcFirstAbstract {
                            double restart_time,
                            double temperature,
                            const std::set<Element> &element_set,
-                           const std::string &json_coefficients_filename);
+                           const std::string &json_coefficients_filename,
+                           const std::string &time_temperature_filename);
     ~KineticMcChainAbstract() override;
   protected:
     void OneStepSimulation() override;

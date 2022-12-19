@@ -1,5 +1,6 @@
 simulation_method KineticMcChainOmpi
 json_coefficients_filename quartic_coefficients.json
+time_temperature_filename time_temperature.dat
 config_filename start.cfg
 #map_filename map0.txt
 log_dump_steps                  100000

@@ -39,6 +39,8 @@ void Parameter::ReadParam(const std::string &param_filename) {
       map_filename_ = std::string(segs[1]);
     } else if (segs[0] == "json_coefficients_filename") {
       json_coefficients_filename_ = std::string(segs[1]);
+    } else if (segs[0] == "time_temperature_filename") {
+      time_temperature_filename_ = std::string(segs[1]);
     } else if (segs[0] == "log_type") {
       log_type_ = std::string(segs[1]);
     } else if (segs[0] == "config_type") {

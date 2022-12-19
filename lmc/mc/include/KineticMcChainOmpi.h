@@ -23,7 +23,8 @@ class KineticMcChainOmpi : public KineticMcChainAbstract {
                        double restart_time,
                        double temperature,
                        const std::set<Element> &element_set,
-                       const std::string &json_coefficients_filename);
+                       const std::string &json_coefficients_filename,
+                       const std::string &time_temperature_filename);
   protected:
     void BuildEventList() override;
     double CalculateTime() override;

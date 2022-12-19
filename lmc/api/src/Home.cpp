@@ -23,6 +23,8 @@ void Print(const Parameter &parameter) {
     std::cout << "restart_steps: " << parameter.restart_steps_ << std::endl;
     std::cout << "restart_energy: " << parameter.restart_energy_ << std::endl;
     std::cout << "restart_time: " << parameter.restart_time_ << std::endl;
+    std::cout << "time_temperature_filename: " << parameter.time_temperature_filename_
+              << std::endl;
   } else if (parameter.method == "SimulatedAnnealing") {
     std::cout << "json_coefficients_filename: " << parameter.json_coefficients_filename_
               << std::endl;
@@ -130,7 +132,8 @@ mc::KineticMcFirstMpi BuildKineticMcFirstMpiFromParameter(const Parameter &param
                                parameter.restart_time_,
                                parameter.temperature_,
                                element_set,
-                               parameter.json_coefficients_filename_};
+                               parameter.json_coefficients_filename_,
+                               parameter.time_temperature_filename_};
 }
 mc::KineticMcFirstOmp BuildKineticMcFirstOmpFromParameter(const Parameter &parameter) {
   std::set<Element> element_set;
@@ -155,7 +158,8 @@ mc::KineticMcFirstOmp BuildKineticMcFirstOmpFromParameter(const Parameter &param
                                parameter.restart_time_,
                                parameter.temperature_,
                                element_set,
-                               parameter.json_coefficients_filename_};
+                               parameter.json_coefficients_filename_,
+                               parameter.time_temperature_filename_};
 }
 mc::KineticMcChainOmpi BuildKineticMcChainOmpiFromParameter(const Parameter &parameter) {
   std::set<Element> element_set;
@@ -180,7 +184,8 @@ mc::KineticMcChainOmpi BuildKineticMcChainOmpiFromParameter(const Parameter &par
                                 parameter.restart_time_,
                                 parameter.temperature_,
                                 element_set,
-                                parameter.json_coefficients_filename_};
+                                parameter.json_coefficients_filename_,
+                                parameter.time_temperature_filename_};
 }
 ansys::SimulatedAnnealing BuildSimulatedAnnealingFromParameter(const Parameter &parameter) {
   std::map<Element, size_t> solute_atom_count;
