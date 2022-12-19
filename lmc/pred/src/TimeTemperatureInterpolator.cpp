@@ -1,5 +1,6 @@
 #include "TimeTemperatureInterpolator.h"
-#include <iostream>
+
+#include <limits>
 #include <fstream>
 #include <algorithm>
 #include <stdexcept>
