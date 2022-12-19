@@ -2,6 +2,7 @@
 #define LMC_LMC_PRED_INCLUDE_TIMETEMPERATUREINTERPOLATOR_H_
 #include <utility>
 #include <vector>
+#include <iostream>
 namespace pred {
 
 class TimeTemperatureInterpolator {
