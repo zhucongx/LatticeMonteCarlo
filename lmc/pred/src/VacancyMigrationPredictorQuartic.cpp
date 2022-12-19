@@ -243,6 +243,9 @@ std::pair<double, double> VacancyMigrationPredictorQuartic::GetBarrierAndDiffFro
 #pragma omp section
     {
       dE = GetDe(config, lattice_id_jump_pair);
+    }
+#pragma omp section
+    {
       D = GetD(config, lattice_id_jump_pair);
     }
 #pragma omp section
