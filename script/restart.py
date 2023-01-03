@@ -72,12 +72,13 @@ if __name__ == '__main__':
             if step == last_step:
                 f2.flush()
                 break
-    if exists(f'./lkmc_param.txt'):
-        rename(f'./lkmc_param.txt', f'./lkmc_param_backup.txt')
-    old_param = read_parameters(f'./lkmc_param_backup.txt')
-    with open(f'./lkmc_param.txt', 'w') as f4:
+    if exists(f'./kmc_param.txt'):
+        rename(f'./kmc_param.txt', f'./kmc_param_backup.txt')
+    old_param = read_parameters(f'./kmc_param_backup.txt')
+    with open(f'./kmc_param.txt', 'w') as f4:
         f4.write(f"simulation_method {old_param['simulation_method']}\n")
         f4.write(f"json_coefficients_filename {old_param['json_coefficients_filename']}\n")
+        f4.write(f"time_temperature_filename {old_param['time_temperature_filename']}\n")
         f4.write(f"map_filename map{last_step}.txt\n")
         f4.write(f"log_dump_steps {old_param['log_dump_steps']}\n")
         f4.write(f"config_dump_steps {old_param['config_dump_steps']}\n")
