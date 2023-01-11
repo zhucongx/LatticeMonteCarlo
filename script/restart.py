@@ -54,6 +54,7 @@ if __name__ == '__main__':
     last_i = None
     last_step = None
     last_time = None
+    last_temperature = None
     last_energy = None
 
     for i, line in enumerate(reverse_readline(f'./kmc_log_backup.txt')):
@@ -62,9 +63,10 @@ if __name__ == '__main__':
             last_i = i
             last_step = line[0]
             last_time = line[1]
-            last_energy = line[2]
+            last_temperature = line[2]
+            last_energy = line[3]
             break
-    print(f"{last_i}, {last_step}, {last_time}, {last_energy}")
+    print(f"{last_i}, {last_step}, {last_time}, {last_temperature}, {last_energy}")
     with open(f'./kmc_log_backup.txt', 'r') as f1, open(f'./kmc_log.txt', 'w') as f2:
         for i, line in enumerate(f1):
             f2.write(line)
@@ -84,7 +86,7 @@ if __name__ == '__main__':
         f4.write(f"config_dump_steps {old_param['config_dump_steps']}\n")
         f4.write(f"maximum_steps {old_param['maximum_steps']}\n")
         f4.write(f"thermodynamic_averaging_steps {old_param['thermodynamic_averaging_steps']}\n")
-        f4.write(f"temperature {old_param['temperature']}\n")
+        f4.write(f"temperature {last_temperature}\n")
         f4.write(f"element_set {old_param['element_set']}\n")
         f4.write(f"restart_steps {last_step}\n")
         f4.write(f"restart_energy {last_energy}\n")
