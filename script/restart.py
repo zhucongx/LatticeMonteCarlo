@@ -37,7 +37,7 @@ def reverse_readline(filename, buf_size=8192):
 
 
 def read_parameters(filename):
-    param = {}
+    param = {"time_temperature_filename": ""}
     with open(filename) as f:
         for line in f:
             if line.startswith('#'):
