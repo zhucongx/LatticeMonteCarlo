@@ -37,7 +37,7 @@ def reverse_readline(filename, buf_size=8192):
 
 
 def read_parameters(filename):
-    param = {"time_temperature_filename": ""}
+    param = {}
     with open(filename) as f:
         for line in f:
             if line.startswith('#'):
@@ -80,7 +80,8 @@ if __name__ == '__main__':
     with open(f'./kmc_param.txt', 'w') as f4:
         f4.write(f"simulation_method {old_param['simulation_method']}\n")
         f4.write(f"json_coefficients_filename {old_param['json_coefficients_filename']}\n")
-        f4.write(f"time_temperature_filename {old_param['time_temperature_filename']}\n")
+        if "time_temperature_filename_" in old_param.keys():
+            f4.write(f"time_temperature_filename {old_param['time_temperature_filename']}\n")
         f4.write(f"map_filename map{last_step}.txt\n")
         f4.write(f"log_dump_steps {old_param['log_dump_steps']}\n")
         f4.write(f"config_dump_steps {old_param['config_dump_steps']}\n")
