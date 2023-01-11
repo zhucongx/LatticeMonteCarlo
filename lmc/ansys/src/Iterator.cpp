@@ -40,7 +40,7 @@ Iterator::Iterator(unsigned long long int initial_steps,
     return;
   }
   unsigned long long step_number;
-  double energy, time, temperature;
+  double energy{}, time{}, temperature{};
   while (ifs.peek() != '0') {
     ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
   }
@@ -54,9 +54,8 @@ Iterator::Iterator(unsigned long long int initial_steps,
       continue;
     }
     if (log_type_ == "kinetic_mc") {
-      ifs >> step_number >> time >> energy;
-    } else if (log_type_ == "canonical_mc_step_t"
-        || log_type_ == "semi_grand_canonical_mc_step_t") {
+      ifs >> step_number >> time >> temperature >> energy;
+    } else if (log_type_ == "canonical_mc") {
       ifs >> step_number >> temperature >> energy;
     } else {
       std::cerr << "Unknown log type: " << log_type_ << std::endl;
@@ -64,17 +63,13 @@ Iterator::Iterator(unsigned long long int initial_steps,
 
     ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     if (step_number >= initial_steps_ && (step_number - initial_steps_) % increment_steps == 0) {
-      if (log_type_ == "kinetic_mc") {
-        filename_energy_info_hashset_[step_number] = std::make_pair(energy, time);
-      } else if (log_type_ == "canonical_mc") {
-        filename_energy_info_hashset_[step_number] = std::make_pair(energy, temperature);
-      } else {
-        std::cerr << "Unknown log type: " << log_type_ << std::endl;
-      }
+      filename_energy_hashset_[step_number] = energy;
+      filename_temperature_hashset_[step_number] = temperature;
+      filename_time_hashset_[step_number] = time;
+
       final_number_ = step_number;
     }
   }
-  // final_number_ -= increment_steps;
 }
 Iterator::~Iterator() = default;
 void Iterator::RunCluster() const {
@@ -106,8 +101,9 @@ void Iterator::RunCluster() const {
     ofs << "{ \n"
         << "\"index\" : "
         << "\"" << std::to_string(i) << "\",\n"
-        << "\"energy\" : " << filename_energy_info_hashset_.at(i).first << ",\n"
-        << "\"info\" : " << filename_energy_info_hashset_.at(i).second << ",\n"
+        << "\"time\" : " << filename_time_hashset_.at(i) << ",\n"
+        << "\"temperature\" : " << filename_temperature_hashset_.at(i) << ",\n"
+        << "\"energy\" : " << filename_energy_hashset_.at(i) << ",\n"
         << "\"clusters\" : [ \n";
     for (auto it = num_different_element.cbegin(); it < num_different_element.cend(); ++it) {
       ofs << "[ ";
@@ -164,15 +160,17 @@ void Iterator::RunShortRangeOrder() const {
       }
       auto sro_map = short_range_order.FindWarrenCowley(j);
       if (i == 0) {
-        *ofs << "index\tenergy\tinfo\t";
+        *ofs << "index\ttime\ttemperature\tenergy";
         std::transform(sro_map.cbegin(),
                        sro_map.cend(),
                        std::experimental::make_ostream_joiner(*ofs, "\t"),
                        [](const auto &ii) { return ii.first; });
         *ofs << std::endl;
       }
-      *ofs << i << '\t' << filename_energy_info_hashset_.at(i).first << '\t'
-           << filename_energy_info_hashset_.at(i).second << '\t';
+      *ofs << i << '\t'
+           << filename_time_hashset_.at(i) << '\t'
+           << filename_temperature_hashset_.at(i) << '\t'
+           << filename_energy_hashset_.at(i) << '\t';
       std::transform(sro_map.cbegin(),
                      sro_map.cend(),
                      std::experimental::make_ostream_joiner(*ofs, "\t"),
