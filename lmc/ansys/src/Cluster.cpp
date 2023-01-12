@@ -36,7 +36,9 @@ Cluster::ClusterElementNumMap Cluster::FindClustersAndOutput(
   {
 #pragma omp for
     for (auto &atom_list: cluster_to_atom_vector) {
-      const double cluster_energy = GetRelativeEnergyOfCluster(atom_list);
+      // const double cluster_energy = GetRelativeEnergyOfCluster(atom_list); // TODO: use this line
+      const double cluster_energy = 0;
+
       // initialize map with all the element, because some cluster may not have all types of element
       std::map<Element, size_t> num_atom_in_one_cluster;
       for (const auto &element: element_set_) {
