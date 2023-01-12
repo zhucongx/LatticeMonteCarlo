@@ -23,7 +23,7 @@ McAbstract::McAbstract(cfg::Config config,
       maximum_steps_(maximum_steps),
       steps_(restart_steps),
       energy_(restart_energy),
-      initial_absolute_energy_(pred::EnergyPredictor(
+      absolute_energy_(pred::EnergyPredictor(
           json_coefficients_filename, element_set).GetEnergy(config_)),
       time_(restart_time),
       temperature_(temperature),

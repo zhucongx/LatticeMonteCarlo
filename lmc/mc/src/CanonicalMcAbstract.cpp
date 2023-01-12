@@ -83,8 +83,7 @@ void CanonicalMcAbstract::Dump() {
   if (steps_ % log_dump_steps == 0) {
     ofs_ << steps_ << '\t' << temperature_ << '\t' << energy_ << '\t'
          << thermodynamic_averaging_.GetThermodynamicAverage(beta_) << '\t'
-         << initial_absolute_energy_ + energy_
-         << std::endl;
+         << absolute_energy_ << std::endl;
   }
 }
 void CanonicalMcAbstract::SelectEvent(const std::pair<size_t, size_t> &lattice_id_jump_pair,
@@ -92,12 +91,14 @@ void CanonicalMcAbstract::SelectEvent(const std::pair<size_t, size_t> &lattice_i
   if (dE < 0) {
     config_.LatticeJump(lattice_id_jump_pair);
     energy_ += dE;
+    absolute_energy_ += dE;
   } else {
     double possibility = std::exp(-dE * beta_);
     double random_number = unit_distribution_(generator_);
     if (random_number < possibility) {
       config_.LatticeJump(lattice_id_jump_pair);
       energy_ += dE;
+      absolute_energy_ += dE;
     }
   }
 }

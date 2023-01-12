@@ -33,7 +33,7 @@ class McAbstract {
     // simulation statistics
     unsigned long long int steps_;
     double energy_;
-    double initial_absolute_energy_;
+    double absolute_energy_;
     double time_;
     double temperature_;
     double beta_;

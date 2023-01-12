@@ -67,7 +67,7 @@ void KineticMcFirstAbstract::Dump() const {
   if (steps_ % log_dump_steps == 0) {
     ofs_ << steps_ << '\t' << time_ << '\t' << temperature_ << '\t' << energy_ << '\t'
          << thermodynamic_averaging_.GetThermodynamicAverage(beta_) << '\t'
-         << initial_absolute_energy_ + energy_ << '\t'
+         << absolute_energy_ << '\t'
          << event_k_i_.GetForwardBarrier() << '\t'
          << event_k_i_.GetEnergyChange() << '\t'
          << config_.GetElementAtLatticeId(event_k_i_.GetIdJumpPair().first).GetString()
@@ -106,6 +106,7 @@ void KineticMcFirstAbstract::OneStepSimulation() {
   time_ += CalculateTime();
   event_k_i_ = event_k_i_list_[SelectEvent()];
   energy_ += event_k_i_.GetEnergyChange();
+  absolute_energy_ += event_k_i_.GetEnergyChange();
   config_.LatticeJump(event_k_i_.GetIdJumpPair());
   ++steps_;
   vacancy_lattice_id_ = event_k_i_.GetIdJumpPair().second;
