@@ -160,7 +160,7 @@ void Iterator::RunShortRangeOrder() const {
       }
       auto sro_map = short_range_order.FindWarrenCowley(j);
       if (i == 0) {
-        *ofs << "index\ttime\ttemperature\tenergy";
+        *ofs << "index\ttime\ttemperature\tenergy\t";
         std::transform(sro_map.cbegin(),
                        sro_map.cend(),
                        std::experimental::make_ostream_joiner(*ofs, "\t"),
