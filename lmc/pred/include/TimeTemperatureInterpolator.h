@@ -19,7 +19,7 @@ class TimeTemperatureInterpolator {
     //Our container of (x,y) data points
     //std::pair::<double, double>.first = x value
     //std::pair::<double, double>.second = y value
-    std::vector<std::pair<double, double>> points_{};
+    std::vector<std::pair<double, double> > points_{};
 };
 
 } // pred
