@@ -47,19 +47,19 @@ void TimeTemperatureInterpolator::SortPoints() {
     }
   }
 }
-double TimeTemperatureInterpolator::GetTemperature(double x) const {
-  //Define a lambda that returns true if the x value of a point pair is < the caller's x value
+double TimeTemperatureInterpolator::GetTemperature(double time) const {
+  //Define a lambda that returns true if the time value of a point pair is < the caller's time value
   auto less_than =
       [](const std::pair<double, double> &point, double x) { return point.first < x; };
-  //Find the first table entry whose value is >= caller's x value
+  //Find the first table entry whose value is >= caller's time value
   auto iter =
-      std::lower_bound(points_.cbegin(), points_.cend(), x, less_than);
+      std::lower_bound(points_.cbegin(), points_.cend(), time, less_than);
   //If the caller's X value is greater than the largest X value in the table, we can't interpolate.
   if (iter == points_.cend()) {
     return (points_.cend() - 1)->second;
   }
   //If the caller's X value is less than the smallest X value in the table, we can't interpolate.
-  if (iter == points_.cbegin() and x <= points_.cbegin()->first) {
+  if (iter == points_.cbegin() and time <= points_.cbegin()->first) {
     return points_.cbegin()->second;
   }
   //We can interpolate!
@@ -70,7 +70,7 @@ double TimeTemperatureInterpolator::GetTemperature(double x) const {
 
   double deltaY{upper_y - lower_y};
   double deltaX{upper_x - lower_x};
-  return lower_y + ((x - lower_x) / deltaX) * deltaY;
+  return lower_y + ((time - lower_x) / deltaX) * deltaY;
 }
 
 } // pred

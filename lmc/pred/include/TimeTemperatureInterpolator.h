@@ -12,7 +12,7 @@ class TimeTemperatureInterpolator {
     explicit TimeTemperatureInterpolator(const std::vector<std::pair<double, double>> &points);
 
     //Computes the corresponding Y value for X using linear interpolation
-    [[nodiscard]] double GetTemperature(double x) const;
+    [[nodiscard]] double GetTemperature(double time) const;
 
   private:
     void SortPoints();
