@@ -38,6 +38,7 @@ struct Parameter {
     unsigned long long int restart_steps_{};
     double restart_energy_{};
     double restart_time_{};
+    bool rate_corrector_{};
 
     unsigned long long int initial_steps_{};
     unsigned long long int increment_steps_{};

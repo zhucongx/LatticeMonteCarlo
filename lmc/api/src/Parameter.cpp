@@ -73,6 +73,13 @@ void Parameter::ReadParam(const std::string &param_filename) {
       solvent_bond_criteria_ = stoul(segs[1]);
     } else if (segs[0] == "restart_steps") {
       restart_steps_ = stoull(segs[1]);
+    } else if (segs[0] == "rate_corrector") {
+      std::string bool_string = std::string(segs[1]);
+      if (bool_string == "true") {
+        rate_corrector_ = true;
+      } else {
+        rate_corrector_ = false;
+      }
     } else if (segs[0] == "restart_energy") {
       restart_energy_ = stod(segs[1]);
     } else if (segs[0] == "restart_time") {

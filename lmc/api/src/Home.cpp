@@ -133,7 +133,8 @@ mc::KineticMcFirstMpi BuildKineticMcFirstMpiFromParameter(const Parameter &param
                                parameter.temperature_,
                                element_set,
                                parameter.json_coefficients_filename_,
-                               parameter.time_temperature_filename_};
+                               parameter.time_temperature_filename_,
+                               parameter.rate_corrector_};
 }
 mc::KineticMcFirstOmp BuildKineticMcFirstOmpFromParameter(const Parameter &parameter) {
   std::set<Element> element_set;
@@ -159,7 +160,8 @@ mc::KineticMcFirstOmp BuildKineticMcFirstOmpFromParameter(const Parameter &param
                                parameter.temperature_,
                                element_set,
                                parameter.json_coefficients_filename_,
-                               parameter.time_temperature_filename_};
+                               parameter.time_temperature_filename_,
+                               parameter.rate_corrector_};
 }
 mc::KineticMcChainOmpi BuildKineticMcChainOmpiFromParameter(const Parameter &parameter) {
   std::set<Element> element_set;
@@ -185,7 +187,8 @@ mc::KineticMcChainOmpi BuildKineticMcChainOmpiFromParameter(const Parameter &par
                                 parameter.temperature_,
                                 element_set,
                                 parameter.json_coefficients_filename_,
-                                parameter.time_temperature_filename_};
+                                parameter.time_temperature_filename_,
+                                parameter.rate_corrector_};
 }
 ansys::SimulatedAnnealing BuildSimulatedAnnealingFromParameter(const Parameter &parameter) {
   std::map<Element, size_t> solute_atom_count;
