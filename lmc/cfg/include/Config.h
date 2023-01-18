@@ -45,6 +45,8 @@ class Config {
     [[nodiscard]] std::unordered_set<size_t> GetNeighborsLatticeIdSetOfSite(
         size_t lattice_id) const;
     [[nodiscard]] int FindDistanceLabelBetweenLattice(size_t lattice_id1, size_t lattice_id2) const;
+    [[nodiscard]] double GetVacancyConcentration() const;
+    [[nodiscard]] double GetSoluteConcentration(Element solvent_element) const;
     /// Modify config
     void AtomJump(const std::pair<size_t, size_t> &atom_id_jump_pair);
     void LatticeJump(const std::pair<size_t, size_t> &lattice_id_jump_pair);

@@ -240,6 +240,26 @@ int Config::FindDistanceLabelBetweenLattice(size_t lattice_id1, size_t lattice_i
   }
   return -1;
 }
+double Config::GetVacancyConcentration() const {
+  size_t vacancy_count = 0;
+  for (const auto &atom: GetAtomVector()) {
+    if (atom.GetElement() == ElementName::X) {
+      vacancy_count++;
+    }
+  }
+  std::cerr << "Vacancy count: " << vacancy_count << std::endl;
+  return static_cast<double> (vacancy_count) / static_cast<double> (GetNumAtoms());
+}
+double Config::GetSoluteConcentration(Element solvent_element) const {
+  size_t solute_count = 0;
+  for (const auto &atom: GetAtomVector()) {
+    if (atom.GetElement() != solvent_element && atom.GetElement() != ElementName::X) {
+      solute_count++;
+    }
+  }
+  std::cerr << "Solute count: " << solute_count << std::endl;
+  return static_cast<double> (solute_count ) / static_cast<double> (GetNumAtoms());
+}
 void Config::AtomJump(const std::pair<size_t, size_t> &atom_id_jump_pair) {
   const auto [atom_id_lhs, atom_id_rhs] = atom_id_jump_pair;
   const auto lattice_id_lhs = atom_to_lattice_hashmap_.at(atom_id_lhs);
