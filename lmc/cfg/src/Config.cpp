@@ -247,7 +247,6 @@ double Config::GetVacancyConcentration() const {
       vacancy_count++;
     }
   }
-  std::cerr << "Vacancy count: " << vacancy_count << std::endl;
   return static_cast<double> (vacancy_count) / static_cast<double> (GetNumAtoms());
 }
 double Config::GetSoluteConcentration(Element solvent_element) const {
@@ -257,7 +256,6 @@ double Config::GetSoluteConcentration(Element solvent_element) const {
       solute_count++;
     }
   }
-  std::cerr << "Solute count: " << solute_count << std::endl;
   return static_cast<double> (solute_count ) / static_cast<double> (GetNumAtoms());
 }
 void Config::AtomJump(const std::pair<size_t, size_t> &atom_id_jump_pair) {
