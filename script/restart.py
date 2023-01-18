@@ -92,5 +92,6 @@ if __name__ == '__main__':
         f4.write(f"restart_steps {last_step}\n")
         f4.write(f"restart_energy {last_energy}\n")
         f4.write(f"restart_time {last_time}\n")
+        f4.write(f"rate_corrector {old_param['rate_corrector']}\n")
         f4.flush()
     print(f"Done...")
