@@ -14,7 +14,8 @@ KineticMcFirstOmp::KineticMcFirstOmp(cfg::Config config,
                                      const double temperature,
                                      const std::set<Element> &element_set,
                                      const std::string &json_coefficients_filename,
-                                     const std::string &time_temperature_filename)
+                                     const std::string &time_temperature_filename,
+                                     const bool is_rate_corrector)
     : KineticMcFirstAbstract(std::move(config),
                              log_dump_steps,
                              config_dump_steps,
@@ -26,7 +27,8 @@ KineticMcFirstOmp::KineticMcFirstOmp(cfg::Config config,
                              temperature,
                              element_set,
                              json_coefficients_filename,
-                             time_temperature_filename) {
+                             time_temperature_filename,
+                             is_rate_corrector) {
   if (world_size_ != 1) {
     std::cout << "Must use 1 precesses. Terminating...\n" << std::endl;
     MPI_Finalize();

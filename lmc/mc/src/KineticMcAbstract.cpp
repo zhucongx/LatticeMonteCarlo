@@ -12,7 +12,8 @@ KineticMcFirstAbstract::KineticMcFirstAbstract(cfg::Config config,
                                                const double temperature,
                                                const std::set<Element> &element_set,
                                                const std::string &json_coefficients_filename,
-                                               const std::string &time_temperature_filename)
+                                               const std::string &time_temperature_filename,
+                                               const bool is_rate_corrector)
     : McAbstract(std::move(config),
                  log_dump_steps,
                  config_dump_steps,
@@ -31,6 +32,9 @@ KineticMcFirstAbstract::KineticMcFirstAbstract(cfg::Config config,
                                        100000),
       time_temperature_interpolator_(time_temperature_filename),
       is_time_temperature_interpolator_(!time_temperature_filename.empty()),
+      rate_corrector_(config_.GetVacancyConcentration(),
+                      config_.GetSoluteConcentration(Element("Al"))),
+      is_rate_corrector_(is_rate_corrector),
       vacancy_lattice_id_(config_.GetVacancyLatticeId()) {
 }
 KineticMcFirstAbstract::~KineticMcFirstAbstract() = default;
@@ -39,6 +43,12 @@ void KineticMcFirstAbstract::UpdateTemperature() {
     temperature_ = time_temperature_interpolator_.GetTemperature(time_);
     beta_ = 1.0 / constants::kBoltzmann / temperature_;
   }
+}
+double KineticMcFirstAbstract::GetTimeCorrectionFactor() {
+  if (is_rate_corrector_) {
+    return rate_corrector_.GetTimeCorrectionFactor(temperature_);
+  }
+  return 1.0;
 }
 void KineticMcFirstAbstract::Dump() const {
   if (world_rank_ != 0) {
@@ -103,7 +113,7 @@ void KineticMcFirstAbstract::OneStepSimulation() {
     Dump();
   }
   BuildEventList();
-  time_ += CalculateTime();
+  time_ += CalculateTime() * GetTimeCorrectionFactor();
   event_k_i_ = event_k_i_list_[SelectEvent()];
   energy_ += event_k_i_.GetEnergyChange();
   absolute_energy_ += event_k_i_.GetEnergyChange();
@@ -128,7 +138,8 @@ KineticMcChainAbstract::KineticMcChainAbstract(cfg::Config config,
                                                const double temperature,
                                                const std::set<Element> &element_set,
                                                const std::string &json_coefficients_filename,
-                                               const std::string &time_temperature_filename)
+                                               const std::string &time_temperature_filename,
+                                               const bool is_rate_corrector)
     : KineticMcFirstAbstract(std::move(config),
                              log_dump_steps,
                              config_dump_steps,
@@ -140,7 +151,8 @@ KineticMcChainAbstract::KineticMcChainAbstract(cfg::Config config,
                              temperature,
                              element_set,
                              json_coefficients_filename,
-                             time_temperature_filename),
+                             time_temperature_filename,
+                             is_rate_corrector),
       previous_j_lattice_id_(config_.GetFirstNeighborsAdjacencyList()[vacancy_lattice_id_][0]) {
   MPI_Op_create(DataSum, 1, &mpi_op_);
   DefineStruct(&mpi_datatype_);

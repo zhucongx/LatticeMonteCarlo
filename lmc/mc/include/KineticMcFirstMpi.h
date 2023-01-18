@@ -16,7 +16,8 @@ class KineticMcFirstMpi : public KineticMcFirstAbstract {
                       double temperature,
                       const std::set<Element> &element_set,
                       const std::string &json_coefficients_filename,
-                      const std::string &time_temperature_filename);
+                      const std::string &time_temperature_filename,
+                      bool is_rate_corrector);
     ~KineticMcFirstMpi() override;
   protected:
     void BuildEventList() override;
