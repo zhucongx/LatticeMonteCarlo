@@ -113,7 +113,7 @@ void KineticMcFirstAbstract::OneStepSimulation() {
     Dump();
   }
   BuildEventList();
-  time_ += CalculateTime() * GetTimeCorrectionFactor();
+  time_ += (CalculateTime() * GetTimeCorrectionFactor());
   event_k_i_ = event_k_i_list_[SelectEvent()];
   energy_ += event_k_i_.GetEnergyChange();
   absolute_energy_ += event_k_i_.GetEnergyChange();
