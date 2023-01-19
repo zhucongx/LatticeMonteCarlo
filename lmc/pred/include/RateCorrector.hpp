@@ -14,7 +14,7 @@ class RateCorrector {
     RateCorrector(double vacancy_concentration, double solute_concentration)
         : vacancy_concentration_(vacancy_concentration),
           solute_concentration_(solute_concentration) {}
-    inline double GetTimeCorrectionFactor(double temperature) const {
+    [[nodiscard]] inline double GetTimeCorrectionFactor(double temperature) const {
       return vacancy_concentration_ / GetCorrectVacancyConcentration(temperature)
           / (1 - 13 * solute_concentration_);
     };
