@@ -3,6 +3,7 @@
 #include <random>
 #include <chrono>
 #include <utility>
+#include <algorithm>
 #include <boost/functional/hash.hpp>
 
 #include <omp.h>

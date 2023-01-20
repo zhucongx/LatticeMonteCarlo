@@ -4,6 +4,7 @@
 #include <thread>
 #include <mutex>
 #include <shared_mutex>
+#include <list>
 namespace pred {
 
 template<typename K, class V>

@@ -7,6 +7,7 @@
 #include <string>
 #include <unordered_set>
 #include <unordered_map>
+#include <algorithm>
 #include <type_traits>
 #include <boost/functional/hash.hpp>
 #include "Lattice.hpp"

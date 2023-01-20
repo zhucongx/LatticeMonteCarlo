@@ -17,7 +17,7 @@ class RateCorrector {
     [[nodiscard]] inline double GetTimeCorrectionFactor(double temperature) const {
       return vacancy_concentration_ / GetCorrectVacancyConcentration(temperature)
           / (1 - 13 * solute_concentration_);
-    };
+    }
   private:
     static inline double GetCorrectVacancyConcentration(double temperature) {
       return 1.64 * std::exp(-(0.66 / constants::kBoltzmann / temperature - 0.7));
