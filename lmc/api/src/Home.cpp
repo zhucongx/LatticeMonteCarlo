@@ -25,6 +25,7 @@ void Print(const Parameter &parameter) {
     std::cout << "restart_time: " << parameter.restart_time_ << std::endl;
     std::cout << "time_temperature_filename: " << parameter.time_temperature_filename_
               << std::endl;
+    std::cout << "rate_corrector: " << parameter.rate_corrector_ << std::endl;
   } else if (parameter.method == "SimulatedAnnealing") {
     std::cout << "json_coefficients_filename: " << parameter.json_coefficients_filename_
               << std::endl;
