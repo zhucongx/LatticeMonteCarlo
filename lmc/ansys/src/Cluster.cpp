@@ -72,7 +72,7 @@ Cluster::ClusterElementNumMap Cluster::FindClustersAndOutput(
 std::unordered_set<size_t> Cluster::FindSoluteAtomIndexes() const {
   std::unordered_set<size_t> solute_atoms_hashset;
   for (const auto &atom: config_.GetAtomVector()) {
-    if (atom.GetElement() == solvent_element_ || atom.GetElement() == ElementName::X) { continue; }
+    if (atom.GetElement() == solvent_element_) { continue; }
     solute_atoms_hashset.insert(atom.GetId());
   }
   return solute_atoms_hashset;
@@ -142,7 +142,7 @@ std::vector<std::vector<size_t> > Cluster::FindAtomListOfClusters() const {
     size_t neighbor_bond_count = 0;
     for (auto neighbor_id: config_.GetFirstNeighborsAtomIdVectorOfAtom(atom.GetId())) {
       const auto &neighbor_type = config_.GetAtomVector()[neighbor_id].GetElement();
-      if (neighbor_type != solvent_element_ && neighbor_type != ElementName::X
+      if (neighbor_type != solvent_element_
           && all_found_solute_set.find(neighbor_id) != all_found_solute_set.end())
         neighbor_bond_count++;
     }
