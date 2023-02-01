@@ -29,7 +29,7 @@ class EnergyPredictor {
     std::vector<double> base_theta_{};
     const std::set<Element> element_set_;
     std::unordered_map<cfg::ElementCluster, size_t,
-                       boost::hash<cfg::ElementCluster> > initialized_cluster_hashmap_;
+                       boost::hash<cfg::ElementCluster> > initialized_cluster_hashmap_{};
     // std::vector<cfg::ElementCluster> sorted_cluster_type_vector;
 };
 

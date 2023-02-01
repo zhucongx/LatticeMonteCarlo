@@ -22,6 +22,8 @@ class McAbstract {
                const std::string &json_coefficients_filename,
                const std::string &log_filename);
     virtual ~McAbstract();
+    McAbstract(const McAbstract &) = delete;
+    void operator=(const mc::McAbstract &) = delete;
     virtual void Simulate() = 0;
   protected:
     // config

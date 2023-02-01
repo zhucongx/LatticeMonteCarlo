@@ -39,21 +39,21 @@ class VacancyMigrationPredictorQuartic {
 
     std::unordered_map<std::pair<size_t, size_t>,
                        std::vector<size_t>,
-                       boost::hash<std::pair<size_t, size_t> > > site_bond_cluster_mmm_hashmap_;
+                       boost::hash<std::pair<size_t, size_t> > > site_bond_cluster_mmm_hashmap_{};
     std::unordered_map<std::pair<size_t, size_t>,
                        std::vector<size_t>,
-                       boost::hash<std::pair<size_t, size_t> > > site_bond_cluster_mm2_hashmap_;
+                       boost::hash<std::pair<size_t, size_t> > > site_bond_cluster_mm2_hashmap_{};
     std::unordered_map<std::pair<size_t, size_t>,
                        std::vector<size_t>,
-                       boost::hash<std::pair<size_t, size_t> > > site_bond_cluster_state_hashmap_;
+                       boost::hash<std::pair<size_t, size_t> > > site_bond_cluster_state_hashmap_{};
 
     std::unordered_map<Element,
                        ParametersQuartic,
-                       boost::hash<Element>> element_parameters_hashmap_;
+                       boost::hash<Element>> element_parameters_hashmap_{};
 
     std::unordered_map<cfg::ElementCluster, size_t,
-                       boost::hash<cfg::ElementCluster> > initialized_cluster_hashmap_;
-    std::map<cfg::ElementCluster, int> ordered_map_;
+                       boost::hash<cfg::ElementCluster> > initialized_cluster_hashmap_{};
+    std::map<cfg::ElementCluster, int> ordered_map_{};
 
 };
 } // pred

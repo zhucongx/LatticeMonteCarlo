@@ -41,7 +41,7 @@ class LruCache {
     std::list<std::pair<K, V> > cache_list_{};
     // hashmap of key and iterator of cache list
     std::unordered_map<K, decltype(cache_list_.begin())> cache_hashmap_{};
-    std::shared_mutex mu_;
+    std::shared_mutex mu_{};
 };
 
 class VacancyMigrationPredictorQuarticLru : public VacancyMigrationPredictorQuartic {

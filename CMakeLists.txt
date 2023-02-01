@@ -86,7 +86,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "lmc.exe")
 #        "/home1/07075/tg863748/library/boost/lib")
 #find_package(Boost COMPONENTS mpi serialization REQUIRED)
 find_package(Boost REQUIRED)
-target_include_directories(${PROJECT_NAME} PRIVATE ${Boost_INCLUDE_DIR})
+target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${Boost_INCLUDE_DIR})
 target_link_libraries(${PROJECT_NAME} PRIVATE ${Boost_LIBRARIES})
 ############################################### MPI ################################################
 find_package(MPI REQUIRED)

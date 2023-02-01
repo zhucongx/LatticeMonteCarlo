@@ -27,6 +27,8 @@ class KineticMcFirstAbstract : public McAbstract {
                            const std::string &time_temperature_filename,
                            bool is_rate_corrector);
     ~KineticMcFirstAbstract() override;
+    KineticMcFirstAbstract(const KineticMcFirstAbstract &) = delete;
+    void operator=(const mc::KineticMcFirstAbstract &) = delete;
     void Simulate() override;
   protected:
     void UpdateTemperature();
@@ -66,6 +68,8 @@ class KineticMcChainAbstract : public KineticMcFirstAbstract {
                            const std::string &time_temperature_filename,
                            bool is_rate_corrector);
     ~KineticMcChainAbstract() override;
+    KineticMcChainAbstract(const KineticMcChainAbstract &) = delete;
+    void operator=(const mc::KineticMcChainAbstract &) = delete;
   protected:
     void OneStepSimulation() override;
     // helpful properties

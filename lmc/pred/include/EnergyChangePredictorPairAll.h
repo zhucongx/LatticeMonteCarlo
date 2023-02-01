@@ -39,12 +39,10 @@ class EnergyChangePredictorPairAll {
 
     std::vector<double> base_theta_{};
     std::unordered_map<cfg::ElementCluster, size_t,
-                       boost::hash<cfg::ElementCluster> > initialized_cluster_hashmap_;
+                       boost::hash<cfg::ElementCluster> > initialized_cluster_hashmap_{};
 
-    std::unordered_map<size_t,
-                       std::vector<size_t> > site_state_hashmap_;
-    std::unordered_map<size_t,
-                       std::unordered_set<size_t> > neighboring_sites_hashmap_;
+    std::unordered_map<size_t, std::vector<size_t> > site_state_hashmap_{};
+    std::unordered_map<size_t, std::unordered_set<size_t> > neighboring_sites_hashmap_{};
 };
 } // pred
 #endif //LMC_LMC_PRED_INCLUDE_ENERGYCHANGEPREDICTORPAIRALL_H_

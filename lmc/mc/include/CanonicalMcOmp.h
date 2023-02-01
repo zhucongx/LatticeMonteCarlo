@@ -22,7 +22,7 @@ class CanonicalMcOmp : public CanonicalMcAbstract {
   private:
     void BuildEventVector();
     // helpful properties
-    std::vector<std::pair<std::pair<size_t, size_t>, double> > event_vector_;
+    std::vector<std::pair<std::pair<size_t, size_t>, double> > event_vector_{};
     std::unordered_set<size_t> unavailable_position_{};
     size_t num_threads_{};
 };

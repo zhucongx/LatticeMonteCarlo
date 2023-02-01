@@ -13,7 +13,7 @@ class ThermodynamicAveraging {
     [[nodiscard]] double GetThermodynamicAverage(double beta) const;
   private:
     [[nodiscard]] double GetAverage() const;
-    std::deque<double> energy_list_;
+    std::deque<double> energy_list_{};
     const size_t size_;
     double sum_{};
 };

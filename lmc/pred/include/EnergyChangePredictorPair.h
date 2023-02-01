@@ -26,11 +26,11 @@ class EnergyChangePredictorPair {
 
     std::vector<double> base_theta_{};
     std::unordered_map<cfg::ElementCluster, size_t,
-                       boost::hash<cfg::ElementCluster> > initialized_cluster_hashmap_;
+                       boost::hash<cfg::ElementCluster> > initialized_cluster_hashmap_{};
 
     std::unordered_map<std::pair<size_t, size_t>,
                        std::vector<size_t>,
-                       boost::hash<std::pair<size_t, size_t> > > bond_state_hashmap_;
+                       boost::hash<std::pair<size_t, size_t> > > bond_state_hashmap_{};
 };
 } // pred
 #endif //LMC_LMC_PRED_INCLUDE_ENERGYCHANGEPREDICTORPAIR_H_
