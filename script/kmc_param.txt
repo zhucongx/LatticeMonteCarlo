@@ -12,4 +12,4 @@ element_set Al Mg Zn
 restart_steps 0
 restart_energy 0
 restart_time 0
-rate_corrector true
+rate_corrector false
