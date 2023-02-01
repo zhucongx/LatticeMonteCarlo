@@ -18,11 +18,12 @@ Cluster::Cluster(const cfg::Config &config,
       element_set_(std::move(element_set)),
       smallest_cluster_criteria_(smallest_cluster_criteria),
       solvent_bond_criteria_(solvent_bond_criteria),
-      energy_estimator_(energy_estimator) {
+      energy_estimator_(energy_estimator),
+      absolute_energy_solvent_config_(0) {
   for (size_t atom_id = 0; atom_id < solvent_config_.GetNumAtoms(); ++atom_id) {
     solvent_config_.ChangeAtomElementTypeAtAtom(atom_id, Element("Al"));
   }
-  absolute_energy_solvent_config_ = energy_estimator_.GetEnergy(solvent_config_);
+  // absolute_energy_solvent_config_ = energy_estimator_.GetEnergy(solvent_config_);
 }
 
 Cluster::ClusterElementNumMap Cluster::FindClustersAndOutput(
@@ -32,31 +33,32 @@ Cluster::ClusterElementNumMap Cluster::FindClustersAndOutput(
   ClusterElementNumMap cluster_element_num_map;
   std::vector<cfg::Lattice> lattice_vector;
   std::vector<cfg::Atom> atom_vector;
-#pragma omp parallel  default(none) shared(cluster_to_atom_vector, atom_vector, lattice_vector, cluster_element_num_map)
-  {
-#pragma omp for
-    for (auto &atom_list: cluster_to_atom_vector) {
-      const double cluster_energy = GetRelativeEnergyOfCluster(atom_list);
-      // initialize map with all the element, because some cluster may not have all types of element
-      std::map<Element, size_t> num_atom_in_one_cluster;
-      for (const auto &element: element_set_) {
-        num_atom_in_one_cluster[element] = 0;
-      }
-#pragma omp critical
-      {
-        for (const auto &atom_index: atom_list) {
-          Element type = config_.GetAtomVector()[atom_index].GetElement();
-          num_atom_in_one_cluster[type]++;
-          atom_vector.emplace_back(atom_vector.size(), type);
-          auto relative_position =
-              config_.GetLatticeVector()[config_.GetLatticeIdFromAtomId(atom_index)].GetRelativePosition();
-          lattice_vector.emplace_back(lattice_vector.size(),
-                                      relative_position * config_.GetBasis(), relative_position);
-        }
-        cluster_element_num_map.emplace_back(
-            std::make_pair(num_atom_in_one_cluster, cluster_energy));
-      }
+// #pragma omp parallel  default(none) shared(cluster_to_atom_vector, atom_vector, lattice_vector, cluster_element_num_map)
+//   {
+// #pragma omp for
+  for (auto &atom_list: cluster_to_atom_vector) {
+    const double cluster_energy = 0;
+    // const double cluster_energy = GetRelativeEnergyOfCluster(atom_list);
+    // initialize map with all the element, because some cluster may not have all types of element
+    std::map<Element, size_t> num_atom_in_one_cluster;
+    for (const auto &element: element_set_) {
+      num_atom_in_one_cluster[element] = 0;
     }
+// #pragma omp critical
+//       {
+    for (const auto &atom_index: atom_list) {
+      Element type = config_.GetAtomVector()[atom_index].GetElement();
+      num_atom_in_one_cluster[type]++;
+      atom_vector.emplace_back(atom_vector.size(), type);
+      auto relative_position =
+          config_.GetLatticeVector()[config_.GetLatticeIdFromAtomId(atom_index)].GetRelativePosition();
+      lattice_vector.emplace_back(lattice_vector.size(),
+                                  relative_position * config_.GetBasis(), relative_position);
+    }
+    cluster_element_num_map.emplace_back(
+        std::make_pair(num_atom_in_one_cluster, cluster_energy));
+    // }
+    // }
   }
   cfg::Config config_out(config_.GetBasis(), lattice_vector, atom_vector, false);
 
