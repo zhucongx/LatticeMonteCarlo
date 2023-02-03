@@ -80,7 +80,7 @@ if __name__ == '__main__':
     with open(f'./kmc_param.txt', 'w') as f4:
         f4.write(f"simulation_method {old_param['simulation_method']}\n")
         f4.write(f"json_coefficients_filename {old_param['json_coefficients_filename']}\n")
-        if "time_temperature_filename_" in old_param.keys():
+        if "time_temperature_filename" in old_param.keys():
             f4.write(f"time_temperature_filename {old_param['time_temperature_filename']}\n")
         f4.write(f"map_filename map{last_step}.txt\n")
         f4.write(f"log_dump_steps {old_param['log_dump_steps']}\n")
