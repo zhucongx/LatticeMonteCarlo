@@ -24,10 +24,13 @@ CanonicalMcOmp::CanonicalMcOmp(cfg::Config config,
     MPI_Finalize();
     exit(0);
   }
-#pragma omp parallel master default(none) shared(std::cout)
+#pragma omp parallel  default(none) shared(std::cout)
   {
-    std::cout << "Using " << omp_get_num_threads() << " threads." << std::endl;
-    num_threads_ = static_cast<size_t>(omp_get_num_threads());
+#pragma omp master
+    {
+      std::cout << "Using " << omp_get_num_threads() << " threads." << std::endl;
+      num_threads_ = static_cast<size_t>(omp_get_num_threads());
+    }
   }
   event_vector_.reserve(static_cast<size_t>(omp_get_num_threads()));
 }

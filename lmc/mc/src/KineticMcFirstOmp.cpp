@@ -34,9 +34,12 @@ KineticMcFirstOmp::KineticMcFirstOmp(cfg::Config config,
     MPI_Finalize();
     exit(0);
   }
-#pragma omp parallel master default(none) shared(std::cout)
+#pragma omp parallel default(none) shared(std::cout)
   {
-    std::cout << "Using " << omp_get_num_threads() << " threads." << std::endl;
+#pragma omp master
+    {
+      std::cout << "Using " << omp_get_num_threads() << " threads." << std::endl;
+    }
   }
 }
 KineticMcFirstOmp::~KineticMcFirstOmp() = default;
