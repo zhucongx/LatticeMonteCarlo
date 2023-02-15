@@ -5,6 +5,9 @@
 #include <iostream>
 #include <iterator>
 #include <experimental/iterator>
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
+
 namespace ansys {
 
 Iterator::Iterator(unsigned long long int initial_steps,
@@ -73,11 +76,9 @@ Iterator::Iterator(unsigned long long int initial_steps,
 }
 Iterator::~Iterator() = default;
 void Iterator::RunCluster() const {
-  std::ofstream ofs("cluster_info.json", std::ofstream::out);
-  ofs << "[ \n";
+  json clusters_info_array = json::array();
   for (unsigned long long i = 0; i <= final_number_; i += increment_steps_) {
     std::cout << i << " / " << final_number_ << std::endl;
-
     cfg::Config config;
     if (config_type_ == "config") {
       config = cfg::Config::ReadConfig(std::to_string(i) + ".cfg");
@@ -97,37 +98,28 @@ void Iterator::RunCluster() const {
                            energy_estimator_);
     auto num_different_element =
         cluster_finder.FindClustersAndOutput("cluster", std::to_string(i) + "_cluster.cfg");
-
-    ofs << "{ \n"
-        << "\"index\" : "
-        << "\"" << std::to_string(i) << "\",\n"
-        << "\"time\" : " << filename_time_hashset_.at(i) << ",\n"
-        << "\"temperature\" : " << filename_temperature_hashset_.at(i) << ",\n"
-        << "\"energy\" : " << filename_energy_hashset_.at(i) << ",\n"
-        << "\"clusters\" : [ \n";
+    json clusters_info;
+    clusters_info["index"] = std::to_string(i);
+    clusters_info["time"] = filename_time_hashset_.at(i);
+    clusters_info["temperature"] = filename_temperature_hashset_.at(i);
+    clusters_info["energy"] = filename_energy_hashset_.at(i);
+    json clusters_array = json::array();
     for (auto it = num_different_element.cbegin(); it < num_different_element.cend(); ++it) {
-      ofs << "[ ";
+      json cluster_info;
+      std::vector<size_t> num_each_element;
       const auto &cluster = *it;
-      std::for_each(cluster.first.cbegin(), cluster.first.cend(), [&ofs](auto ii) {
-        if (ii.first != ElementName::X) {
-          ofs << ii.second << ", ";
-        }
+      std::for_each(cluster.first.cbegin(), cluster.first.cend(), [&num_each_element](auto ii) {
+        num_each_element.push_back(ii.second);
       });
-      ofs << std::setprecision(16) << cluster.second;
-      if (it == num_different_element.cend() - 1) {
-        ofs << "] \n";
-      } else {
-        ofs << "], \n";
-      }
+      cluster_info["num_each_element"] = num_each_element;
+      cluster_info["energy"] = cluster.second;
+      clusters_array.push_back(cluster_info);
     }
-    ofs << "]\n";
-    if (i != final_number_) {
-      ofs << "}, \n";
-    } else {
-      ofs << "} \n";
-    }
+    clusters_info["clusters"] = clusters_array;
+    clusters_info_array.push_back(clusters_info);
+    std::ofstream ofs("cluster_info.json", std::ofstream::out);
+    std::cout << std::setw(4) << std::setprecision(16) << clusters_info_array << std::endl;
   }
-  ofs << " ]" << std::endl;
 }
 void Iterator::RunShortRangeOrder() const {
   // start
