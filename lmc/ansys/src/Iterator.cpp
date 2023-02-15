@@ -114,7 +114,7 @@ void Iterator::RunCluster() const {
         }
       });
       cluster_info["num_each_element"] = num_each_element;
-      cluster_info["energy"] = cluster.second;
+      cluster_info["energy"] = cluster.second.at(0);
       clusters_array.push_back(cluster_info);
     }
     clusters_info["clusters"] = clusters_array;

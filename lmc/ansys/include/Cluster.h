@@ -10,7 +10,8 @@
 namespace ansys {
 class Cluster {
   public:
-    using ClusterElementNumMap = std::vector<std::pair<std::map<Element, size_t>, double> >;
+    using ClusterElementNumMap = std::vector<std::pair<std::map<Element, size_t>,
+                                                       std::vector<double> > >;
     Cluster(const cfg::Config &config,
             Element solvent_atom_type,
             std::set<Element> element_set,

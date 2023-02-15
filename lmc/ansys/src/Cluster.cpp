@@ -56,7 +56,7 @@ Cluster::ClusterElementNumMap Cluster::FindClustersAndOutput(
                                   relative_position * config_.GetBasis(), relative_position);
     }
     cluster_element_num_map.emplace_back(
-        std::make_pair(num_atom_in_one_cluster, cluster_energy));
+        std::make_pair(num_atom_in_one_cluster, std::vector<double>{cluster_energy}));
     // }
     // }
   }
