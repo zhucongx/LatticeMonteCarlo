@@ -109,7 +109,9 @@ void Iterator::RunCluster() const {
       std::vector<size_t> num_each_element;
       const auto &cluster = *it;
       std::for_each(cluster.first.cbegin(), cluster.first.cend(), [&num_each_element](auto ii) {
-        num_each_element.push_back(ii.second);
+        if (ii.first != ElementName::X) {
+          num_each_element.push_back(ii.second);
+        }
       });
       cluster_info["num_each_element"] = num_each_element;
       cluster_info["energy"] = cluster.second;
@@ -118,7 +120,7 @@ void Iterator::RunCluster() const {
     clusters_info["clusters"] = clusters_array;
     clusters_info_array.push_back(clusters_info);
     std::ofstream ofs("cluster_info.json", std::ofstream::out);
-    std::cout << std::setw(4) << std::setprecision(16) << clusters_info_array << std::endl;
+    std::cout << std::setw(1) << std::setprecision(16) << clusters_info_array << std::endl;
   }
 }
 void Iterator::RunShortRangeOrder() const {
