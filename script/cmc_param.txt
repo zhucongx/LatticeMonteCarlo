@@ -1,10 +1,12 @@
 simulation_method CanonicalMcSerial
 json_coefficients_filename quartic_coefficients.json
 config_filename start.cfg
-element_set Al Mg Zn
+#map_filename map0.txt
 log_dump_steps                  100000
 config_dump_steps             10000000
 maximum_steps                100000000
 thermodynamic_averaging_steps 10000000
-initial_temperature 800
-decrement_temperature 5
+temperature 800
+element_set Al Mg Zn
+restart_steps 0
+restart_energy 0
