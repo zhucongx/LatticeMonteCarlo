@@ -106,14 +106,12 @@ void Iterator::RunCluster() const {
     json clusters_array = json::array();
     for (auto it = num_different_element.cbegin(); it < num_different_element.cend(); ++it) {
       json cluster_info;
-      std::vector<size_t> num_each_element;
+      std::vector<std::pair<std::string, size_t>> elements;
       const auto &cluster = *it;
-      std::for_each(cluster.first.cbegin(), cluster.first.cend(), [&num_each_element](auto ii) {
-        if (ii.first != ElementName::X) {
-          num_each_element.push_back(ii.second);
-        }
+      std::for_each(cluster.first.cbegin(), cluster.first.cend(), [&elements](auto ii) {
+        elements.emplace_back(ii.first.GetString(), ii.second);
       });
-      cluster_info["num_each_element"] = num_each_element;
+      cluster_info["elements"] = elements;
       cluster_info["energy"] = cluster.second.at(0);
       clusters_array.push_back(cluster_info);
     }
