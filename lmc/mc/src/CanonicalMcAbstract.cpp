@@ -19,8 +19,8 @@ CanonicalMcAbstract::CanonicalMcAbstract(cfg::Config config,
                                          const unsigned long long int maximum_steps,
                                          const unsigned long long int thermodynamic_averaging_steps,
                                          const double temperature,
-                                         // const double initial_temperature,
-                                         // const double decrement_temperature,
+    // const double initial_temperature,
+    // const double decrement_temperature,
                                          const std::set<Element> &element_set,
                                          const std::string &json_coefficients_filename)
     : McAbstract(std::move(config),
@@ -35,8 +35,8 @@ CanonicalMcAbstract::CanonicalMcAbstract(cfg::Config config,
                  element_set,
                  json_coefficients_filename,
                  "cmc_log.txt"),
-      // initial_temperature_(initial_temperature),
-      // decrement_temperature_(decrement_temperature),
+    // initial_temperature_(initial_temperature),
+    // decrement_temperature_(decrement_temperature),
       energy_change_predictor_(json_coefficients_filename,
                                config_,
                                element_set),
@@ -70,7 +70,9 @@ void CanonicalMcAbstract::Dump() {
     config_.WriteMap("map" + std::to_string(steps_) + ".txt");
     config_.WriteConfig(std::to_string(steps_) + ".cfg", false);
   }
-
+  if (steps_ == maximum_steps_) {
+    config_.WriteConfig("end.cfg", false);
+  }
   unsigned long long int log_dump_steps;
   if (steps_ > 10 * log_dump_steps_) {
     log_dump_steps = log_dump_steps_;
