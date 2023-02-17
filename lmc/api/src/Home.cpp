@@ -214,8 +214,13 @@ mc::CanonicalMcSerial BuildCanonicalMcSerialFromParameter(const Parameter &param
   for (const auto &element_string: parameter.element_set_) {
     element_set.insert(Element(element_string));
   }
-
-  auto config = cfg::Config::ReadConfig(parameter.config_filename_);
+  cfg::Config config;
+  if (parameter.map_filename_.empty()) {
+    config = cfg::Config::ReadConfig(parameter.config_filename_);
+    config.ReassignLatticeVector();
+  } else {
+    config = cfg::Config::ReadMap("lattice.txt", "element.txt", parameter.map_filename_);
+  }
   std::cout << "Finish config reading. Start CMC." << std::endl;
   return mc::CanonicalMcSerial{config,
                                parameter.log_dump_steps_,
@@ -235,8 +240,13 @@ mc::CanonicalMcOmp BuildCanonicalMcOmpFromParameter(const Parameter &parameter) 
   for (const auto &element_string: parameter.element_set_) {
     element_set.insert(Element(element_string));
   }
-
-  auto config = cfg::Config::ReadConfig(parameter.config_filename_);
+  cfg::Config config;
+  if (parameter.map_filename_.empty()) {
+    config = cfg::Config::ReadConfig(parameter.config_filename_);
+    config.ReassignLatticeVector();
+  } else {
+    config = cfg::Config::ReadMap("lattice.txt", "element.txt", parameter.map_filename_);
+  }
   std::cout << "Finish config reading. Start CMC." << std::endl;
   return mc::CanonicalMcOmp{config,
                             parameter.log_dump_steps_,
