@@ -18,8 +18,9 @@ CanonicalMcAbstract::CanonicalMcAbstract(cfg::Config config,
                                          const unsigned long long int config_dump_steps,
                                          const unsigned long long int maximum_steps,
                                          const unsigned long long int thermodynamic_averaging_steps,
-                                         const double initial_temperature,
-                                         const double decrement_temperature,
+                                         const double temperature,
+                                         // const double initial_temperature,
+                                         // const double decrement_temperature,
                                          const std::set<Element> &element_set,
                                          const std::string &json_coefficients_filename)
     : McAbstract(std::move(config),
@@ -30,12 +31,12 @@ CanonicalMcAbstract::CanonicalMcAbstract(cfg::Config config,
                  0,
                  0,
                  0,
-                 initial_temperature,
+                 temperature,
                  element_set,
                  json_coefficients_filename,
                  "cmc_log.txt"),
-      initial_temperature_(initial_temperature),
-      decrement_temperature_(decrement_temperature),
+      // initial_temperature_(initial_temperature),
+      // decrement_temperature_(decrement_temperature),
       energy_change_predictor_(json_coefficients_filename,
                                config_,
                                element_set),
@@ -50,14 +51,14 @@ std::pair<size_t, size_t> CanonicalMcAbstract::GenerateLatticeIdJumpPair() {
       == config_.GetElementAtLatticeId(lattice_id2));
   return {lattice_id1, lattice_id2};
 }
-void CanonicalMcAbstract::UpdateTemperature() {
-  if (steps_ % maximum_steps_ == 0 && steps_ != 0) {
-    config_.WriteConfig("end_" + std::to_string(static_cast<int>(temperature_)) + "K.cfg",
-                        false);
-    temperature_ -= decrement_temperature_;
-    beta_ = 1.0 / constants::kBoltzmann / temperature_;
-  }
-}
+// void CanonicalMcAbstract::UpdateTemperature() {
+//   if (steps_ % maximum_steps_ == 0 && steps_ != 0) {
+//     config_.WriteConfig("end_" + std::to_string(static_cast<int>(temperature_)) + "K.cfg",
+//                         false);
+//     temperature_ -= decrement_temperature_;
+//     beta_ = 1.0 / constants::kBoltzmann / temperature_;
+//   }
+// }
 
 void CanonicalMcAbstract::Dump() {
   if (steps_ == 0) {

@@ -58,8 +58,9 @@ void Print(const Parameter &parameter) {
     std::cout << "maximum_steps: " << parameter.maximum_steps_ << std::endl;
     std::cout << "thermodynamic_averaging_steps: " << parameter.thermodynamic_averaging_steps_
               << std::endl;
-    std::cout << "initial_temperature: " << parameter.initial_temperature_ << std::endl;
-    std::cout << "decrement_temperature: " << parameter.decrement_temperature_ << std::endl;
+    std::cout << "temperature: " << parameter.temperature_ << std::endl;
+    // std::cout << "initial_temperature: " << parameter.initial_temperature_ << std::endl;
+    // std::cout << "decrement_temperature: " << parameter.decrement_temperature_ << std::endl;
   } else if (parameter.method == "FindCluster" || parameter.method == "ShortRangeOrder"
       || parameter.method == "Reformat") {
     std::cout << "json_coefficients_filename: " << parameter.json_coefficients_filename_
@@ -221,8 +222,9 @@ mc::CanonicalMcSerial BuildCanonicalMcSerialFromParameter(const Parameter &param
                                parameter.config_dump_steps_,
                                parameter.maximum_steps_,
                                parameter.thermodynamic_averaging_steps_,
-                               parameter.initial_temperature_,
-                               parameter.decrement_temperature_,
+                               parameter.temperature_,
+      // parameter.initial_temperature_,
+      // parameter.decrement_temperature_,
                                element_set,
                                parameter.json_coefficients_filename_};
 }
@@ -239,8 +241,9 @@ mc::CanonicalMcOmp BuildCanonicalMcOmpFromParameter(const Parameter &parameter) 
                             parameter.config_dump_steps_,
                             parameter.maximum_steps_,
                             parameter.thermodynamic_averaging_steps_,
-                            parameter.initial_temperature_,
-                            parameter.decrement_temperature_,
+                            parameter.temperature_,
+      // parameter.initial_temperature_,
+      // parameter.decrement_temperature_,
                             element_set,
                             parameter.json_coefficients_filename_};
 }

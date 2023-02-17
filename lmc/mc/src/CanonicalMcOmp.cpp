@@ -6,8 +6,9 @@ CanonicalMcOmp::CanonicalMcOmp(cfg::Config config,
                                const unsigned long long int config_dump_steps,
                                const unsigned long long int maximum_steps,
                                const unsigned long long int thermodynamic_averaging_steps,
-                               const double initial_temperature,
-                               const double decrement_temperature,
+                               const double temperature,
+    // const double initial_temperature,
+    // const double decrement_temperature,
                                const std::set<Element> &element_set,
                                const std::string &json_coefficients_filename)
     : CanonicalMcAbstract(std::move(config),
@@ -15,8 +16,9 @@ CanonicalMcOmp::CanonicalMcOmp(cfg::Config config,
                           config_dump_steps,
                           maximum_steps,
                           thermodynamic_averaging_steps,
-                          initial_temperature,
-                          decrement_temperature,
+                          temperature,
+    // initial_temperature,
+    // decrement_temperature,
                           element_set,
                           json_coefficients_filename) {
   if (world_size_ != 1) {
@@ -75,13 +77,13 @@ void CanonicalMcOmp::BuildEventVector() {
   }
 }
 void CanonicalMcOmp::Simulate() {
-  while (steps_ <= maximum_steps_
-      * static_cast<unsigned long long int>(initial_temperature_ / decrement_temperature_ + 1)) {
+  // while (steps_ <= maximum_steps_ * static_cast<unsigned long long int>(initial_temperature_ / decrement_temperature_ + 1)) {
+  while (steps_ <= maximum_steps_) {
     BuildEventVector();
     for (auto [lattice_id_jump_pair, dE]: event_vector_) {
       thermodynamic_averaging_.AddEnergy(energy_);
       Dump();
-      UpdateTemperature();
+      // UpdateTemperature();
       SelectEvent(lattice_id_jump_pair, dE);
       ++steps_;
     }
