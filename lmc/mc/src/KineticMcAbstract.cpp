@@ -50,7 +50,11 @@ double KineticMcFirstAbstract::GetTimeCorrectionFactor() {
   }
   return 1.0;
 }
-void KineticMcFirstAbstract::Dump() const {
+void KineticMcFirstAbstract::Dump() {
+  if (is_restarted_) {
+    is_restarted_ = false;
+    return;
+  }
   if (world_rank_ != 0) {
     return;
   }
@@ -107,11 +111,7 @@ size_t KineticMcFirstAbstract::SelectEvent() const {
 void KineticMcFirstAbstract::OneStepSimulation() {
   UpdateTemperature();
   thermodynamic_averaging_.AddEnergy(energy_);
-  if (is_restarted_) {
-    is_restarted_ = false;
-  } else {
-    Dump();
-  }
+  Dump();
   BuildEventList();
   time_ += (CalculateTime() * GetTimeCorrectionFactor());
   event_k_i_ = event_k_i_list_[SelectEvent()];

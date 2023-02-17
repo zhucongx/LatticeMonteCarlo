@@ -18,6 +18,8 @@ CanonicalMcAbstract::CanonicalMcAbstract(cfg::Config config,
                                          const unsigned long long int config_dump_steps,
                                          const unsigned long long int maximum_steps,
                                          const unsigned long long int thermodynamic_averaging_steps,
+                                         const unsigned long long int restart_steps,
+                                         const double restart_energy,
                                          const double temperature,
     // const double initial_temperature,
     // const double decrement_temperature,
@@ -28,8 +30,8 @@ CanonicalMcAbstract::CanonicalMcAbstract(cfg::Config config,
                  config_dump_steps,
                  maximum_steps,
                  thermodynamic_averaging_steps,
-                 0,
-                 0,
+                 restart_steps,
+                 restart_energy,
                  0,
                  temperature,
                  element_set,
@@ -61,6 +63,10 @@ std::pair<size_t, size_t> CanonicalMcAbstract::GenerateLatticeIdJumpPair() {
 // }
 
 void CanonicalMcAbstract::Dump() {
+  if (is_restarted_){
+    is_restarted_ = false;
+    return;
+  }
   if (steps_ == 0) {
     config_.WriteLattice("lattice.txt");
     config_.WriteElement("element.txt");
