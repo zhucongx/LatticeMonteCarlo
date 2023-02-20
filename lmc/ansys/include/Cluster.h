@@ -4,14 +4,15 @@
 #include <set>
 #include <unordered_set>
 
+#include <nlohmann/json.hpp>
 #include "Config.h"
 #include "EnergyPredictor.h"
+
+using json = nlohmann::json;
 
 namespace ansys {
 class Cluster {
   public:
-    using ClusterElementNumMap = std::vector<std::pair<std::map<Element, size_t>,
-                                                       std::vector<double> > >;
     Cluster(const cfg::Config &config,
             Element solvent_atom_type,
             std::set<Element> element_set,
@@ -19,8 +20,8 @@ class Cluster {
             size_t solvent_bond_criteria,
             const pred::EnergyPredictor &energy_estimator);
 
-    ClusterElementNumMap FindClustersAndOutput(const std::string &output_folder,
-                                               const std::string &output_name);
+    json FindClustersAndOutput(const std::string &output_folder,
+                               const std::string &output_name);
 
   private:
     [[nodiscard]] double GetAbsoluteEnergyOfCluster(const std::vector<size_t> &atom_id_list) const;

@@ -26,28 +26,29 @@ Cluster::Cluster(const cfg::Config &config,
   // absolute_energy_solvent_config_ = energy_estimator_.GetEnergy(solvent_config_);
 }
 
-Cluster::ClusterElementNumMap Cluster::FindClustersAndOutput(
+json Cluster::FindClustersAndOutput(
     const std::string &output_folder, const std::string &output_name) {
   auto cluster_to_atom_vector = FindAtomListOfClusters();
 
-  ClusterElementNumMap cluster_element_num_map;
+  json clusters_info_array = json::array();
   std::vector<cfg::Lattice> lattice_vector;
   std::vector<cfg::Atom> atom_vector;
 // #pragma omp parallel  default(none) shared(cluster_to_atom_vector, atom_vector, lattice_vector, cluster_element_num_map)
 //   {
 // #pragma omp for
   for (auto &atom_list: cluster_to_atom_vector) {
-    const double cluster_energy = 0;
-    // const double cluster_energy = GetRelativeEnergyOfCluster(atom_list);
+    // const double cluster_energy = 0;
+    const double cluster_energy = GetRelativeEnergyOfCluster(atom_list);
     // initialize map with all the element, because some cluster may not have all types of element
-    std::map<Element, size_t> num_atom_in_one_cluster;
+    json cluster_info = json::object();
+    std::map<std::string, size_t> num_atom_in_one_cluster{{"X", 0}};
     for (const auto &element: element_set_) {
-      num_atom_in_one_cluster[element] = 0;
+      num_atom_in_one_cluster[element.GetString()] = 0;
     }
 // #pragma omp critical
 //       {
     for (const auto &atom_index: atom_list) {
-      Element type = config_.GetAtomVector()[atom_index].GetElement();
+      std::string type = config_.GetAtomVector()[atom_index].GetElement().GetString();
       num_atom_in_one_cluster[type]++;
       atom_vector.emplace_back(atom_vector.size(), type);
       auto relative_position =
@@ -55,8 +56,10 @@ Cluster::ClusterElementNumMap Cluster::FindClustersAndOutput(
       lattice_vector.emplace_back(lattice_vector.size(),
                                   relative_position * config_.GetBasis(), relative_position);
     }
-    cluster_element_num_map.emplace_back(
-        std::make_pair(num_atom_in_one_cluster, std::vector<double>{cluster_energy}));
+    cluster_info["elements"] = num_atom_in_one_cluster;
+    cluster_info["energy"] = cluster_energy;
+
+    clusters_info_array.push_back(cluster_info);
     // }
     // }
   }
@@ -68,7 +71,7 @@ Cluster::ClusterElementNumMap Cluster::FindClustersAndOutput(
     std::filesystem::create_directories(output_folder);
     config_out.WriteConfig(output_folder + "/" + output_name, false);
   }
-  return cluster_element_num_map;
+  return clusters_info_array;
 }
 
 std::unordered_set<size_t> Cluster::FindSoluteAtomIndexes() const {

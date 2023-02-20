@@ -6,7 +6,6 @@
 #include <iterator>
 #include <experimental/iterator>
 #include <nlohmann/json.hpp>
-using json = nlohmann::json;
 
 namespace ansys {
 
@@ -96,26 +95,14 @@ void Iterator::RunCluster() const {
                            smallest_cluster_criteria_,
                            solvent_bond_criteria_,
                            energy_estimator_);
-    auto num_different_element =
-        cluster_finder.FindClustersAndOutput("cluster", std::to_string(i) + "_cluster.cfg");
+
     json clusters_info;
     clusters_info["index"] = std::to_string(i);
     clusters_info["time"] = filename_time_hashset_.at(i);
     clusters_info["temperature"] = filename_temperature_hashset_.at(i);
     clusters_info["energy"] = filename_energy_hashset_.at(i);
-    json clusters_array = json::array();
-    for (auto it = num_different_element.cbegin(); it < num_different_element.cend(); ++it) {
-      json cluster_info;
-      std::vector<std::pair<std::string, size_t>> elements;
-      const auto &cluster = *it;
-      std::for_each(cluster.first.cbegin(), cluster.first.cend(), [&elements](auto ii) {
-        elements.emplace_back(ii.first.GetString(), ii.second);
-      });
-      cluster_info["elements"] = elements;
-      cluster_info["energy"] = cluster.second.at(0);
-      clusters_array.push_back(cluster_info);
-    }
-    clusters_info["clusters"] = clusters_array;
+    clusters_info["clusters"] =
+        cluster_finder.FindClustersAndOutput("cluster", std::to_string(i) + "_cluster.cfg");
     clusters_info_array.push_back(clusters_info);
     std::ofstream ofs("cluster_info.json", std::ofstream::out);
     ofs << std::setw(1) << std::setprecision(16) << clusters_info_array << std::endl;
