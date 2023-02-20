@@ -5,24 +5,27 @@
 #include <utility>
 #include <filesystem>
 #include <omp.h>
+
+using json = nlohmann::json;
 namespace ansys {
 Cluster::Cluster(const cfg::Config &config,
                  Element solvent_atom_type,
                  std::set<Element> element_set,
                  size_t smallest_cluster_criteria,
                  size_t solvent_bond_criteria,
-                 const pred::EnergyPredictor &energy_estimator)
+                 const pred::EnergyPredictor &energy_estimator,
+                 const std::map<Element, double> &chemical_potential_map)
     : config_(config),
       solvent_config_(config),
       solvent_element_(solvent_atom_type),
       element_set_(std::move(element_set)),
       smallest_cluster_criteria_(smallest_cluster_criteria),
       solvent_bond_criteria_(solvent_bond_criteria),
-      energy_estimator_(energy_estimator) {
+      energy_estimator_(energy_estimator),
+      chemical_potential_map_(chemical_potential_map) {
   for (size_t atom_id = 0; atom_id < solvent_config_.GetNumAtoms(); ++atom_id) {
-    solvent_config_.ChangeAtomElementTypeAtAtom(atom_id, Element("Al"));
+    solvent_config_.ChangeAtomElementTypeAtAtom(atom_id, solvent_atom_type);
   }
-  absolute_energy_solvent_config_ = energy_estimator_.GetEnergy(solvent_config_);
 }
 
 json Cluster::FindClustersAndOutput(
@@ -33,7 +36,7 @@ json Cluster::FindClustersAndOutput(
   std::vector<cfg::Lattice> lattice_vector;
   std::vector<cfg::Atom> atom_vector;
   for (auto &atom_list: cluster_to_atom_vector) {
-    const double cluster_energy = GetRelativeEnergyOfCluster(atom_list);
+    const double cluster_energy = GetEnergyOfCluster(atom_list);
     // initialize map with all the element, because some cluster may not have all types of element
     std::map<std::string, size_t> num_atom_in_one_cluster{{"X", 0}};
     for (const auto &element: element_set_) {
@@ -155,16 +158,20 @@ double Cluster::GetAbsoluteEnergyOfCluster(const std::vector<size_t> &atom_id_li
   for (size_t atom_id: atom_id_list) {
     solute_config.ChangeAtomElementTypeAtAtom(atom_id, config_.GetElementAtAtomId(atom_id));
   }
-  // solute_config.WriteConfig("cluster/" + std::to_string(atom_id_list.size()) + ".cfg", false);
   return energy_estimator_.GetEnergy(solute_config);
 }
-double Cluster::GetRelativeEnergyOfCluster(const std::vector<size_t> &atom_id_list) const {
+double Cluster::GetEnergyOfCluster(const std::vector<size_t> &atom_id_list) const {
   cfg::Config solute_config(solvent_config_);
+  double energy_change_solution_to_pure_solvent = 0;
   for (size_t atom_id: atom_id_list) {
-    solute_config.ChangeAtomElementTypeAtAtom(atom_id, config_.GetElementAtAtomId(atom_id));
+    Element element = config_.GetElementAtAtomId(atom_id);
+    solute_config.ChangeAtomElementTypeAtAtom(atom_id, element);
+    energy_change_solution_to_pure_solvent += chemical_potential_map_.at(element);
   }
-  return energy_estimator_.GetEnergyOfCluster(solute_config, atom_id_list) -
-      energy_estimator_.GetEnergyOfCluster(solvent_config_, atom_id_list)
-      + absolute_energy_solvent_config_;
+  double energy_change_cluster_to_pure_solvent =
+      energy_estimator_.GetEnergyOfCluster(solute_config, atom_id_list) -
+          energy_estimator_.GetEnergyOfCluster(solvent_config_, atom_id_list);
+
+  return energy_change_cluster_to_pure_solvent - energy_change_solution_to_pure_solvent;
 }
 } // kn

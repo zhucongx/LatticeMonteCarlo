@@ -61,7 +61,7 @@ void Print(const Parameter &parameter) {
     std::cout << "temperature: " << parameter.temperature_ << std::endl;
     // std::cout << "initial_temperature: " << parameter.initial_temperature_ << std::endl;
     // std::cout << "decrement_temperature: " << parameter.decrement_temperature_ << std::endl;
-  } else if (parameter.method == "FindCluster" || parameter.method == "ShortRangeOrder"
+  } else if (parameter.method == "Cluster" || parameter.method == "ShortRangeOrder"
       || parameter.method == "Reformat") {
     std::cout << "json_coefficients_filename: " << parameter.json_coefficients_filename_
               << std::endl;

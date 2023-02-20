@@ -5,7 +5,9 @@
 #include <iostream>
 #include <iterator>
 #include <experimental/iterator>
+
 #include <nlohmann/json.hpp>
+using json = nlohmann::json;
 
 namespace ansys {
 
@@ -75,6 +77,7 @@ Iterator::Iterator(unsigned long long int initial_steps,
 }
 Iterator::~Iterator() = default;
 void Iterator::RunCluster() const {
+  const auto chemical_potential = energy_estimator_.GetChemicalPotential(solvent_element_);
   json clusters_info_array = json::array();
   for (unsigned long long i = 0; i <= final_number_; i += increment_steps_) {
     std::cout << i << " / " << final_number_ << std::endl;
@@ -94,7 +97,8 @@ void Iterator::RunCluster() const {
                            element_set_,
                            smallest_cluster_criteria_,
                            solvent_bond_criteria_,
-                           energy_estimator_);
+                           energy_estimator_,
+                           chemical_potential);
 
     json clusters_info;
     clusters_info["index"] = std::to_string(i);
@@ -105,7 +109,7 @@ void Iterator::RunCluster() const {
         cluster_finder.FindClustersAndOutput("cluster", std::to_string(i) + "_cluster.cfg");
     clusters_info_array.push_back(clusters_info);
     std::ofstream ofs("cluster_info.json", std::ofstream::out);
-    ofs << std::setw(1) << std::setprecision(16) << clusters_info_array << std::endl;
+    ofs << std::setprecision(16) << clusters_info_array.dump(2) << std::endl;
   }
 }
 void Iterator::RunShortRangeOrder() const {

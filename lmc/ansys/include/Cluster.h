@@ -8,8 +8,6 @@
 #include "Config.h"
 #include "EnergyPredictor.h"
 
-using json = nlohmann::json;
-
 namespace ansys {
 class Cluster {
   public:
@@ -18,14 +16,15 @@ class Cluster {
             std::set<Element> element_set,
             size_t smallest_cluster_criteria,
             size_t solvent_bond_criteria,
-            const pred::EnergyPredictor &energy_estimator);
+            const pred::EnergyPredictor &energy_estimator,
+            const std::map<Element, double> &chemical_potential_map);
 
-    json FindClustersAndOutput(const std::string &output_folder,
-                               const std::string &output_name);
+    nlohmann::json FindClustersAndOutput(const std::string &output_folder,
+                                         const std::string &output_name);
 
   private:
     [[nodiscard]] double GetAbsoluteEnergyOfCluster(const std::vector<size_t> &atom_id_list) const;
-    [[nodiscard]] double GetRelativeEnergyOfCluster(const std::vector<size_t> &atom_id_list) const;
+    [[nodiscard]] double GetEnergyOfCluster(const std::vector<size_t> &atom_id_list) const;
     [[nodiscard]] std::unordered_set<size_t> FindSoluteAtomIndexes() const;
     [[nodiscard]] std::vector<std::vector<size_t> > FindAtomListOfClustersBFSHelper(
         std::unordered_set<size_t> unvisited_atoms_id_set) const;
@@ -40,9 +39,8 @@ class Cluster {
     const std::set<Element> element_set_;
     const size_t smallest_cluster_criteria_;
     const size_t solvent_bond_criteria_;
-
-    const pred::EnergyPredictor energy_estimator_;
-    double absolute_energy_solvent_config_;
+    const pred::EnergyPredictor &energy_estimator_;
+    const std::map<Element, double> chemical_potential_map_;
 };
 } // ansys
 

@@ -259,14 +259,18 @@ std::map<Element, double> EnergyPredictor::GetChemicalPotential(Element solvent_
   auto solvent_config = cfg::GenerateFCC({15, 15, 15}, solvent_element);
   double solvent_energy = GetEnergy(solvent_config);
   chemical_potential[solvent_element] = 0;
-
-  for (auto element: element_set_) {
+  auto element_set_copy(element_set_);
+  element_set_copy.emplace(ElementName::X);
+  for (auto element: element_set_copy) {
     if (element == solvent_element) {
       continue;
     }
     auto config = cfg::GenerateFCC({15, 15, 15}, solvent_element);
     config.ChangeAtomElementTypeAtAtom(0, element);
     chemical_potential[element] = GetEnergy(config) - solvent_energy;
+  }
+  for (auto [element, potential]: chemical_potential) {
+    std::cout << "Chemical potential: " << element.GetString() << " " << potential << std::endl;
   }
   return chemical_potential;
 }
