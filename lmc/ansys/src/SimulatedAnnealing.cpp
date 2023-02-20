@@ -76,7 +76,7 @@ void SimulatedAnnealing::Dump(std::ofstream &ofs) {
 
 void SimulatedAnnealing::Simulate() {
   std::ofstream ofs("sa_log.txt", std::ofstream::out | std::ofstream::app);
-  ofs.precision(8);
+  ofs.precision(16);
   auto t1 = std::chrono::high_resolution_clock::now();
   while (steps_ <= maximum_steps_) {
     temperature_ = initial_temperature_ / std::log(2 + steps_);

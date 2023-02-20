@@ -110,7 +110,8 @@ void Iterator::RunCluster() const {
     clusters_info_array.push_back(clusters_info);
 
     std::ofstream ofs("cluster_info.json", std::ofstream::out);
-    ofs << std::setprecision(16) << clusters_info_array.dump(2) << std::endl;
+    ofs.precision(16);
+    ofs << clusters_info_array.dump(2) << std::endl;
   }
 }
 void Iterator::RunShortRangeOrder() const {

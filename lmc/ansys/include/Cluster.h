@@ -34,8 +34,10 @@ class Cluster {
                                     std::vector<cfg::Atom> &atom_vector,
                                     std::vector<cfg::Lattice> &lattice_vector) const;
     [[nodiscard]] std::map<std::string, size_t> GetElementNumOfCluster(
-        const std::vector<size_t> &atom_id_list_of_a_cluster) const;
-    [[nodiscard]] double GetEnergyOfCluster(const std::vector<size_t> &atom_id_list_of_a_cluster) const;
+        const std::vector<size_t> &cluster_atom_id_list) const;
+    [[nodiscard]] double GetMassOfCluster(const std::vector<size_t> &cluster_atom_id_list) const;
+    [[nodiscard]] double GetEnergyOfCluster(const std::vector<size_t> &cluster_atom_id_list) const;
+
 
     const cfg::Config config_;
     cfg::Config solvent_config_;
