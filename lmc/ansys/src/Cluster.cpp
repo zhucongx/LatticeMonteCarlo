@@ -18,12 +18,11 @@ Cluster::Cluster(const cfg::Config &config,
       element_set_(std::move(element_set)),
       smallest_cluster_criteria_(smallest_cluster_criteria),
       solvent_bond_criteria_(solvent_bond_criteria),
-      energy_estimator_(energy_estimator),
-      absolute_energy_solvent_config_(0) {
+      energy_estimator_(energy_estimator) {
   for (size_t atom_id = 0; atom_id < solvent_config_.GetNumAtoms(); ++atom_id) {
     solvent_config_.ChangeAtomElementTypeAtAtom(atom_id, Element("Al"));
   }
-  // absolute_energy_solvent_config_ = energy_estimator_.GetEnergy(solvent_config_);
+  absolute_energy_solvent_config_ = energy_estimator_.GetEnergy(solvent_config_);
 }
 
 json Cluster::FindClustersAndOutput(
@@ -33,20 +32,15 @@ json Cluster::FindClustersAndOutput(
   json clusters_info_array = json::array();
   std::vector<cfg::Lattice> lattice_vector;
   std::vector<cfg::Atom> atom_vector;
-// #pragma omp parallel  default(none) shared(cluster_to_atom_vector, atom_vector, lattice_vector, cluster_element_num_map)
-//   {
-// #pragma omp for
   for (auto &atom_list: cluster_to_atom_vector) {
-    // const double cluster_energy = 0;
     const double cluster_energy = GetRelativeEnergyOfCluster(atom_list);
     // initialize map with all the element, because some cluster may not have all types of element
-    json cluster_info = json::object();
     std::map<std::string, size_t> num_atom_in_one_cluster{{"X", 0}};
     for (const auto &element: element_set_) {
       num_atom_in_one_cluster[element.GetString()] = 0;
     }
-// #pragma omp critical
-//       {
+
+    json cluster_info = json::object();
     for (const auto &atom_index: atom_list) {
       std::string type = config_.GetAtomVector()[atom_index].GetElement().GetString();
       num_atom_in_one_cluster[type]++;
@@ -60,8 +54,6 @@ json Cluster::FindClustersAndOutput(
     cluster_info["energy"] = cluster_energy;
 
     clusters_info_array.push_back(cluster_info);
-    // }
-    // }
   }
   cfg::Config config_out(config_.GetBasis(), lattice_vector, atom_vector, false);
 
