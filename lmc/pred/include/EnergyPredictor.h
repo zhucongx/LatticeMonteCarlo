@@ -22,9 +22,7 @@ class EnergyPredictor {
     [[nodiscard]] double GetEnergy(const cfg::Config &config) const;
     [[nodiscard]] double GetEnergyOfCluster(const cfg::Config &config,
                                             const std::vector<size_t> &atom_id_list) const;
-    [[nodiscard]] std::unordered_map<Element,
-                                     double,
-                                     boost::hash<Element> > GetChemicalPotential() const;
+    [[nodiscard]] std::map<Element, double> GetChemicalPotential(Element solvent_element) const;
   private:
     std::vector<double> base_theta_{};
     const std::set<Element> element_set_;

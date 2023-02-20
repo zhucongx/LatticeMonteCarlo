@@ -244,35 +244,30 @@ double EnergyPredictor::GetEnergyOfCluster(
   return E;
 }
 // Todo: add a function to get the chemical potential of a given composition
-std::unordered_map<Element, double, boost::hash<Element> > EnergyPredictor::GetChemicalPotential() const  {
-  std::unordered_map<Element, double, boost::hash<Element> > chemical_potential;
-  for (auto element: element_set_) {
-    auto config = cfg::GenerateFCC({10, 10, 10}, element);
-    chemical_potential[element] = GetEnergy(config) / static_cast<double>(config.GetNumAtoms());
-    std::cerr << element.GetString() << " " << chemical_potential[element] << std::endl;
-  }
-  return chemical_potential;
-}
-
-// std::unordered_map<Element, double, boost::hash<Element> > EnergyPredictor::GetChemicalPotential() const {
-//   std::unordered_map<Element, double, boost::hash<Element> > chemical_potential;
-//   auto solvent_config = cfg::GenerateFCC({15, 15, 15}, solvent_element);
-//   double solvent_energy = GetEnergy(solvent_config);
-//   chemical_potential[solvent_element] =
-//       solvent_energy / static_cast<double>(solvent_config.GetNumAtoms());
-//
+// std::map<Element, double> EnergyPredictor::GetChemicalPotential() const {
+//   std::map<Element, double> chemical_potential;
 //   for (auto element: element_set_) {
-//     if (element == solvent_element) {
-//       std::cerr << element.GetString() << " " << chemical_potential[element] << std::endl;
-//       continue;
-//     }
-//     auto config = cfg::GenerateFCC({15, 15, 15}, solvent_element);
-//     config.ChangeAtomElementTypeAtAtom(0, element);
-//     chemical_potential[element] =
-//         GetEnergy(config) - chemical_potential[solvent_element]
-//             * static_cast<double>(config.GetNumAtoms() - 1);
+//     auto config = cfg::GenerateFCC({10, 10, 10}, element);
+//     chemical_potential[element] = GetEnergy(config) / static_cast<double>(config.GetNumAtoms());
 //     std::cerr << element.GetString() << " " << chemical_potential[element] << std::endl;
 //   }
 //   return chemical_potential;
 // }
+
+std::map<Element, double> EnergyPredictor::GetChemicalPotential(Element solvent_element) const {
+  std::map<Element, double> chemical_potential;
+  auto solvent_config = cfg::GenerateFCC({15, 15, 15}, solvent_element);
+  double solvent_energy = GetEnergy(solvent_config);
+  chemical_potential[solvent_element] = 0;
+
+  for (auto element: element_set_) {
+    if (element == solvent_element) {
+      continue;
+    }
+    auto config = cfg::GenerateFCC({15, 15, 15}, solvent_element);
+    config.ChangeAtomElementTypeAtAtom(0, element);
+    chemical_potential[element] = GetEnergy(config) - solvent_energy;
+  }
+  return chemical_potential;
+}
 } // pred
