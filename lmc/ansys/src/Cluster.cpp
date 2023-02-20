@@ -35,26 +35,11 @@ json Cluster::GetClustersInfoAndOutput(
   json clusters_info_array = json::array();
   std::vector<cfg::Lattice> lattice_vector;
   std::vector<cfg::Atom> atom_vector;
-  for (auto &atom_list: cluster_to_atom_vector) {
-    const double cluster_energy = GetEnergyOfCluster(atom_list);
-    // initialize map with all the element, because some cluster may not have all types of element
-    std::map<std::string, size_t> num_atom_in_one_cluster{{"X", 0}};
-    for (const auto &element: element_set_) {
-      num_atom_in_one_cluster[element.GetString()] = 0;
-    }
-
+  for (auto &atom_id_list_of_a_cluster: cluster_to_atom_vector) {
+    AppendAtomAndLatticeVector(atom_id_list_of_a_cluster, atom_vector, lattice_vector);
     json cluster_info = json::object();
-    for (const auto &atom_index: atom_list) {
-      std::string type = config_.GetAtomVector()[atom_index].GetElement().GetString();
-      num_atom_in_one_cluster[type]++;
-      atom_vector.emplace_back(atom_vector.size(), type);
-      auto relative_position =
-          config_.GetLatticeVector()[config_.GetLatticeIdFromAtomId(atom_index)].GetRelativePosition();
-      lattice_vector.emplace_back(lattice_vector.size(),
-                                  relative_position * config_.GetBasis(), relative_position);
-    }
-    cluster_info["elements"] = num_atom_in_one_cluster;
-    cluster_info["energy"] = cluster_energy;
+    cluster_info["elements"] = GetElementNumOfCluster(atom_id_list_of_a_cluster);
+    cluster_info["energy"] = GetEnergyOfCluster(atom_id_list_of_a_cluster);
 
     clusters_info_array.push_back(cluster_info);
   }
@@ -127,14 +112,12 @@ std::vector<std::vector<size_t> > Cluster::FindAtomListOfClusters() const {
       ++it;
     }
   }
-
   std::unordered_set<size_t> all_found_solute_set;
   for (const auto &singe_cluster_vector: cluster_atom_list) {
     std::copy(singe_cluster_vector.begin(),
               singe_cluster_vector.end(),
               std::inserter(all_found_solute_set, all_found_solute_set.end()));
   }
-
   // add solvent neighbors
   for (const auto &atom: config_.GetAtomVector()) {
     if (atom.GetElement() != solvent_element_)
@@ -153,24 +136,42 @@ std::vector<std::vector<size_t> > Cluster::FindAtomListOfClusters() const {
   cluster_atom_list = FindAtomListOfClustersBFSHelper(all_found_solute_set);
   return cluster_atom_list;
 }
-double Cluster::GetAbsoluteEnergyOfCluster(const std::vector<size_t> &atom_id_list) const {
-  cfg::Config solute_config(solvent_config_);
-  for (size_t atom_id: atom_id_list) {
-    solute_config.ChangeAtomElementTypeAtAtom(atom_id, config_.GetElementAtAtomId(atom_id));
+void Cluster::AppendAtomAndLatticeVector(const std::vector<size_t> &atom_id_list_of_a_cluster,
+                                         std::vector<cfg::Atom> &atom_vector,
+                                         std::vector<cfg::Lattice> &lattice_vector) const {
+  for (size_t atom_index: atom_id_list_of_a_cluster) {
+    atom_vector.emplace_back(atom_vector.size(),
+                             config_.GetAtomVector()[atom_index].GetElement());
+    auto relative_position =
+        config_.GetLatticeVector()[config_.GetLatticeIdFromAtomId(atom_index)].GetRelativePosition();
+    lattice_vector.emplace_back(lattice_vector.size(),
+                                relative_position * config_.GetBasis(), relative_position);
   }
-  return energy_estimator_.GetEnergy(solute_config);
 }
-double Cluster::GetEnergyOfCluster(const std::vector<size_t> &atom_id_list) const {
+std::map<std::string, size_t> Cluster::GetElementNumOfCluster(
+    const std::vector<size_t> &atom_id_list_of_a_cluster) const {
+  // initialize map with all the element, because some cluster may not have all types of element
+  std::map<std::string, size_t> num_atom_in_one_cluster{{"X", 0}};
+  for (const auto &element: element_set_) {
+    num_atom_in_one_cluster[element.GetString()] = 0;
+  }
+
+  for (const auto &atom_index: atom_id_list_of_a_cluster) {
+    num_atom_in_one_cluster.at(config_.GetAtomVector()[atom_index].GetElement().GetString())++;
+  }
+  return num_atom_in_one_cluster;
+}
+double Cluster::GetEnergyOfCluster(const std::vector<size_t> &atom_id_list_of_a_cluster) const {
   cfg::Config solute_config(solvent_config_);
   double energy_change_solution_to_pure_solvent = 0;
-  for (size_t atom_id: atom_id_list) {
+  for (size_t atom_id: atom_id_list_of_a_cluster) {
     Element element = config_.GetElementAtAtomId(atom_id);
     solute_config.ChangeAtomElementTypeAtAtom(atom_id, element);
     energy_change_solution_to_pure_solvent += chemical_potential_map_.at(element);
   }
   double energy_change_cluster_to_pure_solvent =
-      energy_estimator_.GetEnergyOfCluster(solute_config, atom_id_list) -
-          energy_estimator_.GetEnergyOfCluster(solvent_config_, atom_id_list);
+      energy_estimator_.GetEnergyOfCluster(solute_config, atom_id_list_of_a_cluster) -
+          energy_estimator_.GetEnergyOfCluster(solvent_config_, atom_id_list_of_a_cluster);
 
   return energy_change_cluster_to_pure_solvent - energy_change_solution_to_pure_solvent;
 }

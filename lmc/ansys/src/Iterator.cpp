@@ -100,7 +100,7 @@ void Iterator::RunCluster() const {
                            energy_estimator_,
                            chemical_potential);
 
-    json clusters_info;
+    json clusters_info = json::object();
     clusters_info["index"] = std::to_string(i);
     clusters_info["time"] = filename_time_hashset_.at(i);
     clusters_info["temperature"] = filename_temperature_hashset_.at(i);

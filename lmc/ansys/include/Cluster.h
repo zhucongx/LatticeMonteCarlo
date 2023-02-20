@@ -23,15 +23,19 @@ class Cluster {
                                             const std::string &output_name);
 
   private:
-    [[nodiscard]] double GetAbsoluteEnergyOfCluster(const std::vector<size_t> &atom_id_list) const;
-    [[nodiscard]] double GetEnergyOfCluster(const std::vector<size_t> &atom_id_list) const;
+
     [[nodiscard]] std::unordered_set<size_t> FindSoluteAtomIndexes() const;
     [[nodiscard]] std::vector<std::vector<size_t> > FindAtomListOfClustersBFSHelper(
         std::unordered_set<size_t> unvisited_atoms_id_set) const;
-
-    // Return a 2D array where values of each row representing the number of atoms of different
-    // element in one cluster
+    // remove smaller clusters and add adjacent atoms
     [[nodiscard]] std::vector<std::vector<size_t> > FindAtomListOfClusters() const;
+
+    void AppendAtomAndLatticeVector(const std::vector<size_t> &atom_id_list,
+                                    std::vector<cfg::Atom> &atom_vector,
+                                    std::vector<cfg::Lattice> &lattice_vector) const;
+    [[nodiscard]] std::map<std::string, size_t> GetElementNumOfCluster(
+        const std::vector<size_t> &atom_id_list_of_a_cluster) const;
+    [[nodiscard]] double GetEnergyOfCluster(const std::vector<size_t> &atom_id_list_of_a_cluster) const;
 
     const cfg::Config config_;
     cfg::Config solvent_config_;
