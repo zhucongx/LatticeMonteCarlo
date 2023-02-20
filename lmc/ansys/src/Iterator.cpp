@@ -106,7 +106,7 @@ void Iterator::RunCluster() const {
     clusters_info["temperature"] = filename_temperature_hashset_.at(i);
     clusters_info["energy"] = filename_energy_hashset_.at(i);
     clusters_info["clusters"] =
-        cluster_finder.FindClustersAndOutput("cluster", std::to_string(i) + "_cluster.cfg");
+        cluster_finder.GetClustersInfoAndOutput("cluster", std::to_string(i) + "_cluster.cfg");
     clusters_info_array.push_back(clusters_info);
     std::ofstream ofs("cluster_info.json", std::ofstream::out);
     ofs << std::setprecision(16) << clusters_info_array.dump(2) << std::endl;

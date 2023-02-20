@@ -19,8 +19,8 @@ class Cluster {
             const pred::EnergyPredictor &energy_estimator,
             const std::map<Element, double> &chemical_potential_map);
 
-    nlohmann::json FindClustersAndOutput(const std::string &output_folder,
-                                         const std::string &output_name);
+    nlohmann::json GetClustersInfoAndOutput(const std::string &output_folder,
+                                            const std::string &output_name);
 
   private:
     [[nodiscard]] double GetAbsoluteEnergyOfCluster(const std::vector<size_t> &atom_id_list) const;

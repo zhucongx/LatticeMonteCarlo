@@ -28,7 +28,7 @@ Cluster::Cluster(const cfg::Config &config,
   }
 }
 
-json Cluster::FindClustersAndOutput(
+json Cluster::GetClustersInfoAndOutput(
     const std::string &output_folder, const std::string &output_name) {
   auto cluster_to_atom_vector = FindAtomListOfClusters();
 
