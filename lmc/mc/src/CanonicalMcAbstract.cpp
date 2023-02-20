@@ -62,8 +62,8 @@ std::pair<size_t, size_t> CanonicalMcAbstract::GenerateLatticeIdJumpPair() {
 //   }
 // }
 
-void CanonicalMcAbstract::Dump() {
-  if (is_restarted_){
+void CanonicalMcAbstract::Dump() const {
+  if (is_restarted_) {
     is_restarted_ = false;
     return;
   }

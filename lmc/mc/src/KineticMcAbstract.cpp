@@ -50,7 +50,7 @@ double KineticMcFirstAbstract::GetTimeCorrectionFactor() {
   }
   return 1.0;
 }
-void KineticMcFirstAbstract::Dump() {
+void KineticMcFirstAbstract::Dump() const{
   if (is_restarted_) {
     is_restarted_ = false;
     return;

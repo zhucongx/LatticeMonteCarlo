@@ -39,7 +39,7 @@ class McAbstract {
     double time_;
     double temperature_;
     double beta_;
-    bool is_restarted_;
+    mutable bool is_restarted_;
     // helpful properties
     ThermodynamicAveraging thermodynamic_averaging_;
     mutable std::mt19937_64 generator_;

@@ -24,7 +24,7 @@ class CanonicalMcAbstract : public McAbstract {
     void Simulate() override = 0;
   protected:
     // void UpdateTemperature();
-    void Dump();
+    virtual void Dump() const;
     std::pair<size_t, size_t> GenerateLatticeIdJumpPair();
     void SelectEvent(const std::pair<size_t, size_t> &lattice_id_jump_pair, double dE);
     // simulation parameters

@@ -33,7 +33,7 @@ class KineticMcFirstAbstract : public McAbstract {
   protected:
     void UpdateTemperature();
     double GetTimeCorrectionFactor();
-    void Dump();
+    virtual void Dump() const;
     size_t SelectEvent() const;
     virtual void BuildEventList() = 0;
     virtual double CalculateTime() = 0;
