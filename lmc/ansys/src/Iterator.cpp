@@ -79,7 +79,7 @@ Iterator::~Iterator() = default;
 void Iterator::RunCluster() const {
   const auto chemical_potential = energy_estimator_.GetChemicalPotential(solvent_element_);
   json clusters_info_array = json::array();
-  for (unsigned long long i = 0; i <= final_number_; i += increment_steps_) {
+  for (unsigned long long i = initial_steps_; i <= final_number_; i += increment_steps_) {
     std::cout << i << " / " << final_number_ << std::endl;
     cfg::Config config;
     if (config_type_ == "config") {
