@@ -193,7 +193,7 @@ Vector_t Cluster::GetGeometryCenterOfCluster(const std::vector<size_t> &cluster_
     auto relative_position =
         config_.GetLatticeVector()[config_.GetLatticeIdFromAtomId(atom_id)].GetRelativePosition();
     for (const auto kDim: All_Dimensions) {
-      auto theta = relative_position[kDim] * 2 * std::numbers::pi;
+      auto theta = relative_position[kDim] * 2 * M_PI;
       sum_cos_theta[kDim] += std::cos(theta);
       sum_sin_theta[kDim] += std::sin(theta);
     }
@@ -201,8 +201,8 @@ Vector_t Cluster::GetGeometryCenterOfCluster(const std::vector<size_t> &cluster_
   sum_cos_theta /= static_cast<double>(cluster_atom_id_list.size());
   sum_sin_theta /= static_cast<double>(cluster_atom_id_list.size());
   for (const auto kDim: All_Dimensions) {
-    double theta_bar = std::atan2(-sum_sin_theta[kDim], -sum_cos_theta[kDim]) + std::numbers::pi;
-    geometry_center[kDim] = theta_bar / (2 * std::numbers::pi);
+    double theta_bar = std::atan2(-sum_sin_theta[kDim], -sum_cos_theta[kDim]) + M_PI;
+    geometry_center[kDim] = theta_bar / (2 * M_PI);
   }
   return geometry_center;
 }
