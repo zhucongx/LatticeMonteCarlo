@@ -5,7 +5,6 @@
 #include <utility>
 #include <filesystem>
 #include <cmath>
-#include <numbers>
 #include <omp.h>
 
 using json = nlohmann::json;
@@ -218,16 +217,16 @@ Vector_t Cluster::GetMassCenterOfCluster(const std::vector<size_t> &cluster_atom
     auto mass = config_.GetAtomVector()[atom_id].GetElement().GetMass();
     sum_mass += mass;
     for (const auto kDim: All_Dimensions) {
-      auto theta = relative_position[kDim] * 2 * std::numbers::pi;
-      sum_cos_theta[kDim] += std::cos(theta)*mass;
-      sum_sin_theta[kDim] += std::sin(theta)*mass;
+      auto theta = relative_position[kDim] * 2 * M_PI;
+      sum_cos_theta[kDim] += std::cos(theta) * mass;
+      sum_sin_theta[kDim] += std::sin(theta) * mass;
     }
   }
   sum_cos_theta /= sum_mass;
   sum_sin_theta /= sum_mass;
   for (const auto kDim: All_Dimensions) {
-    double theta_bar = std::atan2(-sum_sin_theta[kDim], -sum_cos_theta[kDim]) + std::numbers::pi;
-    mass_center[kDim] = theta_bar / (2 * std::numbers::pi);
+    double theta_bar = std::atan2(-sum_sin_theta[kDim], -sum_cos_theta[kDim]) + M_PI;
+    mass_center[kDim] = theta_bar / (2 * M_PI);
   }
   return mass_center;
 }
