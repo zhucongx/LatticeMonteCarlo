@@ -4,6 +4,8 @@
 #include <unordered_map>
 #include <utility>
 #include <filesystem>
+#include <cmath>
+#include <numbers>
 #include <omp.h>
 
 using json = nlohmann::json;
@@ -40,7 +42,8 @@ json Cluster::GetClustersInfoAndOutput(
     json cluster_info = json::object();
     cluster_info["size"] = cluster_atom_id_list.size();
     cluster_info["mass"] = GetMassOfCluster(cluster_atom_id_list);
-    // cluster_info["geometry_center"] = GetGeometryCenterOfCluster(cluster_atom_id_list);
+    cluster_info["geometry_center"] = GetGeometryCenterOfCluster(cluster_atom_id_list);
+    cluster_info["mass_center"] = GetMassCenterOfCluster(cluster_atom_id_list);
     cluster_info["elements"] = GetElementNumOfCluster(cluster_atom_id_list);
     cluster_info["energy"] = GetEnergyOfCluster(cluster_atom_id_list);
 
@@ -142,11 +145,11 @@ std::vector<std::vector<size_t> > Cluster::FindAtomListOfClusters() const {
 void Cluster::AppendAtomAndLatticeVector(const std::vector<size_t> &cluster_atom_id_list,
                                          std::vector<cfg::Atom> &atom_vector,
                                          std::vector<cfg::Lattice> &lattice_vector) const {
-  for (size_t atom_index: cluster_atom_id_list) {
+  for (size_t atom_id: cluster_atom_id_list) {
     atom_vector.emplace_back(atom_vector.size(),
-                             config_.GetAtomVector()[atom_index].GetElement());
+                             config_.GetAtomVector()[atom_id].GetElement());
     auto relative_position =
-        config_.GetLatticeVector()[config_.GetLatticeIdFromAtomId(atom_index)].GetRelativePosition();
+        config_.GetLatticeVector()[config_.GetLatticeIdFromAtomId(atom_id)].GetRelativePosition();
     lattice_vector.emplace_back(lattice_vector.size(),
                                 relative_position * config_.GetBasis(), relative_position);
   }
@@ -158,17 +161,17 @@ std::map<std::string, size_t> Cluster::GetElementNumOfCluster(
   for (const auto &element: element_set_) {
     num_atom_in_one_cluster[element.GetString()] = 0;
   }
-  for (const auto &atom_index: cluster_atom_id_list) {
-    num_atom_in_one_cluster.at(config_.GetAtomVector()[atom_index].GetElement().GetString())++;
+  for (const auto &atom_id: cluster_atom_id_list) {
+    num_atom_in_one_cluster.at(config_.GetAtomVector()[atom_id].GetElement().GetString())++;
   }
   return num_atom_in_one_cluster;
 }
 double Cluster::GetMassOfCluster(const std::vector<size_t> &cluster_atom_id_list) const {
-  double mass = 0;
-  for (const auto &atom_index: cluster_atom_id_list) {
-    mass += config_.GetAtomVector()[atom_index].GetElement().GetMass();
+  double sum_mass = 0;
+  for (const auto &atom_id: cluster_atom_id_list) {
+    sum_mass += config_.GetAtomVector()[atom_id].GetElement().GetMass();
   }
-  return mass;
+  return sum_mass;
 }
 double Cluster::GetEnergyOfCluster(const std::vector<size_t> &cluster_atom_id_list) const {
   cfg::Config solute_config(solvent_config_);
@@ -183,5 +186,49 @@ double Cluster::GetEnergyOfCluster(const std::vector<size_t> &cluster_atom_id_li
           energy_estimator_.GetEnergyOfCluster(solvent_config_, cluster_atom_id_list);
   return energy_change_cluster_to_pure_solvent - energy_change_solution_to_pure_solvent;
 }
-
+Vector_t Cluster::GetGeometryCenterOfCluster(const std::vector<size_t> &cluster_atom_id_list) const {
+  Vector_t geometry_center{0, 0, 0};
+  Vector_t sum_cos_theta{0, 0, 0};
+  Vector_t sum_sin_theta{0, 0, 0};
+  for (size_t atom_id: cluster_atom_id_list) {
+    auto relative_position =
+        config_.GetLatticeVector()[config_.GetLatticeIdFromAtomId(atom_id)].GetRelativePosition();
+    for (const auto kDim: All_Dimensions) {
+      auto theta = relative_position[kDim] * 2 * std::numbers::pi;
+      sum_cos_theta[kDim] += std::cos(theta);
+      sum_sin_theta[kDim] += std::sin(theta);
+    }
+  }
+  sum_cos_theta /= static_cast<double>(cluster_atom_id_list.size());
+  sum_sin_theta /= static_cast<double>(cluster_atom_id_list.size());
+  for (const auto kDim: All_Dimensions) {
+    double theta_bar = std::atan2(-sum_sin_theta[kDim], -sum_cos_theta[kDim]) + std::numbers::pi;
+    geometry_center[kDim] = theta_bar / (2 * std::numbers::pi);
+  }
+  return geometry_center;
+}
+Vector_t Cluster::GetMassCenterOfCluster(const std::vector<size_t> &cluster_atom_id_list) const {
+  Vector_t mass_center{0, 0, 0};
+  Vector_t sum_cos_theta{0, 0, 0};
+  Vector_t sum_sin_theta{0, 0, 0};
+  double sum_mass = 0;
+  for (size_t atom_id: cluster_atom_id_list) {
+    auto relative_position =
+        config_.GetLatticeVector()[config_.GetLatticeIdFromAtomId(atom_id)].GetRelativePosition();
+    auto mass = config_.GetAtomVector()[atom_id].GetElement().GetMass();
+    sum_mass += mass;
+    for (const auto kDim: All_Dimensions) {
+      auto theta = relative_position[kDim] * 2 * std::numbers::pi;
+      sum_cos_theta[kDim] += std::cos(theta)*mass;
+      sum_sin_theta[kDim] += std::sin(theta)*mass;
+    }
+  }
+  sum_cos_theta /= sum_mass;
+  sum_sin_theta /= sum_mass;
+  for (const auto kDim: All_Dimensions) {
+    double theta_bar = std::atan2(-sum_sin_theta[kDim], -sum_cos_theta[kDim]) + std::numbers::pi;
+    mass_center[kDim] = theta_bar / (2 * std::numbers::pi);
+  }
+  return mass_center;
+}
 } // kn

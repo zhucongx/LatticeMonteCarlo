@@ -37,7 +37,8 @@ class Cluster {
         const std::vector<size_t> &cluster_atom_id_list) const;
     [[nodiscard]] double GetMassOfCluster(const std::vector<size_t> &cluster_atom_id_list) const;
     [[nodiscard]] double GetEnergyOfCluster(const std::vector<size_t> &cluster_atom_id_list) const;
-
+    [[nodiscard]] Vector_t GetGeometryCenterOfCluster(const std::vector<size_t> &cluster_atom_id_list) const;
+    [[nodiscard]] Vector_t GetMassCenterOfCluster(const std::vector<size_t> &cluster_atom_id_list) const;
 
     const cfg::Config config_;
     cfg::Config solvent_config_;
