@@ -33,13 +33,15 @@ class Cluster {
     void AppendAtomAndLatticeVector(const std::vector<size_t> &atom_id_list,
                                     std::vector<cfg::Atom> &atom_vector,
                                     std::vector<cfg::Lattice> &lattice_vector) const;
-    [[nodiscard]] std::map<std::string, size_t> GetElementNumOfCluster(
+    [[nodiscard]] std::map<std::string, size_t> GetElementsNumber(
         const std::vector<size_t> &cluster_atom_id_list) const;
-    [[nodiscard]] double GetMassOfCluster(const std::vector<size_t> &cluster_atom_id_list) const;
-    [[nodiscard]] double GetEnergyOfCluster(const std::vector<size_t> &cluster_atom_id_list) const;
-    [[nodiscard]] Vector_t GetGeometryCenterOfCluster(const std::vector<size_t> &cluster_atom_id_list) const;
-    [[nodiscard]] Vector_t GetMassCenterOfCluster(const std::vector<size_t> &cluster_atom_id_list) const;
-
+    [[nodiscard]] double GetMass(const std::vector<size_t> &cluster_atom_id_list) const;
+    [[nodiscard]] double GetEnergy(const std::vector<size_t> &cluster_atom_id_list) const;
+    [[nodiscard]] Vector_t GetGeometryCenter(const std::vector<size_t> &cluster_atom_id_list) const;
+    [[nodiscard]] Vector_t GetMassCenter(const std::vector<size_t> &cluster_atom_id_list) const;
+    [[nodiscard]] Matrix_t GetMassGyrationTensor(const std::vector<size_t> &cluster_atom_id_list,
+                                             const Vector_t& mass_center) const;
+    // [[nodiscard]] Matrix_t GetInertiaTensor(const std::vector<size_t> &cluster_atom_id_list) const;
     const cfg::Config config_;
     cfg::Config solvent_config_;
     const Element solvent_element_;

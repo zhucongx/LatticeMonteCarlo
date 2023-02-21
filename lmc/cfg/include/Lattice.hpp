@@ -55,10 +55,8 @@ inline Vector_t GetRelativeDistanceVectorLattice(const Lattice &first, const Lat
   Vector_t relative_distance_vector = second.GetRelativePosition() - first.GetRelativePosition();
   // periodic boundary conditions
   for (const auto kDim: All_Dimensions) {
-    while (relative_distance_vector[kDim] >= 0.5)
-      relative_distance_vector[kDim] -= 1;
-    while (relative_distance_vector[kDim] < -0.5)
-      relative_distance_vector[kDim] += 1;
+    while (relative_distance_vector[kDim] >= 0.5) { relative_distance_vector[kDim] -= 1; }
+    while (relative_distance_vector[kDim] < -0.5) { relative_distance_vector[kDim] += 1; }
   }
   return relative_distance_vector;
 }

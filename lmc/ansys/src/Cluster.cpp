@@ -40,11 +40,16 @@ json Cluster::GetClustersInfoAndOutput(
     AppendAtomAndLatticeVector(cluster_atom_id_list, atom_vector, lattice_vector);
     json cluster_info = json::object();
     cluster_info["size"] = cluster_atom_id_list.size();
-    cluster_info["mass"] = GetMassOfCluster(cluster_atom_id_list);
-    cluster_info["geometry_center"] = GetGeometryCenterOfCluster(cluster_atom_id_list);
-    cluster_info["mass_center"] = GetMassCenterOfCluster(cluster_atom_id_list);
-    cluster_info["elements"] = GetElementNumOfCluster(cluster_atom_id_list);
-    cluster_info["energy"] = GetEnergyOfCluster(cluster_atom_id_list);
+    cluster_info["elements_number"] = GetElementsNumber(cluster_atom_id_list);
+    cluster_info["mass"] = GetMass(cluster_atom_id_list);
+    cluster_info["energy"] = GetEnergy(cluster_atom_id_list);
+
+    cluster_info["geometry_center"] = GetGeometryCenter(cluster_atom_id_list);
+    const auto mass_center = GetMassCenter(cluster_atom_id_list);
+    cluster_info["mass_center"] = mass_center;
+    const auto mass_gyration_tensor =  GetMassGyrationTensor(cluster_atom_id_list, mass_center);
+    cluster_info["mass_gyration_tensor"] = mass_gyration_tensor;
+    cluster_info["mass_gyration_radius"] = std::sqrt(mass_gyration_tensor[0][0] + mass_gyration_tensor[1][1] + mass_gyration_tensor[2][2]);
 
     clusters_info_array.push_back(cluster_info);
   }
@@ -153,7 +158,7 @@ void Cluster::AppendAtomAndLatticeVector(const std::vector<size_t> &cluster_atom
                                 relative_position * config_.GetBasis(), relative_position);
   }
 }
-std::map<std::string, size_t> Cluster::GetElementNumOfCluster(
+std::map<std::string, size_t> Cluster::GetElementsNumber(
     const std::vector<size_t> &cluster_atom_id_list) const {
   // initialize map with all the element, because some cluster may not have all types of element
   std::map<std::string, size_t> num_atom_in_one_cluster{{"X", 0}};
@@ -165,14 +170,14 @@ std::map<std::string, size_t> Cluster::GetElementNumOfCluster(
   }
   return num_atom_in_one_cluster;
 }
-double Cluster::GetMassOfCluster(const std::vector<size_t> &cluster_atom_id_list) const {
+double Cluster::GetMass(const std::vector<size_t> &cluster_atom_id_list) const {
   double sum_mass = 0;
   for (const auto &atom_id: cluster_atom_id_list) {
     sum_mass += config_.GetAtomVector()[atom_id].GetElement().GetMass();
   }
   return sum_mass;
 }
-double Cluster::GetEnergyOfCluster(const std::vector<size_t> &cluster_atom_id_list) const {
+double Cluster::GetEnergy(const std::vector<size_t> &cluster_atom_id_list) const {
   cfg::Config solute_config(solvent_config_);
   double energy_change_solution_to_pure_solvent = 0;
   for (size_t atom_id: cluster_atom_id_list) {
@@ -185,10 +190,10 @@ double Cluster::GetEnergyOfCluster(const std::vector<size_t> &cluster_atom_id_li
           energy_estimator_.GetEnergyOfCluster(solvent_config_, cluster_atom_id_list);
   return energy_change_cluster_to_pure_solvent - energy_change_solution_to_pure_solvent;
 }
-Vector_t Cluster::GetGeometryCenterOfCluster(const std::vector<size_t> &cluster_atom_id_list) const {
-  Vector_t geometry_center{0, 0, 0};
-  Vector_t sum_cos_theta{0, 0, 0};
-  Vector_t sum_sin_theta{0, 0, 0};
+Vector_t Cluster::GetGeometryCenter(const std::vector<size_t> &cluster_atom_id_list) const {
+  Vector_t geometry_center{};
+  Vector_t sum_cos_theta{};
+  Vector_t sum_sin_theta{};
   for (size_t atom_id: cluster_atom_id_list) {
     const auto relative_position =
         config_.GetLatticeVector()[config_.GetLatticeIdFromAtomId(atom_id)].GetRelativePosition();
@@ -204,12 +209,12 @@ Vector_t Cluster::GetGeometryCenterOfCluster(const std::vector<size_t> &cluster_
     double theta_bar = std::atan2(-sin_theta_bar[kDim], -cos_theta_bar[kDim]) + M_PI;
     geometry_center[kDim] = theta_bar / (2 * M_PI);
   }
-  return geometry_center * config_.GetBasis();
+  return geometry_center * config_.GetBasis();; // Cartesian position
 }
-Vector_t Cluster::GetMassCenterOfCluster(const std::vector<size_t> &cluster_atom_id_list) const {
-  Vector_t mass_center{0, 0, 0};
-  Vector_t sum_cos_theta{0, 0, 0};
-  Vector_t sum_sin_theta{0, 0, 0};
+Vector_t Cluster::GetMassCenter(const std::vector<size_t> &cluster_atom_id_list) const {
+  Vector_t mass_center{};
+  Vector_t sum_cos_theta{};
+  Vector_t sum_sin_theta{};
   double sum_mass = 0;
   for (size_t atom_id: cluster_atom_id_list) {
     auto relative_position =
@@ -228,6 +233,33 @@ Vector_t Cluster::GetMassCenterOfCluster(const std::vector<size_t> &cluster_atom
     double theta_bar = std::atan2(-sin_theta_bar[kDim], -cos_theta_bar[kDim]) + M_PI;
     mass_center[kDim] = theta_bar / (2 * M_PI);
   }
-  return mass_center * config_.GetBasis();
+  return mass_center * config_.GetBasis();; // Cartesian position
+}
+Matrix_t Cluster::GetMassGyrationTensor(const std::vector<size_t> &cluster_atom_id_list,
+                                        const Vector_t &mass_center) const {
+  auto relative_mass_center = mass_center * InverseMatrix(config_.GetBasis());
+  Matrix_t gyration_tensor{};
+  double sum_mass = 0;
+  for (size_t atom_id: cluster_atom_id_list) {
+    const auto relative_position =
+        config_.GetLatticeVector()[config_.GetLatticeIdFromAtomId(atom_id)].GetRelativePosition();
+    auto mass = config_.GetAtomVector()[atom_id].GetElement().GetMass();
+    sum_mass += mass;
+    for (const auto kDim1: All_Dimensions) {
+      auto r1 = relative_position[kDim1] - relative_mass_center[kDim1];
+      while (r1 >= 0.5) { r1 -= 1; }
+      while (r1 < -0.5) { r1 += 1; }
+      for (const auto kDim2: All_Dimensions) {
+        auto r2 = relative_position[kDim2] - relative_mass_center[kDim2];
+        while (r2 >= 0.5) { r2 -= 1; }
+        while (r2 < -0.5) { r2 += 1; }
+        gyration_tensor[kDim1][kDim2] += r1 * r2 * mass;
+      }
+    }
+  }
+  gyration_tensor /= sum_mass;
+  return {gyration_tensor[0] * config_.GetBasis() * config_.GetBasis(),
+          gyration_tensor[1] * config_.GetBasis() * config_.GetBasis(),
+          gyration_tensor[2] * config_.GetBasis() * config_.GetBasis()};
 }
 } // kn
