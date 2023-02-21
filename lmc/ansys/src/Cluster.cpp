@@ -190,7 +190,7 @@ Vector_t Cluster::GetGeometryCenterOfCluster(const std::vector<size_t> &cluster_
   Vector_t sum_cos_theta{0, 0, 0};
   Vector_t sum_sin_theta{0, 0, 0};
   for (size_t atom_id: cluster_atom_id_list) {
-    auto relative_position =
+    const auto relative_position =
         config_.GetLatticeVector()[config_.GetLatticeIdFromAtomId(atom_id)].GetRelativePosition();
     for (const auto kDim: All_Dimensions) {
       auto theta = relative_position[kDim] * 2 * M_PI;
@@ -198,13 +198,13 @@ Vector_t Cluster::GetGeometryCenterOfCluster(const std::vector<size_t> &cluster_
       sum_sin_theta[kDim] += std::sin(theta);
     }
   }
-  sum_cos_theta /= static_cast<double>(cluster_atom_id_list.size());
-  sum_sin_theta /= static_cast<double>(cluster_atom_id_list.size());
+  auto cos_theta_bar = sum_cos_theta / static_cast<double>(cluster_atom_id_list.size());
+  auto sin_theta_bar = sum_sin_theta / static_cast<double>(cluster_atom_id_list.size());
   for (const auto kDim: All_Dimensions) {
-    double theta_bar = std::atan2(-sum_sin_theta[kDim], -sum_cos_theta[kDim]) + M_PI;
+    double theta_bar = std::atan2(-sin_theta_bar[kDim], -cos_theta_bar[kDim]) + M_PI;
     geometry_center[kDim] = theta_bar / (2 * M_PI);
   }
-  return geometry_center;
+  return geometry_center * config_.GetBasis();
 }
 Vector_t Cluster::GetMassCenterOfCluster(const std::vector<size_t> &cluster_atom_id_list) const {
   Vector_t mass_center{0, 0, 0};
@@ -222,12 +222,12 @@ Vector_t Cluster::GetMassCenterOfCluster(const std::vector<size_t> &cluster_atom
       sum_sin_theta[kDim] += std::sin(theta) * mass;
     }
   }
-  sum_cos_theta /= sum_mass;
-  sum_sin_theta /= sum_mass;
+  auto cos_theta_bar = sum_cos_theta / sum_mass;
+  auto sin_theta_bar = sum_sin_theta / sum_mass;
   for (const auto kDim: All_Dimensions) {
-    double theta_bar = std::atan2(-sum_sin_theta[kDim], -sum_cos_theta[kDim]) + M_PI;
+    double theta_bar = std::atan2(-sin_theta_bar[kDim], -cos_theta_bar[kDim]) + M_PI;
     mass_center[kDim] = theta_bar / (2 * M_PI);
   }
-  return mass_center;
+  return mass_center * config_.GetBasis();
 }
 } // kn
