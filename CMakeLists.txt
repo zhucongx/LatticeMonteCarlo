@@ -19,10 +19,10 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} \
 -Wredundant-decls -pedantic-errors -Wnull-dereference -Wdouble-promotion \
 -Wconversion -Wfatal-errors -Wextra-semi -O0 -g3 -finline-functions"
         CACHE INTERNAL "")
-IF(NOT TEST)
+IF (NOT TEST)
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wundef"
-           CACHE INTERNAL "")
-ENDIF()
+            CACHE INTERNAL "")
+ENDIF ()
 
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -Wall -Wextra"
         CACHE INTERNAL "")
@@ -109,10 +109,10 @@ FetchContent_Declare(
         https://github.com/ArthurSonzogni/nlohmann_json_cmake_fetchcontent
         GIT_TAG v3.10.5)
 FetchContent_GetProperties(json)
-if(NOT json_POPULATED)
+if (NOT json_POPULATED)
     FetchContent_Populate(json)
     add_subdirectory(${json_SOURCE_DIR} ${json_BINARY_DIR} EXCLUDE_FROM_ALL)
-endif()
+endif ()
 target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
 ############################################ ARMADILLO #############################################
 #find_package(ARMADILLO REQUIRED)
@@ -121,9 +121,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
 #target_link_libraries(${PROJECT_NAME} PUBLIC
 #        ${ARMADILLO_LIBRARIES})
 ############################################## EIGEN ###############################################
-#find_package(EIGEN3 REQUIRED)
-#target_include_directories(${PROJECT_NAME} PUBLIC
-#        ${EIGEN3_INCLUDE_DIRS})
+find_package(EIGEN3 REQUIRED)
+target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${EIGEN3_INCLUDE_DIRS})
 ############################################ TENSORFLOW ############################################
 #find_package(TensorFlow REQUIRED)
 #target_include_directories(${PROJECT_NAME} PUBLIC

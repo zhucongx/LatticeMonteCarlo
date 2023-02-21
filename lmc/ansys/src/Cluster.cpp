@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <cmath>
 #include <omp.h>
+#include <Eigen/Dense>
 
 using json = nlohmann::json;
 namespace ansys {
@@ -47,10 +48,27 @@ json Cluster::GetClustersInfoAndOutput(
     cluster_info["geometry_center"] = GetGeometryCenter(cluster_atom_id_list);
     const auto mass_center = GetMassCenter(cluster_atom_id_list);
     cluster_info["mass_center"] = mass_center;
-    const auto mass_gyration_tensor =  GetMassGyrationTensor(cluster_atom_id_list, mass_center);
+    const auto mass_gyration_tensor = GetMassGyrationTensor(cluster_atom_id_list, mass_center);
     cluster_info["mass_gyration_tensor"] = mass_gyration_tensor;
-    cluster_info["mass_gyration_radius"] = std::sqrt(mass_gyration_tensor[0][0] + mass_gyration_tensor[1][1] + mass_gyration_tensor[2][2]);
+    Eigen::Matrix3d mass_gyration_tensor_eigen
+        {{mass_gyration_tensor[0][0], mass_gyration_tensor[0][1], mass_gyration_tensor[0][2]},
+         {mass_gyration_tensor[1][0], mass_gyration_tensor[1][1], mass_gyration_tensor[1][2]},
+         {mass_gyration_tensor[2][0], mass_gyration_tensor[2][1], mass_gyration_tensor[2][2]}};
+    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eigen_solver(mass_gyration_tensor_eigen);
+    if (eigen_solver.info() != Eigen::Success) {
+      throw std::runtime_error("Eigen solver failed");
+    }
+    const auto &eigenvalues = eigen_solver.eigenvalues();
+    // cluster_info["mass_gyration_tensor_eigenvalues"] = eigenvalues;
+    cluster_info["mass_gyration_radius"] =
+        std::sqrt(eigenvalues[0] + eigenvalues[1] + eigenvalues[2]);
+    cluster_info["shape"]["asphericity"] = eigenvalues[2] - 0.5 * (eigenvalues[0] + eigenvalues[1]);
+    cluster_info["shape"]["acylindricity"] = eigenvalues[1] - eigenvalues[0];
+    cluster_info["shape"]["anisotropy"] = 1.5
+        * (std::pow(eigenvalues[0], 2) + std::pow(eigenvalues[1], 2) + std::pow(eigenvalues[2], 2))
+        / std::pow(eigenvalues[0] + eigenvalues[1] + eigenvalues[2], 2) - 0.5;
 
+    cluster_info["mass_inertia_tensor"] = GetMassInertiaTensor(cluster_atom_id_list, mass_center);
     clusters_info_array.push_back(cluster_info);
   }
   cfg::Config config_out(config_.GetBasis(), lattice_vector, atom_vector, false);
@@ -144,6 +162,11 @@ std::vector<std::vector<size_t> > Cluster::FindAtomListOfClusters() const {
   }
 
   cluster_atom_list = FindAtomListOfClustersBFSHelper(all_found_solute_set);
+  std::sort(cluster_atom_list.begin(), cluster_atom_list.end(),
+            [](const std::vector<size_t> &a, const std::vector<size_t> &b) {
+              return a.size() > b.size();
+            });
+
   return cluster_atom_list;
 }
 void Cluster::AppendAtomAndLatticeVector(const std::vector<size_t> &cluster_atom_id_list,
@@ -261,5 +284,34 @@ Matrix_t Cluster::GetMassGyrationTensor(const std::vector<size_t> &cluster_atom_
   return {gyration_tensor[0] * config_.GetBasis() * config_.GetBasis(),
           gyration_tensor[1] * config_.GetBasis() * config_.GetBasis(),
           gyration_tensor[2] * config_.GetBasis() * config_.GetBasis()};
+}
+Matrix_t Cluster::GetMassInertiaTensor(const std::vector<size_t> &cluster_atom_id_list,
+                                       const Vector_t &mass_center) const {
+  auto relative_mass_center = mass_center * InverseMatrix(config_.GetBasis());
+  Matrix_t inertia_tensor{};
+  for (size_t atom_id: cluster_atom_id_list) {
+    auto mass = config_.GetAtomVector()[atom_id].GetElement().GetMass();
+    auto relative_distance =
+        config_.GetLatticeVector()[config_.GetLatticeIdFromAtomId(atom_id)].GetRelativePosition()
+            - relative_mass_center;
+    for (const auto kDim: All_Dimensions) {
+      while (relative_distance[kDim] >= 0.5) { relative_distance[kDim] -= 1; }
+      while (relative_distance[kDim] < -0.5) { relative_distance[kDim] += 1; }
+    }
+    auto cartesian_distance = relative_distance * config_.GetBasis();
+    inertia_tensor[0][0] += mass * (cartesian_distance[1] * cartesian_distance[1]
+        + cartesian_distance[2] * cartesian_distance[2]);
+    inertia_tensor[0][1] += -mass * (cartesian_distance[0] * cartesian_distance[1]);
+    inertia_tensor[0][2] += -mass * (cartesian_distance[0] * cartesian_distance[2]);
+    inertia_tensor[1][0] += -mass * (cartesian_distance[1] * cartesian_distance[0]);
+    inertia_tensor[1][1] += mass * (cartesian_distance[2] * cartesian_distance[2]
+        + cartesian_distance[0] * cartesian_distance[0]);
+    inertia_tensor[1][2] += -mass * (cartesian_distance[1] * cartesian_distance[2]);
+    inertia_tensor[2][0] += -mass * (cartesian_distance[2] * cartesian_distance[0]);
+    inertia_tensor[2][1] += -mass * (cartesian_distance[2] * cartesian_distance[1]);
+    inertia_tensor[2][2] += mass * (cartesian_distance[0] * cartesian_distance[0]
+        + cartesian_distance[1] * cartesian_distance[1]);
+  }
+  return inertia_tensor;
 }
 } // kn
