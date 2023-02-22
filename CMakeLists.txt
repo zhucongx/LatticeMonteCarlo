@@ -75,6 +75,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "lmc.exe")
 ############################################# PKGCONFIG ############################################
 find_package(PkgConfig)
 pkg_check_modules(EIGEN3 REQUIRED eigen3)
+message(STATUS "Eigen3 include path: ${EIGEN3_INCLUDE_DIRS}")
 ############################################## BOOST ###############################################
 #set(Boost_NO_SYSTEM_PATHS TRUE)
 #if (Boost_NO_SYSTEM_PATHS)
