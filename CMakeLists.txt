@@ -97,7 +97,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC OpenMP::OpenMP_CXX)
 ############################################## EIGEN ###############################################
 find_package(PkgConfig)
 pkg_check_modules(EIGEN3 REQUIRED eigen3)
-#find_package(EIGEN3 REQUIRED)
+find_package(EIGEN3 REQUIRED)
 target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${EIGEN3_INCLUDE_DIRS})
 ############################################### JSON ###############################################
 # Typically you don't care so much for a third party library's tests to be
