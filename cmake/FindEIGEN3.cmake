@@ -1,107 +1,111 @@
-# - Try to find Eigen3 lib
+# Try to find Eigen http://eigen.tuxfamily.org/
+#
+# Searches for Eigen library even if it is NOT installed (i.e. NO Eigen3Config.cmake)
 #
 # This module supports requiring a minimum version, e.g. you can do
-#   find_package(Eigen3 3.1.2)
-# to require version 3.1.2 or newer of Eigen3.
+#   find_package(Eigen 3.1.2)
+# to require version 3.1.2 or newer of Eigen. By deafault looks for 3.0.0
 #
-# Once done this will define
+# You can also simply use find_package(Eigen) or find_package(Eigen REQUIRED) or find_package(Eigen 3.2 REQUIRED)
 #
-#  EIGEN3_FOUND - system has eigen lib with correct version
-#  EIGEN3_INCLUDE_DIR - the eigen include directory
-#  EIGEN3_VERSION - eigen version
+# Once done the following variables will be defined
 #
-# and the following imported target:
+#  EIGEN_FOUND              - True if Eigen was found on your system
+#  EIGEN_USE_FILE           - The file making Eigen usable by simply doing include(${EIGEN_USE_FILE})
+#  EIGEN_INCLUDE_DIRS       - List of directories of Eigen and it's dependencies
 #
-#  Eigen3::Eigen - The header-only Eigen library
-#
-# This module reads hints about search locations from
-# the following environment variables:
-#
-# EIGEN3_ROOT
-# EIGEN3_ROOT_DIR
+#  EIGEN_DEFINITIONS        - Definitions needed to build with Eigen
+#  EIGEN_INCLUDE_DIR        - Directory where signature_of_Eigen_matrix_library can be found
+#  EIGEN_VERSION     		- Full Eigen Package version
+#  EIGEN_VERSION_MAJOR      - The major version of Eigen
+#  EIGEN_VERSION_MINOR      - The minor version of Eigen
+#  EIGEN_VERSION_PATCH      - The patch version of Eigen
 
-# Copyright (c) 2006, 2007 Montel Laurent, <montel@kde.org>
-# Copyright (c) 2008, 2009 Gael Guennebaud, <g.gael@free.fr>
-# Copyright (c) 2009 Benoit Jacob <jacob.benoit.1@gmail.com>
-# Redistribution and use is allowed according to the terms of the 2-clause BSD license.
-
-if(NOT Eigen3_FIND_VERSION)
-    if(NOT Eigen3_FIND_VERSION_MAJOR)
-        set(Eigen3_FIND_VERSION_MAJOR 2)
+if(NOT Eigen_FIND_VERSION)
+    if(NOT Eigen_FIND_VERSION_MAJOR)
+        set(Eigen_FIND_VERSION_MAJOR 3)
     endif()
-    if(NOT Eigen3_FIND_VERSION_MINOR)
-        set(Eigen3_FIND_VERSION_MINOR 91)
+    if(NOT Eigen_FIND_VERSION_MINOR)
+        set(Eigen_FIND_VERSION_MINOR 0)
     endif()
-    if(NOT Eigen3_FIND_VERSION_PATCH)
-        set(Eigen3_FIND_VERSION_PATCH 0)
+    if(NOT Eigen_FIND_VERSION_PATCH)
+        set(Eigen_FIND_VERSION_PATCH 0)
     endif()
-
-    set(Eigen3_FIND_VERSION "${Eigen3_FIND_VERSION_MAJOR}.${Eigen3_FIND_VERSION_MINOR}.${Eigen3_FIND_VERSION_PATCH}")
+    set(Eigen_FIND_VERSION "${Eigen_FIND_VERSION_MAJOR}.${Eigen_FIND_VERSION_MINOR}.${Eigen_FIND_VERSION_PATCH}")
+    message( STATUS "Looking for default minimum Eigen version ${Eigen_FIND_VERSION}" )
+else()
+    message( STATUS "Looking for Eigen Library with minimum version ${Eigen_FIND_VERSION}" )
 endif()
 
-macro(_eigen3_check_version)
-    file(READ "${EIGEN3_INCLUDE_DIR}/Eigen/src/Core/util/Macros.h" _eigen3_version_header)
 
-    string(REGEX MATCH "define[ \t]+EIGEN_WORLD_VERSION[ \t]+([0-9]+)" _eigen3_world_version_match "${_eigen3_version_header}")
-    set(EIGEN3_WORLD_VERSION "${CMAKE_MATCH_1}")
-    string(REGEX MATCH "define[ \t]+EIGEN_MAJOR_VERSION[ \t]+([0-9]+)" _eigen3_major_version_match "${_eigen3_version_header}")
-    set(EIGEN3_MAJOR_VERSION "${CMAKE_MATCH_1}")
-    string(REGEX MATCH "define[ \t]+EIGEN_MINOR_VERSION[ \t]+([0-9]+)" _eigen3_minor_version_match "${_eigen3_version_header}")
-    set(EIGEN3_MINOR_VERSION "${CMAKE_MATCH_1}")
+# macro to check version
+macro(Eigen_Check_Version)
+    file(READ "${EIGEN_INCLUDE_DIR}/Eigen/src/Core/util/Macros.h" _Eigen_version_header)
 
-    set(EIGEN3_VERSION ${EIGEN3_WORLD_VERSION}.${EIGEN3_MAJOR_VERSION}.${EIGEN3_MINOR_VERSION})
-    if(${EIGEN3_VERSION} VERSION_LESS ${Eigen3_FIND_VERSION})
-        set(EIGEN3_VERSION_OK FALSE)
+    string(REGEX MATCH "define[ \t]+EIGEN_WORLD_VERSION[ \t]+([0-9]+)" _Eigen_world_version_match "${_Eigen_version_header}")
+    set(EIGEN_VERSION_MAJOR "${CMAKE_MATCH_1}")
+    string(REGEX MATCH "define[ \t]+EIGEN_MAJOR_VERSION[ \t]+([0-9]+)" _Eigen_major_version_match "${_Eigen_version_header}")
+    set(EIGEN_VERSION_MINOR "${CMAKE_MATCH_1}")
+    string(REGEX MATCH "define[ \t]+EIGEN_MINOR_VERSION[ \t]+([0-9]+)" _Eigen_minor_version_match "${_Eigen_version_header}")
+    set(EIGEN_VERSION_PATCH "${CMAKE_MATCH_1}")
+    set(EIGEN_VERSION ${EIGEN_VERSION_MAJOR}.${EIGEN_VERSION_MINOR}.${EIGEN_VERSION_PATCH})
+
+    if(${EIGEN_VERSION} VERSION_LESS ${Eigen_FIND_VERSION})
+        set(EIGEN_VERSION_OK FALSE)
     else()
-        set(EIGEN3_VERSION_OK TRUE)
+        set(EIGEN_VERSION_OK TRUE)
     endif()
 
-    if(NOT EIGEN3_VERSION_OK)
+    message(STATUS "Eigen version ${EIGEN_VERSION} found in ${EIGEN_INCLUDE_DIR}")
 
-        message(STATUS "Eigen3 version ${EIGEN3_VERSION} found in ${EIGEN3_INCLUDE_DIR}, "
-                "but at least version ${Eigen3_FIND_VERSION} is required")
+    if(NOT EIGEN_VERSION_OK)
+        message(WARNING "Eigen version is less than requred version ${Eigen_FIND_VERSION}")
     endif()
-endmacro()
+endmacro(Eigen_Check_Version)
 
-if (EIGEN3_INCLUDE_DIR)
+#include the Standard package handler
+include(FindPackageHandleStandardArgs)
 
-    # in cache already
-    _eigen3_check_version()
-    set(EIGEN3_FOUND ${EIGEN3_VERSION_OK})
-    set(Eigen3_FOUND ${EIGEN3_VERSION_OK})
+if (EIGEN_INCLUDE_DIR)
 
-else ()
+    # in User Provided (or Cached) location
+    message(STATUS "Looking for Eigen via User Provided (or Cached) location")
+    Eigen_Check_Version()
+    find_package_handle_standard_args(Eigen DEFAULT_MSG EIGEN_INCLUDE_DIR EIGEN_VERSION_OK)
+    set(EIGEN_INCLUDE_DIRS ${EIGEN_INCLUDE_DIR} ${EIGEN_INCLUDE_DIR}/unsupported)
 
-    # search first if an Eigen3Config.cmake is available in the system,
-    # if successful this would set EIGEN3_INCLUDE_DIR and the rest of
-    # the script will work as usual
-    find_package(Eigen3 ${Eigen3_FIND_VERSION} NO_MODULE QUIET)
+else (EIGEN_INCLUDE_DIR)
 
-    if(NOT EIGEN3_INCLUDE_DIR)
-        find_path(EIGEN3_INCLUDE_DIR NAMES signature_of_eigen3_matrix_library
-                HINTS
-                ENV EIGEN3_ROOT
-                ENV EIGEN3_ROOT_DIR
+    ## Check for Installed Eigen Package (Eigen3Config.cmake)
+    find_package(Eigen3 QUIET)
+
+    if(EIGEN3_FOUND OR EIGEN_FOUND)
+        # found via Installed Eigen3Config.cmake
+        message(STATUS "Looking for Eigen via Installed Eigen3Config.cmake")
+        if(EIGEN3_INCLUDE_DIR)
+            set (EIGEN_INCLUDE_DIR ${EIGEN3_INCLUDE_DIR})
+        endif(EIGEN3_INCLUDE_DIR)
+    else(EIGEN3_FOUND OR EIGEN_FOUND)
+        # Look for uninstalled Eigen Packages
+        message(STATUS "Looking for Eigen at Standard Locations")
+
+        find_path(EIGEN_INCLUDE_DIR NAMES signature_of_eigen3_matrix_library
                 PATHS
                 ${CMAKE_INSTALL_PREFIX}/include
                 ${KDE4_INCLUDE_DIR}
                 PATH_SUFFIXES eigen3 eigen
                 )
-    endif()
+    endif(EIGEN3_FOUND OR EIGEN_FOUND)
 
-    if(EIGEN3_INCLUDE_DIR)
-        _eigen3_check_version()
-    endif()
+    if(EIGEN_INCLUDE_DIR)
+        Eigen_Check_Version()
+    endif(EIGEN_INCLUDE_DIR)
 
-    include(FindPackageHandleStandardArgs)
-    find_package_handle_standard_args(Eigen3 DEFAULT_MSG EIGEN3_INCLUDE_DIR EIGEN3_VERSION_OK)
+    find_package_handle_standard_args(Eigen DEFAULT_MSG EIGEN_INCLUDE_DIR EIGEN_VERSION_OK)
 
-    mark_as_advanced(EIGEN3_INCLUDE_DIR)
+    set(EIGEN_INCLUDE_DIRS ${EIGEN_INCLUDE_DIR} )
+    list(APPEND EIGEN_INCLUDE_DIRS ${EIGEN_INCLUDE_DIR}/unsupported )
 
-endif()
+    set(EIGEN_DEFINITIONS  "" )
 
-if(EIGEN3_FOUND AND NOT TARGET Eigen3::Eigen)
-    add_library(Eigen3::Eigen INTERFACE IMPORTED)
-    set_target_properties(Eigen3::Eigen PROPERTIES
-            INTERFACE_INCLUDE_DIRECTORIES "${EIGEN3_INCLUDE_DIR}")
-endif()
+endif(EIGEN_INCLUDE_DIR)
