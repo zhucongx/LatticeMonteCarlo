@@ -99,15 +99,8 @@ target_link_libraries(${PROJECT_NAME} PUBLIC MPI::MPI_CXX)
 find_package(OpenMP REQUIRED)
 target_link_libraries(${PROJECT_NAME} PUBLIC OpenMP::OpenMP_CXX)
 ############################################## EIGEN ###############################################
-include(FetchContent)
-FetchContent_Declare(
-        Eigen
-        GIT_REPOSITORY    https://gitlab.com/libeigen/eigen.git
-        GIT_TAG           3.4
-)
-FetchContent_GetProperties(Eigen)
-target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${EIGEN3_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} PUBLIC ${EIGEN3_LIBRARIES})
+find_package(Eigen3 3.4 REQUIRED NO_MODULE)
+target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen)
 ############################################### JSON ###############################################
 # Typically you don't care so much for a third party library's tests to be
 # run from your own project's code.
@@ -120,12 +113,8 @@ include(FetchContent)
 FetchContent_Declare(
         json
         GIT_REPOSITORY https://github.com/ArthurSonzogni/nlohmann_json_cmake_fetchcontent
-        GIT_TAG v3.10.5)
-FetchContent_GetProperties(json)
-if (NOT json_POPULATED)
-    FetchContent_Populate(json)
-    add_subdirectory(${json_SOURCE_DIR} ${json_BINARY_DIR} EXCLUDE_FROM_ALL)
-endif ()
+        GIT_TAG v3.11.2)
+FetchContent_MakeAvailable(json)
 target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
 ############################################ ARMADILLO #############################################
 #find_package(ARMADILLO REQUIRED)
