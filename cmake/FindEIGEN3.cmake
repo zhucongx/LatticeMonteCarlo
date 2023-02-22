@@ -1,4 +1,4 @@
-set(FIND_EIGEN3_PATHS ~/.local /usr /usr/local /usr/share)
+set(FIND_EIGEN3_PATHS ~/.local /usr /usr/local /usr/share ${C_PATH})
 find_path(EIGEN3_INCLUDE_DIRS
         NAMES eigen3
         PATH_SUFFIXES include
