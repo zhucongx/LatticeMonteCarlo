@@ -94,6 +94,9 @@ target_link_libraries(${PROJECT_NAME} PUBLIC MPI::MPI_CXX)
 ############################################## OPENMP ##############################################
 find_package(OpenMP REQUIRED)
 target_link_libraries(${PROJECT_NAME} PUBLIC OpenMP::OpenMP_CXX)
+############################################## EIGEN ###############################################
+find_package(EIGEN3 REQUIRED)
+target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${EIGEN3_INCLUDE_DIRS})
 ############################################### JSON ###############################################
 # Typically you don't care so much for a third party library's tests to be
 # run from your own project's code.
@@ -105,8 +108,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC OpenMP::OpenMP_CXX)
 include(FetchContent)
 FetchContent_Declare(
         json
-        GIT_REPOSITORY
-        https://github.com/ArthurSonzogni/nlohmann_json_cmake_fetchcontent
+        GIT_REPOSITORY https://github.com/ArthurSonzogni/nlohmann_json_cmake_fetchcontent
         GIT_TAG v3.10.5)
 FetchContent_GetProperties(json)
 if (NOT json_POPULATED)
@@ -120,9 +122,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
 #        ${ARMADILLO_INCLUDE_DIRS})
 #target_link_libraries(${PROJECT_NAME} PUBLIC
 #        ${ARMADILLO_LIBRARIES})
-############################################## EIGEN ###############################################
-find_package(EIGEN3 REQUIRED)
-target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${EIGEN3_INCLUDE_DIRS})
 ############################################ TENSORFLOW ############################################
 #find_package(TensorFlow REQUIRED)
 #target_include_directories(${PROJECT_NAME} PUBLIC
