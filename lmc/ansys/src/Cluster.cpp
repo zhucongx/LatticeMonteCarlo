@@ -6,7 +6,7 @@
 #include <filesystem>
 #include <cmath>
 #include <omp.h>
-#include <Eigen/Dense>
+#include <eigen3/Eigen/Dense>
 
 using json = nlohmann::json;
 namespace ansys {
