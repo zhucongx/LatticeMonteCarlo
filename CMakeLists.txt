@@ -73,9 +73,9 @@ add_executable(${PROJECT_NAME} LMC_Main.cpp ${PROJECT_SRC})
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_INCLUDE})
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "lmc.exe")
 ############################################# PKGCONFIG ############################################
-find_package(PkgConfig)
-pkg_check_modules(EIGEN3 REQUIRED eigen3)
-message(STATUS "Eigen3 include path: ${EIGEN3_INCLUDE_DIRS}")
+#find_package(PkgConfig)
+#pkg_check_modules(EIGEN3 REQUIRED eigen3)
+#message(STATUS "Eigen3 include path: ${EIGEN3_INCLUDE_DIRS}")
 ############################################## BOOST ###############################################
 #set(Boost_NO_SYSTEM_PATHS TRUE)
 #if (Boost_NO_SYSTEM_PATHS)
@@ -99,7 +99,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC MPI::MPI_CXX)
 find_package(OpenMP REQUIRED)
 target_link_libraries(${PROJECT_NAME} PUBLIC OpenMP::OpenMP_CXX)
 ############################################## EIGEN ###############################################
-#find_package(EIGEN3 REQUIRED)
+find_package(EIGEN3 REQUIRED)
 target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${EIGEN3_INCLUDE_DIRS})
 ############################################### JSON ###############################################
 # Typically you don't care so much for a third party library's tests to be
