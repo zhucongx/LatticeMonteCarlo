@@ -99,9 +99,17 @@ target_link_libraries(${PROJECT_NAME} PUBLIC MPI::MPI_CXX)
 find_package(OpenMP REQUIRED)
 target_link_libraries(${PROJECT_NAME} PUBLIC OpenMP::OpenMP_CXX)
 ############################################## EIGEN ###############################################
-find_package(EIGEN3 REQUIRED NO_MODULE)
+find_package(Eigen3)
+if(NOT EIGEN3_FOUND)
+    find_package(Eigen REQUIRED)
+    set(EIGEN3_INCLUDE_DIRS ${EIGEN_INCLUDE_DIRS})
+    set(EIGEN3_LIBRARIES ${EIGEN_LIBRARIES})  # Not strictly necessary as Eigen is head only
+    # Possibly map additional variables to the EIGEN3_ prefix.
+else()
+    set(EIGEN3_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR})
+endif()
 target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${EIGEN3_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen)
+target_link_libraries(${PROJECT_NAME} PUBLIC ${EIGEN3_LIBRARIES})
 ############################################### JSON ###############################################
 # Typically you don't care so much for a third party library's tests to be
 # run from your own project's code.
