@@ -22,7 +22,7 @@ jobs:
     - name: Install dependencies on ubuntu
       run: |
         sudo apt update
-        sudo apt install ninja-build cmake libopenmpi-dev libboost-all-dev
+        sudo apt install ninja-build cmake libopenmpi-dev libboost-all-dev libeigen3-dev
         cmake --version
         gcc --version
     - name: Configure CMake
