@@ -517,7 +517,7 @@ Config Config::ReadMap(const std::string &lattice_filename,
   Config config;
   std::ifstream ifs_lattice(lattice_filename, std::ifstream::in);
   if (!ifs_lattice.is_open()) {
-    throw std::runtime_error("Cannot open " + lattice_filename)
+    throw std::runtime_error("Cannot open " + lattice_filename);
   }
   size_t num_atoms;
   ifs_lattice >> num_atoms;
