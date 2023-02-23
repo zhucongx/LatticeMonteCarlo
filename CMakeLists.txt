@@ -104,7 +104,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC MPI::MPI_CXX)
 find_package(OpenMP REQUIRED)
 target_link_libraries(${PROJECT_NAME} PUBLIC OpenMP::OpenMP_CXX)
 ############################################## EIGEN ###############################################
-find_package(Eigen3 3.4 REQUIRED NO_MODULE)
+find_package(Eigen3 3.4 NO_MODULE)
 if (NOT EIGEN3_FOUND)
     message(WARNING "Eigen3 not found")
     FetchContent_Declare(Eigen3
