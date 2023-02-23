@@ -8,6 +8,8 @@
 #include <omp.h>
 #include <Eigen/Dense>
 
+#include "ShortRangeOrder.h"
+
 using json = nlohmann::json;
 namespace ansys {
 Cluster::Cluster(const cfg::Config &config,
@@ -37,6 +39,7 @@ json Cluster::GetClustersInfoAndOutput(
   json clusters_info_array = json::array();
   std::vector<cfg::Lattice> lattice_vector;
   std::vector<cfg::Atom> atom_vector;
+  auto short_range_order = ShortRangeOrder(config_, element_set_);
   for (auto &cluster_atom_id_list: cluster_to_atom_vector) {
     AppendAtomAndLatticeVector(cluster_atom_id_list, atom_vector, lattice_vector);
     json cluster_info = json::object();
@@ -69,6 +72,13 @@ json Cluster::GetClustersInfoAndOutput(
         / std::pow(eigenvalues[0] + eigenvalues[1] + eigenvalues[2], 2) - 0.5;
 
     cluster_info["mass_inertia_tensor"] = GetMassInertiaTensor(cluster_atom_id_list, mass_center);
+
+    cluster_info["short_range_order"]["first"] =
+        short_range_order.FindWarrenCowleyCluster(1, cluster_atom_id_list);
+    cluster_info["short_range_order"]["second"] =
+        short_range_order.FindWarrenCowleyCluster(2, cluster_atom_id_list);
+    cluster_info["short_range_order"]["third"] =
+        short_range_order.FindWarrenCowleyCluster(3, cluster_atom_id_list);
     clusters_info_array.push_back(cluster_info);
   }
   cfg::Config config_out(config_.GetBasis(), lattice_vector, atom_vector, false);

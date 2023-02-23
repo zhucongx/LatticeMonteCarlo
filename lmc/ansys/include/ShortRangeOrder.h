@@ -7,11 +7,13 @@ namespace ansys {
 
 class ShortRangeOrder {
   public:
-    explicit ShortRangeOrder(cfg::Config config, std::set<Element>  element_set);
+    ShortRangeOrder(const cfg::Config &config, const std::set<Element> &element_set);
+    [[nodiscard]] std::map<std::string, double> FindWarrenCowleyCluster(
+        size_t shell_number, const std::vector<size_t> &cluster_atom_id_list) const;
     [[nodiscard]] std::map<std::string, double> FindWarrenCowley(size_t shell_number) const;
   protected:
-    cfg::Config config_;
-    const std::set<Element> element_set_;
+    const cfg::Config &config_;
+    const std::set<Element> &element_set_;
 };
 
 } // ansys
