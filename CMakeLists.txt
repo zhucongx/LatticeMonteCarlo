@@ -106,7 +106,8 @@ target_link_libraries(${PROJECT_NAME} PUBLIC OpenMP::OpenMP_CXX)
 ############################################## EIGEN ###############################################
 find_package(Eigen3 3.4 NO_MODULE)
 if (NOT EIGEN3_FOUND)
-    message(WARNING "Eigen3 not found")
+    message(WARNING "Eigen3 not found. Downloading Eigen3 from gitlab")
+    include(FetchContent)
     FetchContent_Declare(Eigen3
             GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
             GIT_TAG 3.4
