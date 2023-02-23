@@ -36,11 +36,11 @@ Iterator::Iterator(unsigned long long int initial_steps,
   } else if (log_type_ == "canonical_mc") {
     log_file_name = "cmc_log.txt";
   } else {
-    std::cerr << "Unknown log type: " << log_type_ << std::endl;
+    throw std::invalid_argument("Unknown log type: " + log_type_);
   }
   std::ifstream ifs(log_file_name, std::ifstream::in);
   if (!ifs.is_open()) {
-    std::cerr << "Cannot open " << log_file_name << "\n";
+    throw std::runtime_error("Cannot open " + log_file_name);
     return;
   }
   unsigned long long step_number;
@@ -62,7 +62,7 @@ Iterator::Iterator(unsigned long long int initial_steps,
     } else if (log_type_ == "canonical_mc") {
       ifs >> step_number >> temperature >> energy;
     } else {
-      std::cerr << "Unknown log type: " << log_type_ << std::endl;
+      throw std::invalid_argument("Unknown log type: " + log_type_);
     }
 
     ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');

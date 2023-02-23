@@ -21,7 +21,9 @@ void Parameter::ReadParam(const std::string &param_filename) {
     return;
   }
   std::ifstream ifs(param_filename, std::ifstream::in);
-  if (!ifs.is_open()) std::cerr << " error opening " << param_filename << std::endl;
+  if (!ifs.is_open()) {
+    throw std::runtime_error("Cannot open " + param_filename);
+  }
   std::string buffer;
   while (std::getline(ifs, buffer)) {
     if (buffer.empty()) {

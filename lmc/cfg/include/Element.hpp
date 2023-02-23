@@ -67,8 +67,7 @@ class Element {
         case ElementName::pZn: return "pZn";
         case ElementName::pCu: return "pCu";
         case ElementName::pSn: return "pSn";
-        default: std::cerr << "Unexpected pseudo element" << std::endl;
-          return "undefined element";
+        default: throw std::invalid_argument("Unexpected pseudo element");
           // omit default case to trigger compiler warning for missing cases
       }
     }
@@ -85,8 +84,7 @@ class Element {
         case ElementName::pZn: return 65.38;
         case ElementName::pCu: return 63.55;
         case ElementName::pSn: return 118.71;
-        default: std::cerr << "Unexpected pseudo element" << std::endl;
-          return 0;
+        default: throw std::invalid_argument("Unexpected pseudo element");
           // omit default case to trigger compiler warning for missing cases
       }
     }
@@ -98,8 +96,7 @@ class Element {
         case ElementName::Cu: return Element(ElementName::pCu);
         case ElementName::Sn: return Element(ElementName::pSn);
           // omit default case to trigger compiler warning for missing cases
-        default: std::cerr << "Unexpected pseudo element" << std::endl;
-          return Element(ElementName::X);
+        default: throw std::invalid_argument("Unexpected pseudo element");
       }
     }
   private:

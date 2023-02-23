@@ -14,7 +14,7 @@ TimeTemperatureInterpolator::TimeTemperatureInterpolator(
   }
   std::ifstream ifs(time_temperature_filename, std::ifstream::in);
   if (!ifs.is_open()) {
-    std::cerr << "Cannot open " << time_temperature_filename << "\n";
+    throw std::runtime_error("Cannot open " + time_temperature_filename);
     return;
   }
   double time, temperature;

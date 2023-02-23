@@ -19,7 +19,7 @@ Config::Config(const Matrix_t &basis,
       atom_vector_(std::move(atom_vector)) {
 
   if (lattice_vector_.size() != atom_vector_.size()) {
-    std::cerr << "Warning: lattice vector and atom vector size not match" << std::endl;
+    throw std::runtime_error("Lattice vector and atom vector size do not match");
   }
   for (size_t i = 0; i < lattice_vector_.size(); ++i) {
     auto lattice_id = lattice_vector_.at(i).GetId();
@@ -178,7 +178,7 @@ size_t Config::GetVacancyLatticeId() const {
   if (it != atom_vector.end()) {
     return GetLatticeIdFromAtomId(it->GetId());
   } else {
-    std::cerr << "Warning: vacancy not found" << std::endl;
+    throw std::runtime_error("vacancy not found");
   }
   return 0;
 }
@@ -370,7 +370,7 @@ void Config::ReassignLatticeVector() {
 Config Config::ReadConfig(const std::string &filename) {
   std::ifstream ifs(filename, std::ifstream::in);
   if (!ifs.is_open()) {
-    std::cerr << "Cannot open " + filename + "\n";
+    throw std::runtime_error("Cannot open " + filename);
   }
   // "Number of particles = %i"
   ifs.ignore(std::numeric_limits<std::streamsize>::max(), '=');
@@ -517,7 +517,7 @@ Config Config::ReadMap(const std::string &lattice_filename,
   Config config;
   std::ifstream ifs_lattice(lattice_filename, std::ifstream::in);
   if (!ifs_lattice.is_open()) {
-    std::cerr << "Cannot open " + lattice_filename + "\n";
+    throw std::runtime_error("Cannot open " + lattice_filename)
   }
   size_t num_atoms;
   ifs_lattice >> num_atoms;
@@ -552,7 +552,7 @@ Config Config::ReadMap(const std::string &lattice_filename,
 
   std::ifstream ifs_element(element_filename, std::ifstream::in);
   if (!ifs_element.is_open()) {
-    std::cerr << "Cannot open " + element_filename + "\n";
+    throw std::runtime_error("Cannot open " + element_filename);
   }
   std::string type;
   config.atom_vector_.reserve(num_atoms);
@@ -564,7 +564,7 @@ Config Config::ReadMap(const std::string &lattice_filename,
 
   std::ifstream ifs_map(map_filename, std::ifstream::in);
   if (!ifs_map.is_open()) {
-    std::cerr << "Cannot open " + map_filename + "\n";
+    throw std::runtime_error("Cannot open " + map_filename);
   }
   size_t lattice_id;
   for (size_t atom_id = 0; atom_id < num_atoms; ++atom_id) {
