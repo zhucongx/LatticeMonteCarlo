@@ -39,7 +39,6 @@ Iterator::Iterator(unsigned long long int initial_steps,
   std::ifstream ifs(log_file_name, std::ifstream::in);
   if (!ifs.is_open()) {
     throw std::runtime_error("Cannot open " + log_file_name);
-    return;
   }
   unsigned long long step_number;
   double energy{}, time{}, temperature{};
@@ -70,6 +69,13 @@ Iterator::Iterator(unsigned long long int initial_steps,
       filename_time_hashset_[step_number] = time;
 
       final_number_ = step_number;
+    }
+  }
+#pragma omp parallel  default(none) shared(std::cout)
+  {
+#pragma omp master
+    {
+      std::cout << "Using " << omp_get_num_threads() << " threads." << std::endl;
     }
   }
 }
