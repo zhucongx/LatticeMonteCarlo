@@ -1,4 +1,4 @@
-simulation_method Cluster
+simulation_method Ansys
 log_type kinetic_mc
 #log_type canonical_mc
 config_type config

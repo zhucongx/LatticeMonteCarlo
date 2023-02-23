@@ -76,9 +76,9 @@ Iterator::Iterator(unsigned long long int initial_steps,
   }
 }
 Iterator::~Iterator() = default;
-void Iterator::RunCluster() const {
+void Iterator::RunAnsys() const {
   const auto chemical_potential = energy_estimator_.GetChemicalPotential(solvent_element_);
-  json clusters_info_array = json::array();
+  json ansys_info_array = json::array();
   for (unsigned long long i = initial_steps_; i <= final_number_; i += increment_steps_) {
     std::cout << i << " / " << final_number_ << std::endl;
     cfg::Config config;
@@ -92,78 +92,32 @@ void Iterator::RunCluster() const {
     } else {
       throw std::invalid_argument("Unknown config type: " + config_type_);
     }
-    Cluster cluster_finder(config,
-                           solvent_element_,
-                           element_set_,
-                           smallest_cluster_criteria_,
-                           solvent_bond_criteria_,
-                           energy_estimator_,
-                           chemical_potential);
-
-    json clusters_info = json::object();
-    clusters_info["index"] = std::to_string(i);
-    clusters_info["time"] = filename_time_hashset_.at(i);
-    clusters_info["temperature"] = filename_temperature_hashset_.at(i);
-    clusters_info["energy"] = filename_energy_hashset_.at(i);
-    clusters_info["clusters"] = cluster_finder.GetClustersInfoAndOutput(
-        "cluster", std::to_string(i) + "_cluster.cfg");
-    clusters_info_array.push_back(clusters_info);
-
-    std::ofstream ofs("cluster_info.json", std::ofstream::out);
-    ofs.precision(16);
-    ofs << clusters_info_array.dump(2) << std::endl;
-  }
-}
-void Iterator::RunShortRangeOrder() const {
-  // start
-  std::ofstream ofs1("sro1_log.txt", std::ofstream::out);
-  std::ofstream ofs2("sro2_log.txt", std::ofstream::out);
-  std::ofstream ofs3("sro3_log.txt", std::ofstream::out);
-
-  for (unsigned long long i = 0; i <= final_number_; i += increment_steps_) {
-    std::cout << i << " / " << final_number_ << std::endl;
-    cfg::Config config;
-    if (config_type_ == "config") {
-      config = cfg::Config::ReadConfig(std::to_string(i) + ".cfg");
-      config.ReassignLatticeVector();
-    } else if (config_type_ == "map") {
-      config = cfg::Config::ReadMap("lattice.txt",
-                                    "element.txt",
-                                    "map" + std::to_string(i) + ".txt");
-    } else {
-      throw std::invalid_argument("Unknown config type: " + config_type_);
-    }
+    // basic information
+    json ansys_info = json::object();
+    ansys_info["index"] = std::to_string(i);
+    ansys_info["time"] = filename_time_hashset_.at(i);
+    ansys_info["temperature"] = filename_temperature_hashset_.at(i);
+    ansys_info["energy"] = filename_energy_hashset_.at(i);
+    // cluster information
+    ansys_info["clusters"] =
+        Cluster(config,
+                solvent_element_,
+                element_set_,
+                smallest_cluster_criteria_,
+                solvent_bond_criteria_,
+                energy_estimator_,
+                chemical_potential).GetClustersInfoAndOutput(
+            "cluster", std::to_string(i) + "_cluster.cfg");
+    // sro information
     ShortRangeOrder short_range_order(config, element_set_);
-    for (size_t j = 1; j <= 3; ++j) {
-      std::ofstream *ofs;
-      switch (j) {
-        case 1:ofs = &ofs1;
-          break;
-        case 2:ofs = &ofs2;
-          break;
-        case 3:ofs = &ofs3;
-          break;
-        default:throw std::invalid_argument("Unknown short range order type: " + std::to_string(j));
-      }
-      auto sro_map = short_range_order.FindWarrenCowley(j);
-      if (i == 0) {
-        *ofs << "index\ttime\ttemperature\tenergy\t";
-        std::transform(sro_map.cbegin(),
-                       sro_map.cend(),
-                       std::experimental::make_ostream_joiner(*ofs, "\t"),
-                       [](const auto &ii) { return ii.first; });
-        *ofs << std::endl;
-      }
-      *ofs << i << '\t'
-           << filename_time_hashset_.at(i) << '\t'
-           << filename_temperature_hashset_.at(i) << '\t'
-           << filename_energy_hashset_.at(i) << '\t';
-      std::transform(sro_map.cbegin(),
-                     sro_map.cend(),
-                     std::experimental::make_ostream_joiner(*ofs, "\t"),
-                     [](const auto &ii) { return ii.second; });
-      *ofs << std::endl;
-    }
+    ansys_info["short_range_order"]["first"] = short_range_order.FindWarrenCowley(1);
+    ansys_info["short_range_order"]["second"] = short_range_order.FindWarrenCowley(2);
+    ansys_info["short_range_order"]["third"] = short_range_order.FindWarrenCowley(3);
+    ansys_info_array.push_back(ansys_info);
+
+    std::ofstream ofs("ansys_info.json", std::ofstream::out);
+    ofs.precision(16);
+    ofs << ansys_info_array.dump(2) << std::endl;
   }
 }
 void Iterator::RunReformat() const {

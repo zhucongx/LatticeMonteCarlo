@@ -61,8 +61,7 @@ void Print(const Parameter &parameter) {
     std::cout << "temperature: " << parameter.temperature_ << std::endl;
     // std::cout << "initial_temperature: " << parameter.initial_temperature_ << std::endl;
     // std::cout << "decrement_temperature: " << parameter.decrement_temperature_ << std::endl;
-  } else if (parameter.method == "Cluster" || parameter.method == "ShortRangeOrder"
-      || parameter.method == "Reformat") {
+  } else if (parameter.method == "Ansys" || parameter.method == "Reformat") {
     std::cout << "json_coefficients_filename: " << parameter.json_coefficients_filename_
               << std::endl;
     std::cout << "solvent_element: " << parameter.solvent_element_ << std::endl;
@@ -88,12 +87,9 @@ void Run(const Parameter &parameter) {
   } else if (parameter.method == "KineticMcChainOmpi") {
     auto kinetic_mc_chain_ompi = api::BuildKineticMcChainOmpiFromParameter(parameter);
     kinetic_mc_chain_ompi.Simulate();
-  } else if (parameter.method == "Cluster") {
+  } else if (parameter.method == "Ansys") {
     auto iterator = api::BuildIteratorFromParameter(parameter);
-    iterator.RunCluster();
-  } else if (parameter.method == "ShortRangeOrder") {
-    auto iterator = api::BuildIteratorFromParameter(parameter);
-    iterator.RunShortRangeOrder();
+    iterator.RunAnsys();
   } else if (parameter.method == "Reformat") {
     auto iterator = api::BuildIteratorFromParameter(parameter);
     iterator.RunReformat();

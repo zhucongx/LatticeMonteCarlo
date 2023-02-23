@@ -17,8 +17,7 @@ class Iterator {
              std::string log_type,
              std::string config_type);
     virtual ~Iterator();
-    void RunCluster() const;
-    void RunShortRangeOrder() const;
+    void RunAnsys() const;
     void RunReformat() const;
   private:
     const unsigned long long initial_steps_;
