@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
 ########################################## SET  COMPILERS ##########################################
-#set(CMAKE_C_COMPILER "gcc-12") # {gcc, clang, mpicc, icc, gcc-12}
-#set(CMAKE_CXX_COMPILER "g++-12") # {g++, clang++, mpic/xx, icpc, g++-12}
+#set(CMAKE_C_COMPILER "gcc") # {gcc, clang, mpicc, icc, gcc-12}
+#set(CMAKE_CXX_COMPILER "g++") # {g++, clang++, mpic/xx, icpc, g++-12}
 project(LMC)
 set(CMAKE_CXX_STANDARD 20)
 ############################################ SET  PATHS ############################################
