@@ -9,7 +9,7 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 ############################################ SET  FLAGS ############################################
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall "
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}"
         CACHE INTERNAL "")
 #set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} \
