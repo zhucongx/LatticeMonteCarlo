@@ -40,10 +40,10 @@ class Cluster {
     [[nodiscard]] Vector_t GetGeometryCenter(const std::vector<size_t> &cluster_atom_id_list) const;
     [[nodiscard]] Vector_t GetMassCenter(const std::vector<size_t> &cluster_atom_id_list) const;
     [[nodiscard]] Matrix_t GetMassGyrationTensor(const std::vector<size_t> &cluster_atom_id_list,
-                                             const Vector_t& mass_center) const;
+                                                 const Vector_t &mass_center) const;
     [[nodiscard]] Matrix_t GetMassInertiaTensor(const std::vector<size_t> &cluster_atom_id_list,
                                                 const Vector_t &mass_center) const;
-    const cfg::Config config_;
+    const cfg::Config &config_;
     cfg::Config solvent_config_;
     const Element solvent_element_;
     const std::set<Element> element_set_;
