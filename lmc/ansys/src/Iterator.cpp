@@ -78,48 +78,46 @@ void Iterator::RunAnsys() const {
   const auto chemical_potential = energy_estimator_.GetChemicalPotential(solvent_element_);
   json ansys_info_array = json::array();
 #pragma omp parallel for default(none) shared(ansys_info_array, chemical_potential, std::cout)
-  {
-    for (unsigned long long i = initial_steps_; i <= final_number_; i += increment_steps_) {
+  for (unsigned long long i = initial_steps_; i <= final_number_; i += increment_steps_) {
 #pragma omp critical
-      {
-        std::cout << i << " / " << final_number_ << std::endl;
-      }
-      cfg::Config config;
-      if (config_type_ == "config") {
-        config = cfg::Config::ReadConfig(std::to_string(i) + ".cfg");
-        config.ReassignLatticeVector();
-      } else if (config_type_ == "map") {
-        config = cfg::Config::ReadMap("lattice.txt",
-                                      "element.txt",
-                                      "map" + std::to_string(i) + ".txt");
-      } else {
-        throw std::invalid_argument("Unknown config type: " + config_type_);
-      }
-      // basic information
-      json ansys_info = json::object();
-      ansys_info["index"] = std::to_string(i);
-      ansys_info["time"] = filename_time_hashset_.at(i);
-      ansys_info["temperature"] = filename_temperature_hashset_.at(i);
-      ansys_info["energy"] = filename_energy_hashset_.at(i);
-      // cluster information
-      ansys_info["clusters"] =
-          Cluster(config,
-                  solvent_element_,
-                  element_set_,
-                  smallest_cluster_criteria_,
-                  solvent_bond_criteria_,
-                  energy_estimator_,
-                  chemical_potential).GetClustersInfoAndOutput(
-              "cluster", std::to_string(i) + "_cluster.cfg");
-      // sro information
-      ShortRangeOrder short_range_order(config, element_set_);
-      ansys_info["short_range_order"]["first"] = short_range_order.FindWarrenCowley(1);
-      ansys_info["short_range_order"]["second"] = short_range_order.FindWarrenCowley(2);
-      ansys_info["short_range_order"]["third"] = short_range_order.FindWarrenCowley(3);
+    {
+      std::cout << i << " / " << final_number_ << std::endl;
+    }
+    cfg::Config config;
+    if (config_type_ == "config") {
+      config = cfg::Config::ReadConfig(std::to_string(i) + ".cfg");
+      config.ReassignLatticeVector();
+    } else if (config_type_ == "map") {
+      config = cfg::Config::ReadMap("lattice.txt",
+                                    "element.txt",
+                                    "map" + std::to_string(i) + ".txt");
+    } else {
+      throw std::invalid_argument("Unknown config type: " + config_type_);
+    }
+    // basic information
+    json ansys_info = json::object();
+    ansys_info["index"] = std::to_string(i);
+    ansys_info["time"] = filename_time_hashset_.at(i);
+    ansys_info["temperature"] = filename_temperature_hashset_.at(i);
+    ansys_info["energy"] = filename_energy_hashset_.at(i);
+    // cluster information
+    ansys_info["clusters"] =
+        Cluster(config,
+                solvent_element_,
+                element_set_,
+                smallest_cluster_criteria_,
+                solvent_bond_criteria_,
+                energy_estimator_,
+                chemical_potential).GetClustersInfoAndOutput(
+            "cluster", std::to_string(i) + "_cluster.cfg");
+    // sro information
+    ShortRangeOrder short_range_order(config, element_set_);
+    ansys_info["short_range_order"]["first"] = short_range_order.FindWarrenCowley(1);
+    ansys_info["short_range_order"]["second"] = short_range_order.FindWarrenCowley(2);
+    ansys_info["short_range_order"]["third"] = short_range_order.FindWarrenCowley(3);
 #pragma omp critical
-      {
-        ansys_info_array.push_back(ansys_info);
-      }
+    {
+      ansys_info_array.push_back(ansys_info);
     }
   }
   std::ofstream ofs("ansys_info.json", std::ofstream::out);
