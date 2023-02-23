@@ -9,7 +9,7 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 ############################################ SET  FLAGS ############################################
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} "
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall "
         CACHE INTERNAL "")
 #set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} \
@@ -46,6 +46,11 @@ else ()
 endif ()
 message(STATUS "Detecting ${CMAKE_CXX_COMPILER_ID} compiler")
 message(STATUS "Current build type is ${CMAKE_BUILD_TYPE}")
+IF(CMAKE_BUILD_TYPE MATCHES Debug)
+    SET(CMAKE_BUILD_TYPE_FLAGS ${CMAKE_CXX_FLAGS_DEBUG})
+ELSEIF(CMAKE_BUILD_TYPE MATCHES Release)
+    SET(CMAKE_BUILD_TYPE_FLAGS ${CMAKE_CXX_FLAGS_RELEASE})
+ENDIF()
 ############################################ BUILD LIBS ############################################
 #add_executable(${PROJECT_NAME} LMC_Main.cpp)
 #add_subdirectory(lmc/cfg)
@@ -100,6 +105,14 @@ find_package(OpenMP REQUIRED)
 target_link_libraries(${PROJECT_NAME} PUBLIC OpenMP::OpenMP_CXX)
 ############################################## EIGEN ###############################################
 find_package(Eigen3 3.4 REQUIRED NO_MODULE)
+if (NOT EIGEN3_FOUND)
+    message(WARNING "Eigen3 not found")
+    FetchContent_Declare(Eigen3
+            GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
+            GIT_TAG 3.4
+            )
+    FetchContent_MakeAvailable(eigen)
+endif ()
 target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${EIGEN3_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen)
 ############################################### JSON ###############################################
@@ -177,4 +190,16 @@ target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
 #    message(STATUS "TEST mode off")
 #ENDIF()
 
-
+########################################## Display Summary ##########################################
+MESSAGE(STATUS "===============================================================")
+MESSAGE(STATUS "Project Name:       ${PROJECT_NAME}")
+MESSAGE(STATUS "C++ Compiler:       ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
+MESSAGE(STATUS "C++ Standard:       C++ ${CMAKE_CXX_STANDARD}")
+MESSAGE(STATUS "Build type:         ${CMAKE_BUILD_TYPE}")
+MESSAGE(STATUS "Build type Flags:   ${CMAKE_BUILD_TYPE_FLAGS}")
+MESSAGE(STATUS "C++ compile flags:  ${CMAKE_CXX_FLAGS}")
+MESSAGE(STATUS "Output Path:        ${EXECUTABLE_OUTPUT_PATH}")
+MESSAGE(STATUS "Eigen Version:      ${EIGEN_VERSION}")
+MESSAGE(STATUS "Boost Version:      ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}")
+message(STATUS "Json:               ${JSON_ImplicitConversions}")
+MESSAGE(STATUS "===============================================================")
