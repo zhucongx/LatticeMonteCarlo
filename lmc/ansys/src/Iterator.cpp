@@ -126,6 +126,10 @@ void Iterator::RunAnsys() const {
       ansys_info_array.push_back(ansys_info);
     }
   }
+  std::sort(ansys_info_array.begin(), ansys_info_array.end(),
+            [](const json &a, const json &b) {
+              return a["index"] < b["index"];
+            });
   std::ofstream ofs("ansys_info.json", std::ofstream::out);
   ofs.precision(16);
   ofs << ansys_info_array.dump(2) << std::endl;
