@@ -102,7 +102,7 @@ void Iterator::RunAnsys() const {
     }
     // basic information
     json ansys_info = json::object();
-    ansys_info["index"] = std::to_string(i);
+    ansys_info["index"] = i;
     ansys_info["time"] = filename_time_hashset_.at(i);
     ansys_info["temperature"] = filename_temperature_hashset_.at(i);
     ansys_info["energy"] = filename_energy_hashset_.at(i);
@@ -126,9 +126,10 @@ void Iterator::RunAnsys() const {
       ansys_info_array.push_back(ansys_info);
     }
   }
+  std::cout << "Finished. Sorting..." << std::endl;
   std::sort(ansys_info_array.begin(), ansys_info_array.end(),
-            [](const json &a, const json &b) {
-              return a["index"] < b["index"];
+            [](const json &lhs, const json &rhs) {
+              return lhs["index"] < rhs["index"];
             });
   std::ofstream ofs("ansys_info.json", std::ofstream::out);
   ofs.precision(16);
