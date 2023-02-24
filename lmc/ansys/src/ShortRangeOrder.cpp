@@ -81,9 +81,9 @@ std::map<std::string, double> ShortRangeOrder::FindWarrenCowley(const size_t she
   }
   const auto &element_list_map = config_.GetElementAtomIdVectorMap();
   std::map<Element, double> concentration;
-  std::map<Element, double> count;
+  // std::map<Element, double> count;
   for (const auto type: element_set_) {
-    count[type] = static_cast<double>(element_list_map.at(type).size());
+    // count[type] = static_cast<double>(element_list_map.at(type).size());
     concentration[type] = static_cast<double>(element_list_map.at(type).size())
         / static_cast<double>(config_.GetNumAtoms());
   }
