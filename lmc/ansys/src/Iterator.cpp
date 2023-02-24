@@ -85,7 +85,7 @@ void Iterator::RunAnsys() const {
   json ansys_info_array = json::array();
 #pragma omp parallel for ordered default(none) shared(ansys_info_array, chemical_potential, std::cout)
   for (unsigned long long i = initial_steps_; i <= final_number_; i += increment_steps_) {
-#pragma omp ordered
+#pragma omp critical
     {
       std::cout << i << " / " << final_number_ << std::endl;
     }
