@@ -118,12 +118,17 @@ void Iterator::RunAnsys() const {
             "cluster", std::to_string(i) + "_cluster.cfg");
     // sro information
     ShortRangeOrder short_range_order(config, element_set_);
-    ansys_info["short_range_order"]["first"] = short_range_order.FindWarrenCowley(1);
-    ansys_info["short_range_order"]["second"] = short_range_order.FindWarrenCowley(2);
-    ansys_info["short_range_order"]["third"] = short_range_order.FindWarrenCowley(3);
+    ansys_info["warren_cowley"]["first"] = short_range_order.FindWarrenCowley(1);
+    ansys_info["warren_cowley"]["second"] = short_range_order.FindWarrenCowley(2);
+    ansys_info["warren_cowley"]["third"] = short_range_order.FindWarrenCowley(3);
 #pragma omp critical
     {
       ansys_info_array.push_back(ansys_info);
+    }
+    if (omp_get_thread_num() == 0 && omp_get_num_threads() == 1) {
+      std::ofstream ofs("ansys_info.json", std::ofstream::out);
+      ofs.precision(16);
+      ofs << ansys_info_array.dump(2) << std::endl;
     }
   }
   std::cout << "Finished. Sorting..." << std::endl;
