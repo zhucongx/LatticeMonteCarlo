@@ -83,7 +83,7 @@ Iterator::~Iterator() = default;
 void Iterator::RunAnsys() const {
   const auto chemical_potential = energy_estimator_.GetChemicalPotential(solvent_element_);
   json ansys_info_array = json::array();
-#pragma omp parallel for ordered default(none) shared(ansys_info_array, chemical_potential, std::cout)
+#pragma omp parallel for default(none) shared(ansys_info_array, chemical_potential, std::cout)
   for (unsigned long long i = initial_steps_; i <= final_number_; i += increment_steps_) {
 #pragma omp critical
     {
