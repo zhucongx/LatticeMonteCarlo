@@ -45,7 +45,9 @@ Iterator::Iterator(unsigned long long int initial_steps,
   while (ifs.peek() != '0') {
     ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
   }
-
+  if (config_type_ != "config" && config_type_ != "map") {
+    throw std::invalid_argument("Unknown config type: " + config_type_);
+  }
   while (true) {
     if (ifs.eof() || ifs.bad()) {
       break;
@@ -97,8 +99,6 @@ void Iterator::RunAnsys() const {
       config = cfg::Config::ReadMap("lattice.txt",
                                     "element.txt",
                                     "map" + std::to_string(i) + ".txt");
-    } else {
-      throw std::invalid_argument("Unknown config type: " + config_type_);
     }
     // basic information
     json ansys_info = json::object();
