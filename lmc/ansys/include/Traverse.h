@@ -1,13 +1,13 @@
-#ifndef LMC_LMC_ANSYS_INCLUDE_ITERATOR_H_
-#define LMC_LMC_ANSYS_INCLUDE_ITERATOR_H_
+#ifndef LMC_LMC_ANSYS_INCLUDE_TRAVERSE_H_
+#define LMC_LMC_ANSYS_INCLUDE_TRAVERSE_H_
 #include "EnergyPredictor.h"
 #include "Cluster.h"
 #include "ShortRangeOrder.h"
 namespace ansys {
 
-class Iterator {
+class Traverse {
   public:
-    Iterator(unsigned long long int initial_steps,
+    Traverse(unsigned long long int initial_steps,
              unsigned long long int increment_steps,
              Element solvent_element,
              std::set<Element> element_set,
@@ -16,7 +16,7 @@ class Iterator {
              const std::string &predictor_filename,
              std::string log_type,
              std::string config_type);
-    virtual ~Iterator();
+    virtual ~Traverse();
     void RunAnsys() const;
     void RunReformat() const;
   private:
@@ -36,4 +36,4 @@ class Iterator {
 
 } // ansys
 
-#endif //LMC_LMC_ANSYS_INCLUDE_ITERATOR_H_
+#endif //LMC_LMC_ANSYS_INCLUDE_TRAVERSE_H_

@@ -1,4 +1,4 @@
-#include "Iterator.h"
+#include "Traverse.h"
 
 #include <utility>
 #include <algorithm>
@@ -9,7 +9,7 @@ using json = nlohmann::json;
 
 namespace ansys {
 
-Iterator::Iterator(unsigned long long int initial_steps,
+Traverse::Traverse(unsigned long long int initial_steps,
                    unsigned long long int increment_steps,
                    Element solvent_element,
                    std::set<Element> element_set,
@@ -81,8 +81,8 @@ Iterator::Iterator(unsigned long long int initial_steps,
     }
   }
 }
-Iterator::~Iterator() = default;
-void Iterator::RunAnsys() const {
+Traverse::~Traverse() = default;
+void Traverse::RunAnsys() const {
   const auto chemical_potential = energy_estimator_.GetChemicalPotential(solvent_element_);
   json ansys_info_array = json::array();
 #pragma omp parallel for default(none) schedule(static, 1) shared(ansys_info_array, chemical_potential, std::cout)
@@ -140,7 +140,7 @@ void Iterator::RunAnsys() const {
   ofs.precision(16);
   ofs << ansys_info_array.dump(2) << std::endl;
 }
-void Iterator::RunReformat() const {
+void Traverse::RunReformat() const {
   for (unsigned long long i = 0; i <= final_number_; i += increment_steps_) {
     std::cout << i << " / " << final_number_ << std::endl;
     if (config_type_ == "map") {

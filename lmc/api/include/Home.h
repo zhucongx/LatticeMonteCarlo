@@ -7,7 +7,7 @@
 #include "SimulatedAnnealing.h"
 #include "CanonicalMcSerial.h"
 #include "CanonicalMcOmp.h"
-#include "Iterator.h"
+#include "Traverse.h"
 
 namespace api {
 void Print(const Parameter &parameter);
@@ -18,7 +18,7 @@ mc::KineticMcChainOmpi BuildKineticMcChainOmpiFromParameter(const Parameter &par
 ansys::SimulatedAnnealing BuildSimulatedAnnealingFromParameter(const Parameter &parameter);
 mc::CanonicalMcSerial BuildCanonicalMcSerialFromParameter(const Parameter &parameter);
 mc::CanonicalMcOmp BuildCanonicalMcOmpFromParameter(const Parameter &parameter);
-ansys::Iterator BuildIteratorFromParameter(const Parameter &parameter);
+ansys::Traverse BuildIteratorFromParameter(const Parameter &parameter);
 } // api
 
 #endif //LMC_LMC_API_INCLUDE_HOME_H_
