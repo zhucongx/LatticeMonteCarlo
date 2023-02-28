@@ -172,28 +172,33 @@ std::vector<std::vector<size_t> > Cluster::FindAtomListOfClusters() const {
       ++it;
     }
   }
-  std::unordered_set<size_t> all_found_solute_set;
-  for (const auto &singe_cluster_vector: cluster_atom_list) {
-    std::copy(singe_cluster_vector.begin(),
-              singe_cluster_vector.end(),
-              std::inserter(all_found_solute_set, all_found_solute_set.end()));
-  }
   // add solvent neighbors
-  for (const auto &atom: config_.GetAtomVector()) {
-    if (atom.GetElement() != solvent_element_)
-      continue;
-    size_t neighbor_bond_count = 0;
-    for (auto neighbor_id: config_.GetFirstNeighborsAtomIdVectorOfAtom(atom.GetId())) {
-      const auto &neighbor_type = config_.GetAtomVector()[neighbor_id].GetElement();
-      if (neighbor_type != solvent_element_
-          && all_found_solute_set.find(neighbor_id) != all_found_solute_set.end())
-        neighbor_bond_count++;
+  for (auto &cluster: cluster_atom_list) {
+    std::unordered_set<size_t> cluster_set(cluster.begin(), cluster.end());
+    std::unordered_set<size_t> neighbor_set;
+    for (auto atom_id: cluster) {
+      neighbor_set.insert(atom_id);
+      for (auto neighbor_id: config_.GetFirstNeighborsAtomIdVectorOfAtom(atom_id)) {
+        neighbor_set.insert(neighbor_id);
+      }
     }
-    if (neighbor_bond_count >= solvent_bond_criteria_)
-      all_found_solute_set.insert(atom.GetId());
+
+    for (auto atom_id: neighbor_set) {
+      size_t neighbor_bond_count = 0;
+      for (auto neighbor_id: config_.GetFirstNeighborsAtomIdVectorOfAtom(atom_id)) {
+        if (cluster_set.find(neighbor_id) != cluster_set.end()
+            && config_.GetAtomVector()[neighbor_id].GetElement() != solvent_element_) {
+          neighbor_bond_count++;
+        }
+      }
+      if (neighbor_bond_count >= solvent_bond_criteria_) {
+        cluster_set.insert(atom_id);
+      }
+    }
+    cluster = std::vector<size_t>(cluster_set.begin(), cluster_set.end());
   }
 
-  cluster_atom_list = FindAtomListOfClustersBFSHelper(all_found_solute_set);
+  // sort by size
   std::sort(cluster_atom_list.begin(), cluster_atom_list.end(),
             [](const std::vector<size_t> &a, const std::vector<size_t> &b) {
               return a.size() > b.size();
