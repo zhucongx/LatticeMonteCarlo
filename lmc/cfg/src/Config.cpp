@@ -108,7 +108,7 @@ std::set<Element> Config::GetElementSetWithoutVacancy() const {
   return res;
 }
 std::map<Element, std::vector<size_t> > Config::GetElementAtomIdVectorMap() const {
-  std::map<Element, std::vector<size_t> > element_list_map;
+  std::map < Element, std::vector<size_t> > element_list_map;
   for (const auto &atom: atom_vector_) {
     element_list_map[atom.GetElement()].push_back(atom.GetId());
   }
@@ -294,12 +294,12 @@ void Config::ReassignLatticeVector() {
             [](const auto &lhs, const auto &rhs) -> bool {
               return lhs.GetRelativePosition() < rhs.GetRelativePosition();
             });
-  std::unordered_map<size_t, size_t> old_lattice_id_to_new;
+  std::unordered_map < size_t, size_t > old_lattice_id_to_new;
   for (size_t lattice_id = 0; lattice_id < GetNumAtoms(); ++lattice_id) {
     old_lattice_id_to_new.emplace(new_lattice_vector.at(lattice_id).GetId(), lattice_id);
     new_lattice_vector.at(lattice_id).SetId(lattice_id);
   }
-  std::unordered_map<size_t, size_t> new_lattice_to_atom_hashmap, new_atom_to_lattice_hashmap;
+  std::unordered_map < size_t, size_t > new_lattice_to_atom_hashmap, new_atom_to_lattice_hashmap;
   for (size_t atom_id = 0; atom_id < GetNumAtoms(); ++atom_id) {
     auto old_lattice_id = atom_to_lattice_hashmap_.at(atom_id);
     auto new_lattice_id = old_lattice_id_to_new.at(old_lattice_id);
@@ -506,6 +506,43 @@ void Config::WriteConfig(const std::string &filename, bool neighbors_info) const
       for (auto neighbor_lattice_index: third_neighbors_adjacency_list_[lattice_id]) {
         ofs << lattice_to_atom_hashmap_.at(neighbor_lattice_index) << ' ';
       }
+    }
+    ofs << '\n';
+    ofs << std::flush;
+  }
+}
+void Config::WriteExtendedConfig(
+    const std::string &filename,
+    const std::map<std::string, std::vector<double> > &auxiliary_lists) const {
+  std::ofstream ofs(filename, std::ofstream::out);
+  ofs.precision(16);
+  ofs << "Number of particles = " << GetNumAtoms() << '\n';
+  ofs << "A = 1.0 Angstrom (basic length-scale)\n";
+  ofs << "H0(1,1) = " << basis_[kXDimension][kXDimension] << " A\n";
+  ofs << "H0(1,2) = " << basis_[kXDimension][kYDimension] << " A\n";
+  ofs << "H0(1,3) = " << basis_[kXDimension][kZDimension] << " A\n";
+  ofs << "H0(2,1) = " << basis_[kYDimension][kXDimension] << " A\n";
+  ofs << "H0(2,2) = " << basis_[kYDimension][kYDimension] << " A\n";
+  ofs << "H0(2,3) = " << basis_[kYDimension][kZDimension] << " A\n";
+  ofs << "H0(3,1) = " << basis_[kZDimension][kXDimension] << " A\n";
+  ofs << "H0(3,2) = " << basis_[kZDimension][kYDimension] << " A\n";
+  ofs << "H0(3,3) = " << basis_[kZDimension][kZDimension] << " A\n";
+  ofs << ".NO_VELOCITY.\n";
+  ofs << "entry_count = " << 3 + auxiliary_lists.size() << "\n";
+
+  size_t auxiliary_index = 0;
+  for (const auto &auxiliary_list: auxiliary_lists) {
+    ofs << "auxiliary[" << auxiliary_index << "] = " << auxiliary_list.first << " [reduced unit]\n";
+    ++auxiliary_index;
+  }
+
+  for (size_t it = 0; it < atom_vector_.size(); ++it) {
+    const auto &atom = atom_vector_[it];
+    ofs << atom.GetMass() << '\n'
+        << atom.GetElementString() << '\n'
+        << lattice_vector_[atom_to_lattice_hashmap_.at(atom.GetId())].GetRelativePosition();
+    for (const auto &auxiliary_list: auxiliary_lists) {
+      ofs << ' ' << auxiliary_list.second[it];
     }
     ofs << '\n';
     ofs << std::flush;

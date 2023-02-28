@@ -39,20 +39,41 @@ json Cluster::GetClustersInfoAndOutput(
   json clusters_info_array = json::array();
   std::vector<cfg::Lattice> lattice_vector;
   std::vector<cfg::Atom> atom_vector;
+  std::map < std::string, std::vector<double> > auxiliary_lists;
   auto short_range_order = ShortRangeOrder(config_, element_set_);
   for (auto &cluster_atom_id_list: cluster_to_atom_vector) {
     AppendAtomAndLatticeVector(cluster_atom_id_list, atom_vector, lattice_vector);
     json cluster_info = json::object();
-    cluster_info["size"] = cluster_atom_id_list.size();
-    cluster_info["elements_number"] = GetElementsNumber(cluster_atom_id_list);
-    cluster_info["mass"] = GetMass(cluster_atom_id_list);
-    cluster_info["energy"] = GetEnergy(cluster_atom_id_list);
 
-    cluster_info["geometry_center"] = GetGeometryCenter(cluster_atom_id_list);
+    const size_t size = cluster_atom_id_list.size();
+    cluster_info["size"] = size;
+    AppendInfoToAuxiliaryListsRepeat("size", static_cast<double> (size), size);
+
+    const auto element_number = GetElementsNumber(cluster_atom_id_list);
+    cluster_info["elements_number"] = element_number;
+    // for (const auto &element_number_pair: element_number) {
+    //   AppendInfoToAuxiliaryListsRepeat(element_number_pair.first,
+    //                                    static_cast<double> (element_number_pair.second),
+    //                                    size);
+    // }
+
+    const double mass = GetMass(cluster_atom_id_list);
+    cluster_info["mass"] = mass;
+    AppendInfoToAuxiliaryListsRepeat("mass", mass, size);
+
+    const auto energy = GetEnergy(cluster_atom_id_list);
+    cluster_info["energy"] = energy;
+    AppendInfoToAuxiliaryListsRepeat("energy", energy, size);
+
+    const auto geometry_center = GetGeometryCenter(cluster_atom_id_list);
+    cluster_info["geometry_center"] = geometry_center;
+
     const auto mass_center = GetMassCenter(cluster_atom_id_list);
     cluster_info["mass_center"] = mass_center;
+
     const auto mass_gyration_tensor = GetMassGyrationTensor(cluster_atom_id_list, mass_center);
     cluster_info["mass_gyration_tensor"] = mass_gyration_tensor;
+
     Eigen::Matrix3d mass_gyration_tensor_eigen
         {{mass_gyration_tensor[0][0], mass_gyration_tensor[0][1], mass_gyration_tensor[0][2]},
          {mass_gyration_tensor[1][0], mass_gyration_tensor[1][1], mass_gyration_tensor[1][2]},
@@ -62,9 +83,10 @@ json Cluster::GetClustersInfoAndOutput(
       throw std::runtime_error("Eigen solver failed");
     }
     const auto &eigenvalues = eigen_solver.eigenvalues();
-    // cluster_info["mass_gyration_tensor_eigenvalues"] = eigenvalues;
-    cluster_info["mass_gyration_radius"] =
-        std::sqrt(eigenvalues[0] + eigenvalues[1] + eigenvalues[2]);
+    const auto mass_gyration_radius = std::sqrt(eigenvalues[0] + eigenvalues[1] + eigenvalues[2]);
+    cluster_info["mass_gyration_radius"] = mass_gyration_radius;
+    AppendInfoToAuxiliaryListsRepeat("mass_gyration_radius", mass_gyration_radius, size);
+
     cluster_info["shape"]["asphericity"] = eigenvalues[2] - 0.5 * (eigenvalues[0] + eigenvalues[1]);
     cluster_info["shape"]["acylindricity"] = eigenvalues[1] - eigenvalues[0];
     cluster_info["shape"]["anisotropy"] = 1.5
@@ -84,10 +106,10 @@ json Cluster::GetClustersInfoAndOutput(
   cfg::Config config_out(config_.GetBasis(), lattice_vector, atom_vector, false);
 
   if (output_folder.empty()) {
-    config_out.WriteConfig(output_name, false);
+    config_out.WriteExtendedConfig(output_name, auxiliary_lists_);
   } else {
     std::filesystem::create_directories(output_folder);
-    config_out.WriteConfig(output_folder + "/" + output_name, false);
+    config_out.WriteExtendedConfig(output_folder + "/" + output_name, auxiliary_lists_);
   }
   return clusters_info_array;
 }
@@ -191,10 +213,19 @@ void Cluster::AppendAtomAndLatticeVector(const std::vector<size_t> &cluster_atom
                                 relative_position * config_.GetBasis(), relative_position);
   }
 }
+
+void Cluster::AppendInfoToAuxiliaryListsRepeat(const std::string &key, double value, size_t repeat) {
+  if (auxiliary_lists_.find(key) == auxiliary_lists_.end()) {
+    auxiliary_lists_[key] = std::vector<double>();
+  }
+  for (size_t i = 0; i < repeat; i++) {
+    auxiliary_lists_[key].push_back(value);
+  }
+}
 std::map<std::string, size_t> Cluster::GetElementsNumber(
     const std::vector<size_t> &cluster_atom_id_list) const {
   // initialize map with all the element, because some cluster may not have all types of element
-  std::map<std::string, size_t> num_atom_in_one_cluster{{"X", 0}};
+  std::map < std::string, size_t > num_atom_in_one_cluster{{"X", 0}};
   for (const auto &element: element_set_) {
     num_atom_in_one_cluster[element.GetString()] = 0;
   }
@@ -221,7 +252,8 @@ double Cluster::GetEnergy(const std::vector<size_t> &cluster_atom_id_list) const
   double energy_change_cluster_to_pure_solvent =
       energy_estimator_.GetEnergyOfCluster(solute_config, cluster_atom_id_list) -
           energy_estimator_.GetEnergyOfCluster(solvent_config_, cluster_atom_id_list);
-  return energy_change_cluster_to_pure_solvent - energy_change_solution_to_pure_solvent;
+  return (energy_change_cluster_to_pure_solvent - energy_change_solution_to_pure_solvent) /
+      static_cast<double>(cluster_atom_id_list.size());
 }
 Vector_t Cluster::GetGeometryCenter(const std::vector<size_t> &cluster_atom_id_list) const {
   Vector_t geometry_center{};

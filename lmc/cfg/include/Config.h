@@ -2,6 +2,7 @@
 #define LMC_LMC_CFG_INCLUDE_CONFIG_H_
 #include <vector>
 #include <set>
+#include <map>
 #include <unordered_set>
 #include <unordered_map>
 #include "Atom.hpp"
@@ -56,6 +57,9 @@ class Config {
     /// IO
     static Config ReadConfig(const std::string &filename);
     void WriteConfig(const std::string &filename, bool neighbors_info) const;
+    void WriteExtendedConfig(
+        const std::string &filename,
+        const std::map<std::string, std::vector<double> >& auxiliary_lists) const;
     static Config ReadMap(const std::string &lattice_filename,
                           const std::string &element_filename,
                           const std::string &map_filename);

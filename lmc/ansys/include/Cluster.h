@@ -29,7 +29,7 @@ class Cluster {
         std::unordered_set<size_t> unvisited_atoms_id_set) const;
     // remove smaller clusters and add adjacent atoms
     [[nodiscard]] std::vector<std::vector<size_t> > FindAtomListOfClusters() const;
-
+    void AppendInfoToAuxiliaryListsRepeat(const std::string &key, double value, size_t repeat);
     void AppendAtomAndLatticeVector(const std::vector<size_t> &atom_id_list,
                                     std::vector<cfg::Atom> &atom_vector,
                                     std::vector<cfg::Lattice> &lattice_vector) const;
@@ -51,6 +51,7 @@ class Cluster {
     const size_t solvent_bond_criteria_;
     const pred::EnergyPredictor &energy_estimator_;
     const std::map<Element, double> chemical_potential_map_;
+    std::map<std::string, std::vector<double> > auxiliary_lists_{};
 };
 } // ansys
 
