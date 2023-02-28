@@ -139,6 +139,7 @@ void Traverse::RunAnsys() const {
   std::ofstream ofs("ansys_info.json", std::ofstream::out);
   ofs.precision(16);
   ofs << ansys_info_array.dump(2) << std::endl;
+  std::cout << "Done..." << std::endl;
 }
 void Traverse::RunReformat() const {
   for (unsigned long long i = 0; i <= final_number_; i += increment_steps_) {
