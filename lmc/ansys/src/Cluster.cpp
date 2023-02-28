@@ -95,11 +95,11 @@ json Cluster::GetClustersInfoAndOutput(
 
     cluster_info["mass_inertia_tensor"] = GetMassInertiaTensor(cluster_atom_id_list, mass_center);
 
-    cluster_info["pair_correlation"]["first"] =
+    cluster_info["warren_cowley"]["first"] =
         short_range_order.FindPairCorrelationCluster(1, cluster_atom_id_list);
-    cluster_info["pair_correlation"]["second"] =
+    cluster_info["warren_cowley"]["second"] =
         short_range_order.FindPairCorrelationCluster(2, cluster_atom_id_list);
-    cluster_info["pair_correlation"]["third"] =
+    cluster_info["warren_cowley"]["third"] =
         short_range_order.FindPairCorrelationCluster(3, cluster_atom_id_list);
     clusters_info_array.push_back(cluster_info);
   }

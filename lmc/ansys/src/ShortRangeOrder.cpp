@@ -7,10 +7,10 @@ ShortRangeOrder::ShortRangeOrder(const cfg::Config &config, const std::set<Eleme
     : config_(config), element_set_(element_set) {}
 std::map<std::string, double> ShortRangeOrder::FindPairCorrelationCluster(
     const size_t shell_number, const std::vector<size_t> &cluster_atom_id_list) const {
-  std::map<std::string, double> pair_correlation;
+  std::map<std::string, double> warren_cowley;
   for (const auto &element1: element_set_) {
     for (const auto &element2: element_set_) {
-      pair_correlation[element1.GetString() + "-" + element2.GetString()] = 0;
+      warren_cowley[element1.GetString() + "-" + element2.GetString()] = 0;
     }
   }
   const auto element_list_map_all = config_.GetElementAtomIdVectorMap();
@@ -67,10 +67,11 @@ std::map<std::string, double> ShortRangeOrder::FindPairCorrelationCluster(
     for (auto [element2, ct_this_pair]: ct_this_pair_map) {
       std::string key = element1.GetString() + "-" + element2.GetString();
       double pij = static_cast<double>(ct_this_pair) / static_cast<double>(num_all_bonds);
-      pair_correlation[key] = (pij / concentration[element2]);
+      warren_cowley[key] = (pij - concentration[element2]) /
+          (static_cast<double>(element1 == element2) - concentration[element2]);
     }
   }
-  return pair_correlation;
+  return warren_cowley;
 }
 std::map<std::string, double> ShortRangeOrder::FindWarrenCowley(const size_t shell_number) const {
   std::map<std::string, double> warren_cowley;
