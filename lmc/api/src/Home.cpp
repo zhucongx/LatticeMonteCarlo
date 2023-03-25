@@ -10,16 +10,16 @@ void Print(const Parameter &parameter) {
               << std::endl;
     std::cout << "config_filename: " << parameter.config_filename_ << std::endl;
     std::cout << "map_filename: " << parameter.map_filename_ << std::endl;
+    std::cout << "element_set: ";
+    std::copy(parameter.element_set_.begin(), parameter.element_set_.end(),
+              std::ostream_iterator<std::string>(std::cout, " "));
+    std::cout << std::endl;
     std::cout << "log_dump_steps: " << parameter.log_dump_steps_ << std::endl;
     std::cout << "config_dump_steps: " << parameter.config_dump_steps_ << std::endl;
     std::cout << "maximum_steps: " << parameter.maximum_steps_ << std::endl;
     std::cout << "thermodynamic_averaging_steps: " << parameter.thermodynamic_averaging_steps_
               << std::endl;
     std::cout << "temperature: " << parameter.temperature_ << std::endl;
-    std::cout << "element_set: ";
-    std::copy(parameter.element_set_.begin(), parameter.element_set_.end(),
-              std::ostream_iterator<std::string>(std::cout, " "));
-    std::cout << std::endl;
     std::cout << "restart_steps: " << parameter.restart_steps_ << std::endl;
     std::cout << "restart_energy: " << parameter.restart_energy_ << std::endl;
     std::cout << "restart_time: " << parameter.restart_time_ << std::endl;
@@ -49,6 +49,7 @@ void Print(const Parameter &parameter) {
     std::cout << "json_coefficients_filename: " << parameter.json_coefficients_filename_
               << std::endl;
     std::cout << "config_filename: " << parameter.config_filename_ << std::endl;
+    std::cout << "map_filename: " << parameter.map_filename_ << std::endl;
     std::cout << "element_set: ";
     std::copy(parameter.element_set_.begin(), parameter.element_set_.end(),
               std::ostream_iterator<std::string>(std::cout, " "));
