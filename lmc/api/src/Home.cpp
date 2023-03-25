@@ -59,6 +59,8 @@ void Print(const Parameter &parameter) {
     std::cout << "thermodynamic_averaging_steps: " << parameter.thermodynamic_averaging_steps_
               << std::endl;
     std::cout << "temperature: " << parameter.temperature_ << std::endl;
+    std::cout << "restart_steps: " << parameter.restart_steps_ << std::endl;
+    std::cout << "restart_energy: " << parameter.restart_energy_ << std::endl;
     // std::cout << "initial_temperature: " << parameter.initial_temperature_ << std::endl;
     // std::cout << "decrement_temperature: " << parameter.decrement_temperature_ << std::endl;
   } else if (parameter.method == "Ansys" || parameter.method == "Reformat") {
