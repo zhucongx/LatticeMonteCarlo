@@ -166,7 +166,7 @@ std::vector<std::vector<size_t> > Cluster::FindAtomListOfClusters() const {
   // remove small clusters
   auto it = cluster_atom_list.begin();
   while (it != cluster_atom_list.end()) {
-    if (it->size() <= smallest_cluster_criteria_) {
+    if (it->size() < smallest_cluster_criteria_) {
       it = cluster_atom_list.erase(it);
     } else {
       ++it;
@@ -191,7 +191,7 @@ std::vector<std::vector<size_t> > Cluster::FindAtomListOfClusters() const {
           neighbor_bond_count++;
         }
       }
-      if (neighbor_bond_count >= solvent_bond_criteria_) {
+      if (neighbor_bond_count > solvent_bond_criteria_) {
         cluster_set.insert(atom_id);
       }
     }
