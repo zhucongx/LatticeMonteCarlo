@@ -119,13 +119,13 @@ double KineticMcChainOmpi::CalculateTime() {
   const double t_2 = one_over_one_minus_a_j
       * (gamma_k_j * t_1 + gamma_bar_k_j * (ts_j + t_1 + beta_bar_k / beta_k * ts));
 
-  double indirect_probability;
+  double second_order_probability;
   if (is_previous_event) {
-    indirect_probability = one_over_one_minus_a_j * (gamma_bar_k_j / beta_k) * beta_k_j;
+    second_order_probability = one_over_one_minus_a_j * (gamma_bar_k_j / beta_k) * beta_k_j;
   } else {
-    indirect_probability = one_over_one_minus_a_j * (1 + gamma_bar_k_j / beta_k) * beta_k_i;
+    second_order_probability = one_over_one_minus_a_j * (1 + gamma_bar_k_j / beta_k) * beta_k_i;
   }
-  event_k_i_.SetProbability(indirect_probability);
+  event_k_i_.SetProbability(second_order_probability);
   MPI_Allgather(&event_k_i_,
                 sizeof(JumpEvent),
                 MPI_BYTE,
