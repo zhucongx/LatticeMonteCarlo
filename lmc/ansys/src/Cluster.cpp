@@ -100,14 +100,29 @@ json Cluster::GetClustersInfoAndOutput(
     cluster_info["shape"]["anisotropy"] = anisotropy;
     AppendInfoToAuxiliaryListsRepeat("cluster_anisotropy", anisotropy, size);
 
-
     cluster_info["mass_inertia_tensor"] = GetMassInertiaTensor(cluster_atom_id_list, mass_center);
-    cluster_info["warren_cowley"]["first"] =
-        short_range_order.FindPairCorrelationCluster(1, cluster_atom_id_list);
-    cluster_info["warren_cowley"]["second"] =
-        short_range_order.FindPairCorrelationCluster(2, cluster_atom_id_list);
-    cluster_info["warren_cowley"]["third"] =
-        short_range_order.FindPairCorrelationCluster(3, cluster_atom_id_list);
+    const auto first_pij = short_range_order.FindProbabilityCluster(1, cluster_atom_id_list);
+    cluster_info["pij"]["first"] = first_pij;
+    for (const auto &pair: first_pij) {
+      AppendInfoToAuxiliaryListsRepeat("first_" + pair.first,
+                                       static_cast<double> (pair.second),
+                                       size);
+    }
+    const auto second_pij = short_range_order.FindProbabilityCluster(2, cluster_atom_id_list);
+    cluster_info["pij"]["second"] = second_pij;
+    for (const auto &pair: second_pij) {
+      AppendInfoToAuxiliaryListsRepeat("second_" + pair.first,
+                                       static_cast<double> (pair.second),
+                                       size);
+    }
+    const auto third_pij = short_range_order.FindProbabilityCluster(3, cluster_atom_id_list);
+    cluster_info["pij"]["third"] = third_pij;
+    for (const auto &pair: third_pij) {
+      AppendInfoToAuxiliaryListsRepeat("third_" + pair.first,
+                                       static_cast<double> (pair.second),
+                                       size);
+    }
+
     clusters_info_array.push_back(cluster_info);
   }
   cfg::Config config_out(config_.GetBasis(), lattice_vector, atom_vector, false);
