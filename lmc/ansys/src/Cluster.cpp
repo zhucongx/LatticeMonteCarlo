@@ -39,7 +39,7 @@ json Cluster::GetClustersInfoAndOutput(
   json clusters_info_array = json::array();
   std::vector<cfg::Lattice> lattice_vector;
   std::vector<cfg::Atom> atom_vector;
-  std::map < std::string, std::vector<double> > auxiliary_lists;
+  std::map<std::string, std::vector<double> > auxiliary_lists;
   auto short_range_order = ShortRangeOrder(config_, element_set_);
   for (auto &cluster_atom_id_list: cluster_to_atom_vector) {
     AppendAtomAndLatticeVector(cluster_atom_id_list, atom_vector, lattice_vector);
@@ -47,23 +47,22 @@ json Cluster::GetClustersInfoAndOutput(
 
     const size_t size = cluster_atom_id_list.size();
     cluster_info["size"] = size;
-    AppendInfoToAuxiliaryListsRepeat("size", static_cast<double> (size), size);
+    AppendInfoToAuxiliaryListsRepeat("cluster_size", static_cast<double> (size), size);
 
     const auto element_number = GetElementsNumber(cluster_atom_id_list);
     cluster_info["elements_number"] = element_number;
-    // for (const auto &element_number_pair: element_number) {
-    //   AppendInfoToAuxiliaryListsRepeat(element_number_pair.first,
-    //                                    static_cast<double> (element_number_pair.second),
-    //                                    size);
-    // }
+    for (const auto &element_number_pair: element_number) {
+      AppendInfoToAuxiliaryListsRepeat("cluster_" + element_number_pair.first,
+                                       static_cast<double> (element_number_pair.second),
+                                       size);
+    }
 
     const double mass = GetMass(cluster_atom_id_list);
     cluster_info["mass"] = mass;
-    AppendInfoToAuxiliaryListsRepeat("mass", mass, size);
 
     const auto energy = GetEnergy(cluster_atom_id_list);
     cluster_info["energy"] = energy;
-    AppendInfoToAuxiliaryListsRepeat("energy", energy, size);
+    AppendInfoToAuxiliaryListsRepeat("cluster_energy", energy, size);
 
     const auto geometry_center = GetGeometryCenter(cluster_atom_id_list);
     cluster_info["geometry_center"] = geometry_center;
@@ -85,16 +84,24 @@ json Cluster::GetClustersInfoAndOutput(
     const auto &eigenvalues = eigen_solver.eigenvalues();
     const auto mass_gyration_radius = std::sqrt(eigenvalues[0] + eigenvalues[1] + eigenvalues[2]);
     cluster_info["mass_gyration_radius"] = mass_gyration_radius;
-    AppendInfoToAuxiliaryListsRepeat("mass_gyration_radius", mass_gyration_radius, size);
+    AppendInfoToAuxiliaryListsRepeat("cluster_mass_gyration_radius", mass_gyration_radius, size);
 
-    cluster_info["shape"]["asphericity"] = eigenvalues[2] - 0.5 * (eigenvalues[0] + eigenvalues[1]);
-    cluster_info["shape"]["acylindricity"] = eigenvalues[1] - eigenvalues[0];
-    cluster_info["shape"]["anisotropy"] = 1.5
+    const auto asphericity = eigenvalues[2] - 0.5 * (eigenvalues[0] + eigenvalues[1]);
+    cluster_info["shape"]["asphericity"] = asphericity;
+    AppendInfoToAuxiliaryListsRepeat("cluster_asphericity", asphericity, size);
+
+    const auto acylindricity = eigenvalues[1] - eigenvalues[0];
+    cluster_info["shape"]["acylindricity"] = acylindricity;
+    AppendInfoToAuxiliaryListsRepeat("cluster_acylindricity", acylindricity, size);
+
+    const auto anisotropy = 1.5
         * (std::pow(eigenvalues[0], 2) + std::pow(eigenvalues[1], 2) + std::pow(eigenvalues[2], 2))
         / std::pow(eigenvalues[0] + eigenvalues[1] + eigenvalues[2], 2) - 0.5;
+    cluster_info["shape"]["anisotropy"] = anisotropy;
+    AppendInfoToAuxiliaryListsRepeat("cluster_anisotropy", anisotropy, size);
+
 
     cluster_info["mass_inertia_tensor"] = GetMassInertiaTensor(cluster_atom_id_list, mass_center);
-
     cluster_info["warren_cowley"]["first"] =
         short_range_order.FindPairCorrelationCluster(1, cluster_atom_id_list);
     cluster_info["warren_cowley"]["second"] =
@@ -230,7 +237,7 @@ void Cluster::AppendInfoToAuxiliaryListsRepeat(const std::string &key, double va
 std::map<std::string, size_t> Cluster::GetElementsNumber(
     const std::vector<size_t> &cluster_atom_id_list) const {
   // initialize map with all the element, because some cluster may not have all types of element
-  std::map < std::string, size_t > num_atom_in_one_cluster{{"X", 0}};
+  std::map<std::string, size_t> num_atom_in_one_cluster{{"X", 0}};
   for (const auto &element: element_set_) {
     num_atom_in_one_cluster[element.GetString()] = 0;
   }
