@@ -46,10 +46,12 @@ json Cluster::GetClustersInfoAndOutput(
     json cluster_info = json::object();
 
     const size_t size = cluster_atom_id_list.size();
-    cluster_info["size"] = size;
-    AppendInfoToAuxiliaryListsRepeat("cluster_size", static_cast<double> (size), size);
-
     const auto element_number = GetElementsNumber(cluster_atom_id_list);
+    const size_t size_without_vacancy = size - element_number.at("X");
+
+    AppendInfoToAuxiliaryListsRepeat("cluster_size", static_cast<double> (size_without_vacancy), size);
+    cluster_info["size"] = size_without_vacancy;
+
     cluster_info["elements_number"] = element_number;
     for (const auto &element_number_pair: element_number) {
       AppendInfoToAuxiliaryListsRepeat("cluster_" + element_number_pair.first,
@@ -60,7 +62,7 @@ json Cluster::GetClustersInfoAndOutput(
     const double mass = GetMass(cluster_atom_id_list);
     cluster_info["mass"] = mass;
 
-    const auto energy = GetEnergy(cluster_atom_id_list);
+    const auto energy = GetFormationEnergy(cluster_atom_id_list) / static_cast<double> (size_without_vacancy);
     cluster_info["energy"] = energy;
     AppendInfoToAuxiliaryListsRepeat("cluster_energy", energy, size);
 
@@ -268,7 +270,7 @@ double Cluster::GetMass(const std::vector<size_t> &cluster_atom_id_list) const {
   }
   return sum_mass;
 }
-double Cluster::GetEnergy(const std::vector<size_t> &cluster_atom_id_list) const {
+double Cluster::GetFormationEnergy(const std::vector<size_t> &cluster_atom_id_list) const {
   cfg::Config solute_config(solvent_config_);
   double energy_change_solution_to_pure_solvent = 0;
   for (size_t atom_id: cluster_atom_id_list) {
@@ -279,8 +281,7 @@ double Cluster::GetEnergy(const std::vector<size_t> &cluster_atom_id_list) const
   double energy_change_cluster_to_pure_solvent =
       energy_estimator_.GetEnergyOfCluster(solute_config, cluster_atom_id_list) -
           energy_estimator_.GetEnergyOfCluster(solvent_config_, cluster_atom_id_list);
-  return (energy_change_cluster_to_pure_solvent - energy_change_solution_to_pure_solvent) /
-      static_cast<double>(cluster_atom_id_list.size());
+  return (energy_change_cluster_to_pure_solvent - energy_change_solution_to_pure_solvent);
 }
 Vector_t Cluster::GetGeometryCenter(const std::vector<size_t> &cluster_atom_id_list) const {
   Vector_t geometry_center{};

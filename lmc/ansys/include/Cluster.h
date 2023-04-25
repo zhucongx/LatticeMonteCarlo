@@ -36,7 +36,7 @@ class Cluster {
     [[nodiscard]] std::map<std::string, size_t> GetElementsNumber(
         const std::vector<size_t> &cluster_atom_id_list) const;
     [[nodiscard]] double GetMass(const std::vector<size_t> &cluster_atom_id_list) const;
-    [[nodiscard]] double GetEnergy(const std::vector<size_t> &cluster_atom_id_list) const;
+    [[nodiscard]] double GetFormationEnergy(const std::vector<size_t> &cluster_atom_id_list) const;
     [[nodiscard]] Vector_t GetGeometryCenter(const std::vector<size_t> &cluster_atom_id_list) const;
     [[nodiscard]] Vector_t GetMassCenter(const std::vector<size_t> &cluster_atom_id_list) const;
     [[nodiscard]] Matrix_t GetMassGyrationTensor(const std::vector<size_t> &cluster_atom_id_list,
