@@ -118,9 +118,9 @@ void Traverse::RunAnsys() const {
             "cluster", std::to_string(i) + "_cluster.cfg");
     // sro information
     ShortRangeOrder short_range_order(config, element_set_);
-    ansys_info["pij"]["first"] = short_range_order.FindProbability(1);
-    ansys_info["pij"]["second"] = short_range_order.FindProbability(2);
-    ansys_info["pij"]["third"] = short_range_order.FindProbability(3);
+    ansys_info["warren_cowley"]["first"] = short_range_order.FindWarrenCowley(1);
+    ansys_info["warren_cowley"]["second"] = short_range_order.FindWarrenCowley(2);
+    ansys_info["warren_cowley"]["third"] = short_range_order.FindWarrenCowley(3);
 #pragma omp critical
     {
       ansys_info_array.push_back(ansys_info);

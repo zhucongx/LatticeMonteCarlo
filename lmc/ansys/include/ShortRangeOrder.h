@@ -10,7 +10,7 @@ class ShortRangeOrder {
     ShortRangeOrder(const cfg::Config &config, const std::set<Element> &element_set);
     // [[nodiscard]] std::map<std::string, double> FindPairCorrelationCluster(
     //     size_t shell_number, const std::vector<size_t> &cluster_atom_id_list) const;
-    // [[nodiscard]] std::map<std::string, double> FindWarrenCowley(size_t shell_number) const;
+    [[nodiscard]] std::map<std::string, double> FindWarrenCowley(size_t shell_number) const;
     [[nodiscard]] std::map<std::string, double> FindProbabilityCluster(
         size_t shell_number, const std::vector<size_t> &cluster_atom_id_list) const;
     [[nodiscard]] std::map<std::string, double> FindProbability(size_t shell_number) const;
