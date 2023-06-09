@@ -7,7 +7,7 @@ log_dump_steps                  100000
 config_dump_steps              1000000
 maximum_steps         1000000000000000
 thermodynamic_averaging_steps 10000000
-temperature 650
+temperature 800
 element_set Al Mg Zn
 restart_steps 0
 restart_energy 0
