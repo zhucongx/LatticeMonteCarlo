@@ -104,18 +104,18 @@ target_link_libraries(${PROJECT_NAME} PUBLIC MPI::MPI_CXX)
 find_package(OpenMP REQUIRED)
 target_link_libraries(${PROJECT_NAME} PUBLIC OpenMP::OpenMP_CXX)
 ############################################## EIGEN ###############################################
-find_package(Eigen3 3.4 NO_MODULE)
-if (NOT EIGEN3_FOUND)
-    message(WARNING "Eigen3 not found. Downloading Eigen3 from gitlab")
-    include(FetchContent)
-    FetchContent_Declare(
-            Eigen
-            GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
-            GIT_TAG 3.4.0
-            GIT_SHALLOW TRUE
-            )
-    FetchContent_MakeAvailable(eigen)
-endif ()
+find_package(Eigen3 REQUIRED)
+#if (NOT EIGEN3_FOUND)
+#    message(WARNING "Eigen3 not found. Downloading Eigen3 from gitlab")
+#    include(FetchContent)
+#    FetchContent_Declare(
+#            Eigen
+#            GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
+#            GIT_TAG 3.4.0
+#            GIT_SHALLOW TRUE
+#            )
+#    FetchContent_MakeAvailable(eigen)
+#endif ()
 target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${EIGEN3_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen)
 ############################################### JSON ###############################################
