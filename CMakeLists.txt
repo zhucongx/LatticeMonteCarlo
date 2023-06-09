@@ -82,7 +82,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "lmc.exe")
 #pkg_check_modules(EIGEN3 REQUIRED eigen3)
 #message(STATUS "Eigen3 include path: ${EIGEN3_INCLUDE_DIRS}")
 ############################################## EIGEN ###############################################
-find_package(Eigen3 3.4)
+find_package(Eigen3 3.0)
 if (NOT EIGEN3_FOUND)
     message(WARNING "Eigen3 not found. Downloading Eigen3 from gitlab")
     include(FetchContent)
