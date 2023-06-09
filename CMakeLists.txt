@@ -78,9 +78,24 @@ add_executable(${PROJECT_NAME} LMC_Main.cpp ${PROJECT_SRC})
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_INCLUDE})
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "lmc.exe")
 ############################################# PKGCONFIG ############################################
-#find_package(PkgConfig)
-#pkg_check_modules(EIGEN3 REQUIRED eigen3)
-#message(STATUS "Eigen3 include path: ${EIGEN3_INCLUDE_DIRS}")
+find_package(PkgConfig)
+pkg_check_modules(EIGEN3 REQUIRED eigen3)
+message(STATUS "Eigen3 include path: ${EIGEN3_INCLUDE_DIRS}")
+############################################## EIGEN ###############################################
+find_package(Eigen3 REQUIRED NO_MODULE)
+#if (NOT EIGEN3_FOUND)
+#    message(WARNING "Eigen3 not found. Downloading Eigen3 from gitlab")
+#    include(FetchContent)
+#    FetchContent_Declare(
+#            Eigen
+#            GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
+#            GIT_TAG 3.4.0
+#            GIT_SHALLOW TRUE
+#            )
+#    FetchContent_MakeAvailable(eigen)
+#endif ()
+target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${EIGEN3_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen)
 ############################################## BOOST ###############################################
 #set(Boost_NO_SYSTEM_PATHS TRUE)
 #if (Boost_NO_SYSTEM_PATHS)
@@ -103,21 +118,6 @@ target_link_libraries(${PROJECT_NAME} PUBLIC MPI::MPI_CXX)
 ############################################## OPENMP ##############################################
 find_package(OpenMP REQUIRED)
 target_link_libraries(${PROJECT_NAME} PUBLIC OpenMP::OpenMP_CXX)
-############################################## EIGEN ###############################################
-find_package(Eigen3 REQUIRED)
-#if (NOT EIGEN3_FOUND)
-#    message(WARNING "Eigen3 not found. Downloading Eigen3 from gitlab")
-#    include(FetchContent)
-#    FetchContent_Declare(
-#            Eigen
-#            GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
-#            GIT_TAG 3.4.0
-#            GIT_SHALLOW TRUE
-#            )
-#    FetchContent_MakeAvailable(eigen)
-#endif ()
-target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${EIGEN3_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen)
 ############################################### JSON ###############################################
 # Typically you don't care so much for a third party library's tests to be
 # run from your own project's code.
