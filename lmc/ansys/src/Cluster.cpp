@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <cmath>
 #include <omp.h>
+// #define EIGEN_USE_MKL_ALL
 #include <Eigen/Dense>
 
 #include "ShortRangeOrder.h"
