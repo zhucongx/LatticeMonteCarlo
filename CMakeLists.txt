@@ -11,8 +11,8 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 ############################################ SET  FLAGS ############################################
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}"
         CACHE INTERNAL "")
-#set(CMAKE_VERBOSE_MAKEFILE ON)
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} \
+set(CMAKE_VERBOSE_MAKEFILE ON)
+set(CMAKE_CXX_FLAGS_DEBUG " \
 -Wall -Wextra -Wshadow -Wnon-virtual-dtor -Wpointer-arith -Wold-style-cast \
 -Wpedantic  -Wcast-qual -Wunused -Woverloaded-virtual -Winline \
 -Wunreachable-code -Wcast-align -Weffc++ -Wmisleading-indentation \
@@ -24,7 +24,7 @@ IF (NOT TEST)
             CACHE INTERNAL "")
 ENDIF ()
 
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -Wall -Wextra"
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -Wextra"
         CACHE INTERNAL "")
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
@@ -47,9 +47,9 @@ endif ()
 message(STATUS "Detecting ${CMAKE_CXX_COMPILER_ID} compiler")
 message(STATUS "Current build type is ${CMAKE_BUILD_TYPE}")
 IF(CMAKE_BUILD_TYPE MATCHES Debug)
-    SET(CMAKE_BUILD_TYPE_FLAGS ${CMAKE_CXX_FLAGS_DEBUG})
+    SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS_DEBUG})
 ELSEIF(CMAKE_BUILD_TYPE MATCHES Release)
-    SET(CMAKE_BUILD_TYPE_FLAGS ${CMAKE_CXX_FLAGS_RELEASE})
+    SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS_RELEASE})
 ENDIF()
 ############################################ BUILD LIBS ############################################
 #add_executable(${PROJECT_NAME} LMC_Main.cpp)
@@ -77,24 +77,6 @@ set(PROJECT_INCLUDE
 add_executable(${PROJECT_NAME} LMC_Main.cpp ${PROJECT_SRC})
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_INCLUDE})
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "lmc.exe")
-############################################# PKGCONFIG ############################################
-#find_package(PkgConfig)
-#pkg_check_modules(EIGEN3 REQUIRED eigen3)
-#message(STATUS "Eigen3 include path: ${EIGEN3_INCLUDE_DIRS}")
-############################################## EIGEN ###############################################
-find_package(Eigen3 3.0)
-if (NOT EIGEN3_FOUND)
-    message(WARNING "Eigen3 not found. Downloading Eigen3 from gitlab")
-    include(FetchContent)
-    FetchContent_Declare(
-            Eigen
-            GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
-            GIT_TAG 3.4.0
-            GIT_SHALLOW TRUE
-            )
-    FetchContent_MakeAvailable(eigen)
-endif ()
-target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${EIGEN3_INCLUDE_DIR})
 ############################################## BOOST ###############################################
 #set(Boost_NO_SYSTEM_PATHS TRUE)
 #if (Boost_NO_SYSTEM_PATHS)
@@ -110,7 +92,7 @@ target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${EIGEN3_INCLUDE_DIR})
 #find_package(Boost COMPONENTS mpi serialization REQUIRED)
 find_package(Boost REQUIRED)
 target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${Boost_INCLUDE_DIR})
-#target_link_libraries(${PROJECT_NAME} PRIVATE ${Boost_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${Boost_LIBRARIES})
 ############################################### MPI ################################################
 find_package(MPI REQUIRED)
 target_link_libraries(${PROJECT_NAME} PUBLIC MPI::MPI_CXX)
@@ -132,6 +114,26 @@ FetchContent_Declare(
         GIT_TAG v3.11.2)
 FetchContent_MakeAvailable(json)
 target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
+############################################# PKGCONFIG ############################################
+#find_package(PkgConfig)
+#pkg_check_modules(EIGEN3 REQUIRED eigen3)
+#message(STATUS "Eigen3 include path: ${EIGEN3_INCLUDE_DIRS}")
+############################################### MKL ################################################
+#find_package(MKL CONFIG REQUIRED)
+############################################## EIGEN ###############################################
+find_package(Eigen3 3.0)
+if (NOT EIGEN3_FOUND)
+    message(WARNING "Eigen3 not found. Downloading Eigen3 from gitlab")
+    include(FetchContent)
+    FetchContent_Declare(
+            Eigen
+            GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
+            GIT_TAG 3.4.0
+            GIT_SHALLOW TRUE
+    )
+    FetchContent_MakeAvailable(eigen)
+endif ()
+target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${EIGEN3_INCLUDE_DIR})
 ############################################ ARMADILLO #############################################
 #find_package(ARMADILLO REQUIRED)
 #target_include_directories(${PROJECT_NAME} PUBLIC
@@ -197,8 +199,7 @@ MESSAGE(STATUS "==============================================================="
 MESSAGE(STATUS "Project Name:       ${PROJECT_NAME}")
 MESSAGE(STATUS "C++ Compiler:       ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
 MESSAGE(STATUS "C++ Standard:       C++ ${CMAKE_CXX_STANDARD}")
-MESSAGE(STATUS "C++ compile flags:  ${CMAKE_CXX_FLAGS}")
 MESSAGE(STATUS "Build type:         ${CMAKE_BUILD_TYPE}")
-MESSAGE(STATUS "Build type flags:   ${CMAKE_BUILD_TYPE_FLAGS}")
+MESSAGE(STATUS "Build type flags:   ${CMAKE_CXX_FLAGS}")
 MESSAGE(STATUS "Output Path:        ${EXECUTABLE_OUTPUT_PATH}")
 MESSAGE(STATUS "===============================================================")
