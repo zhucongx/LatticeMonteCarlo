@@ -50,7 +50,7 @@ endforeach()
 
 add_executable(${PROJECT_NAME} ${PROJECT_NAME}/main.cpp ${PROJECT_SRC})
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_INCLUDE})
-set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "{PROJECT_NAME}.exe")
+set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "${PROJECT_NAME}.exe")
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
 ############################################## BOOST ###############################################
