@@ -12,7 +12,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 ############################################ SET  FLAGS ############################################
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}"
         CACHE INTERNAL "")
-set(CMAKE_CXX_FLAGS_DEBUG " \
+set(CMAKE_CXX_FLAGS_DEBUG "\
 -Wall -Wextra -Wshadow -Wnon-virtual-dtor -Wpointer-arith -Wold-style-cast \
 -Wpedantic  -Wcast-qual -Wunused -Woverloaded-virtual -Winline \
 -Wunreachable-code -Wcast-align -Weffc++ -Wmisleading-indentation \
@@ -179,5 +179,5 @@ MESSAGE(STATUS "C++ Compiler:       ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILE
 MESSAGE(STATUS "C++ Standard:       C++ ${CMAKE_CXX_STANDARD}")
 MESSAGE(STATUS "Build type:         ${CMAKE_BUILD_TYPE}")
 MESSAGE(STATUS "Build type flags:   ${CMAKE_CXX_FLAGS}")
-MESSAGE(STATUS "Output Path:        ${EXECUTABLE_OUTPUT_PATH}")
+MESSAGE(STATUS "Output Path:        ${EXECUTABLE_OUTPUT_DIRECTORY}")
 MESSAGE(STATUS "===============================================================")
