@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.14)
 ########################################## SET  COMPILERS ##########################################
 #set(CMAKE_C_COMPILER "gcc") # {gcc, clang, mpicc, icc, gcc-12}
 #set(CMAKE_CXX_COMPILER "g++") # {g++, clang++, mpic/xx, icpc, g++-12}
-project(LMC VERSION 0.1.0)
+project(lmc VERSION 0.1.0)
 set(CMAKE_CXX_STANDARD 20)
 ############################################ SET  PATHS ############################################
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
