@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.14)
 ########################################## SET  COMPILERS ##########################################
 #set(CMAKE_C_COMPILER "gcc") # {gcc, clang, mpicc, icc, gcc-12}
 #set(CMAKE_CXX_COMPILER "g++") # {g++, clang++, mpic/xx, icpc, g++-12}
-project(lmc)
+project(LMC VERSION 0.1.0)
 set(CMAKE_CXX_STANDARD 20)
 ############################################ SET  PATHS ############################################
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
@@ -12,28 +12,26 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 ############################################ SET  FLAGS ############################################
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}"
         CACHE INTERNAL "")
-set(CMAKE_CXX_FLAGS_DEBUG "\
+
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} \
 -Wall -Wextra -Wshadow -Wnon-virtual-dtor -Wpointer-arith -Wold-style-cast \
--Wpedantic  -Wcast-qual -Wunused -Woverloaded-virtual -Winline \
+-Wpedantic  -Wcast-qual -Wunused -Woverloaded-virtual -Winline -Wundef \
 -Wunreachable-code -Wcast-align -Weffc++ -Wmisleading-indentation \
 -Wredundant-decls -pedantic-errors -Wnull-dereference -Wdouble-promotion \
 -Wconversion -Wfatal-errors -Wextra-semi -O0 -g3 -finline-functions"
         CACHE INTERNAL "")
-IF (NOT TEST)
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wundef"
-            CACHE INTERNAL "")
-ENDIF ()
 
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -Wextra"
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} \
+-O3 -Wall -Wextra"
         CACHE INTERNAL "")
 
 message(STATUS "Detecting ${CMAKE_CXX_COMPILER_ID} compiler")
 message(STATUS "Current build type is ${CMAKE_BUILD_TYPE}")
-IF(CMAKE_BUILD_TYPE MATCHES Debug)
+IF (CMAKE_BUILD_TYPE MATCHES Debug)
     SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS_DEBUG})
-ELSEIF(CMAKE_BUILD_TYPE MATCHES Release)
+ELSEIF (CMAKE_BUILD_TYPE MATCHES Release)
     SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS_RELEASE})
-ENDIF()
+ENDIF ()
 ############################################ BUILD LIBS ############################################
 #add_executable(${PROJECT_NAME} main.cpp)
 #add_subdirectory(${PROJECT_NAME}/cfg)
@@ -44,15 +42,15 @@ ENDIF()
 ############################################ BUILD SRCS ############################################
 file(GLOB PROJECT_SRC ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}/*/src/*.cpp)
 file(GLOB PROJECT_INCLUDE ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}/*/include)
-foreach(dir ${PROJECT_INCLUDE})
+foreach (dir ${PROJECT_INCLUDE})
     message(STATUS "Found include directory: ${dir}")
-endforeach()
+endforeach ()
 
 add_executable(${PROJECT_NAME} ${PROJECT_NAME}/main.cpp ${PROJECT_SRC})
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_INCLUDE})
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "${PROJECT_NAME}.exe")
 
-set(CMAKE_VERBOSE_MAKEFILE ON)
+#set(CMAKE_VERBOSE_MAKEFILE ON)
 ############################################## BOOST ###############################################
 #set(Boost_NO_SYSTEM_PATHS TRUE)
 #if (Boost_NO_SYSTEM_PATHS)
