@@ -18,7 +18,12 @@ EnergyChangePredictorSite::EnergyChangePredictorSite(const std::string &predicto
 
   for (const auto &[element, parameters]: all_parameters.items()) {
     if (element == "Base") {
-      base_theta_ = std::vector<double>(parameters.at("theta"));
+      auto base_theta_json = parameters.at("theta");
+      base_theta_ = {};
+      for (const auto &theta : base_theta_json) {
+        base_theta_.emplace_back(theta.get<double>());
+      }
+      // base_theta_ = std::vector<double>(parameters.at("theta"));
     }
   }
 #pragma omp parallel for default(none) shared(reference_config)

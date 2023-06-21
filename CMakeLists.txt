@@ -32,6 +32,16 @@ IF (CMAKE_BUILD_TYPE MATCHES Debug)
 ELSEIF (CMAKE_BUILD_TYPE MATCHES Release)
     SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS_RELEASE})
 ENDIF ()
+
+#if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+#
+#elseif (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+#
+#elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+#
+#elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+#
+#else ()
 ############################################ BUILD LIBS ############################################
 #add_executable(${PROJECT_NAME} main.cpp)
 #add_subdirectory(${PROJECT_NAME}/cfg)
@@ -50,52 +60,54 @@ add_executable(${PROJECT_NAME} ${PROJECT_NAME}/main.cpp ${PROJECT_SRC})
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_INCLUDE})
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "${PROJECT_NAME}.exe")
 
-#set(CMAKE_VERBOSE_MAKEFILE ON)
+set(CMAKE_VERBOSE_MAKEFILE ON)
 ############################################## BOOST ###############################################
-#set(Boost_NO_SYSTEM_PATHS TRUE)
-#if (Boost_NO_SYSTEM_PATHS)
-#    set(BOOST_ROOT "/opt/apps/intel18/impi18_0/boost-mpi/1.68")
-#    set(BOOST_INCLUDE_DIRS "${BOOST_ROOT}/include")
-#    set(BOOST_LIBRARY_DIRS "${BOOST_ROOT}/lib")
-#endif (Boost_NO_SYSTEM_PATHS)
-# Stampede2 doesn't have boost-mpi. Use self-compiled version
-#SET(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH}
-#        "/home1/07075/tg863748/library/boost/include")
-#SET(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH}
-#        "/home1/07075/tg863748/library/boost/lib")
-#find_package(Boost COMPONENTS mpi serialization REQUIRED)
 find_package(Boost REQUIRED)
-target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${Boost_INCLUDE_DIR})
 target_link_libraries(${PROJECT_NAME} PRIVATE ${Boost_LIBRARIES})
+target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${Boost_INCLUDE_DIR})
 ############################################### MPI ################################################
 find_package(MPI REQUIRED)
+target_compile_options(${PROJECT_NAME} PUBLIC ${MPI_CXX_COMPILE_FLAGS})
 target_link_libraries(${PROJECT_NAME} PUBLIC MPI::MPI_CXX)
+target_include_directories(${PROJECT_NAME} PUBLIC ${MPI_CXX_INCLUDE_DIRS})
 ############################################## OPENMP ##############################################
 find_package(OpenMP REQUIRED)
+target_compile_options(${PROJECT_NAME} PRIVATE ${OpenMP_CXX_FLAGS})
 target_link_libraries(${PROJECT_NAME} PUBLIC OpenMP::OpenMP_CXX)
-############################################### JSON ###############################################
-# Typically you don't care so much for a third party library's tests to be
-# run from your own project's code.
-#set(JSON_BuildTests OFF CACHE INTERNAL "")
-# If you only include this third party in PRIVATE source files, you do not
-# need to install it when your main project gets installed.
-# set(JSON_Install OFF CACHE INTERNAL "")
-# add_subdirectory(external/json)
-include(FetchContent)
-FetchContent_Declare(
-        json
-        GIT_REPOSITORY https://github.com/ArthurSonzogni/nlohmann_json_cmake_fetchcontent
-        GIT_TAG v3.11.2)
-FetchContent_MakeAvailable(json)
-target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
-############################################# PKGCONFIG ############################################
-#find_package(PkgConfig)
-#pkg_check_modules(EIGEN3 REQUIRED eigen3)
-#message(STATUS "Eigen3 include path: ${EIGEN3_INCLUDE_DIRS}")
+target_include_directories(${PROJECT_NAME} PUBLIC ${OpenMP_CXX_INCLUDE_DIRS})
+############################################## LAPACK ##############################################
+find_package(LAPACK)
+if (LAPACK_FOUND)
+    add_definitions(-DEIGEN_USE_LAPACK)
+    target_compile_options(${PROJECT_NAME} PUBLIC ${LAPACK_LINKER_FLAGS})
+    target_link_libraries(${PROJECT_NAME} PUBLIC ${LAPACK_LIBRARIES})
+    target_include_directories(${PROJECT_NAME} PUBLIC ${LAPACK_INCLUDE_DIRS})
+else ()
+    message(WARNING "LAPACK not found.")
+endif ()
+############################################### BLAS ###############################################
+find_package(BLAS)
+if (BLAS_FOUND)
+    add_definitions(-DEIGEN_USE_BLAS)
+    target_compile_options(${PROJECT_NAME} PUBLIC ${BLAS_LINKER_FLAGS})
+    target_link_libraries(${PROJECT_NAME} PUBLIC ${BLAS_LIBRARIES})
+    target_include_directories(${PROJECT_NAME} PUBLIC ${BLAS_INCLUDE_DIRS})
+else ()
+    message(WARNING "BLAS not found.")
+endif ()
 ############################################### MKL ################################################
-#find_package(MKL CONFIG REQUIRED)
-#find_package(BLAS REQUIRED)
-#target_link_libraries(${PROJECT_NAME} PUBLIC ${BLAS_LIBRARIES})
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+    find_package(MKL)
+    if (MKL_FOUND)
+        set(BLA_VENDOR Intel10_64lp)
+        add_definitions(-DEIGEN_USE_MKL_ALL)
+        target_compile_options(${PROJECT_NAME}  PUBLIC $<TARGET_PROPERTY:MKL::MKL,INTERFACE_COMPILE_OPTIONS>)
+        target_link_libraries(${PROJECT_NAME}  PUBLIC $<LINK_ONLY:MKL::MKL>)
+        target_include_directories(${PROJECT_NAME}  PUBLIC $<TARGET_PROPERTY:MKL::MKL,INTERFACE_INCLUDE_DIRECTORIES>)
+    else ()
+        message(WARNING "MKL not found.")
+    endif ()
+endif ()
 ############################################## EIGEN ###############################################
 find_package(Eigen3 3.0)
 if (NOT EIGEN3_FOUND)
@@ -109,7 +121,7 @@ if (NOT EIGEN3_FOUND)
     )
     FetchContent_MakeAvailable(eigen)
 endif ()
-target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${EIGEN3_INCLUDE_DIR})
+target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${EIGEN3_INCLUDE_DIRS})
 ############################################ ARMADILLO #############################################
 #find_package(ARMADILLO REQUIRED)
 #target_include_directories(${PROJECT_NAME} PUBLIC
@@ -122,6 +134,27 @@ target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${EIGEN3_INCLUDE_DIR})
 #        ${TensorFlow_INCLUDE_DIRS})
 #target_link_libraries(${PROJECT_NAME} PUBLIC
 #        ${TensorFlow_LIBRARIES})
+############################################### JSON ###############################################
+# Typically you don't care so much for a third party library's tests to be
+# run from your own project's code.
+#set(JSON_BuildTests OFF CACHE INTERNAL "")
+# If you only include this third party in PRIVATE source files, you do not
+# need to install it when your main project gets installed.
+# set(JSON_Install OFF CACHE INTERNAL "")
+# add_subdirectory(external/json)
+include(FetchContent)
+FetchContent_Declare(
+        json
+        GIT_REPOSITORY https://github.com/ArthurSonzogni/nlohmann_json_cmake_fetchcontent
+        GIT_PROGRESS TRUE
+        GIT_SHALLOW TRUE
+        GIT_TAG v3.11.2)
+FetchContent_MakeAvailable(json)
+target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
+############################################# PKGCONFIG ############################################
+#find_package(PkgConfig)
+#pkg_check_modules(EIGEN3 REQUIRED eigen3)
+#message(STATUS "Eigen3 include path: ${EIGEN3_INCLUDE_DIRS}")
 ############################################ GOOGLETEST ############################################
 #set(TEST "on")
 #IF(TEST)

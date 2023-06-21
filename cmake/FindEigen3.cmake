@@ -7,7 +7,7 @@
 # Once done this will define
 #
 #  EIGEN3_FOUND - system has eigen lib with correct version
-#  EIGEN3_INCLUDE_DIR - the eigen include directory
+#  EIGEN3_INCLUDE_DIRSS - the eigen include directory
 #  EIGEN3_VERSION - eigen version
 #
 # This module reads hints about search locations from
@@ -35,7 +35,7 @@ if(NOT Eigen3_FIND_VERSION)
 endif(NOT Eigen3_FIND_VERSION)
 
 macro(_eigen3_check_version)
-    file(READ "${EIGEN3_INCLUDE_DIR}/Eigen/src/Core/util/Macros.h" _eigen3_version_header)
+    file(READ "${EIGEN3_INCLUDE_DIRS}/Eigen/src/Core/util/Macros.h" _eigen3_version_header)
 
     string(REGEX MATCH "define[ \t]+EIGEN_WORLD_VERSION[ \t]+([0-9]+)" _eigen3_world_version_match "${_eigen3_version_header}")
     set(EIGEN3_WORLD_VERSION "${CMAKE_MATCH_1}")
@@ -53,26 +53,26 @@ macro(_eigen3_check_version)
 
     if(NOT EIGEN3_VERSION_OK)
 
-        message(STATUS "Eigen3 version ${EIGEN3_VERSION} found in ${EIGEN3_INCLUDE_DIR}, "
+        message(STATUS "Eigen3 version ${EIGEN3_VERSION} found in ${EIGEN3_INCLUDE_DIRS}, "
                 "but at least version ${Eigen3_FIND_VERSION} is required")
     endif(NOT EIGEN3_VERSION_OK)
 endmacro(_eigen3_check_version)
 
-if (EIGEN3_INCLUDE_DIR)
+if (EIGEN3_INCLUDE_DIRS)
 
     # in cache already
     _eigen3_check_version()
     set(EIGEN3_FOUND ${EIGEN3_VERSION_OK})
 
-else (EIGEN3_INCLUDE_DIR)
+else (EIGEN3_INCLUDE_DIRS)
 
     # search first if an Eigen3Config.cmake is available in the system,
-    # if successful this would set EIGEN3_INCLUDE_DIR and the rest of
+    # if successful this would set EIGEN3_INCLUDE_DIRS and the rest of
     # the script will work as usual
     find_package(Eigen3 ${Eigen3_FIND_VERSION} NO_MODULE QUIET)
 
-    if(NOT EIGEN3_INCLUDE_DIR)
-        find_path(EIGEN3_INCLUDE_DIR NAMES signature_of_eigen3_matrix_library
+    if(NOT EIGEN3_INCLUDE_DIRS)
+        find_path(EIGEN3_INCLUDE_DIRS NAMES signature_of_eigen3_matrix_library
                 HINTS
                 ENV EIGEN3_ROOT
                 ENV EIGEN3_ROOT_DIR
@@ -88,15 +88,15 @@ else (EIGEN3_INCLUDE_DIR)
                 /sw/pkgs/arc/eigen/eigen-3.4.0
                 PATH_SUFFIXES eigen3 eigen
                 )
-    endif(NOT EIGEN3_INCLUDE_DIR)
+    endif(NOT EIGEN3_INCLUDE_DIRS)
 
-    if(EIGEN3_INCLUDE_DIR)
+    if(EIGEN3_INCLUDE_DIRS)
         _eigen3_check_version()
-    endif(EIGEN3_INCLUDE_DIR)
+    endif(EIGEN3_INCLUDE_DIRS)
 
     include(FindPackageHandleStandardArgs)
-    find_package_handle_standard_args(Eigen3 DEFAULT_MSG EIGEN3_INCLUDE_DIR EIGEN3_VERSION_OK)
+    find_package_handle_standard_args(Eigen3 DEFAULT_MSG EIGEN3_INCLUDE_DIRS EIGEN3_VERSION_OK)
 
-    mark_as_advanced(EIGEN3_INCLUDE_DIR)
+    mark_as_advanced(EIGEN3_INCLUDE_DIRS)
 
-endif(EIGEN3_INCLUDE_DIR)
+endif(EIGEN3_INCLUDE_DIRS)

@@ -23,9 +23,14 @@ VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::st
   std::ifstream ifs(predictor_filename, std::ifstream::in);
   json all_parameters;
   ifs >> all_parameters;
-  for (const auto &[element, parameters]: all_parameters.items()) {
+  for (const auto &[element, parameters] : all_parameters.items()) {
     if (element == "Base") {
-      base_theta_ = std::vector<double>(parameters.at("theta"));
+      auto base_theta_json = parameters.at("theta");
+      base_theta_ = {};
+      for (const auto &theta : base_theta_json) {
+        base_theta_.emplace_back(theta.get<double>());
+      }
+     // base_theta_ = std::vector<double>(parameters.at("theta"));
       continue;
     }
     element_parameters_hashmap_[Element(element)] = ParametersQuartic{
@@ -45,7 +50,7 @@ VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::st
   }
 #pragma omp parallel for default(none) shared(reference_config)
   for (size_t i = 0; i < reference_config.GetNumAtoms(); ++i) {
-    for (auto j: reference_config.GetFirstNeighborsAdjacencyList()[i]) {
+    for (auto j : reference_config.GetFirstNeighborsAdjacencyList()[i]) {
       auto sorted_lattice_vector =
           GetSortedLatticeVectorStateOfPair(reference_config, {i, j});
       std::vector<size_t> lattice_id_vector_state;
@@ -99,11 +104,11 @@ double VacancyMigrationPredictorQuartic::GetDe(const cfg::Config &config,
 // #pragma omp parallel for default(none) shared(config, lattice_id_jump_pair, lattice_id_vector, migration_element, start_hashmap, end_hashmap)
   for (size_t label = 0; label < mapping_state_.size(); ++label) {
     const auto &cluster_vector = mapping_state_.at(label);
-    for (const auto &cluster: cluster_vector) {
+    for (const auto &cluster : cluster_vector) {
       std::vector<Element> element_vector_start, element_vector_end;
       element_vector_start.reserve(cluster.size());
       element_vector_end.reserve(cluster.size());
-      for (auto index: cluster) {
+      for (auto index : cluster) {
         size_t lattice_id = lattice_id_vector[index];
         element_vector_start.push_back(config.GetElementAtLatticeId(lattice_id));
         if (lattice_id == lattice_id_jump_pair.first) {
@@ -130,7 +135,7 @@ double VacancyMigrationPredictorQuartic::GetDe(const cfg::Config &config,
   static const std::vector<double>
       cluster_counter{256, 1536, 768, 3072, 2048, 3072, 6144, 6144, 6144, 6144, 2048};
   // not necessary to parallelize this loop
-  for (const auto &cluster_count: ordered) {
+  for (const auto &cluster_count : ordered) {
     const auto &cluster = cluster_count.first;
     auto start = static_cast<double>(start_hashmap.at(cluster));
     auto end = static_cast<double>(end_hashmap.at(cluster));
@@ -155,7 +160,7 @@ double VacancyMigrationPredictorQuartic::GetKs(const cfg::Config &config,
       site_bond_cluster_mm2_hashmap_.at(lattice_id_jump_pair);
   std::vector<Element> ele_vector_forward{};
   ele_vector_forward.reserve(lattice_id_vector_mm2_forward.size());
-  for (auto index: lattice_id_vector_mm2_forward) {
+  for (auto index : lattice_id_vector_mm2_forward) {
     ele_vector_forward.push_back(config.GetElementAtLatticeId(index));
   }
   auto encode_mm2_forward = GetOneHotParametersFromMap(ele_vector_forward,
@@ -167,7 +172,7 @@ double VacancyMigrationPredictorQuartic::GetKs(const cfg::Config &config,
       site_bond_cluster_mm2_hashmap_.at({lattice_id_jump_pair.second, lattice_id_jump_pair.first});
   std::vector<Element> ele_vector_backward{};
   ele_vector_backward.reserve(lattice_id_vector_mm2_backward.size());
-  for (auto index: lattice_id_vector_mm2_backward) {
+  for (auto index : lattice_id_vector_mm2_backward) {
     ele_vector_backward.push_back(config.GetElementAtLatticeId(index));
   }
   auto encode_mm2_backward = GetOneHotParametersFromMap(ele_vector_backward,
@@ -205,7 +210,7 @@ double VacancyMigrationPredictorQuartic::GetD(const cfg::Config &config,
   auto lattice_id_vector_mmm = site_bond_cluster_mmm_hashmap_.at(lattice_id_jump_pair);
   std::vector<Element> ele_vector{};
   ele_vector.reserve(lattice_id_vector_mmm.size());
-  for (auto index: lattice_id_vector_mmm) {
+  for (auto index : lattice_id_vector_mmm) {
     ele_vector.push_back(config.GetElementAtLatticeId(index));
   }
   auto encode_mmm = GetOneHotParametersFromMap(ele_vector,

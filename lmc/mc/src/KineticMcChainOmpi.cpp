@@ -53,7 +53,7 @@ void KineticMcChainOmpi::BuildEventList() {
   const auto i_lattice_id =
       config_.GetFirstNeighborsAdjacencyList()[k_lattice_id][static_cast<size_t>(world_rank_)];
   size_t it = 0;
-  for (auto l_lattice_id: config_.GetFirstNeighborsAdjacencyList()[i_lattice_id]) {
+  for (auto l_lattice_id : config_.GetFirstNeighborsAdjacencyList()[i_lattice_id]) {
     l_lattice_id_list_[it] = l_lattice_id;
     ++it;
   }
@@ -62,18 +62,21 @@ void KineticMcChainOmpi::BuildEventList() {
   total_rate_i_ = 0.0;
 
   config_.LatticeJump({k_lattice_id, i_lattice_id});
-#pragma omp parallel for default(none) shared(i_lattice_id, k_lattice_id) reduction(+:total_rate_i_)
-  for (size_t ii = 0; ii < kEventListSize; ++ii) {
-    const auto l_lattice_id = l_lattice_id_list_[ii];
-    JumpEvent event_i_l({i_lattice_id, l_lattice_id},
-                        vacancy_migration_predictor_lru_.GetBarrierAndDiffFromLatticeIdPair(
-                            config_, {i_lattice_id, l_lattice_id}),
-                        beta_);
-    if (l_lattice_id == k_lattice_id) {
-      event_k_i_ = event_i_l.GetReverseJumpEvent();
+#pragma omp parallel default(none) shared(i_lattice_id, k_lattice_id) reduction(+:total_rate_i_)
+  {
+#pragma omp for
+    for (size_t ii = 0; ii < kEventListSize; ++ii) {
+      const auto l_lattice_id = l_lattice_id_list_[ii];
+      JumpEvent event_i_l({i_lattice_id, l_lattice_id},
+                          vacancy_migration_predictor_lru_.GetBarrierAndDiffFromLatticeIdPair(
+                              config_, {i_lattice_id, l_lattice_id}),
+                          beta_);
+      if (l_lattice_id == k_lattice_id) {
+        event_k_i_ = event_i_l.GetReverseJumpEvent();
+      }
+      auto r_i_l = event_i_l.GetForwardRate();
+      total_rate_i_ += r_i_l;
     }
-    auto r_i_l = event_i_l.GetForwardRate();
-    total_rate_i_ += r_i_l;
   }
   config_.LatticeJump({i_lattice_id, k_lattice_id});
 
@@ -134,7 +137,7 @@ double KineticMcChainOmpi::CalculateTime() {
                 MPI_BYTE,
                 MPI_COMM_WORLD);
   double cumulative_probability = 0.0;
-  for (auto &event: event_k_i_list_) {
+  for (auto &event : event_k_i_list_) {
     cumulative_probability += event.GetProbability();
     event.SetCumulativeProbability(cumulative_probability);
   }
