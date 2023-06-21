@@ -6,7 +6,7 @@
 #include <filesystem>
 #include <cmath>
 #include <omp.h>
-// #define EIGEN_USE_MKL_ALL
+#include <boost/filesystem.hpp>
 #include <Eigen/Dense>
 
 #include "ShortRangeOrder.h"
@@ -133,7 +133,7 @@ json Cluster::GetClustersInfoAndOutput(
   if (output_folder.empty()) {
     config_out.WriteExtendedConfig(output_name, auxiliary_lists_);
   } else {
-    std::filesystem::create_directories(output_folder);
+    boost::filesystem::create_directories(output_folder);
     config_out.WriteExtendedConfig(output_folder + "/" + output_name, auxiliary_lists_);
   }
   return clusters_info_array;
