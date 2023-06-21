@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
 ########################################## SET  COMPILERS ##########################################
-#set(CMAKE_C_COMPILER "gcc") # {gcc, clang, mpicc, icc, gcc-12}
-#set(CMAKE_CXX_COMPILER "g++") # {g++, clang++, mpic/xx, icpc, g++-12}
+#set(CMAKE_C_COMPILER "icc") # {gcc, clang, mpicc, icc, gcc-12}
+#set(CMAKE_CXX_COMPILER "icpc") # {g++, clang++, mpicxx, icpc, g++-12}
 project(lmc VERSION 0.1.0)
 set(CMAKE_CXX_STANDARD 20)
 ############################################ SET  PATHS ############################################
@@ -62,7 +62,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "${PROJECT_NAME}.ex
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
 ############################################## BOOST ###############################################
-find_package(Boost REQUIRED)
+find_package(Boost REQUIRED COMPONENTS filesystem system)
 target_link_libraries(${PROJECT_NAME} PRIVATE ${Boost_LIBRARIES})
 target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${Boost_INCLUDE_DIR})
 ############################################### MPI ################################################
