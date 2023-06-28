@@ -1,19 +1,22 @@
 cmake_minimum_required(VERSION 3.14)
-########################################## SET  COMPILERS ##########################################
-#set(CMAKE_C_COMPILER "icc") # {gcc, clang, mpicc, icc, gcc-12}
-#set(CMAKE_CXX_COMPILER "icpc") # {g++, clang++, mpicxx, icpc, g++-12}
+#################################################### SET  COMPILERS ####################################################
+#set(CMAKE_C_COMPILER "icc") # {gcc, gcc-13, icc, mpicc, clang}
+#set(CMAKE_CXX_COMPILER "icpc") # {g++, g++-13, icpc, mpicxx, clang++}
+#set(CMAKE_Fortran_COMPILER "ifort") # {gfortran, gfortran-13, ifort, mpifort}
+
 project(lmc VERSION 0.1.0)
 set(CMAKE_CXX_STANDARD 20)
-############################################ SET  PATHS ############################################
+###################################################### SET  PATHS ######################################################
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 set(EXECUTABLE_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
-############################################ SET  FLAGS ############################################
+###################################################### SET  FLAGS ######################################################
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}"
         CACHE INTERNAL "")
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} \
+#set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} \
+set(CMAKE_CXX_FLAGS_DEBUG "\
 -Wall -Wextra -Wshadow -Wnon-virtual-dtor -Wpointer-arith -Wold-style-cast \
 -Wpedantic  -Wcast-qual -Wunused -Woverloaded-virtual -Winline -Wundef \
 -Wunreachable-code -Wcast-align -Weffc++ -Wmisleading-indentation \
@@ -21,8 +24,9 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} \
 -Wconversion -Wfatal-errors -Wextra-semi -O0 -g3 -finline-functions"
         CACHE INTERNAL "")
 
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} \
--O3 -Wall -Wextra"
+#set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} \
+set(CMAKE_CXX_FLAGS_RELEASE "\
+-O3 -finline-limit=1000000 -Wall"
         CACHE INTERNAL "")
 
 message(STATUS "Detecting ${CMAKE_CXX_COMPILER_ID} compiler")
@@ -42,14 +46,14 @@ ENDIF ()
 #elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
 #
 #else ()
-############################################ BUILD LIBS ############################################
+###################################################### BUILD LIBS ######################################################
 #add_executable(${PROJECT_NAME} main.cpp)
 #add_subdirectory(${PROJECT_NAME}/cfg)
 #add_subdirectory(${PROJECT_NAME}/gen)
 #add_subdirectory(${PROJECT_NAME}/ansys)
 #add_subdirectory(${PROJECT_NAME}/mc)
 #target_link_libraries(${PROJECT_NAME} PUBLIC cfg gen ansys mc)
-############################################ BUILD SRCS ############################################
+###################################################### BUILD SRCS ######################################################
 file(GLOB PROJECT_SRC ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}/*/src/*.cpp)
 file(GLOB PROJECT_INCLUDE ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}/*/include)
 foreach (dir ${PROJECT_INCLUDE})
@@ -61,101 +65,124 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_INCLUDE})
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "${PROJECT_NAME}.exe")
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
-############################################## BOOST ###############################################
-find_package(Boost REQUIRED COMPONENTS filesystem system)
-target_link_libraries(${PROJECT_NAME} PRIVATE ${Boost_LIBRARIES})
-target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${Boost_INCLUDE_DIR})
-############################################### MPI ################################################
+include(FetchContent)
+####################################################### PKGCONFIG ######################################################
+#find_package(PkgConfig)
+######################################################## BOOST #########################################################
+#set(Boost_USE_DEBUG_LIBS OFF) # ignore debug libs and
+#set(Boost_USE_RELEASE_LIBS ON) # only find release libs
+find_package(Boost COMPONENTS filesystem system iostreams REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE Boost::boost Boost::filesystem Boost::system Boost::iostreams)
+#target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${Boost_INCLUDE_DIR})
+######################################################### MPI ##########################################################
 find_package(MPI REQUIRED)
-target_compile_options(${PROJECT_NAME} PUBLIC ${MPI_CXX_COMPILE_FLAGS})
-target_link_libraries(${PROJECT_NAME} PUBLIC MPI::MPI_CXX)
-target_include_directories(${PROJECT_NAME} PUBLIC ${MPI_CXX_INCLUDE_DIRS})
-############################################## OPENMP ##############################################
+#target_compile_options(${PROJECT_NAME} PRIVATE ${MPI_CXX_COMPILE_FLAGS})
+target_link_libraries(${PROJECT_NAME} PRIVATE MPI::MPI_CXX)
+#target_include_directories(${PROJECT_NAME} PRIVATE ${MPI_CXX_INCLUDE_DIRS})
+######################################################## OPENMP ########################################################
 find_package(OpenMP REQUIRED)
-target_compile_options(${PROJECT_NAME} PRIVATE ${OpenMP_CXX_FLAGS})
-target_link_libraries(${PROJECT_NAME} PUBLIC OpenMP::OpenMP_CXX)
-target_include_directories(${PROJECT_NAME} PUBLIC ${OpenMP_CXX_INCLUDE_DIRS})
-############################################## LAPACK ##############################################
-find_package(LAPACK)
-if (LAPACK_FOUND)
-    add_definitions(-DEIGEN_USE_LAPACK)
-    target_compile_options(${PROJECT_NAME} PUBLIC ${LAPACK_LINKER_FLAGS})
-    target_link_libraries(${PROJECT_NAME} PUBLIC ${LAPACK_LIBRARIES})
-    target_include_directories(${PROJECT_NAME} PUBLIC ${LAPACK_INCLUDE_DIRS})
+#target_compile_options(${PROJECT_NAME} PRIVATE ${OpenMP_CXX_FLAGS})
+target_link_libraries(${PROJECT_NAME} PRIVATE OpenMP::OpenMP_CXX)
+#target_include_directories(${PROJECT_NAME} PRIVATE ${OpenMP_CXX_INCLUDE_DIRS})
+######################################################### BLAS #########################################################
+######################################################## LAPACK ########################################################
+######################################################### MKL ##########################################################
+find_package(MKL)
+if (MKL_FOUND AND NOT CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+    message(STATUS "MKL found. Using MKL BLAS/LAPACK.")
+    set(BLA_VENDOR Intel10_64ilp)
+    add_definitions(-DEIGEN_USE_MKL_ALL)
+    target_compile_options(${PROJECT_NAME} PUBLIC $<TARGET_PROPERTY:MKL::MKL,INTERFACE_COMPILE_OPTIONS>)
+    target_link_libraries(${PROJECT_NAME} PUBLIC $<LINK_ONLY:MKL::MKL>)
+    target_include_directories(${PROJECT_NAME} PUBLIC $<TARGET_PROPERTY:MKL::MKL,INTERFACE_INCLUDE_DIRECTORIES>)
 else ()
-    message(WARNING "LAPACK not found.")
-endif ()
-############################################### BLAS ###############################################
-find_package(BLAS)
-if (BLAS_FOUND)
-    add_definitions(-DEIGEN_USE_BLAS)
-    target_compile_options(${PROJECT_NAME} PUBLIC ${BLAS_LINKER_FLAGS})
-    target_link_libraries(${PROJECT_NAME} PUBLIC ${BLAS_LIBRARIES})
-    target_include_directories(${PROJECT_NAME} PUBLIC ${BLAS_INCLUDE_DIRS})
-else ()
-    message(WARNING "BLAS not found.")
-endif ()
-############################################### MKL ################################################
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-    find_package(MKL)
-    if (MKL_FOUND)
-        set(BLA_VENDOR Intel10_64lp)
+    message(STATUS "MKL not found.")
+    if (DEFINED ENV{MKLROOT})
+        message(STATUS "But MKLROOT found, try MKL again: $ENV{MKLROOT}")
+        set(BLA_VENDOR Intel10_64ilp)
         add_definitions(-DEIGEN_USE_MKL_ALL)
-        target_compile_options(${PROJECT_NAME}  PUBLIC $<TARGET_PROPERTY:MKL::MKL,INTERFACE_COMPILE_OPTIONS>)
-        target_link_libraries(${PROJECT_NAME}  PUBLIC $<LINK_ONLY:MKL::MKL>)
-        target_include_directories(${PROJECT_NAME}  PUBLIC $<TARGET_PROPERTY:MKL::MKL,INTERFACE_INCLUDE_DIRECTORIES>)
+        if (CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+            add_definitions(-mkl)
+        endif ()
     else ()
-        message(WARNING "MKL not found.")
+        message(WARNING "MKLROOT not found. Using generic BLAS/LAPACK.")
+        set(BLA_VENDOR Generic)
+        add_definitions(-DEIGEN_USE_LAPACK -DEIGEN_USE_BLAS)
+    endif ()
+    find_package(BLAS)
+    find_package(LAPACK)
+    if (BLAS_FOUND AND LAPACK_FOUND)
+        target_compile_options(${PROJECT_NAME} PUBLIC ${BLAS_LINKER_FLAGS})
+        target_link_libraries(${PROJECT_NAME} PUBLIC ${BLAS_LIBRARIES})
+        target_include_directories(${PROJECT_NAME} PUBLIC ${BLAS_INCLUDE_DIRS})
+        target_compile_options(${PROJECT_NAME} PUBLIC ${LAPACK_LINKER_FLAGS})
+        target_link_libraries(${PROJECT_NAME} PUBLIC ${LAPACK_LIBRARIES})
+        target_include_directories(${PROJECT_NAME} PUBLIC ${LAPACK_INCLUDE_DIRS})
+    else ()
+        message(WARNING "BLAS/LAPACK not found. Using Eigen3 only.")
     endif ()
 endif ()
-############################################## EIGEN ###############################################
-find_package(Eigen3 3.0)
+######################################################## EIGEN #########################################################
+find_package(Eigen3 3.3)
 if (NOT EIGEN3_FOUND)
     message(WARNING "Eigen3 not found. Downloading Eigen3 from gitlab")
-    include(FetchContent)
     FetchContent_Declare(
-            Eigen
+            Eigen3
             GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
             GIT_TAG 3.4.0
+            GIT_PROGRESS TRUE
             GIT_SHALLOW TRUE
     )
-    FetchContent_MakeAvailable(eigen)
+    FetchContent_MakeAvailable(Eigen3)
+    set(EIGEN3_INCLUDE_DIRS ${eigen3_SOURCE_DIR})
 endif ()
 target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${EIGEN3_INCLUDE_DIRS})
-############################################ ARMADILLO #############################################
+target_link_libraries(${PROJECT_NAME} PRIVATE Eigen3::Eigen)
+###################################################### ARMADILLO #######################################################
 #find_package(ARMADILLO REQUIRED)
 #target_include_directories(${PROJECT_NAME} PUBLIC
 #        ${ARMADILLO_INCLUDE_DIRS})
 #target_link_libraries(${PROJECT_NAME} PUBLIC
 #        ${ARMADILLO_LIBRARIES})
-############################################ TENSORFLOW ############################################
+###################################################### TENSORFLOW ######################################################
 #find_package(TensorFlow REQUIRED)
 #target_include_directories(${PROJECT_NAME} PUBLIC
 #        ${TensorFlow_INCLUDE_DIRS})
 #target_link_libraries(${PROJECT_NAME} PUBLIC
 #        ${TensorFlow_LIBRARIES})
-############################################### JSON ###############################################
-# Typically you don't care so much for a third party library's tests to be
-# run from your own project's code.
-#set(JSON_BuildTests OFF CACHE INTERNAL "")
+######################################################### JSON #########################################################
+# Typically you don't care so much for a third party library's tests to be run from your own project's code.
+# set(JSON_BuildTests OFF CACHE INTERNAL "")
 # If you only include this third party in PRIVATE source files, you do not
 # need to install it when your main project gets installed.
 # set(JSON_Install OFF CACHE INTERNAL "")
 # add_subdirectory(external/json)
-include(FetchContent)
 FetchContent_Declare(
         json
         GIT_REPOSITORY https://github.com/ArthurSonzogni/nlohmann_json_cmake_fetchcontent
+        GIT_TAG v3.11.2
         GIT_PROGRESS TRUE
         GIT_SHALLOW TRUE
-        GIT_TAG v3.11.2)
+)
 FetchContent_MakeAvailable(json)
 target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
-############################################# PKGCONFIG ############################################
-#find_package(PkgConfig)
-#pkg_check_modules(EIGEN3 REQUIRED eigen3)
-#message(STATUS "Eigen3 include path: ${EIGEN3_INCLUDE_DIRS}")
-############################################ GOOGLETEST ############################################
+######################################################## SPGLIB ########################################################
+#FetchContent_Declare(
+#        Spglib
+#        GIT_REPOSITORY https://github.com/spglib/spglib.git
+#        GIT_TAG v2.1.0-rc2
+#        GIT_PROGRESS TRUE
+#        GIT_SHALLOW TRUE
+#)
+#set(SPGLIB_USE_OMP ON)
+#FetchContent_MakeAvailable(Spglib)
+##FetchContent_GetProperties(Spglib)
+##if (NOT Spglib_POPULATED)
+##    FetchContent_Populate(Spglib)
+##    add_subdirectory(${spglib_SOURCE_DIR} ${spglib_BINARY_DIR} EXCLUDE_FROM_ALL)
+##endif ()
+#target_link_libraries(${PROJECT_NAME} PRIVATE Spglib::symspg)
+###################################################### GOOGLETEST ######################################################
 #set(TEST "on")
 #IF(TEST)
 #    message(STATUS "TEST mode on")
@@ -203,12 +230,12 @@ target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
 #    message(STATUS "TEST mode off")
 #ENDIF()
 
-########################################## Display Summary ##########################################
-MESSAGE(STATUS "===============================================================")
+##################################################### SHOW SUMMARY #####################################################
+MESSAGE(STATUS "====================================================================================================")
 MESSAGE(STATUS "Project Name:       ${PROJECT_NAME}")
 MESSAGE(STATUS "C++ Compiler:       ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
 MESSAGE(STATUS "C++ Standard:       C++ ${CMAKE_CXX_STANDARD}")
 MESSAGE(STATUS "Build type:         ${CMAKE_BUILD_TYPE}")
 MESSAGE(STATUS "Build type flags:   ${CMAKE_CXX_FLAGS}")
 MESSAGE(STATUS "Output Path:        ${EXECUTABLE_OUTPUT_DIRECTORY}")
-MESSAGE(STATUS "===============================================================")
+MESSAGE(STATUS "====================================================================================================")
