@@ -1,11 +1,13 @@
 cmake_minimum_required(VERSION 3.14)
 #################################################### SET  COMPILERS ####################################################
-#set(CMAKE_C_COMPILER "icc") # {gcc, gcc-13, icc, mpicc, clang}
-#set(CMAKE_CXX_COMPILER "icpc") # {g++, g++-13, icpc, mpicxx, clang++}
-#set(CMAKE_Fortran_COMPILER "ifort") # {gfortran, gfortran-13, ifort, mpifort}
+#set(CMAKE_C_COMPILER "gcc-13") # {gcc, gcc-13, mpicc, icc, mpiicc, clang}
+#set(CMAKE_CXX_COMPILER "g++-13") # {g++, g++-13, mpicxx, icpc, mpiicpc, clang++}
+#set(CMAKE_Fortran_COMPILER "gfortran-13") # {gfortran, gfortran-13, mpifort, ifort, mpiifort, flang}
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_C_STANDARD 17)
 
 project(lmc VERSION 0.1.0)
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_VERBOSE_MAKEFILE ON)
 ###################################################### SET  PATHS ######################################################
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 set(EXECUTABLE_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
@@ -18,10 +20,10 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}"
 #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} \
 set(CMAKE_CXX_FLAGS_DEBUG "\
 -Wall -Wextra -Wshadow -Wnon-virtual-dtor -Wpointer-arith -Wold-style-cast \
--Wpedantic  -Wcast-qual -Wunused -Woverloaded-virtual -Winline -Wundef \
+-Wpedantic -Wcast-qual -Wunused -Woverloaded-virtual -Winline -Wundef \
 -Wunreachable-code -Wcast-align -Weffc++ -Wmisleading-indentation \
 -Wredundant-decls -pedantic-errors -Wnull-dereference -Wdouble-promotion \
--Wconversion -Wfatal-errors -Wextra-semi -O0 -g3 -finline-functions"
+-Wconversion -Wfatal-errors -Wextra-semi -O0 -g3"
         CACHE INTERNAL "")
 
 #set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} \
@@ -46,15 +48,12 @@ ENDIF ()
 #elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
 #
 #else ()
-###################################################### BUILD LIBS ######################################################
-#add_executable(${PROJECT_NAME} main.cpp)
-#add_subdirectory(${PROJECT_NAME}/cfg)
-#add_subdirectory(${PROJECT_NAME}/gen)
-#add_subdirectory(${PROJECT_NAME}/ansys)
-#add_subdirectory(${PROJECT_NAME}/mc)
-#target_link_libraries(${PROJECT_NAME} PUBLIC cfg gen ansys mc)
 ###################################################### BUILD SRCS ######################################################
 file(GLOB PROJECT_SRC ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}/*/src/*.cpp)
+file(GLOB PROJECT_SOURCE ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}/*/src)
+foreach (dir ${PROJECT_SOURCE})
+    message(STATUS "Found source directory: ${dir}")
+endforeach ()
 file(GLOB PROJECT_INCLUDE ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}/*/include)
 foreach (dir ${PROJECT_INCLUDE})
     message(STATUS "Found include directory: ${dir}")
@@ -63,8 +62,7 @@ endforeach ()
 add_executable(${PROJECT_NAME} ${PROJECT_NAME}/main.cpp ${PROJECT_SRC})
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_INCLUDE})
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "${PROJECT_NAME}.exe")
-
-set(CMAKE_VERBOSE_MAKEFILE ON)
+###################################################### BUILD LIBS ######################################################
 include(FetchContent)
 ####################################################### PKGCONFIG ######################################################
 #find_package(PkgConfig)
@@ -84,13 +82,11 @@ find_package(OpenMP REQUIRED)
 #target_compile_options(${PROJECT_NAME} PRIVATE ${OpenMP_CXX_FLAGS})
 target_link_libraries(${PROJECT_NAME} PRIVATE OpenMP::OpenMP_CXX)
 #target_include_directories(${PROJECT_NAME} PRIVATE ${OpenMP_CXX_INCLUDE_DIRS})
-######################################################### BLAS #########################################################
-######################################################## LAPACK ########################################################
-######################################################### MKL ##########################################################
+######################################################## EIGEN #########################################################
 find_package(MKL)
-if (MKL_FOUND AND NOT CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+if (MKL_FOUND AND NOT (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
     message(STATUS "MKL found. Using MKL BLAS/LAPACK.")
-    set(BLA_VENDOR Intel10_64ilp)
+    set(BLA_VENDOR Intel10_64lp)
     add_definitions(-DEIGEN_USE_MKL_ALL)
     target_compile_options(${PROJECT_NAME} PUBLIC $<TARGET_PROPERTY:MKL::MKL,INTERFACE_COMPILE_OPTIONS>)
     target_link_libraries(${PROJECT_NAME} PUBLIC $<LINK_ONLY:MKL::MKL>)
@@ -99,7 +95,7 @@ else ()
     message(STATUS "MKL not found.")
     if (DEFINED ENV{MKLROOT})
         message(STATUS "But MKLROOT found, try MKL again: $ENV{MKLROOT}")
-        set(BLA_VENDOR Intel10_64ilp)
+        set(BLA_VENDOR Intel10_64lp)
         add_definitions(-DEIGEN_USE_MKL_ALL)
         if (CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
             add_definitions(-mkl)
@@ -122,7 +118,7 @@ else ()
         message(WARNING "BLAS/LAPACK not found. Using Eigen3 only.")
     endif ()
 endif ()
-######################################################## EIGEN #########################################################
+
 find_package(Eigen3 3.3)
 if (NOT EIGEN3_FOUND)
     message(WARNING "Eigen3 not found. Downloading Eigen3 from gitlab")
@@ -232,10 +228,10 @@ target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
 
 ##################################################### SHOW SUMMARY #####################################################
 MESSAGE(STATUS "====================================================================================================")
-MESSAGE(STATUS "Project Name:       ${PROJECT_NAME}")
-MESSAGE(STATUS "C++ Compiler:       ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
-MESSAGE(STATUS "C++ Standard:       C++ ${CMAKE_CXX_STANDARD}")
-MESSAGE(STATUS "Build type:         ${CMAKE_BUILD_TYPE}")
-MESSAGE(STATUS "Build type flags:   ${CMAKE_CXX_FLAGS}")
-MESSAGE(STATUS "Output Path:        ${EXECUTABLE_OUTPUT_DIRECTORY}")
+MESSAGE(STATUS "Project Name:     ${PROJECT_NAME}")
+MESSAGE(STATUS "C++ Compiler:     ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
+MESSAGE(STATUS "C++ Standard:     C++ ${CMAKE_CXX_STANDARD}")
+MESSAGE(STATUS "Build type:       ${CMAKE_BUILD_TYPE}")
+MESSAGE(STATUS "Build type flags: ${CMAKE_CXX_FLAGS}")
+MESSAGE(STATUS "Output Path:      ${EXECUTABLE_OUTPUT_DIRECTORY}")
 MESSAGE(STATUS "====================================================================================================")
