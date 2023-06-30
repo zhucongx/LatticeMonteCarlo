@@ -1,12 +1,13 @@
 cmake_minimum_required(VERSION 3.14)
 #################################################### SET  COMPILERS ####################################################
+#set(CMAKE_C_COMPILER "icc") # {gcc, gcc-13, mpicc, icc, mpiicc, clang}
+#set(CMAKE_CXX_COMPILER "icpc") # {g++, g++-13, mpicxx, icpc, mpiicpc, clang++}
+#set(CMAKE_Fortran_COMPILER "ifort") # {gfortran, gfortran-13, mpifort, ifort, mpiifort, flang}
 #set(CMAKE_C_COMPILER "gcc-13") # {gcc, gcc-13, mpicc, icc, mpiicc, clang}
-#set(CMAKE_CXX_COMPILER "g++-13") # {g++, g++-13, mpicxx, icpc, mpiicpc, clang++}
-#set(CMAKE_Fortran_COMPILER "gfortran-13") # {gfortran, gfortran-13, mpifort, ifort, mpiifort, flang}
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_C_STANDARD 17)
 
-project(lmc VERSION 0.1.0)
+project(lmclib VERSION 0.1.0)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 ###################################################### SET  PATHS ######################################################
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
@@ -14,40 +15,42 @@ set(EXECUTABLE_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 ###################################################### SET  FLAGS ######################################################
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}"
-        CACHE INTERNAL "")
-
-#set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} \
-set(CMAKE_CXX_FLAGS_DEBUG "\
--Wall -Wextra -Wshadow -Wnon-virtual-dtor -Wpointer-arith -Wold-style-cast \
--Wpedantic -Wcast-qual -Wunused -Woverloaded-virtual -Winline -Wundef \
--Wunreachable-code -Wcast-align -Weffc++ -Wmisleading-indentation \
--Wredundant-decls -pedantic-errors -Wnull-dereference -Wdouble-promotion \
--Wconversion -Wfatal-errors -Wextra-semi -O0 -g3"
-        CACHE INTERNAL "")
-
-#set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} \
-set(CMAKE_CXX_FLAGS_RELEASE "\
--O3 -finline-limit=1000000 -Wall"
-        CACHE INTERNAL "")
+include(CheckCXXCompilerFlag)
+macro(add_cxx_compiler_flags FLAGS)
+    separate_arguments(FLAGS_LIST UNIX_COMMAND "${FLAGS}")
+    foreach (FLAG ${FLAGS_LIST})
+        string(REGEX REPLACE "-" "" SFLAG1 ${FLAG})
+        string(REGEX REPLACE "\\+" "p" SFLAG ${SFLAG1})
+        check_cxx_compiler_flag(${FLAG} COMPILER_SUPPORT_${SFLAG})
+        if (COMPILER_SUPPORT_${SFLAG})
+            if (CMAKE_CXX_FLAGS STREQUAL "")
+                set(CMAKE_CXX_FLAGS "${FLAG}")
+            else ()
+                set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAG}")
+            endif ()
+        endif ()
+    endforeach ()
+endmacro()
+if (CMAKE_BUILD_TYPE MATCHES Debug)
+    add_cxx_compiler_flags("-g -O0")
+    # add_cxx_compiler_flags("-Werror")
+    add_cxx_compiler_flags("-pedantic -Wall -Wextra -Wundef -Wcast-align -Wcast-qual -Wctor-dtor-privacy")
+    add_cxx_compiler_flags("-Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wextra-semi")
+    add_cxx_compiler_flags("-Wmissing-declarations -Wmissing-include-dirs -Wnoexcept -Wold-style-cast")
+    add_cxx_compiler_flags("-Woverloaded-virtual -Wredundant-decls -Wshadow -Wsign-conversion -Wsign-promo")
+    add_cxx_compiler_flags("-Wstrict-null-sentinel -Wstrict-overflow=5 -Wswitch-default -Wno-unused -Weffc++")
+    add_cxx_compiler_flags("-Wchar-subscripts -Wnon-virtual-dtor -Wunused-local-typedefs -Wpointer-arith")
+    add_cxx_compiler_flags("-Wwrite-strings -Wformat-security -Wshorten-64-to-32 -Wenum-conversion")
+    add_cxx_compiler_flags("-Wc++11-extensions -Wdouble-promotion -Wconversion -Wunused -Winline -Wunreachable-code")
+    add_cxx_compiler_flags("-Wmisleading-indentation -pedantic-errors -Wnull-dereference -Wfatal-errors")
+    add_cxx_compiler_flags("-wd593 -wd981 -wd1599 -wd2012 -wd2014 -wd2015 -wd2017 -wd2021 -wd2022 -wd2027")
+    add_cxx_compiler_flags("-wd2047 -wd2048 -wd2304 -wd2338 -wd10441 -wd11071")
+elseif (CMAKE_BUILD_TYPE MATCHES Release)
+    add_cxx_compiler_flags("-O3")
+endif ()
 
 message(STATUS "Detecting ${CMAKE_CXX_COMPILER_ID} compiler")
 message(STATUS "Current build type is ${CMAKE_BUILD_TYPE}")
-IF (CMAKE_BUILD_TYPE MATCHES Debug)
-    SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS_DEBUG})
-ELSEIF (CMAKE_BUILD_TYPE MATCHES Release)
-    SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS_RELEASE})
-ENDIF ()
-
-#if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-#
-#elseif (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
-#
-#elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-#
-#elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-#
-#else ()
 ###################################################### BUILD SRCS ######################################################
 file(GLOB PROJECT_SRC ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}/*/src/*.cpp)
 file(GLOB PROJECT_SOURCE ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}/*/src)
@@ -60,42 +63,55 @@ foreach (dir ${PROJECT_INCLUDE})
 endforeach ()
 
 add_executable(${PROJECT_NAME} ${PROJECT_NAME}/main.cpp ${PROJECT_SRC})
-target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_INCLUDE})
+target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_INCLUDE})
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "${PROJECT_NAME}.exe")
 ###################################################### BUILD LIBS ######################################################
 include(FetchContent)
+function(target_link_libraries_system target scope)
+    set(libs ${ARGN})
+    foreach (lib ${libs})
+        get_target_property(lib_include_dirs ${lib} INTERFACE_INCLUDE_DIRECTORIES)
+        if (lib_include_dirs)
+            target_include_directories(${target} SYSTEM ${scope} ${lib_include_dirs})
+        endif ()
+        target_link_libraries(${target} ${scope} ${lib})
+    endforeach ()
+endfunction()
+#function(declare_system_library target)
+#    message(STATUS "Declaring system library ${target}")
+#    get_target_property(target_aliased_name ${target} ALIASED_TARGET)
+#    if (target_aliased_name)
+#        set(target ${target_aliased_name})
+#    endif ()
+#    set_target_properties(${target} PROPERTIES
+#                          INTERFACE_SYSTEM_INCLUDE_DIRECTORIES
+#                          $<TARGET_PROPERTY:${target},INTERFACE_INCLUDE_DIRECTORIES>)
+#endfunction()
 ####################################################### PKGCONFIG ######################################################
 #find_package(PkgConfig)
 ######################################################## BOOST #########################################################
 #set(Boost_USE_DEBUG_LIBS OFF) # ignore debug libs and
 #set(Boost_USE_RELEASE_LIBS ON) # only find release libs
 find_package(Boost COMPONENTS filesystem system iostreams REQUIRED)
-target_link_libraries(${PROJECT_NAME} PRIVATE Boost::boost Boost::filesystem Boost::system Boost::iostreams)
-#target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${Boost_INCLUDE_DIR})
+target_link_libraries_system(${PROJECT_NAME} PRIVATE Boost::boost Boost::filesystem Boost::system Boost::iostreams)
 ######################################################### MPI ##########################################################
 find_package(MPI REQUIRED)
-#target_compile_options(${PROJECT_NAME} PRIVATE ${MPI_CXX_COMPILE_FLAGS})
-target_link_libraries(${PROJECT_NAME} PRIVATE MPI::MPI_CXX)
-#target_include_directories(${PROJECT_NAME} PRIVATE ${MPI_CXX_INCLUDE_DIRS})
+target_link_libraries_system(${PROJECT_NAME} PRIVATE MPI::MPI_CXX)
 ######################################################## OPENMP ########################################################
 find_package(OpenMP REQUIRED)
-#target_compile_options(${PROJECT_NAME} PRIVATE ${OpenMP_CXX_FLAGS})
-target_link_libraries(${PROJECT_NAME} PRIVATE OpenMP::OpenMP_CXX)
-#target_include_directories(${PROJECT_NAME} PRIVATE ${OpenMP_CXX_INCLUDE_DIRS})
+target_link_libraries_system(${PROJECT_NAME} PRIVATE OpenMP::OpenMP_CXX)
 ######################################################## EIGEN #########################################################
 find_package(MKL)
 if (MKL_FOUND AND NOT (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
     message(STATUS "MKL found. Using MKL BLAS/LAPACK.")
-    set(BLA_VENDOR Intel10_64lp)
+    set(BLA_VENDOR Intel10_64ilp)
     add_definitions(-DEIGEN_USE_MKL_ALL)
-    target_compile_options(${PROJECT_NAME} PUBLIC $<TARGET_PROPERTY:MKL::MKL,INTERFACE_COMPILE_OPTIONS>)
-    target_link_libraries(${PROJECT_NAME} PUBLIC $<LINK_ONLY:MKL::MKL>)
-    target_include_directories(${PROJECT_NAME} PUBLIC $<TARGET_PROPERTY:MKL::MKL,INTERFACE_INCLUDE_DIRECTORIES>)
+    target_link_libraries_system(${PROJECT_NAME} PRIVATE MKL::MKL)
 else ()
     message(STATUS "MKL not found.")
     if (DEFINED ENV{MKLROOT})
         message(STATUS "But MKLROOT found, try MKL again: $ENV{MKLROOT}")
-        set(BLA_VENDOR Intel10_64lp)
+        set(BLA_VENDOR Intel10_64ilp)
         add_definitions(-DEIGEN_USE_MKL_ALL)
         if (CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
             add_definitions(-mkl)
@@ -108,12 +124,8 @@ else ()
     find_package(BLAS)
     find_package(LAPACK)
     if (BLAS_FOUND AND LAPACK_FOUND)
-        target_compile_options(${PROJECT_NAME} PUBLIC ${BLAS_LINKER_FLAGS})
-        target_link_libraries(${PROJECT_NAME} PUBLIC ${BLAS_LIBRARIES})
-        target_include_directories(${PROJECT_NAME} PUBLIC ${BLAS_INCLUDE_DIRS})
-        target_compile_options(${PROJECT_NAME} PUBLIC ${LAPACK_LINKER_FLAGS})
-        target_link_libraries(${PROJECT_NAME} PUBLIC ${LAPACK_LIBRARIES})
-        target_include_directories(${PROJECT_NAME} PUBLIC ${LAPACK_INCLUDE_DIRS})
+        target_link_libraries_system(${PROJECT_NAME} PRIVATE BLAS::BLAS)
+        target_link_libraries_system(${PROJECT_NAME} PRIVATE LAPACK::LAPACK)
     else ()
         message(WARNING "BLAS/LAPACK not found. Using Eigen3 only.")
     endif ()
@@ -132,19 +144,18 @@ if (NOT EIGEN3_FOUND)
     FetchContent_MakeAvailable(Eigen3)
     set(EIGEN3_INCLUDE_DIRS ${eigen3_SOURCE_DIR})
 endif ()
-target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${EIGEN3_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} PRIVATE Eigen3::Eigen)
+target_link_libraries_system(${PROJECT_NAME} PRIVATE Eigen3::Eigen)
 ###################################################### ARMADILLO #######################################################
 #find_package(ARMADILLO REQUIRED)
-#target_include_directories(${PROJECT_NAME} PUBLIC
+#target_include_directories(${PROJECT_NAME} PRIVATE
 #        ${ARMADILLO_INCLUDE_DIRS})
-#target_link_libraries(${PROJECT_NAME} PUBLIC
+#target_link_libraries_system(${PROJECT_NAME} PRIVATE
 #        ${ARMADILLO_LIBRARIES})
 ###################################################### TENSORFLOW ######################################################
 #find_package(TensorFlow REQUIRED)
-#target_include_directories(${PROJECT_NAME} PUBLIC
+#target_include_directories(${PROJECT_NAME} PRIVATE
 #        ${TensorFlow_INCLUDE_DIRS})
-#target_link_libraries(${PROJECT_NAME} PUBLIC
+#target_link_libraries_system(${PROJECT_NAME} PRIVATE
 #        ${TensorFlow_LIBRARIES})
 ######################################################### JSON #########################################################
 # Typically you don't care so much for a third party library's tests to be run from your own project's code.
@@ -161,7 +172,7 @@ FetchContent_Declare(
         GIT_SHALLOW TRUE
 )
 FetchContent_MakeAvailable(json)
-target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
+target_link_libraries_system(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
 ######################################################## SPGLIB ########################################################
 #FetchContent_Declare(
 #        Spglib
@@ -177,7 +188,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
 ##    FetchContent_Populate(Spglib)
 ##    add_subdirectory(${spglib_SOURCE_DIR} ${spglib_BINARY_DIR} EXCLUDE_FROM_ALL)
 ##endif ()
-#target_link_libraries(${PROJECT_NAME} PRIVATE Spglib::symspg)
+#target_link_libraries_system(${PROJECT_NAME} PRIVATE Spglib::symspg)
 ###################################################### GOOGLETEST ######################################################
 #set(TEST "on")
 #IF(TEST)
@@ -216,7 +227,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
 #    add_executable(${TEST_NAME} gtest.cpp ${PROJECT_SRC})
 #    set_target_properties(${TEST_NAME} PROPERTIES
 #            OUTPUT_NAME "${TEST_NAME}.exe")
-#    target_include_directories(${TEST_NAME} PUBLIC
+#    target_include_directories(${TEST_NAME} PRIVATE
 #            ${PROJECT_INCLUDE}
 #            ${Boost_INCLUDE_DIR})
 #
