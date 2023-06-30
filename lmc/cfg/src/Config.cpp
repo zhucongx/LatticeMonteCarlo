@@ -1,263 +1,65 @@
+/**************************************************************************************************
+ * Copyright (c) 2020-2023. All rights reserved.                                                  *
+ * @Author: Zhucong Xi                                                                            *
+ * @Date: 1/16/20 3:55 AM                                                                         *
+ * @Last Modified by: zhucongx                                                                    *
+ * @Last Modified time: 6/30/23 3:33 PM                                                           *
+ **************************************************************************************************/
+
+/*! \file  Config.cpp
+ *  \brief File for the Config class implementation.
+ */
+
 #include "Config.h"
-
-#include <random>
-#include <chrono>
+#include <fstream>
+#include <sstream>
 #include <utility>
-#include <algorithm>
-#include <boost/functional/hash.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/iostreams/filtering_stream.hpp>
+#include <boost/iostreams/filter/gzip.hpp>
+#include <boost/iostreams/filter/bzip2.hpp>
 
-#include <omp.h>
-
-namespace cfg {
 Config::Config() = default;
-Config::Config(const Matrix_t &basis,
-               std::vector<Lattice> lattice_vector,
-               std::vector<Atom> atom_vector,
-               bool update_neighbor)
-    : basis_(basis),
-      lattice_vector_(std::move(lattice_vector)),
+Config::Config(Matrix3d basis,
+               Matrix3Xd relative_position_matrix,
+               std::vector<Atom> atom_vector)
+    : basis_(std::move(basis)),
+      relative_position_matrix_(std::move(relative_position_matrix)),
       atom_vector_(std::move(atom_vector)) {
-
-  if (lattice_vector_.size() != atom_vector_.size()) {
-    throw std::runtime_error("Lattice vector and atom vector size do not match");
+  // Check that the number of atoms is the same in the basis vectors and the relative position matrix
+  if (atom_vector_.size() != static_cast<size_t>(relative_position_matrix_.cols())) {
+    throw std::runtime_error("Lattice vector and atom vector size do not match, lattice_vector.size() = " +
+        std::to_string(relative_position_matrix_.cols()) + ", atom_vector_.size() = " +
+        std::to_string(atom_vector_.size()));
   }
-  for (size_t i = 0; i < lattice_vector_.size(); ++i) {
-    auto lattice_id = lattice_vector_.at(i).GetId();
-    auto atom_id = atom_vector_.at(i).GetId();
-    lattice_to_atom_hashmap_.emplace(lattice_id, atom_id);
-    atom_to_lattice_hashmap_.emplace(atom_id, lattice_id);
-  }
-  if (update_neighbor) {
-    UpdateNeighbors();
+  cartesian_position_matrix_ = basis_ * relative_position_matrix_;
+  for (size_t id = 0; id < atom_vector_.size(); ++id) {
+    // id here is also lattice_id
+    auto atom_id = atom_vector_.at(id).GetId();
+    lattice_to_atom_hashmap_.emplace(id, atom_id);
+    atom_to_lattice_hashmap_.emplace(atom_id, id);
   }
 }
 size_t Config::GetNumAtoms() const {
   return atom_vector_.size();
 }
-const Matrix_t &Config::GetBasis() const {
+size_t Config::GetNumSites() const {
+  return static_cast<size_t>(relative_position_matrix_.cols());
+}
+const Matrix3d &Config::GetBasis() const {
   return basis_;
 }
-const std::unordered_map<size_t, size_t> &Config::GetLatticeToAtomHashmap() const {
-  return lattice_to_atom_hashmap_;
+const std::vector<std::vector<std::vector<size_t> > > &Config::GetNeighborLists() const {
+  return neighbor_lists_;
 }
-const std::unordered_map<size_t, size_t> &Config::GetAtomToLatticeHashmap() const {
-  return atom_to_lattice_hashmap_;
+Vector3d Config::GetRelativePositionOfAtom(size_t atom_id) const {
+  return relative_position_matrix_.col(static_cast<int>(atom_to_lattice_hashmap_.at(atom_id)));
 }
-const std::vector<Lattice> &Config::GetLatticeVector() const {
-  return lattice_vector_;
+Vector3d Config::GetCartesianPositionOfAtom(size_t atom_id) const {
+  return cartesian_position_matrix_.col(static_cast<int>(atom_to_lattice_hashmap_.at(atom_id)));
 }
-const std::vector<Atom> &Config::GetAtomVector() const {
-  return atom_vector_;
-}
-const std::vector<std::vector<size_t> > &Config::GetFirstNeighborsAdjacencyList() const {
-  return first_neighbors_adjacency_list_;
-}
-const std::vector<std::vector<size_t> > &Config::GetSecondNeighborsAdjacencyList() const {
-  return second_neighbors_adjacency_list_;
-}
-const std::vector<std::vector<size_t> > &Config::GetThirdNeighborsAdjacencyList() const {
-  return third_neighbors_adjacency_list_;
-}
-std::vector<size_t> Config::GetFirstNeighborsAtomIdVectorOfAtom(size_t atom_id) const {
-  auto lattice_id = atom_to_lattice_hashmap_.at(atom_id);
-  std::vector<size_t> first_neighbors_atom_id_vector;
-  first_neighbors_atom_id_vector.reserve(constants::kNumFirstNearestNeighbors);
-  for (auto neighbor_lattice_id: first_neighbors_adjacency_list_[lattice_id]) {
-    first_neighbors_atom_id_vector.push_back(lattice_to_atom_hashmap_.at(neighbor_lattice_id));
-  }
-  return first_neighbors_atom_id_vector;
-}
-std::vector<size_t> Config::GetSecondNeighborsAtomIdVectorOfAtom(size_t atom_id) const {
-  auto lattice_id = atom_to_lattice_hashmap_.at(atom_id);
-  std::vector<size_t> second_neighbors_atom_id_vector;
-  second_neighbors_atom_id_vector.reserve(constants::kNumSecondNearestNeighbors);
-  for (auto neighbor_lattice_id: second_neighbors_adjacency_list_[lattice_id]) {
-    second_neighbors_atom_id_vector.push_back(lattice_to_atom_hashmap_.at(neighbor_lattice_id));
-  }
-  return second_neighbors_atom_id_vector;
-}
-std::vector<size_t> Config::GetThirdNeighborsAtomIdVectorOfAtom(size_t atom_id) const {
-  auto lattice_id = atom_to_lattice_hashmap_.at(atom_id);
-  std::vector<size_t> third_neighbors_atom_id_vector;
-  third_neighbors_atom_id_vector.reserve(constants::kNumThirdNearestNeighbors);
-  for (auto neighbor_lattice_id: third_neighbors_adjacency_list_[lattice_id]) {
-    third_neighbors_atom_id_vector.push_back(lattice_to_atom_hashmap_.at(neighbor_lattice_id));
-  }
-  return third_neighbors_atom_id_vector;
-}
-
-size_t Config::GetAtomIdFromLatticeId(size_t lattice_id) const {
-  return lattice_to_atom_hashmap_.at(lattice_id);
-}
-size_t Config::GetLatticeIdFromAtomId(size_t atom_id) const {
-  return atom_to_lattice_hashmap_.at(atom_id);
-}
-Element Config::GetElementAtAtomId(size_t atom_id) const {
-  return atom_vector_[atom_id].GetElement();
-}
-Element Config::GetElementAtLatticeId(size_t lattice_id) const {
-  auto atom_id = lattice_to_atom_hashmap_.at(lattice_id);
-  return atom_vector_[atom_id].GetElement();
-}
-std::set<Element> Config::GetElementSetWithoutVacancy() const {
-  std::set<Element> res;
-  for (const auto &atom: atom_vector_) {
-    if (atom.GetElement() == ElementName::X) { continue; }
-    res.insert(atom.GetElement());
-  }
-  return res;
-}
-std::map<Element, std::vector<size_t> > Config::GetElementAtomIdVectorMap() const {
-  std::map < Element, std::vector<size_t> > element_list_map;
-  for (const auto &atom: atom_vector_) {
-    element_list_map[atom.GetElement()].push_back(atom.GetId());
-  }
-  return element_list_map;
-}
-size_t Config::GetStateHash() const {
-  size_t seed = 0;
-  for (size_t i = 0; i < GetNumAtoms(); ++i) {
-    boost::hash_combine(seed, lattice_to_atom_hashmap_.at(i));
-  }
-  return seed;
-}
-
-Vector_t Config::GetLatticePairCenter(const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
-  Vector_t center_position;
-  for (const auto kDim: All_Dimensions) {
-    double first_relative =
-        GetLatticeVector()[lattice_id_jump_pair.first].GetRelativePosition()[kDim];
-    const double second_relative =
-        GetLatticeVector()[lattice_id_jump_pair.second].GetRelativePosition()[kDim];
-
-    double distance = first_relative - second_relative;
-    int period = static_cast<int>(distance / 0.5);
-    // make sure distance is the range (0, 0.5)
-    while (period != 0) {
-      first_relative -= static_cast<double>(period);
-      distance = first_relative - second_relative;
-      period = static_cast<int>(distance / 0.5);
-    }
-    center_position[kDim] = 0.5 * (first_relative + second_relative);
-  }
-  return center_position;
-}
-Matrix_t Config::GetLatticePairRotationMatrix(
-    const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
-  const auto &first_lattice = GetLatticeVector()[lattice_id_jump_pair.first];
-  const auto &second_lattice = GetLatticeVector()[lattice_id_jump_pair.second];
-
-  const Vector_t
-      pair_direction = Normalize(GetRelativeDistanceVectorLattice(first_lattice, second_lattice));
-  Vector_t vertical_vector{};
-  for (const auto index: GetFirstNeighborsAdjacencyList().at(lattice_id_jump_pair.first)) {
-    const Vector_t jump_vector =
-        GetRelativeDistanceVectorLattice(first_lattice, GetLatticeVector()[index]);
-    const double dot_prod = Dot(pair_direction, jump_vector);
-    if (std::abs(dot_prod) < 1e-6) {
-      vertical_vector = Normalize(jump_vector);
-      break;
-    }
-  }
-  // The third row is normalized since it is a cross product of two normalized vectors.
-  // We use transposed matrix here because transpose of an orthogonal matrix equals its inverse
-  return TransposeMatrix({pair_direction, vertical_vector,
-                          Cross(pair_direction, vertical_vector)});
-}
-
-size_t Config::GetVacancyAtomId() const {
-  return GetAtomIdFromLatticeId(GetVacancyLatticeId());
-}
-size_t Config::GetVacancyLatticeId() const {
-  const auto &atom_vector = GetAtomVector();
-  auto it = std::find_if(atom_vector.cbegin(),
-                         atom_vector.cend(),
-                         [](const auto &atom) {
-                           return atom.GetElement() == ElementName::X;
-                         });
-  if (it != atom_vector.end()) {
-    return GetLatticeIdFromAtomId(it->GetId());
-  } else {
-    throw std::runtime_error("vacancy not found");
-  }
-  return 0;
-}
-std::unordered_set<size_t> Config::GetNeighborsLatticeIdSetOfSite(
-    size_t lattice_id) const {
-  std::unordered_set<size_t> near_neighbors_hashset;
-  near_neighbors_hashset.insert(lattice_id);
-  std::copy(GetFirstNeighborsAdjacencyList().at(lattice_id).begin(),
-            GetFirstNeighborsAdjacencyList().at(lattice_id).end(),
-            std::inserter(near_neighbors_hashset,
-                          near_neighbors_hashset.begin()));
-  std::copy(GetSecondNeighborsAdjacencyList().at(lattice_id).begin(),
-            GetSecondNeighborsAdjacencyList().at(lattice_id).end(),
-            std::inserter(near_neighbors_hashset,
-                          near_neighbors_hashset.begin()));
-  std::copy(GetThirdNeighborsAdjacencyList().at(lattice_id).begin(),
-            GetThirdNeighborsAdjacencyList().at(lattice_id).end(),
-            std::inserter(near_neighbors_hashset,
-                          near_neighbors_hashset.begin()));
-  return near_neighbors_hashset;
-}
-std::unordered_set<size_t> Config::GetNeighborsLatticeIdSetOfPair(
-    const std::pair<size_t, size_t> &lattice_id_pair) const {
-  std::unordered_set<size_t> near_neighbors_hashset;
-  for (const auto lattice_id: {lattice_id_pair.first, lattice_id_pair.second}) {
-    near_neighbors_hashset.insert(lattice_id);
-    std::copy(GetFirstNeighborsAdjacencyList().at(lattice_id).begin(),
-              GetFirstNeighborsAdjacencyList().at(lattice_id).end(),
-              std::inserter(near_neighbors_hashset,
-                            near_neighbors_hashset.begin()));
-    std::copy(GetSecondNeighborsAdjacencyList().at(lattice_id).begin(),
-              GetSecondNeighborsAdjacencyList().at(lattice_id).end(),
-              std::inserter(near_neighbors_hashset,
-                            near_neighbors_hashset.begin()));
-    std::copy(GetThirdNeighborsAdjacencyList().at(lattice_id).begin(),
-              GetThirdNeighborsAdjacencyList().at(lattice_id).end(),
-              std::inserter(near_neighbors_hashset,
-                            near_neighbors_hashset.begin()));
-  }
-  return near_neighbors_hashset;
-}
-int Config::FindDistanceLabelBetweenLattice(size_t lattice_id1, size_t lattice_id2) const {
-  const auto &first_neighbors_adjacency_list = GetFirstNeighborsAdjacencyList()[lattice_id1];
-  const auto &second_neighbors_adjacency_list = GetSecondNeighborsAdjacencyList()[lattice_id1];
-  const auto &third_neighbors_adjacency_list = GetThirdNeighborsAdjacencyList()[lattice_id1];
-  if (std::find(first_neighbors_adjacency_list.begin(),
-                first_neighbors_adjacency_list.end(),
-                lattice_id2) != first_neighbors_adjacency_list.end()) {
-    return 1;
-  }
-  if (std::find(second_neighbors_adjacency_list.begin(),
-                second_neighbors_adjacency_list.end(),
-                lattice_id2) != second_neighbors_adjacency_list.end()) {
-    return 2;
-  }
-  if (std::find(third_neighbors_adjacency_list.begin(),
-                third_neighbors_adjacency_list.end(),
-                lattice_id2) != third_neighbors_adjacency_list.end()) {
-    return 3;
-  }
-  return -1;
-}
-double Config::GetVacancyConcentration() const {
-  size_t vacancy_count = 0;
-  for (const auto &atom: GetAtomVector()) {
-    if (atom.GetElement() == ElementName::X) {
-      vacancy_count++;
-    }
-  }
-  return static_cast<double> (vacancy_count) / static_cast<double> (GetNumAtoms());
-}
-double Config::GetSoluteConcentration(Element solvent_element) const {
-  size_t solute_count = 0;
-  for (const auto &atom: GetAtomVector()) {
-    if (atom.GetElement() != solvent_element && atom.GetElement() != ElementName::X) {
-      solute_count++;
-    }
-  }
-  return static_cast<double> (solute_count ) / static_cast<double> (GetNumAtoms());
+void Config::SetPeriodicBoundaryCondition(const std::array<bool, 3> &periodic_boundary_condition) {
+  periodic_boundary_condition_ = periodic_boundary_condition;
 }
 void Config::AtomJump(const std::pair<size_t, size_t> &atom_id_jump_pair) {
   const auto [atom_id_lhs, atom_id_rhs] = atom_id_jump_pair;
@@ -269,562 +71,361 @@ void Config::AtomJump(const std::pair<size_t, size_t> &atom_id_jump_pair) {
   lattice_to_atom_hashmap_.at(lattice_id_lhs) = atom_id_rhs;
   lattice_to_atom_hashmap_.at(lattice_id_rhs) = atom_id_lhs;
 }
-void Config::LatticeJump(const std::pair<size_t, size_t> &lattice_id_jump_pair) {
-  const auto [lattice_id_lhs, lattice_id_rhs] = lattice_id_jump_pair;
-  const auto atom_id_lhs = lattice_to_atom_hashmap_.at(lattice_id_lhs);
-  const auto atom_id_rhs = lattice_to_atom_hashmap_.at(lattice_id_rhs);
-
-  atom_to_lattice_hashmap_.at(atom_id_lhs) = lattice_id_rhs;
-  atom_to_lattice_hashmap_.at(atom_id_rhs) = lattice_id_lhs;
-  lattice_to_atom_hashmap_.at(lattice_id_lhs) = atom_id_rhs;
-  lattice_to_atom_hashmap_.at(lattice_id_rhs) = atom_id_lhs;
-}
-
-void Config::ChangeAtomElementTypeAtAtom(size_t atom_id, Element element) {
-  atom_vector_.at(atom_id).SetElement(element);
-}
-void Config::ChangeAtomElementTypeAtLattice(size_t lattice_id, Element element) {
-  atom_vector_.at(lattice_to_atom_hashmap_.at(lattice_id)).SetElement(element);
-}
-
-void Config::ReassignLatticeVector() {
-  auto new_lattice_vector(lattice_vector_);
-  std::sort(new_lattice_vector.begin(),
-            new_lattice_vector.end(),
-            [](const auto &lhs, const auto &rhs) -> bool {
-              return lhs.GetRelativePosition() < rhs.GetRelativePosition();
-            });
-  std::unordered_map < size_t, size_t > old_lattice_id_to_new;
-  for (size_t lattice_id = 0; lattice_id < GetNumAtoms(); ++lattice_id) {
-    old_lattice_id_to_new.emplace(new_lattice_vector.at(lattice_id).GetId(), lattice_id);
-    new_lattice_vector.at(lattice_id).SetId(lattice_id);
-  }
-  std::unordered_map < size_t, size_t > new_lattice_to_atom_hashmap, new_atom_to_lattice_hashmap;
-  for (size_t atom_id = 0; atom_id < GetNumAtoms(); ++atom_id) {
-    auto old_lattice_id = atom_to_lattice_hashmap_.at(atom_id);
-    auto new_lattice_id = old_lattice_id_to_new.at(old_lattice_id);
-    new_lattice_to_atom_hashmap.emplace(new_lattice_id, atom_id);
-    new_atom_to_lattice_hashmap.emplace(atom_id, new_lattice_id);
-  }
-
-  std::vector<std::vector<size_t> > new_first_neighbors_adjacency_list,
-      new_second_neighbors_adjacency_list,
-      new_third_neighbors_adjacency_list;
-  new_first_neighbors_adjacency_list.resize(GetNumAtoms());
-  for (auto &neighbor_list: new_first_neighbors_adjacency_list) {
-    neighbor_list.clear();
-    neighbor_list.reserve(constants::kNumFirstNearestNeighbors);
-  }
-  new_second_neighbors_adjacency_list.resize(GetNumAtoms());
-  for (auto &neighbor_list: new_second_neighbors_adjacency_list) {
-    neighbor_list.clear();
-    neighbor_list.reserve(constants::kNumSecondNearestNeighbors);
-  }
-  new_third_neighbors_adjacency_list.resize(GetNumAtoms());
-  for (auto &neighbor_list: new_third_neighbors_adjacency_list) {
-    neighbor_list.clear();
-    neighbor_list.reserve(constants::kNumThirdNearestNeighbors);
-  }
-
-  for (size_t old_lattice_id = 0; old_lattice_id < GetNumAtoms(); ++old_lattice_id) {
-    const auto &old_neighbor_id_vector = first_neighbors_adjacency_list_.at(old_lattice_id);
-    const auto new_lattice_id = old_lattice_id_to_new.at(old_lattice_id);
-    for (const auto old_neighbor_id: old_neighbor_id_vector) {
-      new_first_neighbors_adjacency_list.at(new_lattice_id).push_back(
-          old_lattice_id_to_new.at(old_neighbor_id));
+Vector3d Config::GetRelativeDistanceVectorLattice(size_t lattice_id1, size_t lattice_id2) const {
+  Vector3d relative_distance_vector = relative_position_matrix_.col(static_cast<int>(lattice_id2))
+      - relative_position_matrix_.col(static_cast<int>(lattice_id1));
+  // periodic boundary conditions
+  for (const size_t kDim : std::vector<size_t>{0, 1, 2}) {
+    if (periodic_boundary_condition_[kDim]) {
+      while (relative_distance_vector[static_cast<int>(kDim)] >= 0.5) {
+        relative_distance_vector[static_cast<int>(kDim)] -= 1;
+      }
+      while (relative_distance_vector[static_cast<int>(kDim)] < -0.5) {
+        relative_distance_vector[static_cast<int>(kDim)] += 1;
+      }
     }
   }
-  for (size_t old_lattice_id = 0; old_lattice_id < GetNumAtoms(); ++old_lattice_id) {
-    const auto &old_neighbor_id_vector = second_neighbors_adjacency_list_.at(old_lattice_id);
-    const auto new_lattice_id = old_lattice_id_to_new.at(old_lattice_id);
-    for (const auto old_neighbor_id: old_neighbor_id_vector) {
-      new_second_neighbors_adjacency_list.at(new_lattice_id).push_back(
-          old_lattice_id_to_new.at(old_neighbor_id));
+  return relative_distance_vector;
+}
+void Config::UpdateNeighborList(std::vector<double> cutoffs) {
+  cutoffs_ = std::move(cutoffs);
+  std::sort(cutoffs_.begin(), cutoffs_.end());
+  std::vector<double> cutoffs_squared(cutoffs_.size());
+  std::transform(cutoffs_.begin(),
+                 cutoffs_.end(),
+                 cutoffs_squared.begin(),
+                 [](double cutoff) { return cutoff * cutoff; });
+
+  std::vector<std::vector<size_t>> neighbors_list(GetNumSites());
+  neighbor_lists_ = {cutoffs_.size(), neighbors_list};
+
+  const auto basis_inverse = basis_.inverse().transpose();
+  double cutoff_pbc = std::numeric_limits<double>::infinity();
+  for (const auto kDim : {0, 1, 2}) {
+    if (periodic_boundary_condition_[static_cast<size_t>(kDim)]) {
+      cutoff_pbc = std::min(cutoff_pbc, 0.5 / basis_inverse.col(kDim).norm());
     }
   }
-  for (size_t old_lattice_id = 0; old_lattice_id < GetNumAtoms(); ++old_lattice_id) {
-    const auto &old_neighbor_id_vector = third_neighbors_adjacency_list_.at(old_lattice_id);
-    const auto new_lattice_id = old_lattice_id_to_new.at(old_lattice_id);
-    for (const auto old_neighbor_id: old_neighbor_id_vector) {
-      new_third_neighbors_adjacency_list.at(new_lattice_id).push_back(
-          old_lattice_id_to_new.at(old_neighbor_id));
-    }
+  if (cutoff_pbc <= cutoffs_.back()) {
+    throw std::runtime_error(
+        "The cutoff is larger than the maximum cutoff allowed due to periodic boundary conditions, "
+        "cutoff_pbc = " + std::to_string(cutoff_pbc) + ", cutoff_input = " + std::to_string(cutoffs_.back()));
+  }
+  // Calculate the number of cells in each dimension, at least 3
+  num_cells_ = ((basis_.colwise().norm().array()) / (0. + cutoffs_.back())).floor().cast<int>();
+  num_cells_ = num_cells_.cwiseMax(Eigen::Vector3i::Constant(3));
+
+  // Create cells
+  cells_ = std::vector<std::vector<size_t>>(static_cast<size_t>(num_cells_.prod()));
+  for (size_t lattice_id = 0; lattice_id < GetNumSites(); ++lattice_id) {
+    const Vector3d relative_position = relative_position_matrix_.col(static_cast<int>(lattice_id));
+    Vector3i cell_pos = (num_cells_.cast<double>().array() * relative_position.array()).floor().cast<int>();
+    int cell_idx = (cell_pos(0) * num_cells_(1) + cell_pos(1)) * num_cells_(2) + cell_pos(2);
+    cells_.at(static_cast<size_t>(cell_idx)).push_back(lattice_id);
   }
 
-  for (size_t lattice_id = 0; lattice_id < GetNumAtoms(); ++lattice_id) {
-    std::sort(new_first_neighbors_adjacency_list.at(lattice_id).begin(),
-              new_first_neighbors_adjacency_list.at(lattice_id).end());
-    std::sort(new_second_neighbors_adjacency_list.at(lattice_id).begin(),
-              new_second_neighbors_adjacency_list.at(lattice_id).end());
-    std::sort(new_third_neighbors_adjacency_list.at(lattice_id).begin(),
-              new_third_neighbors_adjacency_list.at(lattice_id).end());
+  // // Check if the max distance between two atoms in the neighboring cells is greater than the cutoff
+  // Eigen::Matrix3d cell_basis = basis_.array().colwise() / num_cells_.cast<double>().array();
+  // double cutoff_cell = 1 / (cell_basis.inverse().colwise().norm().maxCoeff());
+  // if (cutoff_cell <= cutoffs_.back()) {
+  //   throw std::runtime_error(
+  //       "The cutoff is larger than the maximum cutoff allowed due to non-orthogonal cells "
+  //       "cutoff_cell = " + std::to_string(cutoff_cell) + ", cutoff_input = " + std::to_string(cutoffs_.back()));
+  // }
+
+  // Create neighbor list, iterate over each cell and find neighboring points
+  for (int i = 0; i < num_cells_(0); ++i) {
+    for (int j = 0; j < num_cells_(1); ++j) {
+      for (int k = 0; k < num_cells_(2); ++k) {
+        int cell_idx = (i * num_cells_(1) + j) * num_cells_(2) + k;
+        auto &cell = cells_[static_cast<size_t>(cell_idx)];
+        // Check neighboring cells, taking into account periodic boundaries
+        for (int di = -1; di <= 1; ++di) {
+          for (int dj = -1; dj <= 1; ++dj) {
+            for (int dk = -1; dk <= 1; ++dk) {
+              int ni = (i + di + num_cells_(0)) % num_cells_(0);
+              int nj = (j + dj + num_cells_(1)) % num_cells_(1);
+              int nk = (k + dk + num_cells_(2)) % num_cells_(2);
+              int neighbor_cell_idx = (ni * num_cells_(1) + nj) * num_cells_(2) + nk;
+              auto &neighbor_cell = cells_.at(static_cast<size_t>(neighbor_cell_idx));
+              // For each point in the cell, check if it's close to any point in the neighboring cell
+              for (size_t lattice_id1 : cell) {
+                for (size_t lattice_id2 : neighbor_cell) {
+                  // Make sure we're not comparing a point to itself, and don't double-count pairs within the same cell
+                  if (lattice_id2 >= lattice_id1) { continue; }
+                  // Calculate distance
+                  Vector3d relative_distance_vector = GetRelativeDistanceVectorLattice(lattice_id1, lattice_id2);
+                  double cartesian_distance_squared = (basis_ * relative_distance_vector).squaredNorm();
+                  // If the distance is less than the cutoff, the points are bonded
+                  for (size_t cutoff_squared_id = 0; cutoff_squared_id < cutoffs_squared.size(); ++cutoff_squared_id) {
+                    if (cartesian_distance_squared < cutoffs_squared.at(cutoff_squared_id)) {
+                      neighbor_lists_.at(cutoff_squared_id).at(lattice_id1).push_back(lattice_id2);
+                      neighbor_lists_.at(cutoff_squared_id).at(lattice_id2).push_back(lattice_id1);
+                      break;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }
-  lattice_vector_ = new_lattice_vector;
-  lattice_to_atom_hashmap_ = new_lattice_to_atom_hashmap;
-  atom_to_lattice_hashmap_ = new_atom_to_lattice_hashmap;
-  first_neighbors_adjacency_list_ = new_first_neighbors_adjacency_list;
-  second_neighbors_adjacency_list_ = new_second_neighbors_adjacency_list;
-  third_neighbors_adjacency_list_ = new_third_neighbors_adjacency_list;
 }
 
-Config Config::ReadConfig(const std::string &filename) {
-  std::ifstream ifs(filename, std::ifstream::in);
-  if (!ifs.is_open()) {
-    throw std::runtime_error("Cannot open " + filename);
+Config Config::ReadCfg(const std::string &filename) {
+  std::ifstream ifs(filename, std::ios_base::in | std::ios_base::binary);
+  if (!ifs) {
+    throw std::runtime_error("Could not open file: " + filename);
   }
+  boost::iostreams::filtering_istream fis;
+  if (boost::filesystem::path(filename).extension() == ".gz") {
+    fis.push(boost::iostreams::gzip_decompressor());
+  } else if (boost::filesystem::path(filename).extension() == ".bz2") {
+    fis.push(boost::iostreams::bzip2_decompressor());
+  }
+  fis.push(ifs);
+
   // "Number of particles = %i"
-  ifs.ignore(std::numeric_limits<std::streamsize>::max(), '=');
+  fis.ignore(std::numeric_limits<std::streamsize>::max(), '=');
   size_t num_atoms;
-  ifs >> num_atoms;
+  fis >> num_atoms;
   // A = 1.0 Angstrom (basic length-scale)
-  ifs.ignore(std::numeric_limits<std::streamsize>::max(), '=');
+  fis.ignore(std::numeric_limits<std::streamsize>::max(), '=');
   double basis_xx, basis_xy, basis_xz,
       basis_yx, basis_yy, basis_yz,
       basis_zx, basis_zy, basis_zz;
   // "H0(1,1) = %lf A"
-  ifs.ignore(std::numeric_limits<std::streamsize>::max(), '=');
-  ifs >> basis_xx;
+  fis.ignore(std::numeric_limits<std::streamsize>::max(), '=');
+  fis >> basis_xx;
   // "H0(1,2) = %lf A"
-  ifs.ignore(std::numeric_limits<std::streamsize>::max(), '=');
-  ifs >> basis_xy;
+  fis.ignore(std::numeric_limits<std::streamsize>::max(), '=');
+  fis >> basis_xy;
   // "H0(1,3) = %lf A"
-  ifs.ignore(std::numeric_limits<std::streamsize>::max(), '=');
-  ifs >> basis_xz;
+  fis.ignore(std::numeric_limits<std::streamsize>::max(), '=');
+  fis >> basis_xz;
   // "H0(2,1) = %lf A"
-  ifs.ignore(std::numeric_limits<std::streamsize>::max(), '=');
-  ifs >> basis_yx;
+  fis.ignore(std::numeric_limits<std::streamsize>::max(), '=');
+  fis >> basis_yx;
   // "H0(2,2) = %lf A"
-  ifs.ignore(std::numeric_limits<std::streamsize>::max(), '=');
-  ifs >> basis_yy;
+  fis.ignore(std::numeric_limits<std::streamsize>::max(), '=');
+  fis >> basis_yy;
   // "H0(2,3) = %lf A"
-  ifs.ignore(std::numeric_limits<std::streamsize>::max(), '=');
-  ifs >> basis_yz;
+  fis.ignore(std::numeric_limits<std::streamsize>::max(), '=');
+  fis >> basis_yz;
   // "H0(3,1) = %lf A"
-  ifs.ignore(std::numeric_limits<std::streamsize>::max(), '=');
-  ifs >> basis_zx;
+  fis.ignore(std::numeric_limits<std::streamsize>::max(), '=');
+  fis >> basis_zx;
   // "H0(3,2) = %lf A"
-  ifs.ignore(std::numeric_limits<std::streamsize>::max(), '=');
-  ifs >> basis_zy;
+  fis.ignore(std::numeric_limits<std::streamsize>::max(), '=');
+  fis >> basis_zy;
   // "H0(3,3) = %lf A"
-  ifs.ignore(std::numeric_limits<std::streamsize>::max(), '=');
-  ifs >> basis_zz;
+  fis.ignore(std::numeric_limits<std::streamsize>::max(), '=');
+  fis >> basis_zz;
   // finish this line
-  ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+  fis.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
   // .NO_VELOCITY.
-  ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+  fis.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
   // "entry_count = 3"
-  ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-  auto basis = Matrix_t{{{basis_xx, basis_xy, basis_xz},
-                         {basis_yx, basis_yy, basis_yz},
-                         {basis_zx, basis_zy, basis_zz}}};
+  fis.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+  auto basis = Matrix3d{{basis_xx, basis_xy, basis_xz},
+                        {basis_yx, basis_yy, basis_yz},
+                        {basis_zx, basis_zy, basis_zz}};
   std::vector<Atom> atom_vector;
   atom_vector.reserve(num_atoms);
-  std::vector<Lattice> lattice_vector;
-  lattice_vector.reserve(num_atoms);
+  Matrix3Xd relative_position_matrix = Matrix3Xd(3, num_atoms);
 
   double mass;
   std::string type;
-  Vector_t relative_position;
-  size_t neighbor_id;
-  bool neighbor_found = false;
+  Vector3d relative_position;
 
   std::vector<std::vector<size_t> > first_neighbors_adjacency_list,
       second_neighbors_adjacency_list, third_neighbors_adjacency_list;
 
-  for (size_t lattice_id = 0; lattice_id < num_atoms; ++lattice_id) {
-    ifs >> mass >> type >> relative_position;
-    atom_vector.emplace_back(lattice_id, type);
-    lattice_vector.emplace_back(lattice_id, relative_position * basis, relative_position);
-    if (ifs.peek() != '\n') {
-      ifs.ignore(std::numeric_limits<std::streamsize>::max(), '#');
-      std::vector<size_t> first_neighbors_list, second_neighbors_list, third_neighbor_list;
-      for (size_t i = 0; i < constants::kNumFirstNearestNeighbors; ++i) {
-        ifs >> neighbor_id;
-        first_neighbors_list.push_back(neighbor_id);
-      }
-      first_neighbors_adjacency_list.push_back(first_neighbors_list);
+  for (size_t id = 0; id < num_atoms; ++id) {
+    fis >> mass >> type >> relative_position(0) >> relative_position(1) >> relative_position(2);
+    atom_vector.emplace_back(id, type);
+    relative_position_matrix.col(static_cast<int>(id)) = relative_position;
+  }
+  return Config{basis, relative_position_matrix, atom_vector};
+}
 
-      for (size_t i = 0; i < constants::kNumSecondNearestNeighbors; ++i) {
-        ifs >> neighbor_id;
-        second_neighbors_list.push_back(neighbor_id);
-      }
-      second_neighbors_adjacency_list.push_back(second_neighbors_list);
+Config Config::ReadPoscar(const std::string &filename) {
+  std::ifstream ifs(filename, std::ios_base::in | std::ios_base::binary);
+  if (!ifs) {
+    throw std::runtime_error("Could not open file: " + filename);
+  }
+  boost::iostreams::filtering_istream fis;
+  if (boost::filesystem::path(filename).extension() == ".gz") {
+    fis.push(boost::iostreams::gzip_decompressor());
+  } else if (boost::filesystem::path(filename).extension() == ".bz2") {
+    fis.push(boost::iostreams::bzip2_decompressor());
+  }
+  fis.push(ifs);
 
-      for (size_t i = 0; i < constants::kNumThirdNearestNeighbors; ++i) {
-        ifs >> neighbor_id;
-        third_neighbor_list.push_back(neighbor_id);
-      }
-      third_neighbors_adjacency_list.push_back(third_neighbor_list);
+  fis.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // #comment
+  double scale;
+  fis >> scale; // scale factor, usually which is 1.0
+  Matrix3d basis;
+  fis >> basis(0, 0) >> basis(0, 1) >> basis(0, 2); // lattice vector a
+  fis >> basis(1, 0) >> basis(1, 1) >> basis(1, 2); // lattice vector b
+  fis >> basis(2, 0) >> basis(2, 1) >> basis(2, 2); // lattice vector c
+  fis.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // finish this line
+  basis *= scale;
+  auto inverse_basis = basis.inverse();
 
-      ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-      neighbor_found = true;
+  std::string buffer;
+  getline(fis, buffer);
+  std::istringstream element_iss(buffer);
+  getline(fis, buffer);
+  std::istringstream count_iss(buffer);
+
+  std::string element;
+  size_t num_atoms;
+  std::vector<std::pair<std::string, size_t>> elements_counts;
+  while (element_iss >> element && count_iss >> num_atoms) {
+    elements_counts.emplace_back(element, num_atoms);
+  }
+  getline(fis, buffer);
+  bool relative_option =
+      buffer[0] != 'C' && buffer[0] != 'c' && buffer[0] != 'K' && buffer[0] != 'k';
+
+  std::vector<Atom> atom_vector;
+  atom_vector.reserve(num_atoms);
+  Matrix3Xd relative_position_matrix = Matrix3Xd(3, num_atoms);
+
+  size_t id_count = 0;
+  double position_X, position_Y, position_Z;
+  for (const auto &[element_symbol, count] : elements_counts) {
+    for (size_t j = 0; j < count; ++j) {
+      fis >> position_X >> position_Y >> position_Z;
+      fis.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+      if (relative_option) {
+        relative_position_matrix.col(static_cast<int>(id_count)) =
+            Vector3d(position_X, position_Y, position_Z);
+      } else {
+        relative_position_matrix.col(static_cast<int>(id_count)) =
+            inverse_basis * Vector3d(position_X, position_Y, position_Z);
+      }
+      atom_vector.emplace_back(id_count, element_symbol);
+      ++id_count;
     }
   }
-
-  if (neighbor_found) {
-    std::cout << "Using neighbor information from file..." << std::endl;
-    Config config(basis, lattice_vector, atom_vector, false);
-    config.first_neighbors_adjacency_list_ = first_neighbors_adjacency_list;
-    config.second_neighbors_adjacency_list_ = second_neighbors_adjacency_list;
-    config.third_neighbors_adjacency_list_ = third_neighbors_adjacency_list;
-    return config;
-  } else {
-    std::cout << "Updating neighbor list..." << std::endl;
-    return Config{basis, lattice_vector, atom_vector, true};
-  }
+  return Config{basis, relative_position_matrix, atom_vector};
 }
-void Config::WriteConfig(const std::string &filename, bool neighbors_info) const {
-  std::ofstream ofs(filename, std::ofstream::out);
-  ofs.precision(16);
-  ofs << "Number of particles = " << GetNumAtoms() << '\n';
-  ofs << "A = 1.0 Angstrom (basic length-scale)\n";
-  ofs << "H0(1,1) = " << basis_[kXDimension][kXDimension] << " A\n";
-  ofs << "H0(1,2) = " << basis_[kXDimension][kYDimension] << " A\n";
-  ofs << "H0(1,3) = " << basis_[kXDimension][kZDimension] << " A\n";
-  ofs << "H0(2,1) = " << basis_[kYDimension][kXDimension] << " A\n";
-  ofs << "H0(2,2) = " << basis_[kYDimension][kYDimension] << " A\n";
-  ofs << "H0(2,3) = " << basis_[kYDimension][kZDimension] << " A\n";
-  ofs << "H0(3,1) = " << basis_[kZDimension][kXDimension] << " A\n";
-  ofs << "H0(3,2) = " << basis_[kZDimension][kYDimension] << " A\n";
-  ofs << "H0(3,3) = " << basis_[kZDimension][kZDimension] << " A\n";
-  ofs << ".NO_VELOCITY.\n";
-  ofs << "entry_count = 3\n";
-  for (const auto &atom: atom_vector_) {
-    size_t lattice_id = atom_to_lattice_hashmap_.at(atom.GetId());
-    const auto &lattice = lattice_vector_[lattice_id];
-    ofs << atom.GetMass() << '\n'
-        << atom.GetElementString() << '\n'
-        << lattice.GetRelativePosition();
-    if (neighbors_info) {
-      ofs << " # ";
-      for (auto neighbor_lattice_index: first_neighbors_adjacency_list_[lattice_id]) {
-        ofs << lattice_to_atom_hashmap_.at(neighbor_lattice_index) << ' ';
-      }
-      for (auto neighbor_lattice_index: second_neighbors_adjacency_list_[lattice_id]) {
-        ofs << lattice_to_atom_hashmap_.at(neighbor_lattice_index) << ' ';
-      }
-      for (auto neighbor_lattice_index: third_neighbors_adjacency_list_[lattice_id]) {
-        ofs << lattice_to_atom_hashmap_.at(neighbor_lattice_index) << ' ';
-      }
-    }
-    ofs << '\n';
-    ofs << std::flush;
-  }
+void Config::WriteConfig(const std::string &filename) const {
+  WriteConfigExtended(filename, {});
 }
-void Config::WriteExtendedConfig(
+void Config::WriteConfigExtended(
     const std::string &filename,
-    const std::map<std::string, std::vector<double> > &auxiliary_lists) const {
-  std::ofstream ofs(filename, std::ofstream::out);
-  ofs.precision(16);
-  ofs << "Number of particles = " << GetNumAtoms() << '\n';
-  ofs << "A = 1.0 Angstrom (basic length-scale)\n";
-  ofs << "H0(1,1) = " << basis_[kXDimension][kXDimension] << " A\n";
-  ofs << "H0(1,2) = " << basis_[kXDimension][kYDimension] << " A\n";
-  ofs << "H0(1,3) = " << basis_[kXDimension][kZDimension] << " A\n";
-  ofs << "H0(2,1) = " << basis_[kYDimension][kXDimension] << " A\n";
-  ofs << "H0(2,2) = " << basis_[kYDimension][kYDimension] << " A\n";
-  ofs << "H0(2,3) = " << basis_[kYDimension][kZDimension] << " A\n";
-  ofs << "H0(3,1) = " << basis_[kZDimension][kXDimension] << " A\n";
-  ofs << "H0(3,2) = " << basis_[kZDimension][kYDimension] << " A\n";
-  ofs << "H0(3,3) = " << basis_[kZDimension][kZDimension] << " A\n";
-  ofs << ".NO_VELOCITY.\n";
-  ofs << "entry_count = " << 3 + auxiliary_lists.size() << "\n";
+    const std::map<std::string, std::vector<double>> &auxiliary_lists) const {
+  std::ofstream ofs(filename, std::ios_base::out | std::ios_base::binary);
+  boost::iostreams::filtering_ostream fos;
+  if (boost::filesystem::path(filename).extension() == ".gz") {
+    fos.push(boost::iostreams::gzip_compressor());
+  } else if (boost::filesystem::path(filename).extension() == ".bz2") {
+    fos.push(boost::iostreams::bzip2_compressor());
+  }
+  fos.push(ofs);
 
+  fos.precision(8);
+  fos << "Number of particles = " << GetNumAtoms() << '\n';
+  fos << "A = 1.0 Angstrom (basic length-scale)\n";
+  fos << "H0(1,1) = " << basis_(0, 0) << " A\n";
+  fos << "H0(1,2) = " << basis_(0, 1) << " A\n";
+  fos << "H0(1,3) = " << basis_(0, 2) << " A\n";
+  fos << "H0(2,1) = " << basis_(1, 0) << " A\n";
+  fos << "H0(2,2) = " << basis_(1, 1) << " A\n";
+  fos << "H0(2,3) = " << basis_(1, 2) << " A\n";
+  fos << "H0(3,1) = " << basis_(2, 0) << " A\n";
+  fos << "H0(3,2) = " << basis_(2, 1) << " A\n";
+  fos << "H0(3,3) = " << basis_(2, 2) << " A\n";
+  fos << ".NO_VELOCITY.\n";
+  fos << "entry_count = " << 3 + auxiliary_lists.size() << "\n";
   size_t auxiliary_index = 0;
-  for (const auto &auxiliary_list: auxiliary_lists) {
-    ofs << "auxiliary[" << auxiliary_index << "] = " << auxiliary_list.first << " [reduced unit]\n";
+  for (const auto &auxiliary_list : auxiliary_lists) {
+    fos << "auxiliary[" << auxiliary_index << "] = " << auxiliary_list.first << " [reduced unit]\n";
     ++auxiliary_index;
   }
+  Eigen::IOFormat fmt(Eigen::StreamPrecision, Eigen::DontAlignCols, " ", "\n", "", "", "", "");
+  for (size_t it = 0; it < atom_vector_.size(); ++it) {
+    const auto &atom = atom_vector_[it];
+    const auto &relative_position
+        = relative_position_matrix_.col(static_cast<int>(atom_to_lattice_hashmap_.at(atom.GetId())));
+    fos << atom.GetMass() << '\n'
+        << atom.GetElementString() << '\n'
+        << relative_position.transpose().format(fmt);
+    for (const auto &[key, auxiliary_list] : auxiliary_lists) {
+      fos << ' ' << auxiliary_list.at(it);
+    }
+    fos << std::endl;
+  }
+}
+void Config::WriteXyzExtended(const std::string &filename,
+                              const std::map<std::string, VectorVariant> &auxiliary_lists,
+                              const std::map<std::string, ValueVariant> &global_list) const {
+  std::ofstream ofs(filename, std::ios_base::out | std::ios_base::binary);
+  boost::iostreams::filtering_ostream fos;
+  if (boost::filesystem::path(filename).extension() == ".gz") {
+    fos.push(boost::iostreams::gzip_compressor());
+  } else if (boost::filesystem::path(filename).extension() == ".bz2") {
+    fos.push(boost::iostreams::bzip2_compressor());
+  }
+  fos.push(ofs);
+  fos.precision(8);
+  fos << GetNumAtoms() << '\n';
+  Eigen::IOFormat fmt(Eigen::StreamPrecision, Eigen::DontAlignCols, " ", " ", "", "", "", "");
+  fos << "Lattice=\"" << basis_.format(fmt) << "\" ";
+  fos << "pbc=\"" << periodic_boundary_condition_[0] << " " << periodic_boundary_condition_[1] << " "
+      << periodic_boundary_condition_[2] << "\" ";
+  for (const auto &[key, value] : global_list) {
+    fos << key << "=";
+    std::visit([&fos](const auto &val) { fos << val << ' '; }, value);
+  }
+  fos << "Properties=species:S:1:pos:R:3";
+  for (const auto &[key, auxiliary_list] : auxiliary_lists) {
+    fos << ":" << key << ":";
+    std::any ret;
+    std::visit([&ret](const auto &vec) { ret = vec.at(0); }, auxiliary_list);
+    if (ret.type() == typeid(int) || ret.type() == typeid(size_t)) {
+      fos << "I:1";
+    } else if (ret.type() == typeid(double)) {
+      fos << "R:1";
+    } else if (ret.type() == typeid(std::string)) {
+      fos << "S:1";
+    } else if (ret.type() == typeid(Vector3d) && std::any_cast<Vector3d>(ret).size() == 3) {
+      fos << "R:3";
+    } else {
+      throw std::runtime_error("Unsupported type");
+    }
+  }
+  fos << '\n';
 
   for (size_t it = 0; it < atom_vector_.size(); ++it) {
     const auto &atom = atom_vector_[it];
-    ofs << atom.GetMass() << '\n'
-        << atom.GetElementString() << '\n'
-        << lattice_vector_[atom_to_lattice_hashmap_.at(atom.GetId())].GetRelativePosition();
-    for (const auto &auxiliary_list: auxiliary_lists) {
-      ofs << ' ' << auxiliary_list.second[it];
-    }
-    ofs << '\n';
-    ofs << std::flush;
-  }
-}
-Config Config::ReadMap(const std::string &lattice_filename,
-                       const std::string &element_filename,
-                       const std::string &map_filename) {
-  Config config;
-  std::ifstream ifs_lattice(lattice_filename, std::ifstream::in);
-  if (!ifs_lattice.is_open()) {
-    throw std::runtime_error("Cannot open " + lattice_filename);
-  }
-  size_t num_atoms;
-  ifs_lattice >> num_atoms;
-  ifs_lattice.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    const auto &cartesian_position
+        = cartesian_position_matrix_.col(static_cast<int>(atom_to_lattice_hashmap_.at(atom.GetId())));
+    fos << atom.GetElementString() << ' '
+        << cartesian_position.transpose().format(fmt) << ' ';
 
-  Matrix_t basis;
-  ifs_lattice >> basis;
-  config.basis_ = basis;
-  config.InitializeNeighborsList(num_atoms);
-
-  config.lattice_vector_.reserve(num_atoms);
-  Vector_t relative_position;
-  size_t neighbor_lattice_id;
-  for (size_t lattice_id = 0; lattice_id < num_atoms; ++lattice_id) {
-    ifs_lattice >> relative_position;
-    config.lattice_vector_.emplace_back(lattice_id, relative_position * basis, relative_position);
-    ifs_lattice.ignore(std::numeric_limits<std::streamsize>::max(), '#');
-    for (size_t i = 0; i < constants::kNumFirstNearestNeighbors; ++i) {
-      ifs_lattice >> neighbor_lattice_id;
-      config.first_neighbors_adjacency_list_[lattice_id].push_back(neighbor_lattice_id);
-    }
-    for (size_t i = 0; i < constants::kNumSecondNearestNeighbors; ++i) {
-      ifs_lattice >> neighbor_lattice_id;
-      config.second_neighbors_adjacency_list_[lattice_id].push_back(neighbor_lattice_id);
-    }
-    for (size_t i = 0; i < constants::kNumThirdNearestNeighbors; ++i) {
-      ifs_lattice >> neighbor_lattice_id;
-      config.third_neighbors_adjacency_list_[lattice_id].push_back(neighbor_lattice_id);
-    }
-    ifs_lattice.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-  }
-
-  std::ifstream ifs_element(element_filename, std::ifstream::in);
-  if (!ifs_element.is_open()) {
-    throw std::runtime_error("Cannot open " + element_filename);
-  }
-  std::string type;
-  config.atom_vector_.reserve(num_atoms);
-  for (size_t atom_id = 0; atom_id < num_atoms; ++atom_id) {
-    ifs_element >> type;
-    config.atom_vector_.emplace_back(atom_id, type);
-    ifs_element.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-  }
-
-  std::ifstream ifs_map(map_filename, std::ifstream::in);
-  if (!ifs_map.is_open()) {
-    throw std::runtime_error("Cannot open " + map_filename);
-  }
-  size_t lattice_id;
-  for (size_t atom_id = 0; atom_id < num_atoms; ++atom_id) {
-    ifs_map >> lattice_id;
-    config.lattice_to_atom_hashmap_.emplace(lattice_id, atom_id);
-    config.atom_to_lattice_hashmap_.emplace(atom_id, lattice_id);
-    ifs_map.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-  }
-  std::cout << "Using neighbor information from file..." << std::endl;
-  return config;
-}
-void Config::WriteLattice(const std::string &filename) const {
-  std::ofstream ofs(filename, std::ofstream::out);
-  ofs.precision(16);
-  ofs << GetNumAtoms() << " positions in total" << '\n';
-  ofs << basis_ << std::endl;
-  for (size_t i = 0; i < lattice_vector_.size(); ++i) {
-    ofs << lattice_vector_[i].GetRelativePosition();
-    ofs << " # ";
-    for (auto neighbor_lattice_index: first_neighbors_adjacency_list_[i]) {
-      ofs << neighbor_lattice_index << ' ';
-    }
-    for (auto neighbor_lattice_index: second_neighbors_adjacency_list_[i]) {
-      ofs << neighbor_lattice_index << ' ';
-    }
-    for (auto neighbor_lattice_index: third_neighbors_adjacency_list_[i]) {
-      ofs << neighbor_lattice_index << ' ';
-    }
-    ofs << std::endl;
-  }
-}
-void Config::WriteElement(const std::string &filename) const {
-  std::ofstream ofs(filename, std::ofstream::out);
-  ofs.precision(16);
-  for (const auto &atom: atom_vector_) {
-    ofs << atom.GetElementString() << std::endl;
-  }
-}
-void Config::WriteMap(const std::string &filename) const {
-  std::ofstream ofs(filename, std::ofstream::out);
-  ofs.precision(16);
-  for (size_t atom_id = 0; atom_id < atom_vector_.size(); ++atom_id) {
-    ofs << atom_to_lattice_hashmap_.at(atom_id) << std::endl;
-  }
-}
-void Config::ConvertRelativeToCartesian() {
-  for (auto &lattice: lattice_vector_) {
-    lattice.SetCartesianPosition(lattice.GetRelativePosition() * basis_);
-  }
-}
-void Config::ConvertCartesianToRelative() {
-  auto inverse_basis = InverseMatrix(basis_);
-  for (auto &lattice: lattice_vector_) {
-    lattice.SetRelativePosition(lattice.GetCartesianPosition() * inverse_basis);
-  }
-}
-void Config::InitializeNeighborsList(size_t num_atoms) {
-  first_neighbors_adjacency_list_.resize(num_atoms);
-  for (auto &neighbor_list: first_neighbors_adjacency_list_) {
-    neighbor_list.clear();
-    neighbor_list.reserve(constants::kNumFirstNearestNeighbors);
-  }
-  second_neighbors_adjacency_list_.resize(num_atoms);
-  for (auto &neighbor_list: second_neighbors_adjacency_list_) {
-    neighbor_list.clear();
-    neighbor_list.reserve(constants::kNumSecondNearestNeighbors);
-  }
-  third_neighbors_adjacency_list_.resize(num_atoms);
-  for (auto &neighbor_list: third_neighbors_adjacency_list_) {
-    neighbor_list.clear();
-    neighbor_list.reserve(constants::kNumThirdNearestNeighbors);
-  }
-}
-void Config::UpdateNeighbors() {
-  InitializeNeighborsList(GetNumAtoms());
-  const double first_r_cutoff_square = std::pow(constants::kFirstNearestNeighborsCutoff, 2);
-  const double second_r_cutoff_square = std::pow(constants::kSecondNearestNeighborsCutoff, 2);
-  const double third_r_cutoff_square = std::pow(constants::kThirdNearestNeighborsCutoff, 2);
-#pragma omp parallel default(none) shared(first_r_cutoff_square, second_r_cutoff_square, third_r_cutoff_square)
-  {
-#pragma omp for
-    for (auto it1 = atom_vector_.begin(); it1 != atom_vector_.end(); ++it1) {
-      for (auto it2 = atom_vector_.begin(); it2 != it1; ++it2) {
-        auto first_lattice_id = atom_to_lattice_hashmap_[it1->GetId()];
-        auto second_lattice_id = atom_to_lattice_hashmap_[it2->GetId()];
-        Vector_t absolute_distance_vector =
-            GetRelativeDistanceVectorLattice(lattice_vector_[first_lattice_id],
-                                             lattice_vector_[second_lattice_id]) * basis_;
-        if (std::abs(absolute_distance_vector[kXDimension])
-            > constants::kNearNeighborsCutoff) { continue; }
-        if (std::abs(absolute_distance_vector[kYDimension])
-            > constants::kNearNeighborsCutoff) { continue; }
-        if (std::abs(absolute_distance_vector[kZDimension])
-            > constants::kNearNeighborsCutoff) { continue; }
-        const double absolute_distance_square = Inner(absolute_distance_vector);
-        if (absolute_distance_square < first_r_cutoff_square) {
-#pragma omp critical
-          {
-            first_neighbors_adjacency_list_[first_lattice_id].push_back(second_lattice_id);
-            first_neighbors_adjacency_list_[second_lattice_id].push_back(first_lattice_id);
-          }
-        } else if (absolute_distance_square < second_r_cutoff_square) {
-#pragma omp critical
-          {
-            second_neighbors_adjacency_list_[first_lattice_id].push_back(second_lattice_id);
-            second_neighbors_adjacency_list_[second_lattice_id].push_back(first_lattice_id);
-          }
-        } else if (absolute_distance_square < third_r_cutoff_square) {
-#pragma omp critical
-          {
-            third_neighbors_adjacency_list_[first_lattice_id].push_back(second_lattice_id);
-            third_neighbors_adjacency_list_[second_lattice_id].push_back(first_lattice_id);
-          }
-        }
+    for (const auto &[key, auxiliary_list] : auxiliary_lists) {
+      std::any ret;
+      std::visit([&ret, it](const auto &vec) { ret = vec.at(it); }, auxiliary_list);
+      if (ret.type() == typeid(int)) {
+        fos << std::any_cast<int>(ret) << ' ';
+      } else if (ret.type() == typeid(size_t)) {
+        fos << std::any_cast<size_t>(ret) << ' ';
+      } else if (ret.type() == typeid(double)) {
+        fos << std::any_cast<double>(ret) << ' ';
+      } else if (ret.type() == typeid(std::string)) {
+        fos << std::any_cast<std::string>(ret) << ' ';
+      } else if (ret.type() == typeid(Vector3d)) {
+        fos << std::any_cast<Vector3d>(ret).format(fmt) << ' ';
+      } else {
+        throw std::runtime_error("Unsupported type");
       }
     }
+    fos << std::endl;
   }
 }
-void RotateLatticeVector(std::vector<Lattice> &lattice_list,
-                         const Matrix_t &rotation_matrix) {
-  const auto move_distance_after_rotation = Vector_t{0.5, 0.5, 0.5}
-      - (Vector_t{0.5, 0.5, 0.5} * rotation_matrix);
-  for (auto &lattice: lattice_list) {
-    auto relative_position = lattice.GetRelativePosition();
-    // rotate
-    relative_position = relative_position * rotation_matrix;
-    // move to new center
-    relative_position += move_distance_after_rotation;
-    relative_position -= ElementFloor(relative_position);
-    lattice.SetRelativePosition(relative_position);
-  }
-}
-
-Config GenerateFCC(const Factor_t &factors, Element element) {
-  Matrix_t
-      basis{{{constants::kLatticeConstant * static_cast<double>(factors[kXDimension]), 0, 0},
-             {0, constants::kLatticeConstant * static_cast<double>(factors[kYDimension]), 0},
-             {0, 0, constants::kLatticeConstant * static_cast<double>(factors[kZDimension])}}};
-  const size_t num_atoms = 4 * factors[kXDimension] * factors[kYDimension] * factors[kZDimension];
-  auto x_length = static_cast<double>(factors[kXDimension]);
-  auto y_length = static_cast<double>(factors[kYDimension]);
-  auto z_length = static_cast<double>(factors[kZDimension]);
-  std::vector<Lattice> lattice_vector;
-  lattice_vector.reserve(num_atoms);
-  std::vector<Atom> atom_vector;
-  atom_vector.reserve(num_atoms);
-  size_t count = 0;
-  for (size_t k = 0; k < factors[kZDimension]; ++k) {
-    for (size_t j = 0; j < factors[kYDimension]; ++j) {
-      for (size_t i = 0; i < factors[kXDimension]; ++i) {
-        auto x_ref = static_cast<double>(i);
-        auto y_ref = static_cast<double>(j);
-        auto z_ref = static_cast<double>(k);
-        std::vector<Vector_t> relative_position_list = {
-            {x_ref / x_length, y_ref / y_length, z_ref / z_length},
-            {(x_ref + 0.5) / x_length, (y_ref + 0.5) / y_length, z_ref / z_length},
-            {(x_ref + 0.5) / x_length, y_ref / y_length, (z_ref + 0.5) / z_length},
-            {x_ref / x_length, (y_ref + 0.5) / y_length, (z_ref + 0.5) / z_length}
-        };
-
-        for (const auto &relative_position: relative_position_list) {
-          lattice_vector.emplace_back(count, relative_position * basis, relative_position);
-          atom_vector.emplace_back(count, element);
-          count++;
-        }
-      }
-    }
-  }
-  return Config{basis, lattice_vector, atom_vector, true};
-}
-Config GenerateSoluteConfigFromExcitingPure(Config config,
-                                            const std::map<Element, size_t> &solute_atom_count) {
-  std::unordered_set<size_t> unavailable_position{};
-
-  static std::mt19937_64 generator(static_cast<unsigned long long int>(
-                                       std::chrono::system_clock::now().time_since_epoch().count()));
-  std::uniform_int_distribution<size_t> dis(0, config.GetNumAtoms() - 1);
-
-  size_t selected_lattice_index{};
-  for (const auto &[solute_atom, count]: solute_atom_count) {
-    for (size_t it = 0; it < count; ++it) {
-      size_t ct = 0;
-      do {
-        if (ct > 1000000) {
-          std::cerr << "Size is too small. Cannot generate correct config.\n";
-          break;
-        }
-        ++ct;
-        selected_lattice_index = dis(generator);
-      } while (unavailable_position.find(selected_lattice_index) != unavailable_position.end());
-      config.ChangeAtomElementTypeAtLattice(selected_lattice_index, solute_atom);
-      unavailable_position.emplace(selected_lattice_index);
-      std::copy(config.GetFirstNeighborsAdjacencyList().at(selected_lattice_index).begin(),
-                config.GetFirstNeighborsAdjacencyList().at(selected_lattice_index).end(),
-                std::inserter(unavailable_position,
-                              unavailable_position.begin()));
-      std::copy(config.GetSecondNeighborsAdjacencyList().at(selected_lattice_index).begin(),
-                config.GetSecondNeighborsAdjacencyList().at(selected_lattice_index).end(),
-                std::inserter(unavailable_position,
-                              unavailable_position.begin()));
-      std::copy(config.GetThirdNeighborsAdjacencyList().at(selected_lattice_index).begin(),
-                config.GetThirdNeighborsAdjacencyList().at(selected_lattice_index).end(),
-                std::inserter(unavailable_position,
-                              unavailable_position.begin()));
-    }
-  }
-  return config;
-}
-Config GenerateSoluteConfig(const Factor_t &factors,
-                            const Element solvent_element,
-                            const std::map<Element, size_t> &solute_atom_count) {
-  return GenerateSoluteConfigFromExcitingPure(
-      GenerateFCC(factors, solvent_element), solute_atom_count);
-}
-// Config GenerateClusteredConfigFromExcitingPure(Config config,
-//                                                const std::map<Element, size_t> &solute_atom_count) {
-//   return Config();
-// }
-// Config GenerateClusteredConfig(const Factor_t &factors,
-//                                Element solvent_element,
-//                                const std::map<Element, size_t> &solute_atom_count) {
-//   return Config();
-// }
-
-
-} // cfg
