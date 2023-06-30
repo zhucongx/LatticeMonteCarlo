@@ -7,7 +7,7 @@ cmake_minimum_required(VERSION 3.14)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_C_STANDARD 17)
 
-project(lmclib VERSION 0.1.0)
+project(lmc VERSION 0.1.0)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 ###################################################### SET  PATHS ######################################################
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
