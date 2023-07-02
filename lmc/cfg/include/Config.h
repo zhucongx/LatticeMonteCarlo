@@ -1,9 +1,9 @@
 /**************************************************************************************************
  * Copyright (c) 2020-2023. All rights reserved.                                                  *
  * @Author: Zhucong Xi                                                                            *
- * @Date: 1/31/20 2:20 PM                                                                         *
+ * @Date: 1/16/20 3:55 AM                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 6/28/23 2:09 AM                                                           *
+ * @Last Modified time: 7/1/23 12:48 AM                                                           *
  **************************************************************************************************/
 
 /*! \file  Config.h
@@ -13,7 +13,6 @@
 #ifndef LMC_CONFIG_INCLUDE_CONFIG_H_
 #define LMC_CONFIG_INCLUDE_CONFIG_H_
 
-#include "Atom.hpp"
 #include <unordered_map>
 #include <vector>
 #include <map>
@@ -23,12 +22,9 @@
 #include <variant>
 #include <any>
 #include "Eigen/Dense"
-
-using Eigen::Matrix3d;
-using Eigen::Matrix3Xd;
-using Eigen::Vector3d;
-using Eigen::Vector3i;
-using Eigen::Array3d;
+#include "Constants.hpp"
+#include "Element.hpp"
+// #include "Atom.hpp"
 
 /*! \brief Class for defining a configuration of atoms and their positions.
  */
@@ -44,7 +40,11 @@ class Config {
    *  \param relative_position_matrix : The relative position matrix (3，n) of the configuration.
    *  \param atom_vector              : The atom vector of the configuration，n atoms in total.
    */
-  Config(Matrix3d basis, Matrix3Xd relative_position_matrix, std::vector<Atom> atom_vector);
+  Config(Eigen::Matrix3d basis, Eigen::Matrix3Xd relative_position_matrix, std::vector<Element> atom_vector);
+
+  /*! \brief Default destructor for Config.
+   */
+  virtual ~Config();
 
   /*! \brief Query for the number of atoms in the configuration.
    *  \return : The number of atoms in the configuration.
@@ -59,31 +59,31 @@ class Config {
   /*! \brief Query for the basis vectors of the configuration.
    *  \return : The basis vectors of the configuration.
    */
-  [[nodiscard]] const Matrix3d &GetBasis() const;
+  [[nodiscard]] const Eigen::Matrix3d &GetBasis() const;
 
   /*! \brief Query for the lists of neighbor sites of each site in the configuration.
    *  \return : The lists of neighbor sites of each site in the configuration.
    */
   [[nodiscard]] const std::vector<std::vector<std::vector<size_t> > > &GetNeighborLists() const;
 
-  /*! \brief Query for the relative position of a atom.
+  /*! \brief Query for the relative position of an atom.
    *  \param atom_id : The atom id of the atom.
    *  \return : The relative position of the atom.
    */
-  [[nodiscard]] Vector3d GetRelativePositionOfAtom(size_t atom_id) const;
+  [[nodiscard]] Eigen::Vector3d GetRelativePositionOfAtom(size_t atom_id) const;
 
-  /*! \brief Query for the cartesian position of a atom.
-   * \param atom_id : The atom id of the atom.
-   * \return : The cartesian position of the atom.
+  /*! \brief Query for the cartesian position of an atom.
+   *  \param atom_id : The atom id of the atom.
+   *  \return : The cartesian position of the atom.
    */
-  [[nodiscard]] Vector3d GetCartesianPositionOfAtom(size_t atom_id) const;
+  [[nodiscard]] Eigen::Vector3d GetCartesianPositionOfAtom(size_t atom_id) const;
 
   /*! \brief Set the periodic boundary condition of the configuration.
    *  \param periodic_boundary_condition : The periodic boundary condition of the configuration.
    */
   void SetPeriodicBoundaryCondition(const std::array<bool, 3> &periodic_boundary_condition);
 
-  /*! \brief Modifies the atom configuration.
+  /*! \brief Modify the atom configuration.
    *  \param atom_id_jump_pair : The pair of atom ids to modify the configuration.
    */
   void AtomJump(const std::pair<size_t, size_t> &atom_id_jump_pair);
@@ -120,7 +120,7 @@ class Config {
       const std::map<std::string, std::vector<double>> &auxiliary_lists) const;
 
   using VectorVariant = std::variant<std::vector<int>, std::vector<size_t>, std::vector<double>,
-                                     std::vector<std::string>, std::vector<Vector3d> >;
+                                     std::vector<std::string>, std::vector<Eigen::Vector3d> >;
   using ValueVariant = std::variant<int, double, std::string>;
 
   /*! \brief Write the extended XXY to a file. Check the extended XYZ format
@@ -136,27 +136,31 @@ class Config {
       const std::map<std::string, ValueVariant> &global_list) const;
 
  private:
+  /*! \brief Sort lattice sites by the positions (x, y, z)
+   */
+  void ReassignLattice();
+
   /*! \brief Query for the relative distance vector between two lattice.
    *  \param lattice_id1 : The lattice id of the first lattice.
    *  \param lattice_id2 : The lattice id of the second lattice.
    *  \return : The relative distance vector between the two lattice.
    */
-  [[nodiscard]] Vector3d GetRelativeDistanceVectorLattice(size_t lattice_id1, size_t lattice_id2) const;
+  [[nodiscard]] Eigen::Vector3d GetRelativeDistanceVectorLattice(size_t lattice_id1, size_t lattice_id2) const;
 
   /// The periodic boundary condition status in all three directions.
   std::array<bool, 3> periodic_boundary_condition_{true, true, true};
 
   /// The basis matrix of the configuration.
-  Matrix3d basis_{};
+  Eigen::Matrix3d basis_{};
 
   /// The relative position matrix of the configuration.
-  Matrix3Xd relative_position_matrix_{};
+  Eigen::Matrix3Xd relative_position_matrix_{};
 
   /// The Cartesian position matrix of the configuration.
-  Matrix3Xd cartesian_position_matrix_{};
+  Eigen::Matrix3Xd cartesian_position_matrix_{};
 
   /// The vector of atoms in the configuration.
-  std::vector<Atom> atom_vector_{};
+  std::vector<Element> atom_vector_{};
 
   /// Mapping from lattice points to atom ids.
   std::unordered_map<size_t, size_t> lattice_to_atom_hashmap_{};
@@ -171,7 +175,7 @@ class Config {
   std::vector<double> cutoffs_{};
 
   /// Number of cells in each direction.
-  Vector3i num_cells_{};
+  Eigen::Vector3i num_cells_{};
 
   /// The cells of the configuration. Each cell is a vector of lattice ids.
   std::vector<std::vector<size_t>> cells_{};
