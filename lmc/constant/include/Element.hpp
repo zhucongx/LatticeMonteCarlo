@@ -3,7 +3,7 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date: 9/23/20 1:29 PM                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 6/30/23 3:32 PM                                                           *
+ * @Last Modified time: 6/30/23 11:56 PM                                                          *
  **************************************************************************************************/
 
 /*! \file  Element.hpp
@@ -17,7 +17,6 @@
 #include <iostream>
 #include <string>
 #include <unordered_map>
-#include "Constants.hpp"
 
 /*! \enum ElementName
  *  \brief Define the names of the elements that can be used. X is used for the vacancy.
@@ -75,10 +74,10 @@ class Element {
     return element_name_ != rhs;
   }
   bool operator<(Element rhs) const {
-    return GetString() < rhs.GetString();
+    return GetElementString() < rhs.GetElementString();
   }
   bool operator<(const ElementName rhs) const {
-    return GetString() < Element(rhs).GetString();
+    return GetElementString() < Element(rhs).GetElementString();
   }
 
   /*! \brief Hash function.
@@ -89,7 +88,7 @@ class Element {
   /*! \brief Returns the name of this element.
    *  \return : The name of this element.
    */
-  [[nodiscard]] std::string GetString() const {
+  [[nodiscard]] std::string GetElementString() const {
     return GetProperties().name;
   }
 
