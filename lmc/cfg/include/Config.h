@@ -3,7 +3,7 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date: 1/16/20 3:55 AM                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 7/1/23 12:48 AM                                                           *
+ * @Last Modified time: 7/2/23 10:02 PM                                                           *
  **************************************************************************************************/
 
 /*! \file  Config.h
@@ -30,7 +30,6 @@
  */
 class Config {
  public:
-
   /*! \brief Default constructor for Config.
    */
   Config();
@@ -74,7 +73,7 @@ class Config {
 
   /*! \brief Query for the cartesian position of an atom.
    *  \param atom_id : The atom id of the atom.
-   *  \return : The cartesian position of the atom.
+   *  \return        : The cartesian position of the atom.
    */
   [[nodiscard]] Eigen::Vector3d GetCartesianPositionOfAtom(size_t atom_id) const;
 
@@ -95,13 +94,13 @@ class Config {
 
   /*! \brief Read the configuration from a CFG file.
    *  \param filename : The name of the CFG file.
-   *  \return : The configuration read from the file.
+   *  \return         : The configuration read from the file.
    */
   static Config ReadCfg(const std::string &filename);
 
   /*! \brief Read the configuration from a POSCAR file.
    *  \param filename : The name of the POSCAR file.
-   *  \return : The configuration read from the file.
+   *  \return         : The configuration read from the file.
    */
   static Config ReadPoscar(const std::string &filename);
 
@@ -143,7 +142,7 @@ class Config {
   /*! \brief Query for the relative distance vector between two lattice.
    *  \param lattice_id1 : The lattice id of the first lattice.
    *  \param lattice_id2 : The lattice id of the second lattice.
-   *  \return : The relative distance vector between the two lattice.
+   *  \return            : The relative distance vector between the two lattice.
    */
   [[nodiscard]] Eigen::Vector3d GetRelativeDistanceVectorLattice(size_t lattice_id1, size_t lattice_id2) const;
 
@@ -156,7 +155,7 @@ class Config {
   /// The relative position matrix of the configuration.
   Eigen::Matrix3Xd relative_position_matrix_{};
 
-  /// The Cartesian position matrix of the configuration.
+  /// The cartesian position matrix of the configuration.
   Eigen::Matrix3Xd cartesian_position_matrix_{};
 
   /// The vector of atoms in the configuration.
