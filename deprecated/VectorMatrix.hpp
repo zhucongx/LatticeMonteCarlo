@@ -1,9 +1,9 @@
 /**************************************************************************************************
- * Copyright (c) 2023. All rights reserved.                                                       *
+ * Copyright (c) 2020-2023. All rights reserved.                                                  *
  * @Author: Zhucong Xi                                                                            *
- * @Date:                                                                                         *
+ * @Date: 05/22/20 2:12 AM                                                                        *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 6/30/23 4:05 PM                                                           *
+ * @Last Modified time: 7/2/23 11:14 PM                                                           *
  **************************************************************************************************/
 
 #ifndef LMC_CFG_INCLUDE_VECTORMATRIX_HPP_
