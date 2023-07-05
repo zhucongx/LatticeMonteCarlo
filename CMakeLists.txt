@@ -131,7 +131,7 @@ else ()
     endif ()
 endif ()
 
-find_package(Eigen3 3.3)
+find_package(Eigen3 3.4)
 if (NOT EIGEN3_FOUND)
     message(WARNING "Eigen3 not found. Downloading Eigen3 from gitlab")
     FetchContent_Declare(
