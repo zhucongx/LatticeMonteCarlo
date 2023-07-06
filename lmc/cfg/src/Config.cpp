@@ -3,7 +3,7 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date: 1/16/20 3:55 AM                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 7/6/23 3:43 PM                                                            *
+ * @Last Modified time: 7/6/23 3:53 PM                                                            *
  **************************************************************************************************/
 
 /*! \file  Config.cpp
@@ -283,8 +283,8 @@ Config Config::ReadMap(const std::string &lattice_filename,
   size_t lattice_id;
   for (size_t atom_id = 0; atom_id < num_atoms; ++atom_id) {
     ifs_map >> lattice_id;
-    config.lattice_to_atom_hashmap_.emplace(lattice_id, atom_id);
-    config.atom_to_lattice_hashmap_.emplace(atom_id, lattice_id);
+    config.lattice_to_atom_hashmap_.at(lattice_id) = atom_id;
+    config.atom_to_lattice_hashmap_.at(atom_id) = lattice_id;
     ifs_map.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
   }
   return config;
