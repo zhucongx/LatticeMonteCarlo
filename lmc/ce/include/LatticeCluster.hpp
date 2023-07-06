@@ -1,9 +1,9 @@
 /**************************************************************************************************
- * Copyright (c) 2023-2023. All rights reserved.                                                  *
+ * Copyright (c) 2021-2023. All rights reserved.                                                  *
  * @Author: Zhucong Xi                                                                            *
  * @Date: 12/6/21 8:55 PM                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 7/2/23 10:43 PM                                                           *
+ * @Last Modified time: 7/4/23 10:59 PM                                                           *
  **************************************************************************************************/
 
 /*! \file  LatticeCluster.h
@@ -37,12 +37,12 @@ class LatticeCluster {
   }
 
   /*! \brief Constructor for setting up the cluster type.
-   *  \param cluster_type : The cluster type.
-   *  \param lattice_id   : The bond distance index.
+   *  \param lattice_cluster_type : The cluster type.
+   *  \param lattice_id           : The bond distance index.
    */
   template<typename ... Id>
-  explicit LatticeCluster(LatticeClusterType cluster_type, Id &&... lattice_id)
-      : cluster_type_(std::move(cluster_type)), lattice_id_vector_{std::forward<Id>(lattice_id)...} {
+  explicit LatticeCluster(LatticeClusterType lattice_cluster_type, Id &&... lattice_id)
+      : cluster_type_(std::move(lattice_cluster_type)), lattice_id_vector_{std::forward<Id>(lattice_id)...} {
     std::sort(lattice_id_vector_.begin(), lattice_id_vector_.end());
   }
 

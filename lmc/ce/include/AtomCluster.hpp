@@ -1,9 +1,9 @@
 /**************************************************************************************************
- * Copyright (c) 2023-2023. All rights reserved.                                                  *
+ * Copyright (c) 2022-2023. All rights reserved.                                                  *
  * @Author: Zhucong Xi                                                                            *
  * @Date: 2/14/22 8:45 PM                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 7/2/23 10:54 PM                                                           *
+ * @Last Modified time: 7/4/23 10:55 PM                                                           *
  **************************************************************************************************/
 
 /*! \file  AtomCluster.h
@@ -28,21 +28,21 @@ class AtomCluster {
   AtomCluster() = default;
 
   /*! \brief Constructor for setting up the cluster of atoms.
-   *  \param cluster_type   : The cluster type.
-   *  \param atom_id_vector : The atom id vector of the cluster
+   *  \param atom_cluster_type   : The cluster type.
+   *  \param atom_id_vector      : The atom id vector of the cluster
    */
-  AtomCluster(AtomClusterType cluster_type, std::vector<size_t> atom_id_vector)
-      : cluster_type_(std::move(cluster_type)), atom_id_vector_(std::move(atom_id_vector)) {
+  AtomCluster(AtomClusterType atom_cluster_type, std::vector<size_t> atom_id_vector)
+      : cluster_type_(std::move(atom_cluster_type)), atom_id_vector_(std::move(atom_id_vector)) {
     std::sort(atom_id_vector_.begin(), atom_id_vector_.end());
   }
 
   /*! \brief Constructor for setting up the cluster type.
-   *  \param cluster_type : The cluster type.
+   *  \param atom_cluster_type : The cluster type.
    *  \param atom_id      : The bond distance index.
    */
   template<typename ... Id>
-  explicit AtomCluster(AtomClusterType cluster_type, Id &&... atom_id)
-      : cluster_type_(std::move(cluster_type)), atom_id_vector_{std::forward<Id>(atom_id)...} {
+  explicit AtomCluster(AtomClusterType atom_cluster_type, Id &&... atom_id)
+      : cluster_type_(std::move(atom_cluster_type)), atom_id_vector_{std::forward<Id>(atom_id)...} {
     std::sort(atom_id_vector_.begin(), atom_id_vector_.end());
   }
 

@@ -1,12 +1,20 @@
 
-#ifndef LMC_LMC_PRED_INCLUDE_ENERGYUTILITY_H_
-#define LMC_LMC_PRED_INCLUDE_ENERGYUTILITY_H_
+/**************************************************************************************************
+ * Copyright (c) 2023-2023. All rights reserved.                                                  *
+ * @Author: Zhucong Xi                                                                            *
+ * @Date:                                                                                         *
+ * @Last Modified by: zhucongx                                                                    *
+ * @Last Modified time: 7/2/23 10:43 PM                                                           *
+ **************************************************************************************************/
+
+#ifndef LMC_PRED_INCLUDE_ENERGYUTILITY_H_
+#define LMC_PRED_INCLUDE_ENERGYUTILITY_H_
 #include <string>
 #include <set>
 #include <boost/functional/hash.hpp>
 #include "Config.h"
 #include "LatticeCluster.hpp"
-#include "ElementCluster.hpp"
+#include "AtomCluster.hpp"
 namespace pred {
 using Singlet_MMM_t = cfg::LatticeClusterMMM<1>;
 using Pair_MMM_t = cfg::LatticeClusterMMM<2>;
@@ -85,4 +93,4 @@ struct ParametersDE {
 };
 } // pred
 
-#endif //LMC_LMC_PRED_INCLUDE_ENERGYUTILITY_H_
+#endif //LMC_PRED_INCLUDE_ENERGYUTILITY_H_

@@ -3,7 +3,7 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date: 1/16/20 3:55 AM                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 7/2/23 10:02 PM                                                           *
+ * @Last Modified time: 7/6/23 3:01 PM                                                            *
  **************************************************************************************************/
 
 /*! \file  Config.h
@@ -65,6 +65,13 @@ class Config {
    */
   [[nodiscard]] const std::vector<std::vector<std::vector<size_t> > > &GetNeighborLists() const;
 
+  /*! \brief Query for the order of distance between two lattice.
+   *  \param lattice_id1 : The lattice id of the first lattice.
+   *  \param lattice_id2 : The lattice id of the second lattice.
+   *  \return            : The the order of distance between the two lattice. 0 means the same lattice or not neighbors.
+   */
+  [[nodiscard]] size_t GetDistanceOrder(size_t lattice_id1, size_t lattice_id2) const;
+
   /*! \brief Query for the relative position of an atom.
    *  \param atom_id : The atom id of the atom.
    *  \return : The relative position of the atom.
@@ -82,6 +89,12 @@ class Config {
    */
   void SetPeriodicBoundaryCondition(const std::array<bool, 3> &periodic_boundary_condition);
 
+  /*! \brief Set the element type at the atom with given atom id.
+   *  \param atom_id      : The atom id of the atom.
+   *  \param element_type : The new element type.
+   */
+  void ChangeAtomElementTypeAtAtomId(size_t atom_id, Element element_type);
+
   /*! \brief Modify the atom configuration.
    *  \param atom_id_jump_pair : The pair of atom ids to modify the configuration.
    */
@@ -91,6 +104,16 @@ class Config {
    *  \param cutoffs : The cutoffs to update the neighbor list.
    */
   void UpdateNeighborList(std::vector<double> cutoffs);
+
+  /*! \brief Read the configuration from a lattice file, element file and map file.
+   *  \param lattice_filename : The name of the lattice file.
+   *  \param element_filename : The name of the element file.
+   *  \param map_filename     : The name of the map file.
+   *  \return                 : The configuration read from the file.
+   */
+  static Config ReadMap(const std::string &lattice_filename,
+                        const std::string &element_filename,
+                        const std::string &map_filename);
 
   /*! \brief Read the configuration from a CFG file.
    *  \param filename : The name of the CFG file.

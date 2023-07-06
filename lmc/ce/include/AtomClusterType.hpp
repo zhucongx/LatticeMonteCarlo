@@ -3,7 +3,7 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date: 7/2/23 10:43 PM                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 7/2/23 11:06 PM                                                           *
+ * @Last Modified time: 7/3/23 12:10 PM                                                           *
  **************************************************************************************************/
 
 /*! \file  AtomClusterType.h
@@ -45,9 +45,9 @@ class AtomClusterType {
     std::sort(element_vector_.begin(), element_vector_.end());
   }
 
-  /*! \brief 'equals' operator.
-   *  \param lhs : The left hand side ClusterType.
-   *  \param rhs : The right hand side ClusterType.
+  /*! \brief Equality operator.
+   *  \param lhs : The left hand side AtomClusterType.
+   *  \param rhs : The right hand side AtomClusterType.
    *  \return    : lhs == rhs
    */
   friend bool operator==(const AtomClusterType &lhs, const AtomClusterType &rhs) {
@@ -58,9 +58,24 @@ class AtomClusterType {
     return true;
   }
 
-  /*! \brief Generate the hash of a ClusterType.
+  /*! \brief Relational operator.
+   *  \param lhs : The left hand side AtomClusterType.
+   *  \param rhs : The right hand side AtomClusterType.
+   *  \return    : lhs < rhs
+   */
+  friend bool operator<(const AtomClusterType &lhs, const AtomClusterType &rhs) {
+    if (lhs.element_vector_.size() < rhs.element_vector_.size()) { return true; }
+    if (rhs.element_vector_.size() < lhs.element_vector_.size()) { return false; }
+    for (size_t i = 0; i < lhs.element_vector_.size(); ++i) {
+      if (lhs.element_vector_[i] < rhs.element_vector_[i]) { return true; }
+      if (rhs.element_vector_[i] < lhs.element_vector_[i]) { return false; }
+    }
+    return false;
+  }
+
+  /*! \brief Generate the hash of a AtomClusterType.
    *  \param cluster_type : The ClusterType to be hashed.
-   *  \returns            : The hash value of the ClusterType.
+   *  \returns            : The hash value of the AtomClusterType.
    */
   friend std::size_t hash_value(const AtomClusterType &cluster_type) {
     std::size_t seed = 0;

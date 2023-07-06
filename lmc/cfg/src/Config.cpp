@@ -3,7 +3,7 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date: 1/16/20 3:55 AM                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 7/1/23 1:06 AM                                                            *
+ * @Last Modified time: 7/6/23 3:01 PM                                                            *
  **************************************************************************************************/
 
 /*! \file  Config.cpp
@@ -71,6 +71,10 @@ void Config::SetPeriodicBoundaryCondition(const std::array<bool, 3> &periodic_bo
   periodic_boundary_condition_ = periodic_boundary_condition;
 }
 
+void Config::ChangeAtomElementTypeAtAtomId(size_t atom_id, Element element_type) {
+  atom_vector_.at(atom_id) = Element(element_type);
+}
+
 void Config::AtomJump(const std::pair<size_t, size_t> &atom_id_jump_pair) {
   const auto [atom_id_lhs, atom_id_rhs] = atom_id_jump_pair;
   const auto lattice_id_lhs = atom_to_lattice_hashmap_.at(atom_id_lhs);
@@ -135,7 +139,16 @@ Eigen::Vector3d Config::GetRelativeDistanceVectorLattice(size_t lattice_id1, siz
   }
   return relative_distance_vector;
 }
-
+size_t Config::GetDistanceOrder(size_t lattice_id1, size_t lattice_id2) const {
+  if (lattice_id1 == lattice_id2) { return 0; } // same lattice
+  Eigen::Vector3d relative_distance_vector = GetRelativeDistanceVectorLattice(lattice_id1, lattice_id2);
+  double cartesian_distance = (basis_ * relative_distance_vector).norm();
+  auto upper = std::upper_bound(cutoffs_.begin(), cutoffs_.end(), cartesian_distance);
+  if (upper == cutoffs_.end()) {
+    return std::numeric_limits<double>::infinity(); // distance is larger than the largest cutoff
+  }
+  return static_cast<size_t>(1 + std::distance(cutoffs_.begin(), upper));
+}
 void Config::UpdateNeighborList(std::vector<double> cutoffs) {
   cutoffs_ = std::move(cutoffs);
   std::sort(cutoffs_.begin(), cutoffs_.end());
@@ -222,7 +235,60 @@ void Config::UpdateNeighborList(std::vector<double> cutoffs) {
     }
   }
 }
+Config Config::ReadMap(const std::string &lattice_filename,
+                       const std::string &element_filename,
+                       const std::string &map_filename) {
+  std::ifstream ifs_lattice(lattice_filename, std::ifstream::in);
+  if (!ifs_lattice) {
+    throw std::runtime_error("Cannot open " + lattice_filename);
+  }
+  size_t num_atoms;
+  ifs_lattice >> num_atoms;
+  ifs_lattice.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
+  Eigen::Matrix3d basis;
+  ifs_lattice >> basis(0, 0) >> basis(0, 1) >> basis(0, 2); // lattice vector a
+  ifs_lattice >> basis(1, 0) >> basis(1, 1) >> basis(1, 2); // lattice vector b
+  ifs_lattice >> basis(2, 0) >> basis(2, 1) >> basis(2, 2); // lattice vector c
+  ifs_lattice.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // finish this line
+
+  Eigen::Matrix3Xd relative_position_matrix(3, num_atoms);
+  double position_X, position_Y, position_Z;
+  for (size_t lattice_id = 0; lattice_id < num_atoms; ++lattice_id) {
+    ifs_lattice >> position_X >> position_Y >> position_Z;
+    ifs_lattice.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    relative_position_matrix.col(static_cast<int>(lattice_id)) = Eigen::Vector3d{position_X, position_Y, position_Z};
+  }
+
+  std::ifstream ifs_element(element_filename, std::ifstream::in);
+  if (!ifs_element) {
+    throw std::runtime_error("Cannot open " + element_filename);
+  }
+
+  std::vector<Element> atom_vector;
+  atom_vector.reserve(num_atoms);
+  std::string type;
+  for (size_t atom_id = 0; atom_id < num_atoms; ++atom_id) {
+    ifs_element >> type;
+    atom_vector.emplace_back(type);
+    ifs_element.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+  }
+
+  Config config(basis, relative_position_matrix, atom_vector);
+  std::ifstream ifs_map(map_filename, std::ifstream::in);
+  if (!ifs_map) {
+    throw std::runtime_error("Cannot open " + map_filename);
+  }
+  size_t lattice_id;
+  for (size_t atom_id = 0; atom_id < num_atoms; ++atom_id) {
+    ifs_map >> lattice_id;
+    config.lattice_to_atom_hashmap_.emplace(lattice_id, atom_id);
+    config.atom_to_lattice_hashmap_.emplace(atom_id, lattice_id);
+    ifs_map.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+  }
+  config.ReassignLattice();
+  return config;
+}
 Config Config::ReadCfg(const std::string &filename) {
   std::ifstream ifs(filename, std::ios_base::in | std::ios_base::binary);
   if (!ifs) {
