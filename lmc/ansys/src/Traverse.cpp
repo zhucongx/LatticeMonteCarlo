@@ -3,7 +3,7 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date:                                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 7/6/23 3:24 PM                                                            *
+ * @Last Modified time: 7/6/23 3:32 PM                                                            *
  **************************************************************************************************/
 
 #include "Traverse.h"
@@ -155,7 +155,7 @@ void Traverse::RunReformat() const {
   {
 #pragma omp for schedule(static, 1)
     for (unsigned long long i = 0; i <= final_number_; i += increment_steps_) {
-      std::cout << i << " / " << final_number_ << std::endl;
+      std::cout << std::to_string(i) + " / " + std::to_string(final_number_) << std::endl;
       if (config_type_ == "map") {
         auto config = Config::ReadMap("lattice.txt", "element.txt", "map" + std::to_string(i) + ".txt");
         config.WriteConfig(std::to_string(i) + ".cfg.gz");
