@@ -3,7 +3,7 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date:                                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 7/6/23 3:21 PM                                                            *
+ * @Last Modified time: 7/6/23 3:24 PM                                                            *
  **************************************************************************************************/
 
 #include "Traverse.h"
@@ -164,5 +164,6 @@ void Traverse::RunReformat() const {
       }
     }
   }
+  std::cout << "Done..." << std::endl;
 }
 } // ansys
