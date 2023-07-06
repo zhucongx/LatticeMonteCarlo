@@ -3,7 +3,7 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date: 1/16/20 3:55 AM                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 7/6/23 3:53 PM                                                            *
+ * @Last Modified time: 7/6/23 3:54 PM                                                            *
  **************************************************************************************************/
 
 /*! \file  Config.cpp
@@ -276,7 +276,6 @@ Config Config::ReadMap(const std::string &lattice_filename,
 
   Config config(basis, relative_position_matrix, atom_vector);
   std::ifstream ifs_map(map_filename, std::ifstream::in);
-  std::cerr << "Open " << map_filename << std::endl;
   if (!ifs_map) {
     throw std::runtime_error("Cannot open " + map_filename);
   }
