@@ -3,18 +3,18 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date:                                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 7/6/23 1:59 PM                                                            *
+ * @Last Modified time: 7/6/23 3:05 PM                                                            *
  **************************************************************************************************/
 
 #ifndef LMC_API_INCLUDE_HOME_H_
 #define LMC_API_INCLUDE_HOME_H_
 #include "Parameter.h"
-#include "KineticMcFirstMpi.h"
-#include "KineticMcFirstOmp.h"
-#include "KineticMcChainOmpi.h"
-#include "SimulatedAnnealing.h"
-#include "CanonicalMcSerial.h"
-#include "CanonicalMcOmp.h"
+// #include "KineticMcFirstMpi.h"
+// #include "KineticMcFirstOmp.h"
+// #include "KineticMcChainOmpi.h"
+// #include "SimulatedAnnealing.h"
+// #include "CanonicalMcSerial.h"
+// #include "CanonicalMcOmp.h"
 #include "Traverse.h"
 
 void Print(const Parameter &parameter);

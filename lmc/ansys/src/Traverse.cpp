@@ -1,9 +1,9 @@
 /**************************************************************************************************
- * Copyright (c) 2023. All rights reserved.                                                       *
+ * Copyright (c) 2023-2023. All rights reserved.                                                  *
  * @Author: Zhucong Xi                                                                            *
  * @Date:                                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 7/6/23 3:01 PM                                                            *
+ * @Last Modified time: 7/6/23 3:06 PM                                                            *
  **************************************************************************************************/
 
 #include "Traverse.h"
@@ -34,7 +34,7 @@ Traverse::Traverse(unsigned long long int initial_steps,
       element_set_(std::move(element_set)),
       smallest_cluster_criteria_(smallest_cluster_criteria),
       solvent_bond_criteria_(solvent_bond_criteria),
-      energy_estimator_(predictor_filename, element_set_),
+    // energy_estimator_(predictor_filename, element_set_),
       log_type_(std::move(log_type)),
       config_type_(std::move(config_type)) {
   std::string log_file_name;

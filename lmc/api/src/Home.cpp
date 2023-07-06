@@ -3,7 +3,7 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date: 3/21/22 3:17 PM                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 7/6/23 2:25 PM                                                            *
+ * @Last Modified time: 7/6/23 3:07 PM                                                            *
  **************************************************************************************************/
 
 #include "Home.h"
@@ -88,12 +88,12 @@ void Print(const Parameter &parameter) {
   }
 }
 void Run(const Parameter &parameter) {
-  if (parameter.method == "Ansys") {
-    auto iterator = BuildIteratorFromParameter(parameter);
-    iterator.RunAnsys();
-  } else if (parameter.method == "Reformat") {
+  if (parameter.method == "Reformat") {
     auto iterator = BuildIteratorFromParameter(parameter);
     iterator.RunReformat();
+    // } else if (parameter.method == "Ansys") {
+    //   auto iterator = BuildIteratorFromParameter(parameter);
+    //   iterator.RunAnsys();
     // } else if (parameter.method == "SimulatedAnnealing") {
     //   auto simulated_annealing = BuildSimulatedAnnealingFromParameter(parameter);
     //   simulated_annealing.Simulate();

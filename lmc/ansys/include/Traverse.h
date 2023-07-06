@@ -3,14 +3,15 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date:                                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 7/6/23 3:01 PM                                                            *
+ * @Last Modified time: 7/6/23 3:06 PM                                                            *
  **************************************************************************************************/
 
 #ifndef LMC_ANSYS_INCLUDE_TRAVERSE_H_
 #define LMC_ANSYS_INCLUDE_TRAVERSE_H_
-#include "EnergyPredictor.h"
+// #include "EnergyPredictor.h"
 // #include "Cluster.h"
 // #include "ShortRangeOrder.h"
+#include "Config.h"
 namespace ansys {
 
 class Traverse {
@@ -37,7 +38,7 @@ class Traverse {
   size_t solvent_bond_criteria_;
   std::unordered_map<unsigned long long, double> filename_energy_hashset_{},
       filename_temperature_hashset_{}, filename_time_hashset_{};
-  const pred::EnergyPredictor energy_estimator_;
+  // const pred::EnergyPredictor energy_estimator_;
   const std::string log_type_;
   const std::string config_type_;
 };
