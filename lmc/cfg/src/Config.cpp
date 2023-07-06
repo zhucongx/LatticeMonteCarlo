@@ -3,7 +3,7 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date: 1/16/20 3:55 AM                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 7/6/23 3:15 PM                                                            *
+ * @Last Modified time: 7/6/23 3:29 PM                                                            *
  **************************************************************************************************/
 
 /*! \file  Config.cpp
@@ -286,7 +286,6 @@ Config Config::ReadMap(const std::string &lattice_filename,
     config.atom_to_lattice_hashmap_.emplace(atom_id, lattice_id);
     ifs_map.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
   }
-  config.ReassignLattice();
   return config;
 }
 Config Config::ReadCfg(const std::string &filename) {
