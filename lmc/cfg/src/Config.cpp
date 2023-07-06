@@ -3,7 +3,7 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date: 1/16/20 3:55 AM                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 7/6/23 3:01 PM                                                            *
+ * @Last Modified time: 7/6/23 3:15 PM                                                            *
  **************************************************************************************************/
 
 /*! \file  Config.cpp
@@ -145,7 +145,7 @@ size_t Config::GetDistanceOrder(size_t lattice_id1, size_t lattice_id2) const {
   double cartesian_distance = (basis_ * relative_distance_vector).norm();
   auto upper = std::upper_bound(cutoffs_.begin(), cutoffs_.end(), cartesian_distance);
   if (upper == cutoffs_.end()) {
-    return std::numeric_limits<double>::infinity(); // distance is larger than the largest cutoff
+    return std::numeric_limits<size_t>::infinity(); // distance is larger than the largest cutoff
   }
   return static_cast<size_t>(1 + std::distance(cutoffs_.begin(), upper));
 }
