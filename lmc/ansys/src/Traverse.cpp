@@ -3,7 +3,7 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date:                                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 7/6/23 3:32 PM                                                            *
+ * @Last Modified time: 7/6/23 3:41 PM                                                            *
  **************************************************************************************************/
 
 #include "Traverse.h"
@@ -151,10 +151,10 @@ Traverse::~Traverse() = default;
 //   std::cout << "Done..." << std::endl;
 // }
 void Traverse::RunReformat() const {
-#pragma omp parallel default(none) shared(std::cout)
+// #pragma omp parallel default(none) shared(std::cout)
   {
-#pragma omp for schedule(static, 1)
-    for (unsigned long long i = 0; i <= final_number_; i += increment_steps_) {
+// #pragma omp for schedule(static, 1)
+    for (unsigned long long i = initial_steps_; i <= final_number_; i += increment_steps_) {
       std::cout << std::to_string(i) + " / " + std::to_string(final_number_) << std::endl;
       if (config_type_ == "map") {
         auto config = Config::ReadMap("lattice.txt", "element.txt", "map" + std::to_string(i) + ".txt");
