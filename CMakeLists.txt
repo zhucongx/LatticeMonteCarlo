@@ -3,9 +3,8 @@ cmake_minimum_required(VERSION 3.14)
 #set(CMAKE_C_COMPILER "icc") # {gcc, gcc-13, mpicc, icc, mpiicc, clang}
 #set(CMAKE_CXX_COMPILER "icpc") # {g++, g++-13, mpicxx, icpc, mpiicpc, clang++}
 #set(CMAKE_Fortran_COMPILER "ifort") # {gfortran, gfortran-13, mpifort, ifort, mpiifort, flang}
-#set(CMAKE_C_COMPILER "gcc-13") # {gcc, gcc-13, mpicc, icc, mpiicc, clang}
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_C_STANDARD 17)
+#set(CMAKE_C_STANDARD 17)
 
 project(lmc VERSION 0.1.0)
 set(CMAKE_VERBOSE_MAKEFILE ON)
