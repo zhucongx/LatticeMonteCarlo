@@ -3,7 +3,7 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date: 9/23/20 1:29 PM                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 7/2/23 11:16 PM                                                           *
+ * @Last Modified time: 7/18/23 3:01 PM                                                           *
  **************************************************************************************************/
 
 /*! \file  Element.hpp
@@ -85,6 +85,14 @@ class Element {
   friend size_t hash_value(Element element) {
     return static_cast<std::size_t>(element.element_name_);
   }
+
+  /*! \brief Returns the atomic index of this element.
+   *  \return : The atomic index of this element.
+   */
+  [[nodiscard]] size_t GetAtomicIndex() const {
+    return GetProperties().index;
+  }
+
   /*! \brief Returns the name of this element.
    *  \return : The name of this element.
    */
@@ -105,6 +113,8 @@ class Element {
    *  \brief A data structure to hold the properties of an element.
    */
   struct ElementProperties {
+    /// The atomic index of this element
+    size_t index;
     /// The symbol of this element in string.
     std::string name;
     /// The mass of this element.
@@ -113,80 +123,101 @@ class Element {
 
   /// Inline static map holding the properties of each ElementName.
   inline static const std::unordered_map<ElementName, ElementProperties> element_properties_map_ = {
-      {ElementName::X, {"X", 0.0}}, {ElementName::H, {"H", 1.008}}, {ElementName::He, {"He", 4.0026}},
-      {ElementName::Li, {"Li", 6.94}}, {ElementName::Be, {"Be", 9.0122}}, {ElementName::B, {"B", 10.81}},
-      {ElementName::C, {"C", 12.011}}, {ElementName::N, {"N", 14.007}}, {ElementName::O, {"O", 15.999}},
-      {ElementName::F, {"F", 18.998}}, {ElementName::Ne, {"Ne", 20.180}}, {ElementName::Na, {"Na", 22.990}},
-      {ElementName::Mg, {"Mg", 24.305}}, {ElementName::Al, {"Al", 26.982}}, {ElementName::Si, {"Si", 28.085}},
-      {ElementName::P, {"P", 30.974}}, {ElementName::S, {"S", 32.06}}, {ElementName::Cl, {"Cl", 35.45}},
-      {ElementName::Ar, {"Ar", 39.948}}, {ElementName::K, {"K", 39.098}}, {ElementName::Ca, {"Ca", 40.078}},
-      {ElementName::Sc, {"Sc", 44.956}}, {ElementName::Ti, {"Ti", 47.867}}, {ElementName::V, {"V", 50.942}},
-      {ElementName::Cr, {"Cr", 51.996}}, {ElementName::Mn, {"Mn", 54.938}}, {ElementName::Fe, {"Fe", 55.845}},
-      {ElementName::Co, {"Co", 58.933}}, {ElementName::Ni, {"Ni", 58.693}}, {ElementName::Cu, {"Cu", 63.546}},
-      {ElementName::Zn, {"Zn", 65.38}}, {ElementName::Ga, {"Ga", 69.723}}, {ElementName::Ge, {"Ge", 72.630}},
-      {ElementName::As, {"As", 74.922}}, {ElementName::Se, {"Se", 78.971}}, {ElementName::Br, {"Br", 79.904}},
-      {ElementName::Kr, {"Kr", 83.798}}, {ElementName::Rb, {"Rb", 85.468}}, {ElementName::Sr, {"Sr", 87.62}},
-      {ElementName::Y, {"Y", 88.906}}, {ElementName::Zr, {"Zr", 91.224}}, {ElementName::Nb, {"Nb", 92.906}},
-      {ElementName::Mo, {"Mo", 95.95}}, {ElementName::Tc, {"Tc", 98}}, {ElementName::Ru, {"Ru", 101.07}},
-      {ElementName::Rh, {"Rh", 102.91}}, {ElementName::Pd, {"Pd", 106.42}}, {ElementName::Ag, {"Ag", 107.87}},
-      {ElementName::Cd, {"Cd", 112.41}}, {ElementName::In, {"In", 114.82}}, {ElementName::Sn, {"Sn", 118.71}},
-      {ElementName::Sb, {"Sb", 121.76}}, {ElementName::Te, {"Te", 127.60}}, {ElementName::I, {"I", 126.90}},
-      {ElementName::Xe, {"Xe", 131.29}}, {ElementName::Cs, {"Cs", 132.91}}, {ElementName::Ba, {"Ba", 137.33}},
-      {ElementName::La, {"La", 138.91}}, {ElementName::Ce, {"Ce", 140.12}}, {ElementName::Pr, {"Pr", 140.91}},
-      {ElementName::Nd, {"Nd", 144.24}}, {ElementName::Pm, {"Pm", 145}}, {ElementName::Sm, {"Sm", 150.36}},
-      {ElementName::Eu, {"Eu", 151.96}}, {ElementName::Gd, {"Gd", 157.25}}, {ElementName::Tb, {"Tb", 158.93}},
-      {ElementName::Dy, {"Dy", 162.50}}, {ElementName::Ho, {"Ho", 164.93}}, {ElementName::Er, {"Er", 167.26}},
-      {ElementName::Tm, {"Tm", 168.93}}, {ElementName::Yb, {"Yb", 173.05}}, {ElementName::Lu, {"Lu", 174.97}},
-      {ElementName::Hf, {"Hf", 178.49}}, {ElementName::Ta, {"Ta", 180.95}}, {ElementName::W, {"W", 183.84}},
-      {ElementName::Re, {"Re", 186.21}}, {ElementName::Os, {"Os", 190.23}}, {ElementName::Ir, {"Ir", 192.22}},
-      {ElementName::Pt, {"Pt", 195.08}}, {ElementName::Au, {"Au", 196.97}}, {ElementName::Hg, {"Hg", 200.59}},
-      {ElementName::Tl, {"Tl", 204.38}}, {ElementName::Pb, {"Pb", 207.2}}, {ElementName::Bi, {"Bi", 208.98}},
-      {ElementName::Po, {"Po", 209}}, {ElementName::At, {"At", 210}}, {ElementName::Rn, {"Rn", 222}},
-      {ElementName::Fr, {"Fr", 223}}, {ElementName::Ra, {"Ra", 226}}, {ElementName::Ac, {"Ac", 227}},
-      {ElementName::Th, {"Th", 232.04}}, {ElementName::Pa, {"Pa", 231.04}}, {ElementName::U, {"U", 238.03}},
-      {ElementName::Np, {"Np", 237}}, {ElementName::Pu, {"Pu", 244}}, {ElementName::Am, {"Am", 243}},
-      {ElementName::Cm, {"Cm", 247}}, {ElementName::Bk, {"Bk", 247}}, {ElementName::Cf, {"Cf", 251}},
-      {ElementName::Es, {"Es", 252}}, {ElementName::Fm, {"Fm", 257}}, {ElementName::Md, {"Md", 258}},
-      {ElementName::No, {"No", 259}}, {ElementName::Lr, {"Lr", 266}}, {ElementName::Rf, {"Rf", 267}},
-      {ElementName::Db, {"Db", 270}}, {ElementName::Sg, {"Sg", 271}}, {ElementName::Bh, {"Bh", 270}},
-      {ElementName::Hs, {"Hs", 277}}, {ElementName::Mt, {"Mt", 276}}, {ElementName::Ds, {"Ds", 281}},
-      {ElementName::Rg, {"Rg", 282}}, {ElementName::Cn, {"Cn", 285}}, {ElementName::Nh, {"Nh", 286}},
-      {ElementName::Fl, {"Fl", 289}}, {ElementName::Mc, {"Mc", 288}}, {ElementName::Lv, {"Lv", 293}},
-      {ElementName::Ts, {"Ts", 294}}, {ElementName::Og, {"Og", 294},
-      }};
+      {ElementName::X, {0, "X", 0.0}},
+      {ElementName::H, {1, "H", 1.008}}, {ElementName::He, {2, "He", 4.0026}},
+      {ElementName::Li, {3, "Li", 6.94}}, {ElementName::Be, {4, "Be", 9.0122}},
+      {ElementName::B, {5, "B", 10.81}}, {ElementName::C, {6, "C", 12.011}},
+      {ElementName::N, {7, "N", 14.007}}, {ElementName::O, {8, "O", 15.999}},
+      {ElementName::F, {9, "F", 18.998}}, {ElementName::Ne, {10, "Ne", 20.180}},
+      {ElementName::Na, {11, "Na", 22.990}}, {ElementName::Mg, {12, "Mg", 24.305}},
+      {ElementName::Al, {13, "Al", 26.982}}, {ElementName::Si, {14, "Si", 28.085}},
+      {ElementName::P, {15, "P", 30.974}}, {ElementName::S, {16, "S", 32.06}},
+      {ElementName::Cl, {17, "Cl", 35.45}}, {ElementName::Ar, {18, "Ar", 39.948}},
+      {ElementName::K, {19, "K", 39.098}}, {ElementName::Ca, {20, "Ca", 40.078}},
+      {ElementName::Sc, {21, "Sc", 44.956}}, {ElementName::Ti, {22, "Ti", 47.867}},
+      {ElementName::V, {23, "V", 50.942}}, {ElementName::Cr, {24, "Cr", 51.996}},
+      {ElementName::Mn, {25, "Mn", 54.938}}, {ElementName::Fe, {26, "Fe", 55.845}},
+      {ElementName::Co, {27, "Co", 58.933}}, {ElementName::Ni, {28, "Ni", 58.693}},
+      {ElementName::Cu, {29, "Cu", 63.546}}, {ElementName::Zn, {30, "Zn", 65.38}},
+      {ElementName::Ga, {31, "Ga", 69.723}}, {ElementName::Ge, {32, "Ge", 72.630}},
+      {ElementName::As, {33, "As", 74.922}}, {ElementName::Se, {34, "Se", 78.971}},
+      {ElementName::Br, {35, "Br", 79.904}}, {ElementName::Kr, {36, "Kr", 83.798}},
+      {ElementName::Rb, {37, "Rb", 85.468}}, {ElementName::Sr, {38, "Sr", 87.62}},
+      {ElementName::Y, {39, "Y", 88.906}}, {ElementName::Zr, {40, "Zr", 91.224}},
+      {ElementName::Nb, {41, "Nb", 92.906}}, {ElementName::Mo, {42, "Mo", 95.95}},
+      {ElementName::Tc, {43, "Tc", 98}}, {ElementName::Ru, {44, "Ru", 101.07}},
+      {ElementName::Rh, {45, "Rh", 102.91}}, {ElementName::Pd, {46, "Pd", 106.42}},
+      {ElementName::Ag, {47, "Ag", 107.87}}, {ElementName::Cd, {48, "Cd", 112.41}},
+      {ElementName::In, {49, "In", 114.82}}, {ElementName::Sn, {50, "Sn", 118.71}},
+      {ElementName::Sb, {51, "Sb", 121.76}}, {ElementName::Te, {52, "Te", 127.60}},
+      {ElementName::I, {53, "I", 126.90}}, {ElementName::Xe, {54, "Xe", 131.29}},
+      {ElementName::Cs, {55, "Cs", 132.91}}, {ElementName::Ba, {56, "Ba", 137.33}},
+      {ElementName::La, {57, "La", 138.91}}, {ElementName::Ce, {58, "Ce", 140.12}},
+      {ElementName::Pr, {59, "Pr", 140.91}}, {ElementName::Nd, {60, "Nd", 144.24}},
+      {ElementName::Pm, {61, "Pm", 145}}, {ElementName::Sm, {62, "Sm", 150.36}},
+      {ElementName::Eu, {63, "Eu", 151.96}}, {ElementName::Gd, {64, "Gd", 157.25}},
+      {ElementName::Tb, {65, "Tb", 158.93}}, {ElementName::Dy, {66, "Dy", 162.50}},
+      {ElementName::Ho, {67, "Ho", 164.93}}, {ElementName::Er, {68, "Er", 167.26}},
+      {ElementName::Tm, {69, "Tm", 168.93}}, {ElementName::Yb, {70, "Yb", 173.05}},
+      {ElementName::Lu, {71, "Lu", 174.97}}, {ElementName::Hf, {72, "Hf", 178.49}},
+      {ElementName::Ta, {73, "Ta", 180.95}}, {ElementName::W, {74, "W", 183.84}},
+      {ElementName::Re, {75, "Re", 186.21}}, {ElementName::Os, {76, "Os", 190.23}},
+      {ElementName::Ir, {77, "Ir", 192.22}}, {ElementName::Pt, {78, "Pt", 195.08}},
+      {ElementName::Au, {79, "Au", 196.97}}, {ElementName::Hg, {80, "Hg", 200.59}},
+      {ElementName::Tl, {81, "Tl", 204.38}}, {ElementName::Pb, {82, "Pb", 207.2}},
+      {ElementName::Bi, {83, "Bi", 208.98}}, {ElementName::Po, {84, "Po", 209}},
+      {ElementName::At, {85, "At", 210}}, {ElementName::Rn, {86, "Rn", 222}},
+      {ElementName::Fr, {87, "Fr", 223}}, {ElementName::Ra, {88, "Ra", 226}},
+      {ElementName::Ac, {89, "Ac", 227}}, {ElementName::Th, {90, "Th", 232.04}},
+      {ElementName::Pa, {91, "Pa", 231.04}}, {ElementName::U, {92, "U", 238.03}},
+      {ElementName::Np, {93, "Np", 237}}, {ElementName::Pu, {94, "Pu", 244}},
+      {ElementName::Am, {95, "Am", 243}}, {ElementName::Cm, {96, "Cm", 247}},
+      {ElementName::Bk, {97, "Bk", 247}}, {ElementName::Cf, {98, "Cf", 251}},
+      {ElementName::Es, {99, "Es", 252}}, {ElementName::Fm, {100, "Fm", 257}},
+      {ElementName::Md, {101, "Md", 258}}, {ElementName::No, {102, "No", 259}},
+      {ElementName::Lr, {103, "Lr", 266}}, {ElementName::Rf, {104, "Rf", 267}},
+      {ElementName::Db, {105, "Db", 270}}, {ElementName::Sg, {106, "Sg", 271}},
+      {ElementName::Bh, {107, "Bh", 270}}, {ElementName::Hs, {108, "Hs", 277}},
+      {ElementName::Mt, {109, "Mt", 276}}, {ElementName::Ds, {110, "Ds", 281}},
+      {ElementName::Rg, {111, "Rg", 282}}, {ElementName::Cn, {112, "Cn", 285}},
+      {ElementName::Nh, {113, "Nh", 286}}, {ElementName::Fl, {114, "Fl", 289}},
+      {ElementName::Mc, {115, "Mc", 288}}, {ElementName::Lv, {116, "Lv", 293}},
+      {ElementName::Ts, {117, "Ts", 294}}, {ElementName::Og, {118, "Og", 294}},
+  };
 
   /// Inline static map to map string names to ElementName.
   inline static const std::unordered_map<std::string, ElementName> element_string_map_ = {
-      {"X", ElementName::X}, {"H", ElementName::H}, {"He", ElementName::He}, {"Li", ElementName::Li},
-      {"Be", ElementName::Be}, {"B", ElementName::B}, {"C", ElementName::C}, {"N", ElementName::N},
-      {"O", ElementName::O}, {"F", ElementName::F}, {"Ne", ElementName::Ne}, {"Na", ElementName::Na},
-      {"Mg", ElementName::Mg}, {"Al", ElementName::Al}, {"Si", ElementName::Si}, {"P", ElementName::P},
-      {"S", ElementName::S}, {"Cl", ElementName::Cl}, {"Ar", ElementName::Ar}, {"K", ElementName::K},
-      {"Ca", ElementName::Ca}, {"Sc", ElementName::Sc}, {"Ti", ElementName::Ti}, {"V", ElementName::V},
-      {"Cr", ElementName::Cr}, {"Mn", ElementName::Mn}, {"Fe", ElementName::Fe}, {"Co", ElementName::Co},
-      {"Ni", ElementName::Ni}, {"Cu", ElementName::Cu}, {"Zn", ElementName::Zn}, {"Ga", ElementName::Ga},
-      {"Ge", ElementName::Ge}, {"As", ElementName::As}, {"Se", ElementName::Se}, {"Br", ElementName::Br},
-      {"Kr", ElementName::Kr}, {"Rb", ElementName::Rb}, {"Sr", ElementName::Sr}, {"Y", ElementName::Y},
-      {"Zr", ElementName::Zr}, {"Nb", ElementName::Nb}, {"Mo", ElementName::Mo}, {"Tc", ElementName::Tc},
-      {"Ru", ElementName::Ru}, {"Rh", ElementName::Rh}, {"Pd", ElementName::Pd}, {"Ag", ElementName::Ag},
-      {"Cd", ElementName::Cd}, {"In", ElementName::In}, {"Sn", ElementName::Sn}, {"Sb", ElementName::Sb},
-      {"Te", ElementName::Te}, {"I", ElementName::I}, {"Xe", ElementName::Xe}, {"Cs", ElementName::Cs},
-      {"Ba", ElementName::Ba}, {"La", ElementName::La}, {"Ce", ElementName::Ce}, {"Pr", ElementName::Pr},
-      {"Nd", ElementName::Nd}, {"Pm", ElementName::Pm}, {"Sm", ElementName::Sm}, {"Eu", ElementName::Eu},
-      {"Gd", ElementName::Gd}, {"Tb", ElementName::Tb}, {"Dy", ElementName::Dy}, {"Ho", ElementName::Ho},
-      {"Er", ElementName::Er}, {"Tm", ElementName::Tm}, {"Yb", ElementName::Yb}, {"Lu", ElementName::Lu},
-      {"Hf", ElementName::Hf}, {"Ta", ElementName::Ta}, {"W", ElementName::W}, {"Re", ElementName::Re},
-      {"Os", ElementName::Os}, {"Ir", ElementName::Ir}, {"Pt", ElementName::Pt}, {"Au", ElementName::Au},
-      {"Hg", ElementName::Hg}, {"Tl", ElementName::Tl}, {"Pb", ElementName::Pb}, {"Bi", ElementName::Bi},
-      {"Po", ElementName::Po}, {"At", ElementName::At}, {"Rn", ElementName::Rn}, {"Fr", ElementName::Fr},
-      {"Ra", ElementName::Ra}, {"Ac", ElementName::Ac}, {"Th", ElementName::Th}, {"Pa", ElementName::Pa},
-      {"U", ElementName::U}, {"Np", ElementName::Np}, {"Pu", ElementName::Pu}, {"Am", ElementName::Am},
-      {"Cm", ElementName::Cm}, {"Bk", ElementName::Bk}, {"Cf", ElementName::Cf}, {"Es", ElementName::Es},
-      {"Fm", ElementName::Fm}, {"Md", ElementName::Md}, {"No", ElementName::No}, {"Lr", ElementName::Lr},
-      {"Rf", ElementName::Rf}, {"Db", ElementName::Db}, {"Sg", ElementName::Sg}, {"Bh", ElementName::Bh},
-      {"Hs", ElementName::Hs}, {"Mt", ElementName::Mt}, {"Ds", ElementName::Ds}, {"Rg", ElementName::Rg},
-      {"Cn", ElementName::Cn}, {"Nh", ElementName::Nh}, {"Fl", ElementName::Fl}, {"Mc", ElementName::Mc},
-      {"Lv", ElementName::Lv}, {"Ts", ElementName::Ts}, {"Og", ElementName::Og},
+      {"X", ElementName::X},
+      {"H", ElementName::H}, {"He", ElementName::He}, {"Li", ElementName::Li}, {"Be", ElementName::Be},
+      {"B", ElementName::B}, {"C", ElementName::C}, {"N", ElementName::N}, {"O", ElementName::O},
+      {"F", ElementName::F}, {"Ne", ElementName::Ne}, {"Na", ElementName::Na}, {"Mg", ElementName::Mg},
+      {"Al", ElementName::Al}, {"Si", ElementName::Si}, {"P", ElementName::P}, {"S", ElementName::S},
+      {"Cl", ElementName::Cl}, {"Ar", ElementName::Ar}, {"K", ElementName::K}, {"Ca", ElementName::Ca},
+      {"Sc", ElementName::Sc}, {"Ti", ElementName::Ti}, {"V", ElementName::V}, {"Cr", ElementName::Cr},
+      {"Mn", ElementName::Mn}, {"Fe", ElementName::Fe}, {"Co", ElementName::Co}, {"Ni", ElementName::Ni},
+      {"Cu", ElementName::Cu}, {"Zn", ElementName::Zn}, {"Ga", ElementName::Ga}, {"Ge", ElementName::Ge},
+      {"As", ElementName::As}, {"Se", ElementName::Se}, {"Br", ElementName::Br}, {"Kr", ElementName::Kr},
+      {"Rb", ElementName::Rb}, {"Sr", ElementName::Sr}, {"Y", ElementName::Y}, {"Zr", ElementName::Zr},
+      {"Nb", ElementName::Nb}, {"Mo", ElementName::Mo}, {"Tc", ElementName::Tc}, {"Ru", ElementName::Ru},
+      {"Rh", ElementName::Rh}, {"Pd", ElementName::Pd}, {"Ag", ElementName::Ag}, {"Cd", ElementName::Cd},
+      {"In", ElementName::In}, {"Sn", ElementName::Sn}, {"Sb", ElementName::Sb}, {"Te", ElementName::Te},
+      {"I", ElementName::I}, {"Xe", ElementName::Xe}, {"Cs", ElementName::Cs}, {"Ba", ElementName::Ba},
+      {"La", ElementName::La}, {"Ce", ElementName::Ce}, {"Pr", ElementName::Pr}, {"Nd", ElementName::Nd},
+      {"Pm", ElementName::Pm}, {"Sm", ElementName::Sm}, {"Eu", ElementName::Eu}, {"Gd", ElementName::Gd},
+      {"Tb", ElementName::Tb}, {"Dy", ElementName::Dy}, {"Ho", ElementName::Ho}, {"Er", ElementName::Er},
+      {"Tm", ElementName::Tm}, {"Yb", ElementName::Yb}, {"Lu", ElementName::Lu}, {"Hf", ElementName::Hf},
+      {"Ta", ElementName::Ta}, {"W", ElementName::W}, {"Re", ElementName::Re}, {"Os", ElementName::Os},
+      {"Ir", ElementName::Ir}, {"Pt", ElementName::Pt}, {"Au", ElementName::Au}, {"Hg", ElementName::Hg},
+      {"Tl", ElementName::Tl}, {"Pb", ElementName::Pb}, {"Bi", ElementName::Bi}, {"Po", ElementName::Po},
+      {"At", ElementName::At}, {"Rn", ElementName::Rn}, {"Fr", ElementName::Fr}, {"Ra", ElementName::Ra},
+      {"Ac", ElementName::Ac}, {"Th", ElementName::Th}, {"Pa", ElementName::Pa}, {"U", ElementName::U},
+      {"Np", ElementName::Np}, {"Pu", ElementName::Pu}, {"Am", ElementName::Am}, {"Cm", ElementName::Cm},
+      {"Bk", ElementName::Bk}, {"Cf", ElementName::Cf}, {"Es", ElementName::Es}, {"Fm", ElementName::Fm},
+      {"Md", ElementName::Md}, {"No", ElementName::No}, {"Lr", ElementName::Lr}, {"Rf", ElementName::Rf},
+      {"Db", ElementName::Db}, {"Sg", ElementName::Sg}, {"Bh", ElementName::Bh}, {"Hs", ElementName::Hs},
+      {"Mt", ElementName::Mt}, {"Ds", ElementName::Ds}, {"Rg", ElementName::Rg}, {"Cn", ElementName::Cn},
+      {"Nh", ElementName::Nh}, {"Fl", ElementName::Fl}, {"Mc", ElementName::Mc}, {"Lv", ElementName::Lv},
+      {"Ts", ElementName::Ts}, {"Og", ElementName::Og},
   };
 
   /*! \brief Returns the properties of this element.
