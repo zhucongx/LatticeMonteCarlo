@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 ####################################################################################################
-# Copyright (c) 2023-2023. All rights reserved.                                                    #
+# Copyright (c) 2021-2023. All rights reserved.                                                    #
 # @Author: Zhucong Xi                                                                              #
 # @Date: 12/4/21 6:42 AM                                                                           #
 # @Last Modified by: zhucongx                                                                      #
-# @Last Modified time: 8/21/23 3:33 PM                                                             #
+# @Last Modified time: 8/22/23 11:40 AM                                                            #
 ####################################################################################################
 
 # Ask for the mode and compiler if they are not passed as arguments
@@ -44,8 +44,8 @@ mkdir cmake-build; cd cmake-build || {
 }
 
 # Pass the selected parameters to cmake
-cmake -D CMAKE_C_COMPILER="$compiler_C" -D CMAKE_CXX_COMPILER="$compiler_CXX" -D CMAKE_BUILD_TYPE="$mode" -S ..
-unset mode compiler
+cmake -D CMAKE_C_COMPILER="$compiler_C" -D CMAKE_CXX_COMPILER="$compiler_CXX" \
+-D CMAKE_BUILD_TYPE="$mode" -S ..
 make -j 12
 
 # Moving back to the original directory
