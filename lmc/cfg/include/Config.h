@@ -3,7 +3,7 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date: 1/16/20 3:55 AM                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 7/6/23 3:01 PM                                                            *
+ * @Last Modified time: 8/22/23 12:58 PM                                                          *
  **************************************************************************************************/
 
 /*! \file  Config.h
@@ -72,17 +72,29 @@ class Config {
    */
   [[nodiscard]] size_t GetDistanceOrder(size_t lattice_id1, size_t lattice_id2) const;
 
+  /*! \brief Query for the cartesian position of an lattice site.
+   *  \param lattice_id : The lattice id of the lattice site.
+   *  \return           : The cartesian position of the lattice site.
+   */
+  [[nodiscard]] Eigen::Ref<const Eigen::Vector3d> GetRelativePositionOfSite(size_t lattice_id) const;
+
+  /*! \brief Query for the cartesian position of an lattice site.
+   *  \param lattice_id : The lattice id of the lattice site.
+   *  \return           : The cartesian position of the lattice site.
+   */
+  [[nodiscard]] Eigen::Ref<const Eigen::Vector3d> GetCartesianPositionOfSite(size_t lattice_id) const;
+
   /*! \brief Query for the relative position of an atom.
    *  \param atom_id : The atom id of the atom.
    *  \return : The relative position of the atom.
    */
-  [[nodiscard]] Eigen::Vector3d GetRelativePositionOfAtom(size_t atom_id) const;
+  [[nodiscard]] Eigen::Ref<const Eigen::Vector3d> GetRelativePositionOfAtom(size_t atom_id) const;
 
   /*! \brief Query for the cartesian position of an atom.
    *  \param atom_id : The atom id of the atom.
    *  \return        : The cartesian position of the atom.
    */
-  [[nodiscard]] Eigen::Vector3d GetCartesianPositionOfAtom(size_t atom_id) const;
+  [[nodiscard]] Eigen::Ref<const Eigen::Vector3d> GetCartesianPositionOfAtom(size_t atom_id) const;
 
   /*! \brief Set the periodic boundary condition of the configuration.
    *  \param periodic_boundary_condition : The periodic boundary condition of the configuration.

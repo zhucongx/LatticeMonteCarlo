@@ -3,7 +3,7 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date: 1/16/20 3:55 AM                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 7/17/23 1:56 PM                                                           *
+ * @Last Modified time: 8/22/23 12:58 PM                                                          *
  **************************************************************************************************/
 
 /*! \file  Config.cpp
@@ -59,12 +59,20 @@ const std::vector<std::vector<std::vector<size_t> > > &Config::GetNeighborLists(
   return neighbor_lists_;
 }
 
-Eigen::Vector3d Config::GetRelativePositionOfAtom(size_t atom_id) const {
-  return relative_position_matrix_.col(static_cast<int>(atom_to_lattice_hashmap_.at(atom_id)));
+Eigen::Ref<const Eigen::Vector3d> Config::GetRelativePositionOfSite(size_t lattice_id) const {
+  return relative_position_matrix_.col(static_cast<int>(lattice_id));
 }
 
-Eigen::Vector3d Config::GetCartesianPositionOfAtom(size_t atom_id) const {
-  return cartesian_position_matrix_.col(static_cast<int>(atom_to_lattice_hashmap_.at(atom_id)));
+Eigen::Ref<const Eigen::Vector3d> Config::GetCartesianPositionOfSite(size_t lattice_id) const {
+  return cartesian_position_matrix_.col(static_cast<int>(lattice_id));
+}
+
+Eigen::Ref<const Eigen::Vector3d> Config::GetRelativePositionOfAtom(size_t atom_id) const {
+  return GetRelativePositionOfSite(atom_to_lattice_hashmap_.at(atom_id));
+}
+
+Eigen::Ref<const Eigen::Vector3d> Config::GetCartesianPositionOfAtom(size_t atom_id) const {
+  return GetCartesianPositionOfSite(atom_to_lattice_hashmap_.at(atom_id));
 }
 
 void Config::SetPeriodicBoundaryCondition(const std::array<bool, 3> &periodic_boundary_condition) {
