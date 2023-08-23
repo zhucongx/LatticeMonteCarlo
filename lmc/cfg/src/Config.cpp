@@ -3,7 +3,7 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date: 1/16/20 3:55 AM                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 8/22/23 12:58 PM                                                          *
+ * @Last Modified time: 8/22/23 3:45 PM                                                           *
  **************************************************************************************************/
 
 /*! \file  Config.cpp
@@ -47,6 +47,14 @@ size_t Config::GetNumAtoms() const {
   return atom_vector_.size();
 }
 
+const std::vector<Element> &Config::GetAtomVector() const {
+  return atom_vector_;
+}
+
+Element Config::GetElementOfAtom(size_t atom_id) const {
+  return atom_vector_.at(atom_id);
+}
+
 size_t Config::GetNumSites() const {
   return static_cast<size_t>(relative_position_matrix_.cols());
 }
@@ -79,7 +87,7 @@ void Config::SetPeriodicBoundaryCondition(const std::array<bool, 3> &periodic_bo
   periodic_boundary_condition_ = periodic_boundary_condition;
 }
 
-void Config::ChangeAtomElementTypeAtAtomId(size_t atom_id, Element element_type) {
+void Config::SetElementOfAtom(size_t atom_id, Element element_type) {
   atom_vector_.at(atom_id) = Element(element_type);
 }
 
@@ -95,7 +103,6 @@ void Config::AtomJump(const std::pair<size_t, size_t> &atom_id_jump_pair) {
 }
 
 void Config::ReassignLattice() {
-
   std::vector<std::pair<Eigen::Vector3d, size_t>> new_lattice_id_vector(GetNumSites());
   for (size_t i = 0; i < GetNumSites(); ++i) {
     new_lattice_id_vector[i] = std::make_pair(relative_position_matrix_.col(static_cast<int>(i)), i);
@@ -135,13 +142,13 @@ Eigen::Vector3d Config::GetRelativeDistanceVectorLattice(size_t lattice_id1, siz
   Eigen::Vector3d relative_distance_vector = relative_position_matrix_.col(static_cast<int>(lattice_id2))
       - relative_position_matrix_.col(static_cast<int>(lattice_id1));
   // periodic boundary conditions
-  for (const size_t kDim : std::vector<size_t>{0, 1, 2}) {
-    if (periodic_boundary_condition_[kDim]) {
-      while (relative_distance_vector[static_cast<int>(kDim)] >= 0.5) {
-        relative_distance_vector[static_cast<int>(kDim)] -= 1;
+  for (const int kDim : std::vector<int>{0, 1, 2}) {
+    if (periodic_boundary_condition_[static_cast<size_t>(kDim)]) {
+      while (relative_distance_vector[kDim] >= 0.5) {
+        relative_distance_vector[kDim] -= 1;
       }
-      while (relative_distance_vector[static_cast<int>(kDim)] < -0.5) {
-        relative_distance_vector[static_cast<int>(kDim)] += 1;
+      while (relative_distance_vector[kDim] < -0.5) {
+        relative_distance_vector[kDim] += 1;
       }
     }
   }
@@ -169,11 +176,11 @@ void Config::UpdateNeighborList(std::vector<double> cutoffs) {
   std::vector<std::vector<size_t>> neighbors_list(GetNumSites());
   neighbor_lists_ = {cutoffs_.size(), neighbors_list};
 
-  const auto basis_inverse = basis_.inverse().transpose();
+  const auto basis_inverse_tran = basis_.inverse().transpose();
   double cutoff_pbc = std::numeric_limits<double>::infinity();
-  for (const auto kDim : {0, 1, 2}) {
+  for (const int kDim : std::vector<int>{0, 1, 2}) {
     if (periodic_boundary_condition_[static_cast<size_t>(kDim)]) {
-      cutoff_pbc = std::min(cutoff_pbc, 0.5 / basis_inverse.col(kDim).norm());
+      cutoff_pbc = std::min(cutoff_pbc, 0.5 / basis_inverse_tran.col(kDim).norm());
     }
   }
   if (cutoff_pbc <= cutoffs_.back()) {

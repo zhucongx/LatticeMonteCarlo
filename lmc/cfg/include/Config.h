@@ -3,15 +3,15 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date: 1/16/20 3:55 AM                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 8/22/23 12:58 PM                                                          *
+ * @Last Modified time: 8/22/23 11:09 PM                                                          *
  **************************************************************************************************/
 
 /*! \file  Config.h
  *  \brief File for the Config class definition.
  */
 
-#ifndef LMC_CONFIG_INCLUDE_CONFIG_H_
-#define LMC_CONFIG_INCLUDE_CONFIG_H_
+#ifndef LMC_CFG_INCLUDE_CONFIG_H_
+#define LMC_CFG_INCLUDE_CONFIG_H_
 
 #include <unordered_map>
 #include <vector>
@@ -49,6 +49,17 @@ class Config {
    *  \return : The number of atoms in the configuration.
    */
   [[nodiscard]] size_t GetNumAtoms() const;
+
+  /*! \brief Query for the vector of atoms in the configuration.
+   *  \return : The vector of atoms in the configuration.
+   */
+  [[nodiscard]] const std::vector<Element> &GetAtomVector() const;
+
+  /*! \brief Query for the atom type of an atom.
+   *  \param atom_id : The atom id of the atom.
+   *  \return        : The atom type of the atom.
+   */
+  [[nodiscard]] Element GetElementOfAtom(size_t atom_id) const;
 
   /*! \brief Query for the number of lattice sites in the configuration.
    *  \return : The number of lattice sites in the configuration.
@@ -105,7 +116,7 @@ class Config {
    *  \param atom_id      : The atom id of the atom.
    *  \param element_type : The new element type.
    */
-  void ChangeAtomElementTypeAtAtomId(size_t atom_id, Element element_type);
+  void SetElementOfAtom(size_t atom_id, Element element_type);
 
   /*! \brief Modify the atom configuration.
    *  \param atom_id_jump_pair : The pair of atom ids to modify the configuration.
@@ -153,9 +164,12 @@ class Config {
       const std::string &filename,
       const std::map<std::string, std::vector<double>> &auxiliary_lists) const;
 
-  using VectorVariant = std::variant<std::vector<int>, std::vector<size_t>, std::vector<double>,
-                                     std::vector<std::string>, std::vector<Eigen::Vector3d> >;
-  using ValueVariant = std::variant<int, double, std::string>;
+  using VectorVariant = std::variant<std::vector<int>,
+                                     std::vector<size_t>,
+                                     std::vector<double>,
+                                     std::vector<std::string>,
+                                     std::vector<Eigen::Vector3d> >;
+  using ValueVariant = std::variant<int, double, unsigned long long, std::string>;
 
   /*! \brief Write the extended XXY to a file. Check the extended XYZ format
    *         at <https://web.archive.org/web/20190811094343/https://libatoms.github.io/QUIP/io.html#extendedxyz>
@@ -215,4 +229,4 @@ class Config {
   std::vector<std::vector<size_t>> cells_{};
 };
 
-#endif //LMC_CONFIG_INCLUDE_CONFIG_H_
+#endif //LMC_CFG_INCLUDE_CONFIG_H_
