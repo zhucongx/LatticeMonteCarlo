@@ -1,9 +1,17 @@
+/**************************************************************************************************
+ * Copyright (c) 2023. All rights reserved.                                                       *
+ * @Author: Zhucong Xi                                                                            *
+ * @Date:                                                                                         *
+ * @Last Modified by: zhucongx                                                                    *
+ * @Last Modified time: 8/22/23 10:40 PM                                                          *
+ **************************************************************************************************/
+
 #include "ShortRangeOrder.h"
 
 #include <utility>
 
 namespace ansys {
-ShortRangeOrder::ShortRangeOrder(const cfg::Config &config, const std::set<Element> &element_set)
+ShortRangeOrder::ShortRangeOrder(const Config &config, const std::set<Element> &element_set)
     : config_(config), element_set_(element_set) {}
 // std::map<std::string, double> ShortRangeOrder::FindPairCorrelationCluster(
 //     const size_t shell_number, const std::vector<size_t> &cluster_atom_id_list) const {
