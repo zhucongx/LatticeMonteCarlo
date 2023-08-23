@@ -1,15 +1,14 @@
 /**************************************************************************************************
- * Copyright (c) 2023-2023. All rights reserved.                                                  *
+ * Copyright (c) 2022-2023. All rights reserved.                                                  *
  * @Author: Zhucong Xi                                                                            *
- * @Date:                                                                                         *
+ * @Date: 6/4/22 4:53 AM                                                                          *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 7/6/23 3:06 PM                                                            *
+ * @Last Modified time: 8/22/23 1:21 PM                                                           *
  **************************************************************************************************/
-
 #ifndef LMC_ANSYS_INCLUDE_TRAVERSE_H_
 #define LMC_ANSYS_INCLUDE_TRAVERSE_H_
 // #include "EnergyPredictor.h"
-// #include "Cluster.h"
+#include "SoluteCluster.h"
 // #include "ShortRangeOrder.h"
 #include "Config.h"
 namespace ansys {
@@ -26,7 +25,7 @@ class Traverse {
            std::string log_type,
            std::string config_type);
   virtual ~Traverse();
-  // void RunAnsys() const;
+  void RunAnsys() const;
   void RunReformat() const;
  private:
   const unsigned long long initial_steps_;
@@ -38,7 +37,7 @@ class Traverse {
   size_t solvent_bond_criteria_;
   std::unordered_map<unsigned long long, double> filename_energy_hashset_{},
       filename_temperature_hashset_{}, filename_time_hashset_{};
-  // const pred::EnergyPredictor energy_estimator_;
+  const pred::EnergyPredictor energy_estimator_;
   const std::string log_type_;
   const std::string config_type_;
 };
