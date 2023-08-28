@@ -3,7 +3,7 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date: 12/6/21 8:55 PM                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 7/3/23 12:10 PM                                                           *
+ * @Last Modified time: 8/27/23 10:51 PM                                                          *
  **************************************************************************************************/
 
 /*! \file  Cluster.h
@@ -34,18 +34,22 @@ class ClusterType {
   ClusterType() = default;
 
   ClusterType(AtomClusterType atom_cluster_type, LatticeClusterType lattice_cluster_type)
-      : atom_cluster_type_(std::move(atom_cluster_type)), lattice_cluster_type_(std::move(lattice_cluster_type)) {}
+      : atom_cluster_type_(std::move(atom_cluster_type)), lattice_cluster_type_(std::move(lattice_cluster_type)) {
+    if (lattice_cluster_type_.GetSize() != atom_cluster_type_.GetSize()) {
+      throw std::invalid_argument("The size of the lattice cluster and the atom cluster are not compatible.");
+    }
+  }
 
   friend bool operator==(const ClusterType &lhs, const ClusterType &rhs) {
     return lhs.atom_cluster_type_ == rhs.atom_cluster_type_ &&
         lhs.lattice_cluster_type_ == rhs.lattice_cluster_type_;
   }
   friend bool operator<(const ClusterType &lhs, const ClusterType &rhs) {
-    if (lhs.atom_cluster_type_ < rhs.atom_cluster_type_)
+    if (lhs.lattice_cluster_type_ < rhs.lattice_cluster_type_)
       return true;
-    if (rhs.atom_cluster_type_ < lhs.atom_cluster_type_)
+    if (rhs.lattice_cluster_type_ < lhs.lattice_cluster_type_)
       return false;
-    return lhs.lattice_cluster_type_ < rhs.lattice_cluster_type_;
+    return lhs.atom_cluster_type_ < rhs.atom_cluster_type_;
   }
   friend std::size_t hash_value(const ClusterType &cluster_type) {
     std::size_t seed = 0;
@@ -53,7 +57,19 @@ class ClusterType {
     boost::hash_combine(seed, cluster_type.lattice_cluster_type_);
     return seed;
   }
+
+  /*! \brief stream operator output for ClusterType.
+   *  \param os           : The output stream.
+   *  \param cluster_type : The AtomClusterType to be streamed.
+   *  \return             : The output stream.
+   */
+  friend std::ostream &operator<<(std::ostream &os, const ClusterType &cluster_type) {
+    os << cluster_type.lattice_cluster_type_ << " " << cluster_type.atom_cluster_type_;
+    return os;
+  }
+
  private:
+
   AtomClusterType atom_cluster_type_;
   LatticeClusterType lattice_cluster_type_;
 };
