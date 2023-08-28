@@ -3,7 +3,7 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date: 9/23/20 1:29 PM                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 7/18/23 3:01 PM                                                           *
+ * @Last Modified time: 8/27/23 9:50 PM                                                           *
  **************************************************************************************************/
 
 /*! \file  Element.hpp
@@ -105,6 +105,16 @@ class Element {
    */
   [[nodiscard]] double GetMass() const {
     return GetProperties().mass;
+  }
+
+  /*! \brief stream operator output for this element.
+   *  \param os      : The output stream.
+   *  \param element : The Element to be streamed.
+   *  \return        : The output stream.
+   */
+  friend std::ostream &operator<<(std::ostream &os, const Element &element) {
+    os << element.GetElementString();
+    return os;
   }
 
  private:
