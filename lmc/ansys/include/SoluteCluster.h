@@ -3,7 +3,7 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date: 6/14/20 1:27 PM                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 8/22/23 11:08 PM                                                          *
+ * @Last Modified time: 8/27/23 9:50 PM                                                           *
  **************************************************************************************************/
 
 #ifndef LMC_ANSYS_INCLUDE_SOLUTECLUSTER_H_
@@ -28,13 +28,13 @@ class SoluteCluster {
 
   nlohmann::json GetClustersInfoAndOutput(const std::string &output_folder,
                                           const std::string &output_name,
-                                          const std::map<std::string, Config::ValueVariant> & global_info_map)
+                                          const std::map<std::string, Config::ValueVariant> &global_info_map);
 
  private:
   /*! \brief Query for an unordered set of atom indexes of the solute atoms in the configuration.
    *  @return : An unordered set of atom indexes of the solute atoms.
    */
-  [[nodiscard]] std::unordered_set<size_t> FindSoluteAtomIndexes() const;
+  [[nodiscard]] std::unordered_set<size_t> FindSoluteAtomIdHashset() const;
 
   /*! \brief A helper function using breadth-first search to find connected clusters of
    *         solute atoms by first nearest neighbor distance.
@@ -51,8 +51,7 @@ class SoluteCluster {
   void AppendAtomAndLatticeVector(const std::vector<size_t> &atom_id_list,
                                   std::vector<Element> &atom_vector,
                                   std::vector<Eigen::Vector3d> &relative_position_vector) const;
-  [[nodiscard]] std::map<std::string, size_t> GetElementsNumber(
-      const std::vector<size_t> &cluster_atom_id_list) const;
+  [[nodiscard]] std::map<std::string, size_t> GetElementsNumber(const std::vector<size_t> &cluster_atom_id_list) const;
   [[nodiscard]] double GetMass(const std::vector<size_t> &cluster_atom_id_list) const;
   [[nodiscard]] double GetFormationEnergy(const std::vector<size_t> &cluster_atom_id_list) const;
   [[nodiscard]] Eigen::Vector3d GetGeometryCenter(const std::vector<size_t> &cluster_atom_id_list) const;
@@ -70,6 +69,6 @@ class SoluteCluster {
   const pred::EnergyPredictor &energy_estimator_;
   const std::map<Element, double> chemical_potential_map_;
   std::map<std::string, Config::VectorVariant> auxiliary_lists_{};
-  };
+};
 
 #endif //LMC_ANSYS_INCLUDE_SOLUTECLUSTER_H_
