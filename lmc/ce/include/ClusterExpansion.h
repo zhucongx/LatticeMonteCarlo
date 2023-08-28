@@ -3,7 +3,7 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date: 7/3/23 11:31 AM                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 7/4/23 11:00 PM                                                           *
+ * @Last Modified time: 8/27/23 10:10 PM                                                          *
  **************************************************************************************************/
 
 /*! \file  ClusterExpansion.h
@@ -28,10 +28,22 @@ class ClusterExpansion {
   Eigen::VectorXd base_theta_{};
 };
 
-std::unordered_map<LatticeClusterType, size_t, boost::hash<LatticeClusterType>> InitializeLatticeSiteHashMap(
+std::set<LatticeClusterType> InitializeLatticeClusterTypeSet(const Config &reference_config,
+                                                             size_t max_cluster_size,
+                                                             size_t max_bond_order);
+
+std::set<AtomClusterType> InitializeAtomClusterTypeSet(const std::set<Element> &element_set);
+
+std::set<ClusterType> InitializeClusterTypeSet(const Config &reference_config,
+                                               size_t max_cluster_size,
+                                               size_t max_bond_order,
+                                               const std::set<Element> &element_set);
+
+std::unordered_map<LatticeClusterType, size_t, boost::hash<LatticeClusterType>> CountLatticeSite(
     const Config &reference_config, size_t max_cluster_size, size_t max_bond_order);
 std::unordered_map<LatticeClusterType,
                    std::unordered_set<LatticeCluster, boost::hash<LatticeCluster>>,
                    boost::hash<LatticeClusterType>> LatticeSiteHashMap(
     const Config &reference_config, size_t max_cluster_size, size_t max_bond_order);
+
 #endif //LMC_CE_INCLUDE_CLUSTEREXPANSION_H_
