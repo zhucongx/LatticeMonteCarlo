@@ -3,7 +3,7 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date: 7/2/23 3:00 PM                                                                          *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 7/4/23 10:20 PM                                                           *
+ * @Last Modified time: 8/27/23 11:08 PM                                                          *
  **************************************************************************************************/
 
 /*! \file  LatticeClusterType.h
@@ -103,6 +103,13 @@ class LatticeClusterType {
       os << '-' << bond_order;
     }
     return os;
+  }
+
+  /*! \brief Query for the size of the cluster.
+   *  \return : The size of the cluster.
+   */
+  [[nodiscard]] size_t GetSize() const {
+    return size_;
   }
 
  private:
