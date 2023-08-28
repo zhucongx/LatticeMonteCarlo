@@ -3,7 +3,7 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date: 6/14/20 1:27 PM                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 8/22/23 11:08 PM                                                          *
+ * @Last Modified time: 8/27/23 9:50 PM                                                           *
  **************************************************************************************************/
 
 #include "SoluteCluster.h"
@@ -174,10 +174,10 @@ json SoluteCluster::GetClustersInfoAndOutput(
   return clusters_info_array;
 }
 
-std::unordered_set<size_t> SoluteCluster::FindSoluteAtomIndexes() const {
+std::unordered_set<size_t> SoluteCluster::FindSoluteAtomIdHashset() const {
   std::unordered_set<size_t> solute_atoms_hashset;
   for (size_t atom_id = 0; atom_id < config_.GetNumAtoms(); ++atom_id) {
-    if (config_.GetElementOfAtom(atom_id) == solvent_element_) {
+    if (config_.GetAtomVector().at(atom_id) == solvent_element_) {
       solute_atoms_hashset.insert(atom_id);
     }
   }
@@ -203,7 +203,7 @@ std::vector<std::vector<size_t> > SoluteCluster::FindAtomListOfClustersBFSHelper
       visit_id_queue.pop();
 
       atom_list_of_one_cluster.push_back(atom_id);
-      const auto &first_neighbors_list = config_.GetNeighborLists()[0][atom_id];
+      const auto &first_neighbors_list = config_.GetNeighborAtomIdVectorOfAtom(atom_id, 1);
       for (auto neighbor_id : first_neighbors_list) {
         it = unvisited_atoms_id_set.find(neighbor_id);
         if (it != unvisited_atoms_id_set.end()) {
@@ -218,7 +218,7 @@ std::vector<std::vector<size_t> > SoluteCluster::FindAtomListOfClustersBFSHelper
 }
 
 std::vector<std::vector<size_t> > SoluteCluster::FindAtomListOfClusters() const {
-  auto cluster_atom_list = FindAtomListOfClustersBFSHelper(FindSoluteAtomIndexes());
+  auto cluster_atom_list = FindAtomListOfClustersBFSHelper(FindSoluteAtomIdHashset());
   // remove small clusters
   auto it = cluster_atom_list.begin();
   while (it != cluster_atom_list.end()) {
@@ -234,16 +234,16 @@ std::vector<std::vector<size_t> > SoluteCluster::FindAtomListOfClusters() const 
     std::unordered_set<size_t> neighbor_set;
     for (auto atom_id : cluster) {
       neighbor_set.insert(atom_id);
-      for (auto neighbor_id : config_.GetNeighborLists()[0][atom_id]) {
+      for (auto neighbor_id : config_.GetNeighborAtomIdVectorOfAtom(atom_id, 1)) {
         neighbor_set.insert(neighbor_id);
       }
     }
 
     for (auto atom_id : neighbor_set) {
       size_t neighbor_bond_count = 0;
-      for (auto neighbor_id : config_.GetNeighborLists()[0][atom_id]) {
+      for (auto neighbor_id : config_.GetNeighborAtomIdVectorOfAtom(atom_id, 1)) {
         if (cluster_set.find(neighbor_id) != cluster_set.end()
-            && config_.GetElementOfAtom(neighbor_id) != solvent_element_) {
+            && config_.GetAtomVector().at(neighbor_id) != solvent_element_) {
           neighbor_bond_count++;
         }
       }
@@ -266,27 +266,26 @@ void SoluteCluster::AppendAtomAndLatticeVector(const std::vector<size_t> &cluste
                                                std::vector<Element> &atom_vector,
                                                std::vector<Eigen::Vector3d> &relative_position_vector) const {
   for (size_t atom_id : cluster_atom_id_list) {
-    atom_vector.push_back(config_.GetAtomVector()[atom_id]);
+    atom_vector.push_back(config_.GetAtomVector().at(atom_id));
     relative_position_vector.push_back(config_.GetRelativePositionOfAtom(atom_id));
   }
 }
 
-std::map<std::string, size_t> SoluteCluster::GetElementsNumber(
-    const std::vector<size_t> &cluster_atom_id_list) const {
+std::map<std::string, size_t> SoluteCluster::GetElementsNumber(const std::vector<size_t> &cluster_atom_id_list) const {
   // initialize map with all the element, because some cluster may not have all types of element
   std::map<std::string, size_t> num_atom_in_one_cluster{{"X", 0}};
   for (const auto &element : element_set_) {
     num_atom_in_one_cluster[element.GetElementString()] = 0;
   }
   for (const auto &atom_id : cluster_atom_id_list) {
-    num_atom_in_one_cluster.at(config_.GetAtomVector()[atom_id].GetElementString())++;
+    num_atom_in_one_cluster.at(config_.GetAtomVector().at(atom_id).GetElementString())++;
   }
   return num_atom_in_one_cluster;
 }
 double SoluteCluster::GetMass(const std::vector<size_t> &cluster_atom_id_list) const {
   double sum_mass = 0;
   for (const auto &atom_id : cluster_atom_id_list) {
-    sum_mass += config_.GetAtomVector()[atom_id].GetMass();
+    sum_mass += config_.GetAtomVector().at(atom_id).GetMass();
   }
   return sum_mass;
 }
@@ -294,7 +293,7 @@ double SoluteCluster::GetFormationEnergy(const std::vector<size_t> &cluster_atom
   Config solute_config(solvent_config_);
   double energy_change_solution_to_pure_solvent = 0;
   for (size_t atom_id : cluster_atom_id_list) {
-    Element element = config_.GetElementOfAtom(atom_id);
+    Element element = config_.GetAtomVector().at(atom_id);
     solute_config.SetElementOfAtom(atom_id, element);
     energy_change_solution_to_pure_solvent += chemical_potential_map_.at(element);
   }
@@ -330,7 +329,7 @@ Eigen::Vector3d SoluteCluster::GetMassCenter(const std::vector<size_t> &cluster_
   double sum_mass = 0;
   for (size_t atom_id : cluster_atom_id_list) {
     const auto relative_position = config_.GetRelativePositionOfAtom(atom_id);
-    auto mass = config_.GetAtomVector()[atom_id].GetMass();
+    auto mass = config_.GetAtomVector().at(atom_id).GetMass();
     sum_mass += mass;
     for (const int kDim : std::vector<int>{0, 1, 2}) {
       auto theta = relative_position[kDim] * 2 * M_PI;
@@ -353,7 +352,7 @@ Eigen::Matrix3d SoluteCluster::GetMassGyrationTensor(const std::vector<size_t> &
   double sum_mass = 0;
   for (size_t atom_id : cluster_atom_id_list) {
     const auto relative_position = config_.GetRelativePositionOfAtom(atom_id);
-    auto mass = config_.GetAtomVector()[atom_id].GetMass();
+    auto mass = config_.GetAtomVector().at(atom_id).GetMass();
     sum_mass += mass;
     for (const int kDim1 : std::vector<int>{0, 1, 2}) {
       auto r1 = relative_position[kDim1] - relative_mass_center[kDim1];
@@ -375,7 +374,7 @@ Eigen::Matrix3d SoluteCluster::GetMassInertiaTensor(const std::vector<size_t> &c
   auto relative_mass_center = config_.GetBasis().inverse() * mass_center;
   Eigen::Matrix3d inertia_tensor{};
   for (size_t atom_id : cluster_atom_id_list) {
-    auto mass = config_.GetAtomVector()[atom_id].GetMass();
+    auto mass = config_.GetAtomVector().at(atom_id).GetMass();
     Eigen::Vector3d relative_distance = config_.GetRelativePositionOfAtom(atom_id) - relative_mass_center;
     for (const int kDim : std::vector<int>{0, 1, 2}) {
       while (relative_distance[kDim] >= 0.5) { relative_distance[kDim] -= 1; }
