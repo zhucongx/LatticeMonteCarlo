@@ -3,7 +3,7 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date: 7/2/23 10:43 PM                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 7/3/23 12:10 PM                                                           *
+ * @Last Modified time: 8/27/23 10:59 PM                                                          *
  **************************************************************************************************/
 
 /*! \file  AtomClusterType.h
@@ -83,6 +83,29 @@ class AtomClusterType {
       boost::hash_combine(seed, element);
     }
     return seed;
+  }
+
+  /*! \brief stream operator output for AtomClusterType.
+   *  \param os           : The output stream.
+   *  \param cluster_type : The AtomClusterType to be streamed.
+   *  \return             : The output stream.
+   */
+  friend std::ostream &operator<<(std::ostream &os, const AtomClusterType &cluster_type) {
+    if (cluster_type.element_vector_.empty()) {
+      os << "∅";
+    }
+
+    for (size_t i = 0; i < cluster_type.element_vector_.size(); ++i) {
+      os << cluster_type.element_vector_[i];
+      if (i < cluster_type.element_vector_.size() - 1) {
+        os << '-';
+      }
+    }
+    return os;
+  }
+
+  [[nodiscard]] size_t GetSize() const {
+    return element_vector_.size();
   }
 
  private:
