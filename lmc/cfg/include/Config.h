@@ -3,7 +3,7 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date: 1/16/20 3:55 AM                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 8/22/23 11:09 PM                                                          *
+ * @Last Modified time: 8/27/23 4:36 PM                                                           *
  **************************************************************************************************/
 
 /*! \file  Config.h
@@ -55,12 +55,6 @@ class Config {
    */
   [[nodiscard]] const std::vector<Element> &GetAtomVector() const;
 
-  /*! \brief Query for the atom type of an atom.
-   *  \param atom_id : The atom id of the atom.
-   *  \return        : The atom type of the atom.
-   */
-  [[nodiscard]] Element GetElementOfAtom(size_t atom_id) const;
-
   /*! \brief Query for the number of lattice sites in the configuration.
    *  \return : The number of lattice sites in the configuration.
    */
@@ -76,14 +70,21 @@ class Config {
    */
   [[nodiscard]] const std::vector<std::vector<std::vector<size_t> > > &GetNeighborLists() const;
 
+  /*! \brief Query for the set of neighbor atom id of an atom.
+   *  \param atom_id        : The atom id of the atom.
+   *  \param distance_order : The order of distance between the two lattice.
+   *  \return               : The set of neighbor atom is.
+   */
+  [[nodiscard]] std::vector<size_t> GetNeighborAtomIdVectorOfAtom(size_t atom_id, size_t distance_order) const;
+
   /*! \brief Query for the order of distance between two lattice.
    *  \param lattice_id1 : The lattice id of the first lattice.
    *  \param lattice_id2 : The lattice id of the second lattice.
-   *  \return            : The the order of distance between the two lattice. 0 means the same lattice or not neighbors.
+   *  \return            : The order of distance between the two lattice. 0 means the same lattice or not neighbors.
    */
   [[nodiscard]] size_t GetDistanceOrder(size_t lattice_id1, size_t lattice_id2) const;
 
-  /*! \brief Query for the cartesian position of an lattice site.
+  /*! \brief Query for the cartesian position of a lattice site.
    *  \param lattice_id : The lattice id of the lattice site.
    *  \return           : The cartesian position of the lattice site.
    */
