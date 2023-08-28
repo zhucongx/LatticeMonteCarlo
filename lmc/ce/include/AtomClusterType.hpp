@@ -3,7 +3,7 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date: 7/2/23 10:43 PM                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 8/27/23 10:59 PM                                                          *
+ * @Last Modified time: 8/27/23 11:08 PM                                                          *
  **************************************************************************************************/
 
 /*! \file  AtomClusterType.h
@@ -104,6 +104,9 @@ class AtomClusterType {
     return os;
   }
 
+  /*! \brief Query for the size of the cluster.
+   *  \return : The size of the cluster.
+   */
   [[nodiscard]] size_t GetSize() const {
     return element_vector_.size();
   }
