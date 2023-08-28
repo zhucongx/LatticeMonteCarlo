@@ -3,7 +3,7 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date: 1/16/20 3:55 AM                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 8/22/23 3:45 PM                                                           *
+ * @Last Modified time: 8/27/23 9:50 PM                                                           *
  **************************************************************************************************/
 
 /*! \file  Config.cpp
@@ -51,10 +51,6 @@ const std::vector<Element> &Config::GetAtomVector() const {
   return atom_vector_;
 }
 
-Element Config::GetElementOfAtom(size_t atom_id) const {
-  return atom_vector_.at(atom_id);
-}
-
 size_t Config::GetNumSites() const {
   return static_cast<size_t>(relative_position_matrix_.cols());
 }
@@ -65,6 +61,18 @@ const Eigen::Matrix3d &Config::GetBasis() const {
 
 const std::vector<std::vector<std::vector<size_t> > > &Config::GetNeighborLists() const {
   return neighbor_lists_;
+}
+
+std::vector<size_t> Config::GetNeighborAtomIdVectorOfAtom(size_t atom_id, size_t distance_order) const {
+  auto lattice_id = atom_to_lattice_hashmap_.at(atom_id);
+  const auto &neighbor_lattice_id_vector = neighbor_lists_.at(distance_order - 1).at(lattice_id);
+  std::vector<size_t> neighbor_atom_id_vector;
+  neighbor_atom_id_vector.reserve(neighbor_lattice_id_vector.size());
+
+  std::transform(neighbor_lattice_id_vector.begin(), neighbor_lattice_id_vector.end(),
+                 std::back_inserter(neighbor_atom_id_vector),
+                 [this](const auto &neighbor_lattice_id) { return lattice_to_atom_hashmap_.at(neighbor_lattice_id); });
+  return neighbor_atom_id_vector;
 }
 
 Eigen::Ref<const Eigen::Vector3d> Config::GetRelativePositionOfSite(size_t lattice_id) const {
@@ -489,7 +497,7 @@ void Config::WriteConfigExtended(
     const auto &relative_position
         = relative_position_matrix_.col(static_cast<int>(atom_to_lattice_hashmap_.at(it)));
     fos << atom.GetMass() << '\n'
-        << atom.GetElementString() << '\n'
+        << atom << '\n'
         << relative_position.transpose().format(fmt);
     for (const auto &[key, auxiliary_list] : auxiliary_lists) {
       fos << ' ' << auxiliary_list.at(it);
@@ -541,7 +549,7 @@ void Config::WriteXyzExtended(const std::string &filename,
   for (size_t it = 0; it < atom_vector_.size(); ++it) {
     const auto &atom = atom_vector_[it];
     const auto &cartesian_position = cartesian_position_matrix_.col(static_cast<int>(atom_to_lattice_hashmap_.at(it)));
-    fos << atom.GetElementString() << ' '
+    fos << atom << ' '
         << cartesian_position.transpose().format(fmt) << ' ';
 
     for (const auto &[key, auxiliary_list] : auxiliary_lists) {
