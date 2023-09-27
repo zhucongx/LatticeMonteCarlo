@@ -3,11 +3,11 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date: 7/3/23 11:31 AM                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 8/27/23 10:54 PM                                                          *
+ * @Last Modified time: 9/27/23 3:20 PM                                                           *
  **************************************************************************************************/
 
 /*! \file  ClusterExpansion.cpp
- *  \brief File for the ClusterExpansion class implementation.
+ *  \brief File for the implementation of ClusterExpansion methods.
  */
 
 #include "ClusterExpansion.h"
@@ -53,29 +53,38 @@ static std::vector<std::vector<size_t>> AddOneSiteToExistingClusterHelper(
   return new_clusters;
 }
 
-/*! \brief Indentify the type of a lattice cluster
- *  \param reference_config : The configuration the code works on
- *  \param cluster          : The input cluster
- *  \return                 : The lattice type of the cluster
- */
-static LatticeClusterType IndentifyLatticeClusterType(const Config &reference_config,
-                                                      const std::vector<size_t> &cluster) {
+LatticeClusterType IndentifyLatticeClusterType(const Config &reference_config,
+                                               const std::vector<size_t> &cluster) {
   std::vector<size_t> bond_order_vector{};
   for (auto it1 = cluster.begin(); it1 != cluster.end(); it1++) {
     for (auto it2 = it1 + 1; it2 != cluster.end(); it2++) {
       bond_order_vector.push_back(reference_config.GetDistanceOrder(*it1, *it2));
     }
   }
-  return {cluster.size(), bond_order_vector};
+  return LatticeClusterType{cluster.size(), bond_order_vector};
+}
+
+AtomClusterType IndentifyAtomClusterType(const Config &reference_config,
+                                         const std::vector<size_t> &cluster) {
+  std::vector<Element> element_vector{};
+  for (const auto lattice_id : cluster) {
+    element_vector.push_back(reference_config.GetElementOfLattice(lattice_id));
+  }
+  return AtomClusterType{element_vector};
+}
+
+ClusterType IndentifyClusterType(const Config &reference_config,
+                                 const std::vector<size_t> &cluster) {
+  return ClusterType{IndentifyAtomClusterType(reference_config, cluster),
+                     IndentifyLatticeClusterType(reference_config, cluster)};
 }
 
 std::set<LatticeClusterType> InitializeLatticeClusterTypeSet(const Config &reference_config,
                                                              size_t max_cluster_size,
                                                              size_t max_bond_order) {
-
   std::set<LatticeClusterType> initialized_lattice_cluster_set;
   // Loop over lattice_type. Use one point to find all connected sites.
-  std::vector<std::vector<size_t>> cluster_list{{0}};
+  std::vector<std::vector<size_t>> cluster_list{{}, {0}};
   for (size_t i = 0; i < max_cluster_size; i++) {
     if (i > 0) {
       cluster_list = AddOneSiteToExistingClusterHelper(reference_config, max_bond_order, cluster_list);
@@ -84,35 +93,45 @@ std::set<LatticeClusterType> InitializeLatticeClusterTypeSet(const Config &refer
       initialized_lattice_cluster_set.insert(IndentifyLatticeClusterType(reference_config, cluster));
     }
   }
-  initialized_lattice_cluster_set.emplace(0, std::vector<size_t>{});
   return initialized_lattice_cluster_set;
 }
 
-std::set<AtomClusterType> InitializeAtomClusterTypeSet(const std::set<Element> &element_set) {
+std::set<AtomClusterType> InitializeAtomClusterTypeSet(const std::set<Element> &element_set, size_t max_cluster_size) {
   std::set<AtomClusterType> initialized_atom_cluster_set;
-  std::vector<Element> element_vector(element_set.begin(), element_set.end());
-  size_t n = element_vector.size();
-  size_t num_combinations = 1 << n; // 2^n
-
-  for (size_t i = 0; i < num_combinations; i++) {
-    std::vector<Element> combination;
-    for (size_t j = 0; j < n; j++) {
-      if (i & (1 << j)) {
-        combination.push_back(element_vector[j]);
+  size_t num_elements = element_set.size();
+  const std::vector<Element> element_vector(element_set.begin(), element_set.end());
+  for (size_t len = 0; len <= max_cluster_size; ++len) {
+    std::vector<size_t> indices(len, 0);
+    while (true) {
+      // Add the current combination
+      std::vector<Element> combination;
+      for (size_t i = 0; i < len; ++i) {
+        combination.emplace_back(element_vector[indices[i]]);
+      }
+      auto count_vacancy = std::count(combination.begin(), combination.end(), Element("X"));
+      // Remove the combination if it contains more than one vacancy
+      if (count_vacancy <= 1) { initialized_atom_cluster_set.emplace(combination); }
+      // Move to the next combination
+      int pos = static_cast<int>(len - 1);
+      while (pos >= 0 && ++indices[static_cast<size_t>(pos)] == num_elements) {
+        indices[static_cast<size_t>(pos)] = 0;
+        --pos;
+      }
+      if (pos < 0) {
+        break; // All combinations generated for this length
       }
     }
-    initialized_atom_cluster_set.emplace(combination);
   }
   return initialized_atom_cluster_set;
 }
 
 std::set<ClusterType> InitializeClusterTypeSet(const Config &reference_config,
+                                               const std::set<Element> &element_set,
                                                size_t max_cluster_size,
-                                               size_t max_bond_order,
-                                               const std::set<Element> &element_set) {
+                                               size_t max_bond_order) {
   std::set<ClusterType> initialized_cluster_set;
   auto lattice_cluster_type_set = InitializeLatticeClusterTypeSet(reference_config, max_cluster_size, max_bond_order);
-  auto atom_cluster_type_set = InitializeAtomClusterTypeSet(element_set);
+  auto atom_cluster_type_set = InitializeAtomClusterTypeSet(element_set, max_cluster_size);
 
   for (const LatticeClusterType &lattice_cluster_type : lattice_cluster_type_set) {
     for (const AtomClusterType &atom_cluster_type : atom_cluster_type_set) {
@@ -123,13 +142,42 @@ std::set<ClusterType> InitializeClusterTypeSet(const Config &reference_config,
   return initialized_cluster_set;
 }
 
+std::unordered_set<LatticeCluster, boost::hash<LatticeCluster>> FindAllLatticeClusters(
+    const Config &reference_config,
+    size_t max_cluster_size,
+    size_t max_bond_order,
+    const std::vector<size_t> &lattice_id_vector) {
+  std::unordered_set<LatticeCluster, boost::hash<LatticeCluster>> lattice_cluster_hashset;
+  std::vector<std::vector<size_t>> cluster_list{{}};
+  if (lattice_id_vector.empty()) {
+    for (size_t i = 0; i < reference_config.GetNumLattices(); ++i) {
+      cluster_list.push_back({i});
+    }
+  } else {
+    for (auto lattice_id : lattice_id_vector) {
+      cluster_list.push_back({lattice_id});
+    }
+  }
+
+  for (size_t i = 0; i < max_cluster_size; i++) {
+    if (i > 0) {
+      cluster_list = AddOneSiteToExistingClusterHelper(reference_config, max_bond_order, cluster_list);
+    }
+    for (auto &cluster : cluster_list) {
+      auto type = IndentifyLatticeClusterType(reference_config, cluster);
+      lattice_cluster_hashset.emplace(type, cluster);
+    }
+  }
+  return lattice_cluster_hashset;
+}
+
 std::unordered_map<LatticeClusterType, size_t, boost::hash<LatticeClusterType>> CountLatticeSite(
     const Config &reference_config, const size_t max_cluster_size, const size_t max_bond_order) {
   std::unordered_map<LatticeClusterType, size_t, boost::hash<LatticeClusterType>> initialized_cluster_hashmap;
 
   // Loop over lattice_type
   std::vector<std::vector<size_t>> cluster_list;
-  for (size_t i = 0; i < reference_config.GetNumSites(); ++i) {
+  for (size_t i = 0; i < reference_config.GetNumLattices(); ++i) {
     cluster_list.push_back({i});
   }
   for (size_t i = 0; i < max_cluster_size; i++) {
@@ -154,7 +202,7 @@ std::unordered_map<LatticeClusterType,
 
   // Loop over lattice_type
   std::vector<std::vector<size_t>> tmp;
-  for (size_t i = 0; i < reference_config.GetNumSites(); ++i) {
+  for (size_t i = 0; i < reference_config.GetNumLattices(); ++i) {
     tmp.push_back({i});
   }
   for (const auto &cluster : tmp) {
@@ -167,11 +215,11 @@ std::unordered_map<LatticeClusterType,
     tmp = AddOneSiteToExistingClusterHelper(reference_config, max_bond_order, tmp);
     for (const auto &cluster : tmp) {
       auto type = IndentifyLatticeClusterType(reference_config, cluster);
-      if (initialized_cluster_hashmap.find(type) == initialized_cluster_hashmap.end())
+      if (initialized_cluster_hashmap.find(type) == initialized_cluster_hashmap.end()) {
         initialized_cluster_hashmap[type] = std::unordered_set<LatticeCluster, boost::hash<LatticeCluster>>{};
+      }
       initialized_cluster_hashmap.at(type).emplace(type, cluster);
     }
   }
   return initialized_cluster_hashmap;
 }
-

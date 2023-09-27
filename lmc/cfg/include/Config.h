@@ -3,7 +3,7 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date: 1/16/20 3:55 AM                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 8/27/23 4:36 PM                                                           *
+ * @Last Modified time: 9/27/23 11:29 AM                                                          *
  **************************************************************************************************/
 
 /*! \file  Config.h
@@ -12,12 +12,14 @@
 
 #ifndef LMC_CFG_INCLUDE_CONFIG_H_
 #define LMC_CFG_INCLUDE_CONFIG_H_
-
-#include <unordered_map>
-#include <vector>
-#include <map>
-#include <set>
 #include <string>
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <set>
+#include <unordered_set>
+#include <map>
+#include <unordered_map>
 #include <utility>
 #include <variant>
 #include <any>
@@ -58,7 +60,7 @@ class Config {
   /*! \brief Query for the number of lattice sites in the configuration.
    *  \return : The number of lattice sites in the configuration.
    */
-  [[nodiscard]] size_t GetNumSites() const;
+  [[nodiscard]] size_t GetNumLattices() const;
 
   /*! \brief Query for the basis vectors of the configuration.
    *  \return : The basis vectors of the configuration.
@@ -84,23 +86,35 @@ class Config {
    */
   [[nodiscard]] size_t GetDistanceOrder(size_t lattice_id1, size_t lattice_id2) const;
 
+  /*! \brief Query for the element of a lattice site.
+   *  \param lattice_id : The lattice id of the lattice site.
+   *  \return           : The element of the lattice site.
+   */
+  [[nodiscard]] Element GetElementOfLattice(size_t lattice_id) const;
+
+  /*! \brief Query for the element of an atom.
+   *  \param atom_id : The atom id of the atom.
+   *  \return        : The element of the atom.
+   */
+  [[nodiscard]] Element GetElementOfAtom(size_t atom_id) const;
+
   /*! \brief Query for the cartesian position of a lattice site.
    *  \param lattice_id : The lattice id of the lattice site.
    *  \return           : The cartesian position of the lattice site.
    */
-  [[nodiscard]] Eigen::Ref<const Eigen::Vector3d> GetRelativePositionOfSite(size_t lattice_id) const;
+  [[nodiscard]] Eigen::Ref<const Eigen::Vector3d> GetRelativePositionOfLattice(size_t lattice_id) const;
+
+  /*! \brief Query for the relative position of an atom.
+   *  \param atom_id : The atom id of the atom.
+   *  \return        : The relative position of the atom.
+   */
+  [[nodiscard]] Eigen::Ref<const Eigen::Vector3d> GetRelativePositionOfAtom(size_t atom_id) const;
 
   /*! \brief Query for the cartesian position of an lattice site.
    *  \param lattice_id : The lattice id of the lattice site.
    *  \return           : The cartesian position of the lattice site.
    */
-  [[nodiscard]] Eigen::Ref<const Eigen::Vector3d> GetCartesianPositionOfSite(size_t lattice_id) const;
-
-  /*! \brief Query for the relative position of an atom.
-   *  \param atom_id : The atom id of the atom.
-   *  \return : The relative position of the atom.
-   */
-  [[nodiscard]] Eigen::Ref<const Eigen::Vector3d> GetRelativePositionOfAtom(size_t atom_id) const;
+  [[nodiscard]] Eigen::Ref<const Eigen::Vector3d> GetCartesianPositionOfLattice(size_t lattice_id) const;
 
   /*! \brief Query for the cartesian position of an atom.
    *  \param atom_id : The atom id of the atom.

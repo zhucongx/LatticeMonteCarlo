@@ -3,7 +3,7 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date: 1/16/20 3:55 AM                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 8/27/23 9:50 PM                                                           *
+ * @Last Modified time: 9/27/23 11:29 AM                                                          *
  **************************************************************************************************/
 
 /*! \file  Config.cpp
@@ -11,8 +11,6 @@
  */
 
 #include "Config.h"
-#include <fstream>
-#include <sstream>
 #include <utility>
 #include <boost/filesystem.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
@@ -51,7 +49,7 @@ const std::vector<Element> &Config::GetAtomVector() const {
   return atom_vector_;
 }
 
-size_t Config::GetNumSites() const {
+size_t Config::GetNumLattices() const {
   return static_cast<size_t>(relative_position_matrix_.cols());
 }
 
@@ -75,20 +73,28 @@ std::vector<size_t> Config::GetNeighborAtomIdVectorOfAtom(size_t atom_id, size_t
   return neighbor_atom_id_vector;
 }
 
-Eigen::Ref<const Eigen::Vector3d> Config::GetRelativePositionOfSite(size_t lattice_id) const {
+Element Config::GetElementOfLattice(size_t lattice_id) const {
+  return atom_vector_.at(lattice_to_atom_hashmap_.at(lattice_id));
+}
+
+Element Config::GetElementOfAtom(size_t atom_id) const {
+  return atom_vector_.at(atom_id);
+}
+
+Eigen::Ref<const Eigen::Vector3d> Config::GetRelativePositionOfLattice(size_t lattice_id) const {
   return relative_position_matrix_.col(static_cast<int>(lattice_id));
 }
 
-Eigen::Ref<const Eigen::Vector3d> Config::GetCartesianPositionOfSite(size_t lattice_id) const {
+Eigen::Ref<const Eigen::Vector3d> Config::GetRelativePositionOfAtom(size_t atom_id) const {
+  return GetRelativePositionOfLattice(atom_to_lattice_hashmap_.at(atom_id));
+}
+
+Eigen::Ref<const Eigen::Vector3d> Config::GetCartesianPositionOfLattice(size_t lattice_id) const {
   return cartesian_position_matrix_.col(static_cast<int>(lattice_id));
 }
 
-Eigen::Ref<const Eigen::Vector3d> Config::GetRelativePositionOfAtom(size_t atom_id) const {
-  return GetRelativePositionOfSite(atom_to_lattice_hashmap_.at(atom_id));
-}
-
 Eigen::Ref<const Eigen::Vector3d> Config::GetCartesianPositionOfAtom(size_t atom_id) const {
-  return GetCartesianPositionOfSite(atom_to_lattice_hashmap_.at(atom_id));
+  return GetCartesianPositionOfLattice(atom_to_lattice_hashmap_.at(atom_id));
 }
 
 void Config::SetPeriodicBoundaryCondition(const std::array<bool, 3> &periodic_boundary_condition) {
@@ -111,8 +117,8 @@ void Config::AtomJump(const std::pair<size_t, size_t> &atom_id_jump_pair) {
 }
 
 void Config::ReassignLattice() {
-  std::vector<std::pair<Eigen::Vector3d, size_t>> new_lattice_id_vector(GetNumSites());
-  for (size_t i = 0; i < GetNumSites(); ++i) {
+  std::vector<std::pair<Eigen::Vector3d, size_t>> new_lattice_id_vector(GetNumLattices());
+  for (size_t i = 0; i < GetNumLattices(); ++i) {
     new_lattice_id_vector[i] = std::make_pair(relative_position_matrix_.col(static_cast<int>(i)), i);
   }
   std::sort(new_lattice_id_vector.begin(), new_lattice_id_vector.end(),
@@ -138,7 +144,7 @@ void Config::ReassignLattice() {
     new_atom_to_lattice_hashmap.emplace(atom_id, new_lattice_id);
   }
   // Copy sorted columns back into matrix
-  for (size_t i = 0; i < GetNumSites(); ++i) {
+  for (size_t i = 0; i < GetNumLattices(); ++i) {
     relative_position_matrix_.col(static_cast<int>(i)) = new_lattice_id_vector[i].first;
   }
   cartesian_position_matrix_ = basis_ * relative_position_matrix_;
@@ -181,7 +187,7 @@ void Config::UpdateNeighborList(std::vector<double> cutoffs) {
                  cutoffs_squared.begin(),
                  [](double cutoff) { return cutoff * cutoff; });
 
-  std::vector<std::vector<size_t>> neighbors_list(GetNumSites());
+  std::vector<std::vector<size_t>> neighbors_list(GetNumLattices());
   neighbor_lists_ = {cutoffs_.size(), neighbors_list};
 
   const auto basis_inverse_tran = basis_.inverse().transpose();
@@ -202,7 +208,7 @@ void Config::UpdateNeighborList(std::vector<double> cutoffs) {
 
   // Create cells
   cells_ = std::vector<std::vector<size_t>>(static_cast<size_t>(num_cells_.prod()));
-  for (size_t lattice_id = 0; lattice_id < GetNumSites(); ++lattice_id) {
+  for (size_t lattice_id = 0; lattice_id < GetNumLattices(); ++lattice_id) {
     const Eigen::Vector3d relative_position = relative_position_matrix_.col(static_cast<int>(lattice_id));
     Eigen::Vector3i cell_pos = (num_cells_.cast<double>().array() * relative_position.array()).floor().cast<int>();
     int cell_idx = (cell_pos(0) * num_cells_(1) + cell_pos(1)) * num_cells_(2) + cell_pos(2);
