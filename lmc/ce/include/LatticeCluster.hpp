@@ -3,7 +3,7 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date: 12/6/21 8:55 PM                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 7/4/23 10:59 PM                                                           *
+ * @Last Modified time: 9/27/23 1:09 PM                                                           *
  **************************************************************************************************/
 
 /*! \file  LatticeCluster.h
@@ -55,6 +55,13 @@ class LatticeCluster {
    */
   [[nodiscard]] const std::vector<size_t> &GetLatticeIdVector() const {
     return lattice_id_vector_;
+  }
+
+  /*! \brief Query for the type of the cluster.
+   *  \return : The type of the cluster.
+   */
+  [[nodiscard]] const LatticeClusterType &GetClusterType() const {
+    return cluster_type_;
   }
 
   /*! \brief 'equals' operator.
