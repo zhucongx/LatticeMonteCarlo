@@ -3,7 +3,7 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date: 7/3/23 11:31 AM                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 9/27/23 3:20 PM                                                           *
+ * @Last Modified time: 10/30/23 3:13 PM                                                          *
  **************************************************************************************************/
 
 /*! \file  ClusterExpansion.cpp
@@ -26,6 +26,9 @@ static std::vector<std::vector<size_t>> AddOneSiteToExistingClusterHelper(
   // Get the neighbor lists with at least m neighbors for each atom
   const auto &neighbor_lists = reference_config.GetNeighborLists();
   std::vector<std::vector<size_t>> new_clusters;
+// #pragma omp parallel default(none) shared(new_clusters, old_clusters, neighbor_lists, max_bond_order, reference_config)
+//   {
+// #pragma omp for schedule(dynamic)
   for (const auto &old_cluster : old_clusters) {
     std::set<size_t> neighbors{};
     for (size_t m = 0; m < max_bond_order; m++) {
@@ -46,7 +49,11 @@ static std::vector<std::vector<size_t>> AddOneSiteToExistingClusterHelper(
         return old_lattice_id < new_lattice_id && distance_order <= max_bond_order /*&& distance_order > 0*/;
       })) {
         new_cluster.push_back(new_lattice_id);
+// #pragma omp critical
+//           {
         new_clusters.push_back(new_cluster);
+//           }
+//         }
       }
     }
   }
@@ -163,10 +170,17 @@ std::unordered_set<LatticeCluster, boost::hash<LatticeCluster>> FindAllLatticeCl
     if (i > 0) {
       cluster_list = AddOneSiteToExistingClusterHelper(reference_config, max_bond_order, cluster_list);
     }
+// #pragma omp parallel default(none) shared(cluster_list, reference_config, lattice_cluster_hashset)
+// {
+// #pragma omp for schedule(dynamic)
     for (auto &cluster : cluster_list) {
       auto type = IndentifyLatticeClusterType(reference_config, cluster);
+// #pragma omp critical
+//         {
       lattice_cluster_hashset.emplace(type, cluster);
+// }
     }
+// }
   }
   return lattice_cluster_hashset;
 }
