@@ -3,7 +3,7 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date: 11/15/22 12:36 PM                                                                       *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 9/27/23 1:09 PM                                                           *
+ * @Last Modified time: 10/30/23 3:13 PM                                                          *
  **************************************************************************************************/
 
 /*! \file  PotentialEnergyEstimator.h
@@ -33,14 +33,13 @@ class PotentialEnergyEstimator {
    *  \param config : The configuration the code works on
    *  \return       : The encode vector
    */
-  [[nodiscard]] std::vector<double> GetEncodeVector(const Config &config) const;
+  [[nodiscard]] Eigen::VectorXd GetEncodeVector(const Config &config) const;
   [[nodiscard]] double GetEnergy(const Config &config) const;
   [[nodiscard]] std::vector<double> GetEncodeVectorOfCluster(
       const Config &config, const std::vector<size_t> &atom_id_list) const;
   [[nodiscard]] double GetEnergyOfCluster(const Config &config,
                                           const std::vector<size_t> &atom_id_list) const;
   [[nodiscard]] std::map<Element, double> GetChemicalPotential(Element solvent_element) const;
-
  private:
   // const Config &config_;
   const Eigen::VectorXd effective_cluster_interaction_{};
