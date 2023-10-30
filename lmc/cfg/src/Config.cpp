@@ -3,7 +3,7 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date: 1/16/20 3:55 AM                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 9/27/23 11:29 AM                                                          *
+ * @Last Modified time: 10/25/23 10:32 PM                                                         *
  **************************************************************************************************/
 
 /*! \file  Config.cpp
@@ -101,6 +101,25 @@ void Config::SetPeriodicBoundaryCondition(const std::array<bool, 3> &periodic_bo
   periodic_boundary_condition_ = periodic_boundary_condition;
 }
 
+void Config::Wrap() {
+  // periodic boundary conditions
+  for (int col = 0; col < relative_position_matrix_.cols(); ++col) {
+    Eigen::Ref<Eigen::Vector3d> related_position = relative_position_matrix_.col(col);
+    // for (Eigen::Ref<Eigen::Vector3d> related_position : relative_position_matrix_.colwise()) {
+    for (const int kDim : std::vector<int>{0, 1, 2}) {
+      if (periodic_boundary_condition_[static_cast<size_t>(kDim)]) {
+        while (related_position[kDim] >= 1) {
+          related_position[kDim] -= 1;
+        }
+        while (related_position[kDim] < 0) {
+          related_position[kDim] += 1;
+        }
+      }
+    }
+  }
+  cartesian_position_matrix_ = basis_ * relative_position_matrix_;
+}
+
 void Config::SetElementOfAtom(size_t atom_id, Element element_type) {
   atom_vector_.at(atom_id) = Element(element_type);
 }
@@ -178,6 +197,7 @@ size_t Config::GetDistanceOrder(size_t lattice_id1, size_t lattice_id2) const {
   }
   return static_cast<size_t>(1 + std::distance(cutoffs_.begin(), upper));
 }
+
 void Config::UpdateNeighborList(std::vector<double> cutoffs) {
   cutoffs_ = std::move(cutoffs);
   std::sort(cutoffs_.begin(), cutoffs_.end());
@@ -190,23 +210,24 @@ void Config::UpdateNeighborList(std::vector<double> cutoffs) {
   std::vector<std::vector<size_t>> neighbors_list(GetNumLattices());
   neighbor_lists_ = {cutoffs_.size(), neighbors_list};
 
-  const auto basis_inverse_tran = basis_.inverse().transpose();
-  double cutoff_pbc = std::numeric_limits<double>::infinity();
-  for (const int kDim : std::vector<int>{0, 1, 2}) {
-    if (periodic_boundary_condition_[static_cast<size_t>(kDim)]) {
-      cutoff_pbc = std::min(cutoff_pbc, 0.5 / basis_inverse_tran.col(kDim).norm());
-    }
-  }
-  if (cutoff_pbc <= cutoffs_.back()) {
-    throw std::runtime_error(
-        "The cutoff is larger than the maximum cutoff allowed due to periodic boundary conditions, "
-        "cutoff_pbc = " + std::to_string(cutoff_pbc) + ", cutoff_input = " + std::to_string(cutoffs_.back()));
-  }
-  // Calculate the number of cells in each dimension, at least 3
+  // // Check if the max cutoff is greater than the radius of the max sphere that can fit in the cell
+  // const auto basis_inverse_tran = basis_.inverse().transpose();
+  // double cutoff_pbc = std::numeric_limits<double>::infinity();
+  // for (const int kDim : std::vector<int>{0, 1, 2}) {
+  //   if (periodic_boundary_condition_[static_cast<size_t>(kDim)]) {
+  //     cutoff_pbc = std::min(cutoff_pbc, 0.5 / basis_inverse_tran.col(kDim).norm());
+  //   }
+  // }
+  // if (cutoff_pbc <= cutoffs_.back()) {
+  //   throw std::runtime_error(
+  //       "The cutoff is larger than the maximum cutoff allowed due to periodic boundary conditions, "
+  //       "cutoff_pbc = " + std::to_string(cutoff_pbc) + ", cutoff_input = " + std::to_string(cutoffs_.back()));
+  // }
+
+  // Calculate the number of cells in each dimension, at least 3 and then create cells
   num_cells_ = ((basis_.colwise().norm().array()) / (0. + cutoffs_.back())).floor().cast<int>();
   num_cells_ = num_cells_.cwiseMax(Eigen::Vector3i::Constant(3));
 
-  // Create cells
   cells_ = std::vector<std::vector<size_t>>(static_cast<size_t>(num_cells_.prod()));
   for (size_t lattice_id = 0; lattice_id < GetNumLattices(); ++lattice_id) {
     const Eigen::Vector3d relative_position = relative_position_matrix_.col(static_cast<int>(lattice_id));
@@ -224,39 +245,45 @@ void Config::UpdateNeighborList(std::vector<double> cutoffs) {
   //       "cutoff_cell = " + std::to_string(cutoff_cell) + ", cutoff_input = " + std::to_string(cutoffs_.back()));
   // }
 
+  static const std::vector<std::tuple<int, int, int>> OFFSET_LIST = []() {
+    std::vector<std::tuple<int, int, int>> offsets;
+    for (int x : {-1, 0, 1}) {
+      for (int y : {-1, 0, 1}) {
+        for (int z : {-1, 0, 1}) {
+          offsets.emplace_back(x, y, z);
+        }
+      }
+    }
+    return offsets;
+  }();
+
   // Create neighbor list, iterate over each cell and find neighboring points
-  for (int i = 0; i < num_cells_(0); ++i) {
-    for (int j = 0; j < num_cells_(1); ++j) {
-      for (int k = 0; k < num_cells_(2); ++k) {
-        int cell_idx = (i * num_cells_(1) + j) * num_cells_(2) + k;
-        auto &cell = cells_[static_cast<size_t>(cell_idx)];
-        // Check neighboring cells, taking into account periodic boundaries
-        for (int di = -1; di <= 1; ++di) {
-          for (int dj = -1; dj <= 1; ++dj) {
-            for (int dk = -1; dk <= 1; ++dk) {
-              int ni = (i + di + num_cells_(0)) % num_cells_(0);
-              int nj = (j + dj + num_cells_(1)) % num_cells_(1);
-              int nk = (k + dk + num_cells_(2)) % num_cells_(2);
-              int neighbor_cell_idx = (ni * num_cells_(1) + nj) * num_cells_(2) + nk;
-              auto &neighbor_cell = cells_.at(static_cast<size_t>(neighbor_cell_idx));
-              // For each point in the cell, check if it's close to any point in the neighboring cell
-              for (size_t lattice_id1 : cell) {
-                for (size_t lattice_id2 : neighbor_cell) {
-                  // Make sure we're not comparing a point to itself, and don't double-count pairs within the same cell
-                  if (lattice_id2 >= lattice_id1) { continue; }
-                  // Calculate distance
-                  Eigen::Vector3d relative_distance_vector = GetRelativeDistanceVectorLattice(lattice_id1, lattice_id2);
-                  double cartesian_distance_squared = (basis_ * relative_distance_vector).squaredNorm();
-                  // If the distance is less than the cutoff, the points are bonded
-                  for (size_t cutoff_squared_id = 0; cutoff_squared_id < cutoffs_squared.size(); ++cutoff_squared_id) {
-                    if (cartesian_distance_squared < cutoffs_squared.at(cutoff_squared_id)) {
-                      neighbor_lists_.at(cutoff_squared_id).at(lattice_id1).push_back(lattice_id2);
-                      neighbor_lists_.at(cutoff_squared_id).at(lattice_id2).push_back(lattice_id1);
-                      break;
-                    }
-                  }
-                }
-              }
+  for (int cell_idx = 0; cell_idx < num_cells_.prod(); ++cell_idx) {
+    auto &cell = cells_.at(static_cast<size_t>(cell_idx));
+    int i = cell_idx / (num_cells_[1] * num_cells_[2]);
+    int j = (cell_idx % (num_cells_[1] * num_cells_[2])) / num_cells_[2];
+    int k = cell_idx % num_cells_[2];
+    // Check neighboring cells, taking into account periodic boundaries
+    for (auto [di, dj, dk] : OFFSET_LIST) {
+      int ni = (i + di + num_cells_(0)) % num_cells_(0);
+      int nj = (j + dj + num_cells_(1)) % num_cells_(1);
+      int nk = (k + dk + num_cells_(2)) % num_cells_(2);
+      int neighbor_cell_idx = (ni * num_cells_(1) + nj) * num_cells_(2) + nk;
+      auto &neighbor_cell = cells_.at(static_cast<size_t>(neighbor_cell_idx));
+      // For each point in the cell, check if it's close to any point in the neighboring cell
+      for (size_t lattice_id1 : cell) {
+        for (size_t lattice_id2 : neighbor_cell) {
+          // Make sure we're not comparing a point to itself, and don't double-count pairs within the same cell
+          if (lattice_id2 >= lattice_id1) { continue; }
+          // Calculate distance
+          double cartesian_distance_squared =
+              (basis_ * GetRelativeDistanceVectorLattice(lattice_id1, lattice_id2)).squaredNorm();
+          // If the distance is less than the cutoff, the points are bonded
+          for (size_t cutoff_squared_id = 0; cutoff_squared_id < cutoffs_squared.size(); ++cutoff_squared_id) {
+            if (cartesian_distance_squared < cutoffs_squared.at(cutoff_squared_id)) {
+              neighbor_lists_.at(cutoff_squared_id).at(lattice_id1).push_back(lattice_id2);
+              neighbor_lists_.at(cutoff_squared_id).at(lattice_id2).push_back(lattice_id1);
+              break;
             }
           }
         }
@@ -391,9 +418,10 @@ Config Config::ReadCfg(const std::string &filename) {
     atom_vector.emplace_back(type);
     relative_position_matrix.col(static_cast<int>(id)) = relative_position;
   }
-  Config config_out = Config{basis, relative_position_matrix, atom_vector};
-  config_out.ReassignLattice();
-  return config_out;
+  Config config_in = Config{basis, relative_position_matrix, atom_vector};
+  config_in.ReassignLattice();
+  config_in.Wrap();
+  return config_in;
 }
 
 Config Config::ReadPoscar(const std::string &filename) {
@@ -427,10 +455,12 @@ Config Config::ReadPoscar(const std::string &filename) {
   std::istringstream count_iss(buffer);
 
   std::string element;
-  size_t num_atoms;
+  size_t num_elems;
+  size_t num_atoms = 0;
   std::vector<std::pair<std::string, size_t>> elements_counts;
-  while (element_iss >> element && count_iss >> num_atoms) {
-    elements_counts.emplace_back(element, num_atoms);
+  while (element_iss >> element && count_iss >> num_elems) {
+    elements_counts.emplace_back(element, num_elems);
+    num_atoms += num_elems;
   }
   getline(fis, buffer);
   bool relative_option =
@@ -457,18 +487,20 @@ Config Config::ReadPoscar(const std::string &filename) {
       ++id_count;
     }
   }
-  Config config_out = Config{basis, relative_position_matrix, atom_vector};
-  config_out.ReassignLattice();
-  return config_out;
+  Config config_in = Config{basis, relative_position_matrix, atom_vector};
+  config_in.ReassignLattice();
+  config_in.Wrap();
+  return config_in;
 }
 
-void Config::WriteConfig(const std::string &filename) const {
-  WriteConfigExtended(filename, {});
+void Config::WriteConfig(const std::string &filename, const Config &config_out) {
+  WriteConfigExtended(filename, config_out, {});
 }
 
 void Config::WriteConfigExtended(
     const std::string &filename,
-    const std::map<std::string, std::vector<double>> &auxiliary_lists) const {
+    const Config &config_out,
+    const std::map<std::string, std::vector<double>> &auxiliary_lists) {
   std::ofstream ofs(filename, std::ios_base::out | std::ios_base::binary);
   boost::iostreams::filtering_ostream fos;
   if (boost::filesystem::path(filename).extension() == ".gz") {
@@ -477,19 +509,18 @@ void Config::WriteConfigExtended(
     fos.push(boost::iostreams::bzip2_compressor());
   }
   fos.push(ofs);
-
   fos.precision(8);
-  fos << "Number of particles = " << GetNumAtoms() << '\n';
+  fos << "Number of particles = " << config_out.GetNumAtoms() << '\n';
   fos << "A = 1.0 Angstrom (basic length-scale)\n";
-  fos << "H0(1,1) = " << basis_(0, 0) << " A\n";
-  fos << "H0(1,2) = " << basis_(0, 1) << " A\n";
-  fos << "H0(1,3) = " << basis_(0, 2) << " A\n";
-  fos << "H0(2,1) = " << basis_(1, 0) << " A\n";
-  fos << "H0(2,2) = " << basis_(1, 1) << " A\n";
-  fos << "H0(2,3) = " << basis_(1, 2) << " A\n";
-  fos << "H0(3,1) = " << basis_(2, 0) << " A\n";
-  fos << "H0(3,2) = " << basis_(2, 1) << " A\n";
-  fos << "H0(3,3) = " << basis_(2, 2) << " A\n";
+  fos << "H0(1,1) = " << config_out.basis_(0, 0) << " A\n";
+  fos << "H0(1,2) = " << config_out.basis_(0, 1) << " A\n";
+  fos << "H0(1,3) = " << config_out.basis_(0, 2) << " A\n";
+  fos << "H0(2,1) = " << config_out.basis_(1, 0) << " A\n";
+  fos << "H0(2,2) = " << config_out.basis_(1, 1) << " A\n";
+  fos << "H0(2,3) = " << config_out.basis_(1, 2) << " A\n";
+  fos << "H0(3,1) = " << config_out.basis_(2, 0) << " A\n";
+  fos << "H0(3,2) = " << config_out.basis_(2, 1) << " A\n";
+  fos << "H0(3,3) = " << config_out.basis_(2, 2) << " A\n";
   fos << ".NO_VELOCITY.\n";
   fos << "entry_count = " << 3 + auxiliary_lists.size() << "\n";
   size_t auxiliary_index = 0;
@@ -498,10 +529,10 @@ void Config::WriteConfigExtended(
     ++auxiliary_index;
   }
   Eigen::IOFormat fmt(Eigen::StreamPrecision, Eigen::DontAlignCols, " ", "\n", "", "", "", "");
-  for (size_t it = 0; it < atom_vector_.size(); ++it) {
-    const auto &atom = atom_vector_[it];
+  for (size_t it = 0; it < config_out.atom_vector_.size(); ++it) {
+    const auto &atom = config_out.atom_vector_[it];
     const auto &relative_position
-        = relative_position_matrix_.col(static_cast<int>(atom_to_lattice_hashmap_.at(it)));
+        = config_out.relative_position_matrix_.col(static_cast<int>(config_out.atom_to_lattice_hashmap_.at(it)));
     fos << atom.GetMass() << '\n'
         << atom << '\n'
         << relative_position.transpose().format(fmt);
@@ -513,8 +544,9 @@ void Config::WriteConfigExtended(
 }
 
 void Config::WriteXyzExtended(const std::string &filename,
+                              const Config &config_out,
                               const std::map<std::string, VectorVariant> &auxiliary_lists,
-                              const std::map<std::string, ValueVariant> &global_list) const {
+                              const std::map<std::string, ValueVariant> &global_list) {
   std::ofstream ofs(filename, std::ios_base::out | std::ios_base::binary);
   boost::iostreams::filtering_ostream fos;
   if (boost::filesystem::path(filename).extension() == ".gz") {
@@ -524,11 +556,12 @@ void Config::WriteXyzExtended(const std::string &filename,
   }
   fos.push(ofs);
   fos.precision(8);
-  fos << GetNumAtoms() << '\n';
+  fos << config_out.GetNumAtoms() << '\n';
   Eigen::IOFormat fmt(Eigen::StreamPrecision, Eigen::DontAlignCols, " ", " ", "", "", "", "");
-  fos << "Lattice=\"" << basis_.format(fmt) << "\" ";
-  fos << "pbc=\"" << periodic_boundary_condition_[0] << " " << periodic_boundary_condition_[1] << " "
-      << periodic_boundary_condition_[2] << "\" ";
+  fos << "Lattice=\"" << config_out.basis_.format(fmt) << "\" ";
+  fos << "pbc=\"" << config_out.periodic_boundary_condition_[0] << " "
+      << config_out.periodic_boundary_condition_[1] << " "
+      << config_out.periodic_boundary_condition_[2] << "\" ";
   for (const auto &[key, value] : global_list) {
     fos << key << "=";
     std::visit([&fos](const auto &val) { fos << val << ' '; }, value);
@@ -552,9 +585,10 @@ void Config::WriteXyzExtended(const std::string &filename,
   }
   fos << '\n';
 
-  for (size_t it = 0; it < atom_vector_.size(); ++it) {
-    const auto &atom = atom_vector_[it];
-    const auto &cartesian_position = cartesian_position_matrix_.col(static_cast<int>(atom_to_lattice_hashmap_.at(it)));
+  for (size_t it = 0; it < config_out.atom_vector_.size(); ++it) {
+    const auto &atom = config_out.atom_vector_[it];
+    const auto &cartesian_position =
+        config_out.cartesian_position_matrix_.col(static_cast<int>(config_out.atom_to_lattice_hashmap_.at(it)));
     fos << atom << ' '
         << cartesian_position.transpose().format(fmt) << ' ';
 

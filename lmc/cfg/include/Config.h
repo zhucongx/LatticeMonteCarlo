@@ -127,6 +127,10 @@ class Config {
    */
   void SetPeriodicBoundaryCondition(const std::array<bool, 3> &periodic_boundary_condition);
 
+  /*! \brief Wrap atoms outside the unit cell into the cell.
+   */
+  void Wrap();
+
   /*! \brief Set the element type at the atom with given atom id.
    *  \param atom_id      : The atom id of the atom.
    *  \param element_type : The new element type.
@@ -168,16 +172,18 @@ class Config {
   /*! \brief Write the configuration to a file.
    *  \param filename : The name of the file to write the configuration to.
    */
-  void WriteConfig(const std::string &filename) const;
+  static void WriteConfig(const std::string &filename,
+                          const Config &config_out);
 
   /*! \brief Write the extended configuration to a file. Check the extended CFG format
    *         at <http://li.mit.edu/Archive/Graphics/A/#extended_CFG>.
    *  \param filename        : The name of the file to write the extended configuration to.
    *  \param auxiliary_lists : The auxiliary lists to write to the file.
    */
-  void WriteConfigExtended(
+  static void WriteConfigExtended(
       const std::string &filename,
-      const std::map<std::string, std::vector<double>> &auxiliary_lists) const;
+      const Config &config_out,
+      const std::map<std::string, std::vector<double>> &auxiliary_lists);
 
   using VectorVariant = std::variant<std::vector<int>,
                                      std::vector<size_t>,
@@ -193,10 +199,11 @@ class Config {
    *  \param auxiliary_lists : The lists of atom information .
    *  \param global_list     : The list of global information.
    */
-  void WriteXyzExtended(
+  static void WriteXyzExtended(
       const std::string &filename,
+      const Config &config_out,
       const std::map<std::string, VectorVariant> &auxiliary_lists,
-      const std::map<std::string, ValueVariant> &global_list) const;
+      const std::map<std::string, ValueVariant> &global_list);
 
  private:
   /*! \brief Sort lattice sites by the positions (x, y, z)
