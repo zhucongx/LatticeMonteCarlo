@@ -3,7 +3,7 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date: 6/14/22 12:36 PM                                                                        *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 9/27/23 2:55 PM                                                           *
+ * @Last Modified time: 10/30/23 3:13 PM                                                          *
  **************************************************************************************************/
 
 /*! \file  PotentialEnergyEstimator.cpp
@@ -70,17 +70,18 @@ PotentialEnergyEstimator::PotentialEnergyEstimator(const std::string &predictor_
 }
 PotentialEnergyEstimator::~PotentialEnergyEstimator() = default;
 
-std::vector<double> PotentialEnergyEstimator::GetEncodeVector(const Config &config) const {
+Eigen::VectorXd PotentialEnergyEstimator::GetEncodeVector(const Config &config) const {
   auto cluster_type_count_hashmap(ConvertSetToHashMap(initialized_cluster_type_set_));
 
   for (const auto &lattice_cluster : all_lattice_hashset_) {
     auto atom_cluster_type = IndentifyAtomClusterType(config, lattice_cluster.GetLatticeIdVector());
     cluster_type_count_hashmap.at(ClusterType(atom_cluster_type, lattice_cluster.GetClusterType()))++;
   }
-  std::vector<double> encode_vector{};
-  encode_vector.reserve(initialized_cluster_type_set_.size());
+  Eigen::VectorXd encode_vector(initialized_cluster_type_set_.size());
+  int idx = 0;
   for (const auto &cluster_type : initialized_cluster_type_set_) {
-    encode_vector.emplace_back(cluster_type_count_hashmap.at(cluster_type));
+    encode_vector(idx) = static_cast<double>(cluster_type_count_hashmap.at(cluster_type));
+    ++idx;
   }
   return encode_vector;
 }
