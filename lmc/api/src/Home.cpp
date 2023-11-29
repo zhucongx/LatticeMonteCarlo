@@ -263,7 +263,7 @@ void Run(const Parameter &parameter) {
 //                             parameter.json_coefficients_filename_};
 // }
 ansys::Traverse BuildIteratorFromParameter(const Parameter &parameter) {
-  std::set<Element> element_set;
+  std::set < Element > element_set;
   for (const auto &element_string : parameter.element_set_) {
     element_set.insert(Element(element_string));
   }

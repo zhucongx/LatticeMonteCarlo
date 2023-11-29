@@ -276,7 +276,7 @@ void Config::UpdateNeighborList(std::vector<double> cutoffs) {
           // Make sure we're not comparing a point to itself, and don't double-count pairs within the same cell
           if (lattice_id2 >= lattice_id1) { continue; }
           // Calculate distance
-          double cartesian_distance_squared =
+          const double cartesian_distance_squared =
               (basis_ * GetRelativeDistanceVectorLattice(lattice_id1, lattice_id2)).squaredNorm();
           // If the distance is less than the cutoff, the points are bonded
           for (size_t cutoff_squared_id = 0; cutoff_squared_id < cutoffs_squared.size(); ++cutoff_squared_id) {

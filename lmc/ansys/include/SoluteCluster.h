@@ -3,7 +3,7 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date: 6/14/20 1:27 PM                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 8/27/23 9:50 PM                                                           *
+ * @Last Modified time: 9/27/23 12:23 AM                                                          *
  **************************************************************************************************/
 
 #ifndef LMC_ANSYS_INCLUDE_SOLUTECLUSTER_H_
@@ -66,7 +66,7 @@ class SoluteCluster {
   const std::set<Element> element_set_;
   const size_t smallest_cluster_criteria_;
   const size_t solvent_bond_criteria_;
-  const pred::EnergyPredictor &energy_estimator_;
+  const PotentialEnergyEstimator &energy_estimator_;
   const std::map<Element, double> chemical_potential_map_;
   std::map<std::string, Config::VectorVariant> auxiliary_lists_{};
 };

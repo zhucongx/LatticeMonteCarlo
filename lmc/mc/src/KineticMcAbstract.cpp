@@ -1,3 +1,11 @@
+/**************************************************************************************************
+ * Copyright (c) 2023. All rights reserved.                                                       *
+ * @Author: Zhucong Xi                                                                            *
+ * @Date:                                                                                         *
+ * @Last Modified by: zhucongx                                                                    *
+ * @Last Modified time: 7/20/23 11:10 AM                                                          *
+ **************************************************************************************************/
+
 #include "KineticMcAbstract.h"
 namespace mc {
 
@@ -29,7 +37,7 @@ KineticMcFirstAbstract::KineticMcFirstAbstract(cfg::Config config,
       vacancy_migration_predictor_lru_(json_coefficients_filename,
                                        config_,
                                        element_set,
-                                       100000),
+                                       100000),//todo test size
       time_temperature_interpolator_(time_temperature_filename),
       is_time_temperature_interpolator_(!time_temperature_filename.empty()),
       rate_corrector_(config_.GetVacancyConcentration(),
@@ -50,7 +58,7 @@ double KineticMcFirstAbstract::GetTimeCorrectionFactor() {
   }
   return 1.0;
 }
-void KineticMcFirstAbstract::Dump() const{
+void KineticMcFirstAbstract::Dump() const {
   if (is_restarted_) {
     is_restarted_ = false;
     return;

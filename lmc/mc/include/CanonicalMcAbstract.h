@@ -1,9 +1,9 @@
 /**************************************************************************************************
- * Copyright (c) 2023. All rights reserved.                                                       *
+ * Copyright (c) 2023-2023. All rights reserved.                                                  *
  * @Author: Zhucong Xi                                                                            *
  * @Date:                                                                                         *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 6/30/23 4:05 PM                                                           *
+ * @Last Modified time: 9/26/23 8:09 PM                                                           *
  **************************************************************************************************/
 
 #ifndef LMC_MC_INCLUDE_CANONICALMCABSTRACT_H_
@@ -17,7 +17,7 @@ namespace mc {
 
 class CanonicalMcAbstract : public McAbstract {
  public:
-  CanonicalMcAbstract(cfg::Config config,
+  CanonicalMcAbstract(Config config,
                       unsigned long long int log_dump_steps,
                       unsigned long long int config_dump_steps,
                       unsigned long long int maximum_steps,

@@ -1,3 +1,11 @@
+/**************************************************************************************************
+ * Copyright (c) 2023. All rights reserved.                                                       *
+ * @Author: Zhucong Xi                                                                            *
+ * @Date:                                                                                         *
+ * @Last Modified by: zhucongx                                                                    *
+ * @Last Modified time: 10/30/23 3:09 PM                                                          *
+ **************************************************************************************************/
+
 #include "CanonicalMcSerial.h"
 #include <utility>
 #include <chrono>

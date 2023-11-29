@@ -1,3 +1,11 @@
+/**************************************************************************************************
+ * Copyright (c) 2023. All rights reserved.                                                       *
+ * @Author: Zhucong Xi                                                                            *
+ * @Date:                                                                                         *
+ * @Last Modified by: zhucongx                                                                    *
+ * @Last Modified time: 10/30/23 3:09 PM                                                          *
+ **************************************************************************************************/
+
 #include "ThermodynamicAveraging.h"
 #include <cmath>
 #include "Constants.hpp"
@@ -23,7 +31,7 @@ double ThermodynamicAveraging::GetThermodynamicAverage(double beta) const {
   const auto average = GetAverage();
   double partition = 0.0;
   double thermodynamic_average_energy = 0.0;
-  for (auto energy: energy_list_) {
+  for (auto energy : energy_list_) {
     energy -= average;
     const double exp_value = std::exp(-energy * beta);
     thermodynamic_average_energy += energy * exp_value;

@@ -3,7 +3,7 @@
  * @Author: Zhucong Xi                                                                            *
  * @Date: 6/4/22 4:53 AM                                                                          *
  * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 8/22/23 11:22 PM                                                          *
+ * @Last Modified time: 9/27/23 3:30 PM                                                           *
  **************************************************************************************************/
 
 #include "Traverse.h"
@@ -85,7 +85,7 @@ Traverse::Traverse(unsigned long long int initial_steps,
       final_number_ = step_number;
     }
   }
-#pragma omp parallel  default(none) shared(std::cout)
+#pragma omp parallel default(none) shared(std::cout)
   {
 #pragma omp master
     {
