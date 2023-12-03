@@ -13,6 +13,7 @@
 #include <string>
 #include <vector>
 #include <sys/stat.h>
+namespace api {
 inline std::vector<std::string> split(const std::string &s, const char *delim) {
   std::vector<std::string> res;
   char *dup = strdup(s.c_str());
@@ -26,5 +27,6 @@ inline std::vector<std::string> split(const std::string &s, const char *delim) {
   free(dup);
   return res;
 }
+} // api
 
 #endif //LMC_API_INCLUDE_UTILITY_H_

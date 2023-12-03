@@ -14,6 +14,7 @@
 #include <iostream>
 #include <vector>
 #include <iterator>
+namespace api {
 struct Parameter {
  public:
   Parameter(int argc, char *argv[]);
@@ -58,4 +59,6 @@ struct Parameter {
   std::vector<size_t> solute_number_set_{};
   unsigned long long int early_stop_steps_{};
 };
+} // namespace api
+
 #endif //LMC_API_INCLUDE_PARAMETER_H_

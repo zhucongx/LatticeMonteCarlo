@@ -1,15 +1,8 @@
-/**************************************************************************************************
- * Copyright (c) 2023-2023. All rights reserved.                                                  *
- * @Author: Zhucong Xi                                                                            *
- * @Date:                                                                                         *
- * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 7/6/23 2:24 PM                                                            *
- **************************************************************************************************/
-
 #include "Parameter.h"
 #include <algorithm>
 
 #include "Utility.h"
+namespace api {
 Parameter::Parameter(int argc, char *argv[]) {
   ParseArgs(argc, argv);
   ReadParam(parameters_filename);
@@ -113,3 +106,4 @@ void Parameter::ReadParam(const std::string &param_filename) {
   }
   ifs.close();
 }
+} // api
