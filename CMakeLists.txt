@@ -1,11 +1,18 @@
+####################################################################################################
+# Copyright (c) 2020-2023. All rights reserved.                                                    #
+# @Author: Zhucong Xi                                                                              #
+# @Date: 1/16/20 1:55 AM                                                                           #
+# @Last Modified by: zhucongx                                                                      #
+# @Last Modified time: 8/21/23 3:33 PM                                                             #
+####################################################################################################
+
 cmake_minimum_required(VERSION 3.14)
 #################################################### SET  COMPILERS ####################################################
-#set(CMAKE_C_COMPILER "icc") # {gcc, gcc-13, mpicc, icc, mpiicc, clang}
-#set(CMAKE_CXX_COMPILER "icpc") # {g++, g++-13, mpicxx, icpc, mpiicpc, clang++}
+#set(CMAKE_C_COMPILER "icc") # {gcc, gcc-13, mpicc, icc, mpiicc, clang-16}
+#set(CMAKE_CXX_COMPILER "icpc") # {g++, g++-13, mpicxx, icpc, mpiicpc, clang-16}
 #set(CMAKE_Fortran_COMPILER "ifort") # {gfortran, gfortran-13, mpifort, ifort, mpiifort, flang}
-#set(CMAKE_C_COMPILER "gcc-13") # {gcc, gcc-13, mpicc, icc, mpiicc, clang}
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD 11)
 
 project(lmc VERSION 0.1.0)
 set(CMAKE_VERBOSE_MAKEFILE ON)
@@ -53,6 +60,15 @@ message(STATUS "Detecting ${CMAKE_CXX_COMPILER_ID} compiler")
 message(STATUS "Current build type is ${CMAKE_BUILD_TYPE}")
 ###################################################### BUILD SRCS ######################################################
 file(GLOB PROJECT_SRC ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}/*/src/*.cpp)
+#file(GLOB PROJECT_SRC
+#     ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}/cfg/src/*.cpp
+#     ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}/pred/src/*.cpp
+#     # ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}/ce/src/*.cpp
+#     ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}/mc/src/*.cpp
+#     ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}/ansys/src/*.cpp
+#     ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}/api/src/*.cpp
+#)
+
 file(GLOB PROJECT_SOURCE ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}/*/src)
 foreach (dir ${PROJECT_SOURCE})
     message(STATUS "Found source directory: ${dir}")
@@ -131,9 +147,10 @@ else ()
     endif ()
 endif ()
 
-find_package(Eigen3 3.3)
+find_package(Eigen3 3.4)
 if (NOT EIGEN3_FOUND)
-    message(WARNING "Eigen3 not found. Downloading Eigen3 from gitlab")
+    message(WARNING "Eigen3 not found.")
+    message(STATUS "Downloading Eigen3 from Gitlab")
     FetchContent_Declare(
             Eigen3
             GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
@@ -164,6 +181,7 @@ target_link_libraries_system(${PROJECT_NAME} PRIVATE Eigen3::Eigen)
 # need to install it when your main project gets installed.
 # set(JSON_Install OFF CACHE INTERNAL "")
 # add_subdirectory(external/json)
+message(STATUS "Downloading nlohmann_json from Github")
 FetchContent_Declare(
         json
         GIT_REPOSITORY https://github.com/ArthurSonzogni/nlohmann_json_cmake_fetchcontent
@@ -174,21 +192,29 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(json)
 target_link_libraries_system(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
 ######################################################## SPGLIB ########################################################
-#FetchContent_Declare(
-#        Spglib
-#        GIT_REPOSITORY https://github.com/spglib/spglib.git
-#        GIT_TAG v2.1.0-rc2
-#        GIT_PROGRESS TRUE
-#        GIT_SHALLOW TRUE
-#)
-#set(SPGLIB_USE_OMP ON)
-#FetchContent_MakeAvailable(Spglib)
-##FetchContent_GetProperties(Spglib)
-##if (NOT Spglib_POPULATED)
-##    FetchContent_Populate(Spglib)
-##    add_subdirectory(${spglib_SOURCE_DIR} ${spglib_BINARY_DIR} EXCLUDE_FROM_ALL)
-##endif ()
-#target_link_libraries_system(${PROJECT_NAME} PRIVATE Spglib::symspg)
+message(STATUS "Downloading spglib from Github")
+FetchContent_Declare(
+        Spglib
+        GIT_REPOSITORY https://github.com/spglib/spglib.git
+        GIT_TAG v2.1.0-rc2
+        GIT_PROGRESS TRUE
+        GIT_SHALLOW TRUE
+        SYSTEM TRUE
+)
+
+set(CMAKE_BUILD_TYPE_BACKUP ${MAKE_BUILD_TYPE})
+set(CMAKE_BUILD_TYPE Release)
+set(SPGLIB_USE_OMP ON)
+set(SPGLIB_WITH_TESTS OFF)
+FetchContent_MakeAvailable(Spglib)
+set(CMAKE_BUILD_TYPE ${MAKE_BUILD_TYPE_BACKUP})
+
+#FetchContent_GetProperties(Spglib)
+#if (NOT Spglib_POPULATED)
+#    FetchContent_Populate(Spglib)
+#    add_subdirectory(${spglib_SOURCE_DIR} ${spglib_BINARY_DIR} EXCLUDE_FROM_ALL)
+#endif ()
+target_link_libraries_system(${PROJECT_NAME} PRIVATE Spglib::symspg)
 ###################################################### GOOGLETEST ######################################################
 #set(TEST "on")
 #IF(TEST)
@@ -236,10 +262,18 @@ target_link_libraries_system(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_jso
 #ELSE()
 #    message(STATUS "TEST mode off")
 #ENDIF()
-
+###################################################### SANITIZER #######################################################
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
+#add_cxx_compiler_flags("-fsanitize=address -fno-omit-frame-pointer") # address
+#add_cxx_compiler_flags("-fsanitize=memory -fPIE -pie -g") # memory
+#add_cxx_compiler_flags("-fsanitize=leak") # leak
+#add_cxx_compiler_flags("-fsanitize=thread -fPIE -pie -g") # thread
+#add_cxx_compiler_flags("-fsanitize=undefined") # undefined
 ##################################################### SHOW SUMMARY #####################################################
 MESSAGE(STATUS "====================================================================================================")
 MESSAGE(STATUS "Project Name:     ${PROJECT_NAME}")
+MESSAGE(STATUS "C Compiler:       ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION}")
+MESSAGE(STATUS "C Standard:       C ${CMAKE_C_STANDARD}")
 MESSAGE(STATUS "C++ Compiler:     ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
 MESSAGE(STATUS "C++ Standard:     C++ ${CMAKE_CXX_STANDARD}")
 MESSAGE(STATUS "Build type:       ${CMAKE_BUILD_TYPE}")
