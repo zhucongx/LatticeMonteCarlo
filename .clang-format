@@ -14,7 +14,7 @@ AllowShortLoopsOnASingleLine: true
 BraceWrapping:
   AfterFunction: true
 BreakBeforeBraces: Custom
-BreakConstructorInitializers: AfterColon
+BreakConstructorInitializers: BeforeColon
 BreakInheritanceList: AfterColon
 ColumnLimit: 120
 IndentCaseLabels: true
@@ -29,4 +29,3 @@ SpacesInContainerLiterals: false
 Standard: Cpp11
 TabWidth: 2
 UseTab: Never
-...
