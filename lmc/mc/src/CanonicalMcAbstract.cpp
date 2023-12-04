@@ -74,10 +74,10 @@ void CanonicalMcAbstract::Dump() const {
   }
   if (steps_ % config_dump_steps_ == 0) {
     config_.WriteMap("map" + std::to_string(steps_) + ".txt");
-    config_.WriteConfig(std::to_string(steps_) + ".cfg", false);
+    config_.WriteConfig(std::to_string(steps_) + ".cfg");
   }
   if (steps_ == maximum_steps_) {
-    config_.WriteConfig("end.cfg", false);
+    config_.WriteConfig("end.cfg");
   }
   unsigned long long int log_dump_steps;
   if (steps_ > 10 * log_dump_steps_) {
