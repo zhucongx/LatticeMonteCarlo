@@ -28,9 +28,9 @@ esac
 # Decide build compiler based on user input
 case $compiler in
   d|default) compiler_C=cc compiler_CXX=c++ ;;
-  g|gcc) compiler_C=gcc-13 compiler_CXX=g++-13 ;;
+  g|gcc) compiler_C=gcc compiler_CXX=g++ ;;
   i|intel) compiler_C=icc compiler_CXX=icpc ;;
-  c|clang) compiler_C=clang-16 compiler_CXX=clang-16 ;;
+  c|clang) compiler_C=clang compiler_CXX=clang ;;
   *) echo "Invalid compiler. Try again..." ; exit 1 ;;
 esac
 
