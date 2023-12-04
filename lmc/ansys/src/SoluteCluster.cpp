@@ -254,7 +254,6 @@ double SoluteCluster::GetMass(const std::vector<size_t> &cluster_atom_id_list) c
 }
 double SoluteCluster::GetFormationEnergy(const std::vector<size_t> &cluster_atom_id_list) const
 {
-  return 0;
   cfg::Config solute_config(solvent_config_);
   double energy_change_solution_to_pure_solvent = 0;
   for (size_t atom_id : cluster_atom_id_list) {
@@ -281,8 +280,8 @@ Vector_t SoluteCluster::GetGeometryCenter(const std::vector<size_t> &cluster_ato
       sum_sin_theta[kDim] += std::sin(theta);
     }
   }
-  auto cos_theta_bar = sum_cos_theta / static_cast<double>(cluster_atom_id_list.size());
-  auto sin_theta_bar = sum_sin_theta / static_cast<double>(cluster_atom_id_list.size());
+  const auto cos_theta_bar = sum_cos_theta / static_cast<double>(cluster_atom_id_list.size());
+  const auto sin_theta_bar = sum_sin_theta / static_cast<double>(cluster_atom_id_list.size());
   for (const auto kDim : All_Dimensions) {
     double theta_bar = std::atan2(-sin_theta_bar[kDim], -cos_theta_bar[kDim]) + M_PI;
     geometry_center[kDim] = theta_bar / (2 * M_PI);
@@ -292,6 +291,7 @@ Vector_t SoluteCluster::GetGeometryCenter(const std::vector<size_t> &cluster_ato
 }
 Vector_t SoluteCluster::GetMassCenter(const std::vector<size_t> &cluster_atom_id_list) const
 {
+  // Cartesian position
   Vector_t mass_center{};
   Vector_t sum_cos_theta{};
   Vector_t sum_sin_theta{};
@@ -313,7 +313,6 @@ Vector_t SoluteCluster::GetMassCenter(const std::vector<size_t> &cluster_atom_id
     mass_center[kDim] = theta_bar / (2 * M_PI);
   }
   return mass_center * config_.GetBasis();
-  ;    // Cartesian position
 }
 Matrix_t SoluteCluster::GetMassGyrationTensor(const std::vector<size_t> &cluster_atom_id_list,
                                               const Vector_t &mass_center) const
