@@ -66,7 +66,7 @@ void KineticMcFirstAbstract::Dump() const{
   }
   if (steps_ % config_dump_steps_ == 0) {
     config_.WriteMap("map" + std::to_string(steps_) + ".txt");
-    config_.WriteConfig(std::to_string(steps_) + ".cfg");
+    config_.WriteConfig(std::to_string(steps_) + ".cfg", false);
   }
   unsigned long long int log_dump_steps;
   if (steps_ > 10 * log_dump_steps_) {

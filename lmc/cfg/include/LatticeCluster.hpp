@@ -63,9 +63,9 @@ inline bool PositionCompareState(const cfg::Lattice &lhs,
                                  const cfg::Lattice &rhs) {
   const auto &relative_position_lhs = lhs.GetRelativePosition();
   const auto &relative_position_rhs = rhs.GetRelativePosition();
-  const double diff_x = relative_position_lhs[0] - relative_position_rhs[0];
-  const double diff_y = relative_position_lhs[1] - relative_position_rhs[1];
-  const double diff_z = relative_position_lhs[2] - relative_position_rhs[2];
+  const double diff_x = relative_position_lhs[kXDimension] - relative_position_rhs[kXDimension];
+  const double diff_y = relative_position_lhs[kYDimension] - relative_position_rhs[kYDimension];
+  const double diff_z = relative_position_lhs[kZDimension] - relative_position_rhs[kZDimension];
   if (diff_x < -kEpsilon) { return true; }
   if (diff_x > kEpsilon) { return false; }
   if (diff_y < -kEpsilon) { return true; }
@@ -84,8 +84,8 @@ inline bool GroupCompareMMM(const cfg::Lattice &lhs,
     return true;
   if (diff_norm > kEpsilon)
     return false;
-  const double diff_x_sym = std::abs(relative_position_lhs[0] - 0.5)
-      - std::abs(relative_position_rhs[0] - 0.5);
+  const double diff_x_sym = std::abs(relative_position_lhs[kXDimension] - 0.5)
+      - std::abs(relative_position_rhs[kXDimension] - 0.5);
   return diff_x_sym < -kEpsilon;
 }
 inline bool GroupCompareMM2(const cfg::Lattice &lhs,
@@ -99,7 +99,7 @@ inline bool GroupCompareMM2(const cfg::Lattice &lhs,
     return true;
   if (diff_norm > kEpsilon)
     return false;
-  const double diff_x = relative_position_lhs[0] - relative_position_rhs[0];
+  const double diff_x = relative_position_lhs[kXDimension] - relative_position_rhs[kXDimension];
   return diff_x < -kEpsilon;
 }
 
@@ -112,20 +112,20 @@ inline bool PositionCompareMMM(const cfg::Lattice &lhs,
       Inner(relative_position_lhs - 0.5) - Inner(relative_position_rhs - 0.5);
   if (diff_norm < -kEpsilon) { return true; }
   if (diff_norm > kEpsilon) { return false; }
-  const double diff_x_sym = std::abs(relative_position_lhs[0] - 0.5)
-      - std::abs(relative_position_rhs[0] - 0.5);
+  const double diff_x_sym = std::abs(relative_position_lhs[kXDimension] - 0.5)
+      - std::abs(relative_position_rhs[kXDimension] - 0.5);
   if (diff_x_sym < -kEpsilon) { return true; }
   if (diff_x_sym > kEpsilon) { return false; }
   const double diff_x =
-      relative_position_lhs[0] - relative_position_rhs[0];
+      relative_position_lhs[kXDimension] - relative_position_rhs[kXDimension];
   if (diff_x < -kEpsilon) { return true; }
   if (diff_x > kEpsilon) { return false; }
   const double diff_y =
-      relative_position_lhs[1] - relative_position_rhs[1];
+      relative_position_lhs[kYDimension] - relative_position_rhs[kYDimension];
   if (diff_y < -kEpsilon) { return true; }
   if (diff_y > kEpsilon) { return false; }
   const double diff_z =
-      relative_position_lhs[2] - relative_position_rhs[2];
+      relative_position_lhs[kZDimension] - relative_position_rhs[kZDimension];
   if (diff_z < -kEpsilon) { return true; }
   if (diff_z > kEpsilon) { return false; }
   return false;
@@ -139,15 +139,15 @@ inline bool PositionCompareMM2(const cfg::Lattice &lhs,
   if (diff_norm < -kEpsilon) { return true; }
   if (diff_norm > kEpsilon) { return false; }
   const double diff_x =
-      relative_position_lhs[0] - relative_position_rhs[0];
+      relative_position_lhs[kXDimension] - relative_position_rhs[kXDimension];
   if (diff_x < -kEpsilon) { return true; }
   if (diff_x > kEpsilon) { return false; }
   const double diff_y =
-      relative_position_lhs[1] - relative_position_rhs[1];
+      relative_position_lhs[kYDimension] - relative_position_rhs[kYDimension];
   if (diff_y < -kEpsilon) { return true; }
   if (diff_y > kEpsilon) { return false; }
   const double diff_z =
-      relative_position_lhs[2] - relative_position_rhs[2];
+      relative_position_lhs[kZDimension] - relative_position_rhs[kZDimension];
   if (diff_z < -kEpsilon) { return true; }
   if (diff_z > kEpsilon) { return false; }
   return false;
