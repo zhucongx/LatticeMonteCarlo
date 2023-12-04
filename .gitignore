@@ -1,7 +1,7 @@
 build/
 bin/
 lib/
-cmake-build*/
+cmake-build-*/
 test/
 out/
 .idea/
