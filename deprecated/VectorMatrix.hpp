@@ -1,5 +1,13 @@
-#ifndef LMC_LMC_CFG_INCLUDE_VECTORMATRIX_HPP_
-#define LMC_LMC_CFG_INCLUDE_VECTORMATRIX_HPP_
+/**************************************************************************************************
+ * Copyright (c) 2020-2023. All rights reserved.                                                  *
+ * @Author: Zhucong Xi                                                                            *
+ * @Date: 05/22/20 2:12 AM                                                                        *
+ * @Last Modified by: zhucongx                                                                    *
+ * @Last Modified time: 7/2/23 11:14 PM                                                           *
+ **************************************************************************************************/
+
+#ifndef LMC_CFG_INCLUDE_VECTORMATRIX_HPP_
+#define LMC_CFG_INCLUDE_VECTORMATRIX_HPP_
 
 #include <cmath>
 #include <array>
@@ -306,4 +314,4 @@ inline Matrix_t InverseMatrix(const Matrix_t &input) {
       }
   };
 }
-#endif //LMC_LMC_CFG_INCLUDE_VECTORMATRIX_HPP_
+#endif //LMC_CFG_INCLUDE_VECTORMATRIX_HPP_

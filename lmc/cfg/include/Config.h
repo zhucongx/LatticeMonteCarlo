@@ -1,108 +1,254 @@
-#ifndef LMC_LMC_CFG_INCLUDE_CONFIG_H_
-#define LMC_LMC_CFG_INCLUDE_CONFIG_H_
+/**************************************************************************************************
+ * Copyright (c) 2020-2023. All rights reserved.                                                  *
+ * @Author: Zhucong Xi                                                                            *
+ * @Date: 1/16/20 3:55 AM                                                                         *
+ * @Last Modified by: zhucongx                                                                    *
+ * @Last Modified time: 10/30/23 3:10 PM                                                          *
+ **************************************************************************************************/
+
+/*! \file  Config.h
+ *  \brief File for the Config class definition.
+ */
+
+#ifndef LMC_CFG_INCLUDE_CONFIG_H_
+#define LMC_CFG_INCLUDE_CONFIG_H_
+#include <string>
+#include <fstream>
+#include <sstream>
 #include <vector>
 #include <set>
-#include <map>
 #include <unordered_set>
+#include <map>
 #include <unordered_map>
-#include "Atom.hpp"
-#include "Lattice.hpp"
-// using Graph = boost::adjacency_list<boost::vecS, boost::vecS>;
-namespace cfg {
+#include <utility>
+#include <variant>
+#include <any>
+#include "Eigen/Dense"
+#include "Constants.hpp"
+#include "Element.hpp"
+// #include "Atom.hpp"
+
+/*! \brief Class for defining a configuration of atoms and their positions.
+ */
 class Config {
-  public:
-    /// Constructor
-    Config();
-    Config(const Matrix_t &basis,
-           std::vector<Lattice> lattice_vector,
-           std::vector<Atom> atom_vector,
-           bool update_neighbor);
-    /// Getter
-    [[nodiscard]] size_t GetNumAtoms() const;
-    [[nodiscard]] const Matrix_t &GetBasis() const;
-    [[nodiscard]] const std::vector<Lattice> &GetLatticeVector() const;
-    [[nodiscard]] const std::vector<Atom> &GetAtomVector() const;
-    [[nodiscard]] const std::vector<std::vector<size_t> > &GetFirstNeighborsAdjacencyList() const;
-    [[nodiscard]] const std::vector<std::vector<size_t> > &GetSecondNeighborsAdjacencyList() const;
-    [[nodiscard]] const std::vector<std::vector<size_t> > &GetThirdNeighborsAdjacencyList() const;
-    [[nodiscard]] std::vector<size_t> GetFirstNeighborsAtomIdVectorOfAtom(size_t atom_id) const;
-    [[nodiscard]] std::vector<size_t> GetSecondNeighborsAtomIdVectorOfAtom(size_t atom_id) const;
-    [[nodiscard]] std::vector<size_t> GetThirdNeighborsAtomIdVectorOfAtom(size_t atom_id) const;
-    [[nodiscard]] size_t GetAtomIdFromLatticeId(size_t lattice_id) const;
-    [[nodiscard]] size_t GetLatticeIdFromAtomId(size_t atom_id) const;
-    [[nodiscard]] Element GetElementAtAtomId(size_t atom_id) const;
-    [[nodiscard]] Element GetElementAtLatticeId(size_t lattice_id) const;
-    [[nodiscard]] std::set<Element> GetElementSetWithoutVacancy() const;
-    [[nodiscard]] std::map<Element, std::vector<size_t> > GetElementAtomIdVectorMap() const;
-    [[nodiscard]] size_t GetStateHash() const;
-    [[nodiscard]] Vector_t GetLatticePairCenter(
-        const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
-    [[nodiscard]] Matrix_t GetLatticePairRotationMatrix(
-        const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
-    [[nodiscard]] size_t GetVacancyAtomId() const;
-    [[nodiscard]] size_t GetVacancyLatticeId() const;
-    [[nodiscard]] std::unordered_set<size_t> GetNeighborsLatticeIdSetOfPair(
-        const std::pair<size_t, size_t> &lattice_id_pair) const;
-    [[nodiscard]] std::unordered_set<size_t> GetNeighborsLatticeIdSetOfSite(
-        size_t lattice_id) const;
-    [[nodiscard]] int FindDistanceLabelBetweenLattice(size_t lattice_id1, size_t lattice_id2) const;
-    [[nodiscard]] double GetVacancyConcentration() const;
-    [[nodiscard]] double GetSoluteConcentration(Element solvent_element) const;
-    /// Modify config
-    void AtomJump(const std::pair<size_t, size_t> &atom_id_jump_pair);
-    void LatticeJump(const std::pair<size_t, size_t> &lattice_id_jump_pair);
-    void ChangeAtomElementTypeAtAtom(size_t atom_id, Element element);
-    void ChangeAtomElementTypeAtLattice(size_t lattice_id, Element element);
-    void ReassignLatticeVector();
-    /// IO
-    static Config ReadConfig(const std::string &filename);
-    void WriteConfig(const std::string &filename, bool neighbors_info) const;
-    void WriteExtendedConfig(
-        const std::string &filename,
-        const std::map<std::string, std::vector<double> >& auxiliary_lists) const;
-    static Config ReadMap(const std::string &lattice_filename,
-                          const std::string &element_filename,
-                          const std::string &map_filename);
-    void WriteLattice(const std::string &filename) const;
-    void WriteElement(const std::string &filename) const;
-    void WriteMap(const std::string &filename) const;
-  private:
-    /// Private Getter
-    [[nodiscard]] const std::unordered_map<size_t, size_t> &GetLatticeToAtomHashmap() const;
-    [[nodiscard]] const std::unordered_map<size_t, size_t> &GetAtomToLatticeHashmap() const;
-    /// Modify config
-    void ConvertRelativeToCartesian();
-    void ConvertCartesianToRelative();
-    void InitializeNeighborsList(size_t num_atoms);
-    void UpdateNeighbors();
-    /// Properties
-    Matrix_t basis_{};
-    std::vector<Lattice> lattice_vector_{};
-    std::vector<Atom> atom_vector_{};
-    std::unordered_map<size_t, size_t> lattice_to_atom_hashmap_{};
-    std::unordered_map<size_t, size_t> atom_to_lattice_hashmap_{};
-    // nearest neighbor lists
-    std::vector<std::vector<size_t> > first_neighbors_adjacency_list_{};
-    std::vector<std::vector<size_t> > second_neighbors_adjacency_list_{};
-    std::vector<std::vector<size_t> > third_neighbors_adjacency_list_{};
-    // std::vector<std::vector<size_t> > fourth_neighbors_adjacency_list_{};
-    // std::vector<std::vector<size_t> > fifth_neighbors_adjacency_list_{};
-    // std::vector<std::vector<size_t> > sixth_neighbors_adjacency_list_{};
-    // std::vector<std::vector<size_t> > seventh_neighbors_adjacency_list_{};
+ public:
+  /*! \brief Default constructor for Config.
+   */
+  Config();
+
+  /*! \brief Constructor for setting up the configuration of atoms and their positions.
+   *  \param basis                    : The basis vectors (3x3) of the configuration.
+   *  \param relative_position_matrix : The relative position matrix (3，n) of the configuration.
+   *  \param atom_vector              : The atom vector of the configuration，n atoms in total.
+   */
+  Config(Eigen::Matrix3d basis, Eigen::Matrix3Xd relative_position_matrix, std::vector<Element> atom_vector);
+
+  /*! \brief Default destructor for Config.
+   */
+  virtual ~Config();
+
+  /*! \brief Query for the number of atoms in the configuration.
+   *  \return : The number of atoms in the configuration.
+   */
+  [[nodiscard]] size_t GetNumAtoms() const;
+
+  /*! \brief Query for the vector of atoms in the configuration.
+   *  \return : The vector of atoms in the configuration.
+   */
+  [[nodiscard]] const std::vector<Element> &GetAtomVector() const;
+
+  /*! \brief Query for the number of lattice sites in the configuration.
+   *  \return : The number of lattice sites in the configuration.
+   */
+  [[nodiscard]] size_t GetNumLattices() const;
+
+  /*! \brief Query for the basis vectors of the configuration.
+   *  \return : The basis vectors of the configuration.
+   */
+  [[nodiscard]] const Eigen::Matrix3d &GetBasis() const;
+
+  /*! \brief Query for the lists of neighbor sites of each site in the configuration.
+   *  \return : The lists of neighbor sites of each site in the configuration.
+   */
+  [[nodiscard]] const std::vector<std::vector<std::vector<size_t> > > &GetNeighborLists() const;
+
+  /*! \brief Query for the set of neighbor atom id of an atom.
+   *  \param atom_id        : The atom id of the atom.
+   *  \param distance_order : The order of distance between the two lattice.
+   *  \return               : The set of neighbor atom is.
+   */
+  [[nodiscard]] std::vector<size_t> GetNeighborAtomIdVectorOfAtom(size_t atom_id, size_t distance_order) const;
+
+  /*! \brief Query for the order of distance between two lattice.
+   *  \param lattice_id1 : The lattice id of the first lattice.
+   *  \param lattice_id2 : The lattice id of the second lattice.
+   *  \return            : The order of distance between the two lattice. 0 means the same lattice or not neighbors.
+   */
+  [[nodiscard]] size_t GetDistanceOrder(size_t lattice_id1, size_t lattice_id2) const;
+
+  /*! \brief Query for the element of a lattice site.
+   *  \param lattice_id : The lattice id of the lattice site.
+   *  \return           : The element of the lattice site.
+   */
+  [[nodiscard]] Element GetElementOfLattice(size_t lattice_id) const;
+
+  /*! \brief Query for the element of an atom.
+   *  \param atom_id : The atom id of the atom.
+   *  \return        : The element of the atom.
+   */
+  [[nodiscard]] Element GetElementOfAtom(size_t atom_id) const;
+
+  /*! \brief Query for the cartesian position of a lattice site.
+   *  \param lattice_id : The lattice id of the lattice site.
+   *  \return           : The cartesian position of the lattice site.
+   */
+  [[nodiscard]] Eigen::Ref<const Eigen::Vector3d> GetRelativePositionOfLattice(size_t lattice_id) const;
+
+  /*! \brief Query for the relative position of an atom.
+   *  \param atom_id : The atom id of the atom.
+   *  \return        : The relative position of the atom.
+   */
+  [[nodiscard]] Eigen::Ref<const Eigen::Vector3d> GetRelativePositionOfAtom(size_t atom_id) const;
+
+  /*! \brief Query for the cartesian position of an lattice site.
+   *  \param lattice_id : The lattice id of the lattice site.
+   *  \return           : The cartesian position of the lattice site.
+   */
+  [[nodiscard]] Eigen::Ref<const Eigen::Vector3d> GetCartesianPositionOfLattice(size_t lattice_id) const;
+
+  /*! \brief Query for the cartesian position of an atom.
+   *  \param atom_id : The atom id of the atom.
+   *  \return        : The cartesian position of the atom.
+   */
+  [[nodiscard]] Eigen::Ref<const Eigen::Vector3d> GetCartesianPositionOfAtom(size_t atom_id) const;
+
+  /*! \brief Set the periodic boundary condition of the configuration.
+   *  \param periodic_boundary_condition : The periodic boundary condition of the configuration.
+   */
+  void SetPeriodicBoundaryCondition(const std::array<bool, 3> &periodic_boundary_condition);
+
+  /*! \brief Wrap atoms outside the unit cell into the cell.
+   */
+  void Wrap();
+
+  /*! \brief Set the element type at the atom with given atom id.
+   *  \param atom_id      : The atom id of the atom.
+   *  \param element_type : The new element type.
+   */
+  void SetElementOfAtom(size_t atom_id, Element element_type);
+
+  /*! \brief Modify the atom configuration.
+   *  \param atom_id_jump_pair : The pair of atom ids to modify the configuration.
+   */
+  void AtomJump(const std::pair<size_t, size_t> &atom_id_jump_pair);
+
+  /*! \brief Update the neighbor list of the configuration with the given cutoffs.
+   *  \param cutoffs : The cutoffs to update the neighbor list.
+   */
+  void UpdateNeighborList(std::vector<double> cutoffs);
+
+  /*! \brief Read the configuration from a lattice file, element file and map file.
+   *  \param lattice_filename : The name of the lattice file.
+   *  \param element_filename : The name of the element file.
+   *  \param map_filename     : The name of the map file.
+   *  \return                 : The configuration read from the file.
+   */
+  static Config ReadMap(const std::string &lattice_filename,
+                        const std::string &element_filename,
+                        const std::string &map_filename);
+
+  /*! \brief Read the configuration from a CFG file.
+   *  \param filename : The name of the CFG file.
+   *  \return         : The configuration read from the file.
+   */
+  static Config ReadCfg(const std::string &filename);
+
+  /*! \brief Read the configuration from a POSCAR file.
+   *  \param filename : The name of the POSCAR file.
+   *  \return         : The configuration read from the file.
+   */
+  static Config ReadPoscar(const std::string &filename);
+
+  /*! \brief Write the configuration to a file.
+   *  \param filename : The name of the file to write the configuration to.
+   */
+  static void WriteConfig(const std::string &filename,
+                          const Config &config_out);
+
+  /*! \brief Write the extended configuration to a file. Check the extended CFG format
+   *         at <http://li.mit.edu/Archive/Graphics/A/#extended_CFG>.
+   *  \param filename        : The name of the file to write the extended configuration to.
+   *  \param auxiliary_lists : The auxiliary lists to write to the file.
+   */
+  static void WriteConfigExtended(
+      const std::string &filename,
+      const Config &config_out,
+      const std::map<std::string, std::vector<double>> &auxiliary_lists);
+
+  using VectorVariant = std::variant<std::vector<int>,
+                                     std::vector<size_t>,
+                                     std::vector<double>,
+                                     std::vector<std::string>,
+                                     std::vector<Eigen::Vector3d> >;
+  using ValueVariant = std::variant<int, double, unsigned long long, std::string>;
+
+  /*! \brief Write the extended XXY to a file. Check the extended XYZ format
+   *         at <https://web.archive.org/web/20190811094343/https://libatoms.github.io/QUIP/io.html#extendedxyz>
+   *         and <https://www.ovito.org/docs/current/reference/file_formats/input/xyz.html#file-formats-input-xyz>
+   *  \param filename        : The name of the file to write the extended configuration to.
+   *  \param auxiliary_lists : The lists of atom information .
+   *  \param global_list     : The list of global information.
+   */
+  static void WriteXyzExtended(
+      const std::string &filename,
+      const Config &config_out,
+      const std::map<std::string, VectorVariant> &auxiliary_lists,
+      const std::map<std::string, ValueVariant> &global_list);
+
+ private:
+  /*! \brief Sort lattice sites by the positions (x, y, z)
+   */
+  void ReassignLattice();
+
+  /*! \brief Query for the relative distance vector between two lattice.
+   *  \param lattice_id1 : The lattice id of the first lattice.
+   *  \param lattice_id2 : The lattice id of the second lattice.
+   *  \return            : The relative distance vector between the two lattice.
+   */
+  [[nodiscard]] Eigen::Vector3d GetRelativeDistanceVectorLattice(size_t lattice_id1, size_t lattice_id2) const;
+
+  /// The periodic boundary condition status in all three directions.
+  std::array<bool, 3> periodic_boundary_condition_{true, true, true};
+
+  /// The basis matrix of the configuration.
+  Eigen::Matrix3d basis_{};
+
+  /// The relative position matrix of the configuration.
+  Eigen::Matrix3Xd relative_position_matrix_{};
+
+  /// The cartesian position matrix of the configuration.
+  Eigen::Matrix3Xd cartesian_position_matrix_{};
+
+  /// The vector of atoms in the configuration.
+  std::vector<Element> atom_vector_{};
+
+  /// Mapping from lattice points to atom ids.
+  std::unordered_map<size_t, size_t> lattice_to_atom_hashmap_{};
+
+  /// Mapping from atom ids to lattice points.
+  std::unordered_map<size_t, size_t> atom_to_lattice_hashmap_{};
+
+  /// Nearest neighbor lists. The first key is the cutoff distance between the two lattice sites in Angstrom.
+  std::vector<std::vector<std::vector<size_t> > > neighbor_lists_{};
+
+  /// Cutoffs for the neighbor lists.
+  std::vector<double> cutoffs_{};
+
+  /// Number of cells in each direction.
+  Eigen::Vector3i num_cells_{};
+
+  /// The cells of the configuration. Each cell is a vector of lattice ids.
+  std::vector<std::vector<size_t>> cells_{};
 };
 
-void RotateLatticeVector(std::vector<Lattice> &lattice_list, const Matrix_t &rotation_matrix);
-
-Config GenerateFCC(const Factor_t &factors, Element element);
-Config GenerateSoluteConfigFromExcitingPure(Config config,
-                                            const std::map<Element, size_t> &solute_atom_count);
-Config GenerateSoluteConfig(const Factor_t &factors,
-                            Element solvent_element,
-                            const std::map<Element, size_t> &solute_atom_count);
-// Config GenerateClusteredConfigFromExcitingPure(Config config,
-//                                             const std::map<Element, size_t> &solute_atom_count);
-// Config GenerateClusteredConfig(const Factor_t &factors,
-//                             Element solvent_element,
-//                             const std::map<Element, size_t> &solute_atom_count);
-} // cfg
-#endif //LMC_LMC_CFG_INCLUDE_CONFIG_H_
+#endif //LMC_CFG_INCLUDE_CONFIG_H_

@@ -1,3 +1,11 @@
+/**************************************************************************************************
+ * Copyright (c) 2023. All rights reserved.                                                       *
+ * @Author: Zhucong Xi                                                                            *
+ * @Date:                                                                                         *
+ * @Last Modified by: zhucongx                                                                    *
+ * @Last Modified time: 10/30/23 3:09 PM                                                          *
+ **************************************************************************************************/
+
 #include "CanonicalMcOmp.h"
 #include <omp.h>
 namespace mc {
@@ -58,7 +66,7 @@ void CanonicalMcOmp::BuildEventVector() {
     if (ct == 50) {
       break;
     }
-    for (auto selected_lattice_index: {lattice_id_jump_pair.first, lattice_id_jump_pair.second}) {
+    for (auto selected_lattice_index : {lattice_id_jump_pair.first, lattice_id_jump_pair.second}) {
       unavailable_position_.emplace(selected_lattice_index);
       std::copy(config_.GetFirstNeighborsAdjacencyList().at(selected_lattice_index).begin(),
                 config_.GetFirstNeighborsAdjacencyList().at(selected_lattice_index).end(),
@@ -76,7 +84,7 @@ void CanonicalMcOmp::BuildEventVector() {
     event_vector_.emplace_back(lattice_id_jump_pair, 0);
   }
 #pragma omp parallel for default(none)
-  for (auto &event: event_vector_) {
+  for (auto &event : event_vector_) {
     event.second = energy_change_predictor_.GetDeFromLatticeIdPair(config_, event.first);
   }
 }
@@ -84,7 +92,7 @@ void CanonicalMcOmp::Simulate() {
   // while (steps_ <= maximum_steps_ * static_cast<unsigned long long int>(initial_temperature_ / decrement_temperature_ + 1)) {
   while (steps_ <= maximum_steps_) {
     BuildEventVector();
-    for (auto [lattice_id_jump_pair, dE]: event_vector_) {
+    for (auto [lattice_id_jump_pair, dE] : event_vector_) {
       thermodynamic_averaging_.AddEnergy(energy_);
       Dump();
       // UpdateTemperature();

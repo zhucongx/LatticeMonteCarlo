@@ -1,3 +1,11 @@
+/**************************************************************************************************
+ * Copyright (c) 2023. All rights reserved.                                                       *
+ * @Author: Zhucong Xi                                                                            *
+ * @Date:                                                                                         *
+ * @Last Modified by: zhucongx                                                                    *
+ * @Last Modified time: 10/30/23 3:09 PM                                                          *
+ **************************************************************************************************/
+
 #include "SimulatedAnnealing.h"
 #include <utility>
 #include <chrono>
@@ -6,9 +14,9 @@ namespace ansys {
 
 static std::set<Element> GetElementSetFromSolventAndSolute(
     Element solvent_element, const std::map<Element, size_t> &solute_atom_count) {
-  std::set<Element> element_set;
+  std::set < Element > element_set;
   element_set.insert(solvent_element);
-  for (const auto &solute_element_count: solute_atom_count) {
+  for (const auto &solute_element_count : solute_atom_count) {
     element_set.insert(solute_element_count.first);
   }
   return element_set;
@@ -17,7 +25,7 @@ static std::vector<size_t> GetSoluteAtomIdVector(
     const cfg::Config &config,
     const std::map<Element, size_t> &solute_atom_count) {
   std::vector<size_t> solute_atom_id_vector;
-  for (const auto &atom: config.GetAtomVector()) {
+  for (const auto &atom : config.GetAtomVector()) {
     if (solute_atom_count.find(atom.GetElement()) != solute_atom_count.end()) {
       solute_atom_id_vector.push_back(atom.GetId());
     }

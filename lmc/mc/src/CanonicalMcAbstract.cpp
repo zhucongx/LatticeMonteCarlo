@@ -1,3 +1,11 @@
+/**************************************************************************************************
+ * Copyright (c) 2023. All rights reserved.                                                       *
+ * @Author: Zhucong Xi                                                                            *
+ * @Date:                                                                                         *
+ * @Last Modified by: zhucongx                                                                    *
+ * @Last Modified time: 9/26/23 8:10 PM                                                           *
+ **************************************************************************************************/
+
 #include "CanonicalMcAbstract.h"
 #include <utility>
 #include <chrono>
@@ -13,7 +21,7 @@ namespace mc {
 //   }
 //   return element_set;
 // }
-CanonicalMcAbstract::CanonicalMcAbstract(cfg::Config config,
+CanonicalMcAbstract::CanonicalMcAbstract(Config config,
                                          const unsigned long long int log_dump_steps,
                                          const unsigned long long int config_dump_steps,
                                          const unsigned long long int maximum_steps,

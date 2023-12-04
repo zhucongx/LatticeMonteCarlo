@@ -1,3 +1,11 @@
+/**************************************************************************************************
+ * Copyright (c) 2023-2023. All rights reserved.                                                  *
+ * @Author: Zhucong Xi                                                                            *
+ * @Date: 3/21/22 3:17 PM                                                                         *
+ * @Last Modified by: zhucongx                                                                    *
+ * @Last Modified time: 7/6/23 3:07 PM                                                            *
+ **************************************************************************************************/
+
 #include "Home.h"
 namespace api {
 void Print(const Parameter &parameter) {
@@ -112,7 +120,7 @@ void Run(const Parameter &parameter) {
 
 mc::KineticMcFirstMpi BuildKineticMcFirstMpiFromParameter(const Parameter &parameter) {
   std::set<Element> element_set;
-  for (const auto &element_string: parameter.element_set_) {
+  for (const auto &element_string : parameter.element_set_) {
     element_set.insert(Element(element_string));
   }
   cfg::Config config;
@@ -139,7 +147,7 @@ mc::KineticMcFirstMpi BuildKineticMcFirstMpiFromParameter(const Parameter &param
 }
 mc::KineticMcFirstOmp BuildKineticMcFirstOmpFromParameter(const Parameter &parameter) {
   std::set<Element> element_set;
-  for (const auto &element_string: parameter.element_set_) {
+  for (const auto &element_string : parameter.element_set_) {
     element_set.insert(Element(element_string));
   }
   cfg::Config config;
@@ -166,7 +174,7 @@ mc::KineticMcFirstOmp BuildKineticMcFirstOmpFromParameter(const Parameter &param
 }
 mc::KineticMcChainOmpi BuildKineticMcChainOmpiFromParameter(const Parameter &parameter) {
   std::set<Element> element_set;
-  for (const auto &element_string: parameter.element_set_) {
+  for (const auto &element_string : parameter.element_set_) {
     element_set.insert(Element(element_string));
   }
   cfg::Config config;
@@ -210,7 +218,7 @@ ansys::SimulatedAnnealing BuildSimulatedAnnealingFromParameter(const Parameter &
 }
 mc::CanonicalMcSerial BuildCanonicalMcSerialFromParameter(const Parameter &parameter) {
   std::set<Element> element_set;
-  for (const auto &element_string: parameter.element_set_) {
+  for (const auto &element_string : parameter.element_set_) {
     element_set.insert(Element(element_string));
   }
   cfg::Config config;
@@ -236,7 +244,7 @@ mc::CanonicalMcSerial BuildCanonicalMcSerialFromParameter(const Parameter &param
 }
 mc::CanonicalMcOmp BuildCanonicalMcOmpFromParameter(const Parameter &parameter) {
   std::set<Element> element_set;
-  for (const auto &element_string: parameter.element_set_) {
+  for (const auto &element_string : parameter.element_set_) {
     element_set.insert(Element(element_string));
   }
   cfg::Config config;
@@ -262,7 +270,7 @@ mc::CanonicalMcOmp BuildCanonicalMcOmpFromParameter(const Parameter &parameter) 
 }
 ansys::Traverse BuildIteratorFromParameter(const Parameter &parameter) {
   std::set<Element> element_set;
-  for (const auto &element_string: parameter.element_set_) {
+  for (const auto &element_string : parameter.element_set_) {
     element_set.insert(Element(element_string));
   }
 

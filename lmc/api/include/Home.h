@@ -1,5 +1,13 @@
-#ifndef LMC_LMC_API_INCLUDE_HOME_H_
-#define LMC_LMC_API_INCLUDE_HOME_H_
+/**************************************************************************************************
+ * Copyright (c) 2023-2023. All rights reserved.                                                  *
+ * @Author: Zhucong Xi                                                                            *
+ * @Date:                                                                                         *
+ * @Last Modified by: zhucongx                                                                    *
+ * @Last Modified time: 7/6/23 3:05 PM                                                            *
+ **************************************************************************************************/
+
+#ifndef LMC_API_INCLUDE_HOME_H_
+#define LMC_API_INCLUDE_HOME_H_
 #include "Parameter.h"
 #include "KineticMcFirstMpi.h"
 #include "KineticMcFirstOmp.h"
@@ -21,4 +29,4 @@ mc::CanonicalMcOmp BuildCanonicalMcOmpFromParameter(const Parameter &parameter);
 ansys::Traverse BuildIteratorFromParameter(const Parameter &parameter);
 } // api
 
-#endif //LMC_LMC_API_INCLUDE_HOME_H_
+#endif //LMC_API_INCLUDE_HOME_H_

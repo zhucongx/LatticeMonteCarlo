@@ -1,15 +1,22 @@
+/**************************************************************************************************
+ * Copyright (c) 2023-2023. All rights reserved.                                                  *
+ * @Author: Zhucong Xi                                                                            *
+ * @Date:                                                                                         *
+ * @Last Modified by: zhucongx                                                                    *
+ * @Last Modified time: 9/26/23 9:18 PM                                                           *
+ **************************************************************************************************/
+
 #include "McAbstract.h"
 #include <utility>
 #include <chrono>
 #include <mpi.h>
 #include "EnergyPredictor.h"
 
-namespace mc {
-McAbstract::McAbstract(cfg::Config config,
+McAbstract::McAbstract(Config config,
                        const unsigned long long int log_dump_steps,
                        const unsigned long long int config_dump_steps,
                        const unsigned long long int maximum_steps,
-                       const unsigned long long int thermodynamic_averaging_steps,
+    // const unsigned long long int thermodynamic_averaging_steps,
                        const unsigned long long int restart_steps,
                        const double restart_energy,
                        const double restart_time,
@@ -29,7 +36,7 @@ McAbstract::McAbstract(cfg::Config config,
       temperature_(temperature),
       beta_(1.0 / constants::kBoltzmann / temperature_),
       is_restarted_(steps_ > 0),
-      thermodynamic_averaging_(thermodynamic_averaging_steps),
+    // thermodynamic_averaging_(thermodynamic_averaging_steps),
       generator_(static_cast<unsigned long long int>(
                      std::chrono::system_clock::now().time_since_epoch().count())),
       unit_distribution_(0.0, 1.0),
@@ -44,4 +51,3 @@ McAbstract::~McAbstract() {
   MPI_Finalize();
 }
 
-} // mc
