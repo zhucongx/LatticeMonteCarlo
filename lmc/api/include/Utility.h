@@ -1,13 +1,5 @@
-/**************************************************************************************************
- * Copyright (c) 2023-2023. All rights reserved.                                                  *
- * @Author: Zhucong Xi                                                                            *
- * @Date:                                                                                         *
- * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 6/30/23 4:11 PM                                                           *
- **************************************************************************************************/
-
-#ifndef LMC_API_INCLUDE_UTILITY_H_
-#define LMC_API_INCLUDE_UTILITY_H_
+#ifndef LMC_LMC_API_INCLUDE_UTILITY_H_
+#define LMC_LMC_API_INCLUDE_UTILITY_H_
 #include <cstring>
 #include <numeric>
 #include <string>
@@ -29,4 +21,4 @@ inline std::vector<std::string> split(const std::string &s, const char *delim) {
 }
 } // api
 
-#endif //LMC_API_INCLUDE_UTILITY_H_
+#endif //LMC_LMC_API_INCLUDE_UTILITY_H_

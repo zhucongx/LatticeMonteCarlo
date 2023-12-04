@@ -1,11 +1,3 @@
-/**************************************************************************************************
- * Copyright (c) 2023. All rights reserved.                                                       *
- * @Author: Zhucong Xi                                                                            *
- * @Date:                                                                                         *
- * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 7/20/23 11:10 AM                                                          *
- **************************************************************************************************/
-
 #include "KineticMcAbstract.h"
 namespace mc {
 
@@ -37,7 +29,7 @@ KineticMcFirstAbstract::KineticMcFirstAbstract(cfg::Config config,
       vacancy_migration_predictor_lru_(json_coefficients_filename,
                                        config_,
                                        element_set,
-                                       100000),//todo test size
+                                       100000),
       time_temperature_interpolator_(time_temperature_filename),
       is_time_temperature_interpolator_(!time_temperature_filename.empty()),
       rate_corrector_(config_.GetVacancyConcentration(),
@@ -58,7 +50,7 @@ double KineticMcFirstAbstract::GetTimeCorrectionFactor() {
   }
   return 1.0;
 }
-void KineticMcFirstAbstract::Dump() const {
+void KineticMcFirstAbstract::Dump() const{
   if (is_restarted_) {
     is_restarted_ = false;
     return;
@@ -74,7 +66,7 @@ void KineticMcFirstAbstract::Dump() const {
   }
   if (steps_ % config_dump_steps_ == 0) {
     config_.WriteMap("map" + std::to_string(steps_) + ".txt");
-    config_.WriteConfig(std::to_string(steps_) + ".cfg", false);
+    config_.WriteConfig(std::to_string(steps_) + ".cfg");
   }
   unsigned long long int log_dump_steps;
   if (steps_ > 10 * log_dump_steps_) {

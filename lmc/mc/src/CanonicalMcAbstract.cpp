@@ -1,11 +1,3 @@
-/**************************************************************************************************
- * Copyright (c) 2023. All rights reserved.                                                       *
- * @Author: Zhucong Xi                                                                            *
- * @Date:                                                                                         *
- * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 9/26/23 8:10 PM                                                           *
- **************************************************************************************************/
-
 #include "CanonicalMcAbstract.h"
 #include <utility>
 #include <chrono>
@@ -21,7 +13,7 @@ namespace mc {
 //   }
 //   return element_set;
 // }
-CanonicalMcAbstract::CanonicalMcAbstract(Config config,
+CanonicalMcAbstract::CanonicalMcAbstract(cfg::Config config,
                                          const unsigned long long int log_dump_steps,
                                          const unsigned long long int config_dump_steps,
                                          const unsigned long long int maximum_steps,
@@ -82,10 +74,10 @@ void CanonicalMcAbstract::Dump() const {
   }
   if (steps_ % config_dump_steps_ == 0) {
     config_.WriteMap("map" + std::to_string(steps_) + ".txt");
-    config_.WriteConfig(std::to_string(steps_) + ".cfg", false);
+    config_.WriteConfig(std::to_string(steps_) + ".cfg");
   }
   if (steps_ == maximum_steps_) {
-    config_.WriteConfig("end.cfg", false);
+    config_.WriteConfig("end.cfg");
   }
   unsigned long long int log_dump_steps;
   if (steps_ > 10 * log_dump_steps_) {

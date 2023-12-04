@@ -1,11 +1,3 @@
-/**************************************************************************************************
- * Copyright (c) 2023. All rights reserved.                                                       *
- * @Author: Zhucong Xi                                                                            *
- * @Date:                                                                                         *
- * @Last Modified by: zhucongx                                                                    *
- * @Last Modified time: 10/30/23 3:09 PM                                                          *
- **************************************************************************************************/
-
 #include "KineticMcFirstMpi.h"
 #include <utility>
 #include <chrono>
@@ -68,7 +60,7 @@ void KineticMcFirstMpi::BuildEventList() {
                 MPI_BYTE,
                 MPI_COMM_WORLD);
   double cumulative_probability = 0.0;
-  for (auto &event_it : event_k_i_list_) {
+  for (auto &event_it: event_k_i_list_) {
     cumulative_probability += event_it.GetProbability();
     event_it.SetCumulativeProbability(cumulative_probability);
   }
