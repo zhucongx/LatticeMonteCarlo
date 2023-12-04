@@ -83,7 +83,7 @@ else ()
                   ~/.local/include/eigen3
                   ~/.local/include/
                   PATH_SUFFIXES eigen3 eigen
-                  )
+        )
     endif ()
     if (EIGEN3_INCLUDE_DIRS)
         _eigen3_check_version()
