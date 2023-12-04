@@ -68,21 +68,21 @@ else ()
     find_package(Eigen3 ${Eigen3_FIND_VERSION} NO_MODULE QUIET)
     if (NOT EIGEN3_INCLUDE_DIRS)
         find_path(EIGEN3_INCLUDE_DIRS NAMES signature_of_eigen3_matrix_library
-                  HINTS
-                  ENV EIGEN3_ROOT
-                  ENV EIGEN3_ROOT_DIR
-                  PATHS
-                  ${KDE4_INCLUDE_DIR}
-                  ${CMAKE_INSTALL_PREFIX}/include/eigen3
-                  ${CMAKE_INSTALL_PREFIX}/include
-                  /usr/local/include/eigen3
-                  /usr/local/include
-                  /usr/include/eigen3
-                  /usr/include
-                  /sw/pkgs/arc/eigen/eigen-3.4.0
-                  ~/.local/include/eigen3
-                  ~/.local/include/
-                  PATH_SUFFIXES eigen3 eigen
+                HINTS
+                ENV EIGEN3_ROOT
+                ENV EIGEN3_ROOT_DIR
+                PATHS
+                ${KDE4_INCLUDE_DIR}
+                ${CMAKE_INSTALL_PREFIX}/include/eigen3
+                ${CMAKE_INSTALL_PREFIX}/include
+                /usr/local/include/eigen3
+                /usr/local/include
+                /usr/include/eigen3
+                /usr/include
+                /sw/pkgs/arc/eigen/eigen-3.4.0
+                ~/.local/include/eigen3
+                ~/.local/include/
+                PATH_SUFFIXES eigen3 eigen
         )
     endif ()
     if (EIGEN3_INCLUDE_DIRS)
@@ -96,5 +96,5 @@ endif ()
 if (EIGEN3_FOUND AND NOT TARGET Eigen3::Eigen)
     add_library(Eigen3::Eigen INTERFACE IMPORTED)
     set_target_properties(Eigen3::Eigen PROPERTIES
-                          INTERFACE_INCLUDE_DIRECTORIES "${EIGEN3_INCLUDE_DIRS}")
+            INTERFACE_INCLUDE_DIRECTORIES "${EIGEN3_INCLUDE_DIRS}")
 endif ()
