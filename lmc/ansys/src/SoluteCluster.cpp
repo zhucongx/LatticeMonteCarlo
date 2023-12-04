@@ -1,4 +1,4 @@
-#include "Cluster.h"
+#include "SoluteCluster.h"
 
 #include <Eigen/Dense>
 #include <boost/filesystem.hpp>
@@ -14,8 +14,9 @@
 using json = nlohmann::json;
 namespace ansys {
 SoluteCluster::SoluteCluster(const cfg::Config &config, Element solvent_atom_type, std::set<Element> element_set,
-                 size_t smallest_cluster_criteria, size_t solvent_bond_criteria,
-                 const pred::EnergyPredictor &energy_estimator, const std::map<Element, double> &chemical_potential_map)
+                             size_t smallest_cluster_criteria, size_t solvent_bond_criteria,
+                             const pred::EnergyPredictor &energy_estimator,
+                             const std::map<Element, double> &chemical_potential_map)
     : config_(config), solvent_config_(config), solvent_element_(solvent_atom_type),
       element_set_(std::move(element_set)), smallest_cluster_criteria_(smallest_cluster_criteria),
       solvent_bond_criteria_(solvent_bond_criteria), energy_estimator_(energy_estimator),
@@ -218,8 +219,8 @@ std::vector<std::vector<size_t>> SoluteCluster::FindAtomListOfClusters() const
   return cluster_atom_list;
 }
 void SoluteCluster::AppendAtomAndLatticeVector(const std::vector<size_t> &cluster_atom_id_list,
-                                         std::vector<cfg::Atom> &atom_vector,
-                                         std::vector<cfg::Lattice> &lattice_vector) const
+                                               std::vector<cfg::Atom> &atom_vector,
+                                               std::vector<cfg::Lattice> &lattice_vector) const
 {
   for (size_t atom_id : cluster_atom_id_list) {
     atom_vector.emplace_back(atom_vector.size(), config_.GetAtomVector()[atom_id].GetElement());
@@ -253,6 +254,7 @@ double SoluteCluster::GetMass(const std::vector<size_t> &cluster_atom_id_list) c
 }
 double SoluteCluster::GetFormationEnergy(const std::vector<size_t> &cluster_atom_id_list) const
 {
+  return 0;
   cfg::Config solute_config(solvent_config_);
   double energy_change_solution_to_pure_solvent = 0;
   for (size_t atom_id : cluster_atom_id_list) {
@@ -263,7 +265,7 @@ double SoluteCluster::GetFormationEnergy(const std::vector<size_t> &cluster_atom
   double energy_change_cluster_to_pure_solvent =
       energy_estimator_.GetEnergyOfCluster(solute_config, cluster_atom_id_list) -
       energy_estimator_.GetEnergyOfCluster(solvent_config_, cluster_atom_id_list);
-  return (energy_change_cluster_to_pure_solvent - energy_change_solution_to_pure_solvent);
+  return energy_change_cluster_to_pure_solvent - energy_change_solution_to_pure_solvent;
 }
 Vector_t SoluteCluster::GetGeometryCenter(const std::vector<size_t> &cluster_atom_id_list) const
 {
@@ -314,9 +316,9 @@ Vector_t SoluteCluster::GetMassCenter(const std::vector<size_t> &cluster_atom_id
   ;    // Cartesian position
 }
 Matrix_t SoluteCluster::GetMassGyrationTensor(const std::vector<size_t> &cluster_atom_id_list,
-                                        const Vector_t &mass_center) const
+                                              const Vector_t &mass_center) const
 {
-  auto relative_mass_center = mass_center * InverseMatrix(config_.GetBasis());
+  const auto relative_mass_center = mass_center * InverseMatrix(config_.GetBasis());
   Matrix_t gyration_tensor{};
   double sum_mass = 0;
   for (size_t atom_id : cluster_atom_id_list) {
@@ -342,7 +344,7 @@ Matrix_t SoluteCluster::GetMassGyrationTensor(const std::vector<size_t> &cluster
           gyration_tensor[2] * config_.GetBasis() * config_.GetBasis()};
 }
 Matrix_t SoluteCluster::GetMassInertiaTensor(const std::vector<size_t> &cluster_atom_id_list,
-                                       const Vector_t &mass_center) const
+                                             const Vector_t &mass_center) const
 {
   auto relative_mass_center = mass_center * InverseMatrix(config_.GetBasis());
   Matrix_t inertia_tensor{};

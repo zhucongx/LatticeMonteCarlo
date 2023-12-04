@@ -1,6 +1,7 @@
 #include "Config.h"
 
 #include <algorithm>
+#include <any>
 #include <boost/filesystem.hpp>
 #include <boost/functional/hash.hpp>
 #include <boost/iostreams/filter/bzip2.hpp>
@@ -285,6 +286,29 @@ double Config::GetSoluteConcentration(Element solvent_element) const
   return static_cast<double>(solute_count) / static_cast<double>(GetNumAtoms());
 }
 
+std::map<Element, size_t> Config::GetLocalInfoOfLatticeId(size_t lattice_id, size_t shell_number) const
+{
+  std::map<Element, size_t> element_count_map;
+  const std::vector<size_t> *neighbor_list = nullptr;
+  switch (shell_number) {
+    case 1:
+      neighbor_list = &first_neighbors_adjacency_list_.at(lattice_id);
+      break;
+    case 2:
+      neighbor_list = &second_neighbors_adjacency_list_.at(lattice_id);
+      break;
+    case 3:
+      neighbor_list = &third_neighbors_adjacency_list_.at(lattice_id);
+      break;
+    default:
+      throw std::invalid_argument("Unknown shell number: " + std::to_string(shell_number));
+  }
+
+  for (const auto neighbor_lattice_id : *neighbor_list) {
+    element_count_map[GetElementAtLatticeId(neighbor_lattice_id)]++;
+  }
+  return element_count_map;
+}
 void Config::AtomJump(const std::pair<size_t, size_t> &atom_id_jump_pair)
 {
   const auto [atom_id_lhs, atom_id_rhs] = atom_id_jump_pair;

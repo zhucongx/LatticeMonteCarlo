@@ -1,7 +1,7 @@
 #ifndef LMC_LMC_ANSYS_INCLUDE_TRAVERSE_H_
 #define LMC_LMC_ANSYS_INCLUDE_TRAVERSE_H_
 #include "EnergyPredictor.h"
-#include "Cluster.h"
+#include "SoluteCluster.h"
 #include "ShortRangeOrder.h"
 namespace ansys {
 
