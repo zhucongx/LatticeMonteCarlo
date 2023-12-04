@@ -9,9 +9,9 @@
 #include <nlohmann/json.hpp>
 
 namespace ansys {
-class Cluster {
+class SoluteCluster {
  public:
-  Cluster(const cfg::Config &config, Element solvent_atom_type, std::set<Element> element_set,
+  SoluteCluster(const cfg::Config &config, Element solvent_atom_type, std::set<Element> element_set,
           size_t smallest_cluster_criteria, size_t solvent_bond_criteria, const pred::EnergyPredictor &energy_estimator,
           const std::map<Element, double> &chemical_potential_map);
 

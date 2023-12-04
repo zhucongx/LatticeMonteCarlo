@@ -108,7 +108,7 @@ void Traverse::RunAnsys() const {
     ansys_info["energy"] = filename_energy_hashset_.at(i);
     // cluster information
     ansys_info["clusters"] =
-        Cluster(config,
+        SoluteCluster(config,
                 solvent_element_,
                 element_set_,
                 smallest_cluster_criteria_,
