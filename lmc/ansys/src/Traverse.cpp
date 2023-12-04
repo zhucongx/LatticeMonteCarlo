@@ -1,10 +1,12 @@
 #include "Traverse.h"
 
 #include <algorithm>
+#include <boost/iostreams/filter/bzip2.hpp>
+#include <boost/iostreams/filter/gzip.hpp>
+#include <boost/iostreams/filtering_stream.hpp>
 #include <iostream>
 #include <nlohmann/json.hpp>
 #include <omp.h>
-#include <utility>
 using json = nlohmann::json;
 
 namespace ansys {
@@ -94,7 +96,7 @@ void Traverse::RunAnsys() const
     // cluster information
     ansys_info["clusters"] = SoluteCluster(config, solvent_element_, element_set_, smallest_cluster_criteria_,
                                            solvent_bond_criteria_, energy_estimator_, chemical_potential)
-                                 .GetClustersInfoAndOutput("cluster", std::to_string(i) + "_cluster.cfg");
+                                 .GetClustersInfoAndOutput("cluster", std::to_string(i) + "_cluster.cfg.gz");
     // sro information
     ShortRangeOrder short_range_order(config, element_set_);
     ansys_info["warren_cowley"]["first"] = short_range_order.FindWarrenCowley(1);
@@ -105,9 +107,7 @@ void Traverse::RunAnsys() const
 
     static auto convert = [](const std::map<Element, size_t> &element_map) -> std::map<std::string, size_t> {
       std::map<std::string, size_t> string_map;
-      for (const auto &[element, value] : element_map) {
-        string_map[element.GetString()] = value;
-      }
+      for (const auto &[element, value] : element_map) { string_map[element.GetString()] = value; }
       return string_map;
     };
     ansys_info["vacancy_local"]["first"] = convert(config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 1));
@@ -119,9 +119,11 @@ void Traverse::RunAnsys() const
       ansys_info_array.push_back(ansys_info);
     }
     if (omp_get_thread_num() == 0 && omp_get_num_threads() == 1) {
-      std::ofstream ofs("ansys_info.json", std::ofstream::out);
-      ofs.precision(16);
-      ofs << ansys_info_array.dump(2) << std::endl;
+      std::ofstream ofs("ansys_info.json.gz", std::ios_base::out | std::ios_base::binary);
+      boost::iostreams::filtering_ostream fos;
+      fos.push(boost::iostreams::gzip_compressor());
+      fos.precision(16);
+      fos << ansys_info_array.dump(2) << std::endl;
     }
   }
   std::cout << "Finished. Sorting..." << std::endl;
