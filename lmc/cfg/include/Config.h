@@ -3,11 +3,11 @@
 
 #include "Atom.hpp"
 #include "Lattice.hpp"
-#include <variant>
 #include <map>
 #include <set>
 #include <unordered_map>
 #include <unordered_set>
+#include <variant>
 #include <vector>
 
 namespace cfg {
@@ -74,6 +74,7 @@ class Config {
   [[nodiscard]] double GetSoluteConcentration(Element solvent_element) const;
 
   [[nodiscard]] std::map<Element, size_t> GetLocalInfoOfLatticeId(size_t lattice_id, size_t shell_number) const;
+
   /// Modify config
   void AtomJump(const std::pair<size_t, size_t> &atom_id_jump_pair);
 

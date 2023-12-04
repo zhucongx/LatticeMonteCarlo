@@ -89,7 +89,7 @@ std::vector<size_t> Config::GetFirstNeighborsAtomIdVectorOfAtom(size_t atom_id) 
 
 std::vector<size_t> Config::GetSecondNeighborsAtomIdVectorOfAtom(size_t atom_id) const
 {
-  auto lattice_id = atom_to_lattice_hashmap_.at(atom_id);
+  const auto lattice_id = atom_to_lattice_hashmap_.at(atom_id);
   std::vector<size_t> second_neighbors_atom_id_vector;
   second_neighbors_atom_id_vector.reserve(constants::kNumSecondNearestNeighbors);
   for (auto neighbor_lattice_id : second_neighbors_adjacency_list_[lattice_id]) {
@@ -100,7 +100,7 @@ std::vector<size_t> Config::GetSecondNeighborsAtomIdVectorOfAtom(size_t atom_id)
 
 std::vector<size_t> Config::GetThirdNeighborsAtomIdVectorOfAtom(size_t atom_id) const
 {
-  auto lattice_id = atom_to_lattice_hashmap_.at(atom_id);
+  const auto lattice_id = atom_to_lattice_hashmap_.at(atom_id);
   std::vector<size_t> third_neighbors_atom_id_vector;
   third_neighbors_atom_id_vector.reserve(constants::kNumThirdNearestNeighbors);
   for (auto neighbor_lattice_id : third_neighbors_adjacency_list_[lattice_id]) {
@@ -229,8 +229,8 @@ std::unordered_set<size_t> Config::GetNeighborsLatticeIdSetOfSite(size_t lattice
   return near_neighbors_hashset;
 }
 
-std::unordered_set<size_t>
-Config::GetNeighborsLatticeIdSetOfPair(const std::pair<size_t, size_t> &lattice_id_pair) const
+std::unordered_set<size_t> Config::GetNeighborsLatticeIdSetOfPair(
+  const std::pair<size_t, size_t> &lattice_id_pair) const
 {
   std::unordered_set<size_t> near_neighbors_hashset;
   for (const auto lattice_id : {lattice_id_pair.first, lattice_id_pair.second}) {
@@ -289,6 +289,7 @@ double Config::GetSoluteConcentration(Element solvent_element) const
 std::map<Element, size_t> Config::GetLocalInfoOfLatticeId(size_t lattice_id, size_t shell_number) const
 {
   std::map<Element, size_t> element_count_map;
+  for (const auto &element : GetElementSetWithoutVacancy()) { element_count_map.emplace(element, 0); }
   const std::vector<size_t> *neighbor_list = nullptr;
   switch (shell_number) {
     case 1:

@@ -105,34 +105,32 @@ void Traverse::RunAnsys() const
     // vacancy information
     auto vacancy_lattice_id = config.GetVacancyLatticeId();
 
-    static auto convert = [](const std::map<Element, size_t> &element_map) -> std::map<std::string, size_t> {
+    static auto convert = [](const std::set<Element> &element_set_base,
+                             const std::map<Element, size_t> &element_map) -> std::map<std::string, size_t> {
       std::map<std::string, size_t> string_map;
+      for (const auto &element : element_set_base) { string_map[element.GetString()] = 0; }
       for (const auto &[element, value] : element_map) { string_map[element.GetString()] = value; }
       return string_map;
     };
-    ansys_info["vacancy_local"]["first"] = convert(config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 1));
-    ansys_info["vacancy_local"]["second"] = convert(config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 2));
-    ansys_info["vacancy_local"]["third"] = convert(config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 3));
+    ansys_info["vac_local"]["first"] = convert(element_set_, config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 1));
+    ansys_info["vac_local"]["second"] = convert(element_set_, config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 2));
+    ansys_info["vac_local"]["third"] = convert(element_set_, config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 3));
 
 #pragma omp critical
     {
       ansys_info_array.push_back(ansys_info);
-    }
-    if (omp_get_thread_num() == 0 && omp_get_num_threads() == 1) {
-      std::ofstream ofs("ansys_info.json.gz", std::ios_base::out | std::ios_base::binary);
-      boost::iostreams::filtering_ostream fos;
-      fos.push(boost::iostreams::gzip_compressor());
-      fos.precision(16);
-      fos << ansys_info_array.dump(2) << std::endl;
     }
   }
   std::cout << "Finished. Sorting..." << std::endl;
   std::sort(ansys_info_array.begin(), ansys_info_array.end(), [](const json &lhs, const json &rhs) {
     return lhs["index"] < rhs["index"];
   });
-  std::ofstream ofs("ansys_info.json", std::ofstream::out);
-  ofs.precision(16);
-  ofs << ansys_info_array.dump(2) << std::endl;
+      std::ofstream ofs("ansys_info.json.gz", std::ios_base::out | std::ios_base::binary);
+  boost::iostreams::filtering_ostream fos;
+  fos.push(boost::iostreams::gzip_compressor());
+  fos.push(ofs);
+  fos.precision(16);
+  fos << ansys_info_array.dump(2) << std::endl;
   std::cout << "Done..." << std::endl;
 }
 void Traverse::RunReformat() const
