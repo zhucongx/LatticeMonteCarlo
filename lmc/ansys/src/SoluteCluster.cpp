@@ -56,9 +56,9 @@ json SoluteCluster::GetClustersInfoAndOutput(const std::string &output_folder, c
     const double mass = GetMass(cluster_atom_id_list);
     cluster_info["mass"] = mass;
 
-    // const auto energy = GetFormationEnergy(cluster_atom_id_list) / static_cast<double>(size_without_vacancy);
-    // cluster_info["energy"] = energy;
-    // AppendInfoToAuxiliaryListsRepeat("cluster_energy", energy, size);
+    const auto energy = GetFormationEnergy(cluster_atom_id_list) / static_cast<double>(size_without_vacancy);
+    cluster_info["energy"] = energy;
+    AppendInfoToAuxiliaryListsRepeat("cluster_energy", energy, size);
 
     const auto geometry_center = GetGeometryCenter(cluster_atom_id_list);
     cluster_info["geometry_center"] = geometry_center;
@@ -96,21 +96,21 @@ json SoluteCluster::GetClustersInfoAndOutput(const std::string &output_folder, c
     AppendInfoToAuxiliaryListsRepeat("cluster_anisotropy", anisotropy, size);
 
     cluster_info["mass_inertia_tensor"] = GetMassInertiaTensor(cluster_atom_id_list, mass_center);
-    // const auto first_pij = short_range_order.FindProbabilityCluster(1, cluster_atom_id_list);
-    // cluster_info["pij"]["first"] = first_pij;
-    // for (const auto &pair : first_pij) {
-    //   AppendInfoToAuxiliaryListsRepeat("first_" + pair.first, static_cast<double>(pair.second), size);
-    // }
-    // const auto second_pij = short_range_order.FindProbabilityCluster(2, cluster_atom_id_list);
-    // cluster_info["pij"]["second"] = second_pij;
-    // for (const auto &pair : second_pij) {
-    //   AppendInfoToAuxiliaryListsRepeat("second_" + pair.first, static_cast<double>(pair.second), size);
-    // }
-    // const auto third_pij = short_range_order.FindProbabilityCluster(3, cluster_atom_id_list);
-    // cluster_info["pij"]["third"] = third_pij;
-    // for (const auto &pair : third_pij) {
-    //   AppendInfoToAuxiliaryListsRepeat("third_" + pair.first, static_cast<double>(pair.second), size);
-    // }
+    const auto first_pij = short_range_order.FindProbabilityCluster(1, cluster_atom_id_list);
+    cluster_info["pij"]["first"] = first_pij;
+    for (const auto &pair : first_pij) {
+      AppendInfoToAuxiliaryListsRepeat("first_" + pair.first, static_cast<double>(pair.second), size);
+    }
+    const auto second_pij = short_range_order.FindProbabilityCluster(2, cluster_atom_id_list);
+    cluster_info["pij"]["second"] = second_pij;
+    for (const auto &pair : second_pij) {
+      AppendInfoToAuxiliaryListsRepeat("second_" + pair.first, static_cast<double>(pair.second), size);
+    }
+    const auto third_pij = short_range_order.FindProbabilityCluster(3, cluster_atom_id_list);
+    cluster_info["pij"]["third"] = third_pij;
+    for (const auto &pair : third_pij) {
+      AppendInfoToAuxiliaryListsRepeat("third_" + pair.first, static_cast<double>(pair.second), size);
+    }
 
     clusters_info_array.push_back(cluster_info);
   }

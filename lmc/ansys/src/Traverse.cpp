@@ -95,11 +95,11 @@ void Traverse::RunAnsys() const
     ansys_info["clusters"] = SoluteCluster(config, solvent_element_, element_set_, smallest_cluster_criteria_,
                                            solvent_bond_criteria_, energy_estimator_, chemical_potential)
                                  .GetClustersInfoAndOutput("cluster", std::to_string(i) + "_cluster.cfg");
-    // // sro information
-    // ShortRangeOrder short_range_order(config, element_set_);
-    // ansys_info["warren_cowley"]["first"] = short_range_order.FindWarrenCowley(1);
-    // ansys_info["warren_cowley"]["second"] = short_range_order.FindWarrenCowley(2);
-    // ansys_info["warren_cowley"]["third"] = short_range_order.FindWarrenCowley(3);
+    // sro information
+    ShortRangeOrder short_range_order(config, element_set_);
+    ansys_info["warren_cowley"]["first"] = short_range_order.FindWarrenCowley(1);
+    ansys_info["warren_cowley"]["second"] = short_range_order.FindWarrenCowley(2);
+    ansys_info["warren_cowley"]["third"] = short_range_order.FindWarrenCowley(3);
     // vacancy information
     auto vacancy_lattice_id = config.GetVacancyLatticeId();
 
