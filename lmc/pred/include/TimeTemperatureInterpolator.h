@@ -1,27 +1,27 @@
 #ifndef LMC_LMC_PRED_INCLUDE_TIMETEMPERATUREINTERPOLATOR_H_
 #define LMC_LMC_PRED_INCLUDE_TIMETEMPERATUREINTERPOLATOR_H_
+#include <iostream>
 #include <utility>
 #include <vector>
-#include <iostream>
 namespace pred {
 
 class TimeTemperatureInterpolator {
-  public:
-    explicit TimeTemperatureInterpolator(const std::string &time_temperature_filename);
+ public:
+  explicit TimeTemperatureInterpolator(const std::string &time_temperature_filename);
 
-    explicit TimeTemperatureInterpolator(const std::vector<std::pair<double, double>> &points);
+  explicit TimeTemperatureInterpolator(const std::vector<std::pair<double, double>> &points);
 
-    //Computes the corresponding Y value for X using linear interpolation
-    [[nodiscard]] double GetTemperature(double time) const;
+  //Computes the corresponding Y value for X using linear interpolation
+  [[nodiscard]] double GetTemperature(double time) const;
 
-  private:
-    void SortPoints();
-    //Our container of (x,y) data points
-    //std::pair::<double, double>.first = x value
-    //std::pair::<double, double>.second = y value
-    std::vector<std::pair<double, double> > points_{};
+ private:
+  void SortPoints();
+  //Our container of (x,y) data points
+  //std::pair::<double, double>.first = x value
+  //std::pair::<double, double>.second = y value
+  std::vector<std::pair<double, double>> points_{};
 };
 
-} // pred
+}    // namespace pred
 
-#endif //LMC_LMC_PRED_INCLUDE_TIMETEMPERATUREINTERPOLATOR_H_
+#endif    //LMC_LMC_PRED_INCLUDE_TIMETEMPERATUREINTERPOLATOR_H_
