@@ -422,7 +422,7 @@ void Config::ReassignLatticeVector()
 Config Config::ReadConfig(const std::string &filename)
 {
   std::ifstream ifs(filename, std::ios_base::in | std::ios_base::binary);
-  if (!ifs) { throw std::runtime_error("Could not open file: " + filename); }
+  if (!ifs) { throw std::runtime_error("Cannot open " + filename); }
   boost::iostreams::filtering_istream fis;
   if (boost::filesystem::path(filename).extension() == ".gz") {
     fis.push(boost::iostreams::gzip_decompressor());
