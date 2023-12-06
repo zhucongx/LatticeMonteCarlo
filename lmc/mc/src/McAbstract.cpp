@@ -1,8 +1,8 @@
 #include "McAbstract.h"
-#include <utility>
+#include "EnergyPredictor.h"
 #include <chrono>
 #include <mpi.h>
-#include "EnergyPredictor.h"
+#include <utility>
 
 namespace mc {
 McAbstract::McAbstract(cfg::Config config,
@@ -23,25 +23,25 @@ McAbstract::McAbstract(cfg::Config config,
       maximum_steps_(maximum_steps),
       steps_(restart_steps),
       energy_(restart_energy),
-      absolute_energy_(pred::EnergyPredictor(
-          json_coefficients_filename, element_set).GetEnergy(config_)),
+      absolute_energy_(pred::EnergyPredictor(json_coefficients_filename, element_set).GetEnergy(config_)),
       time_(restart_time),
       temperature_(temperature),
       beta_(1.0 / constants::kBoltzmann / temperature_),
       is_restarted_(steps_ > 0),
       thermodynamic_averaging_(thermodynamic_averaging_steps),
-      generator_(static_cast<unsigned long long int>(
-                     std::chrono::system_clock::now().time_since_epoch().count())),
+      generator_(static_cast<unsigned long long int>(std::chrono::system_clock::now().time_since_epoch().count())),
       unit_distribution_(0.0, 1.0),
-      ofs_(log_filename, is_restarted_ ? std::ofstream::app : std::ofstream::out) {
+      ofs_(log_filename, is_restarted_ ? std::ofstream::app : std::ofstream::out)
+{
   ofs_.precision(16);
 
   MPI_Init(nullptr, nullptr);
   MPI_Comm_rank(MPI_COMM_WORLD, &world_rank_);
   MPI_Comm_size(MPI_COMM_WORLD, &world_size_);
 }
-McAbstract::~McAbstract() {
+McAbstract::~McAbstract()
+{
   MPI_Finalize();
 }
 
-} // mc
+}    // namespace mc

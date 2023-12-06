@@ -67,6 +67,7 @@ void KineticMcFirstAbstract::Dump() const{
   if (steps_ % config_dump_steps_ == 0) {
     config_.WriteMap("map" + std::to_string(steps_) + ".txt");
     config_.WriteConfig(std::to_string(steps_) + ".cfg");
+    ofs_.flush();
   }
   unsigned long long int log_dump_steps;
   if (steps_ > 10 * log_dump_steps_) {
@@ -85,7 +86,7 @@ void KineticMcFirstAbstract::Dump() const{
          << event_k_i_.GetForwardBarrier() << '\t'
          << event_k_i_.GetEnergyChange() << '\t'
          << config_.GetElementAtLatticeId(event_k_i_.GetIdJumpPair().first).GetString()
-         << std::endl;
+         << '\n';
   }
 }
 size_t KineticMcFirstAbstract::SelectEvent() const {
