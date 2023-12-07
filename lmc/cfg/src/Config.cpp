@@ -184,7 +184,7 @@ Matrix_t Config::GetLatticePairRotationMatrix(const std::pair<size_t, size_t> &l
   for (const auto index : GetFirstNeighborsAdjacencyList().at(lattice_id_jump_pair.first)) {
     const Vector_t jump_vector = GetRelativeDistanceVectorLattice(first_lattice, GetLatticeVector()[index]);
     const double dot_prod = Dot(pair_direction, jump_vector);
-    if (std::abs(dot_prod) < 1e-6) {
+    if (std::abs(dot_prod) < kEpsilon) {
       vertical_vector = Normalize(jump_vector);
       break;
     }
@@ -720,9 +720,9 @@ void Config::WriteLattice(const std::string &filename) const
   for (size_t i = 0; i < lattice_vector_.size(); ++i) {
     ofs << lattice_vector_[i].GetRelativePosition();
     ofs << " # ";
-    for (auto neighbor_lattice_index : first_neighbors_adjacency_list_[i]) { ofs << neighbor_lattice_index << ' '; }
-    for (auto neighbor_lattice_index : second_neighbors_adjacency_list_[i]) { ofs << neighbor_lattice_index << ' '; }
-    for (auto neighbor_lattice_index : third_neighbors_adjacency_list_[i]) { ofs << neighbor_lattice_index << ' '; }
+    for (const auto neighbor_lattice_index : first_neighbors_adjacency_list_[i]) { ofs << neighbor_lattice_index << ' '; }
+    for (const auto neighbor_lattice_index : second_neighbors_adjacency_list_[i]) { ofs << neighbor_lattice_index << ' '; }
+    for (const auto neighbor_lattice_index : third_neighbors_adjacency_list_[i]) { ofs << neighbor_lattice_index << ' '; }
     ofs << std::endl;
   }
 }
@@ -841,6 +841,15 @@ void Config::UpdateNeighbors()
         }
       }
     }
+  }
+
+  for (size_t lattice_id = 0; lattice_id < GetNumAtoms(); ++lattice_id) {
+    std::sort(first_neighbors_adjacency_list_.at(lattice_id).begin(),
+              first_neighbors_adjacency_list_.at(lattice_id).end());
+    std::sort(second_neighbors_adjacency_list_.at(lattice_id).begin(),
+              second_neighbors_adjacency_list_.at(lattice_id).end());
+    std::sort(third_neighbors_adjacency_list_.at(lattice_id).begin(),
+              third_neighbors_adjacency_list_.at(lattice_id).end());
   }
 }
 

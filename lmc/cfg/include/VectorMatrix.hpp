@@ -40,7 +40,7 @@ inline std::istream &operator>>(std::istream &is, Vector_t &vector)
   return is;
 }
 
-constexpr double kEpsilon = 1e-8;
+constexpr double kEpsilon = 1e-6;
 
 inline bool operator==(const Vector_t &lhs, const Vector_t &rhs)
 {
