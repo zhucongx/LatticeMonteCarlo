@@ -11,7 +11,7 @@ VacancyMigrationPredictorQuarticLru::~VacancyMigrationPredictorQuarticLru() = de
 std::pair<double, double> VacancyMigrationPredictorQuarticLru::GetBarrierAndDiffFromLatticeIdPair(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
-  auto key = GetHashFromConfigAndLatticeIdPair(config, lattice_id_jump_pair);
+  const auto key = GetHashFromConfigAndLatticeIdPair(config, lattice_id_jump_pair);
   std::pair<double, double> value;
   if (lru_cache_.Get(key, value)) {
     return value;

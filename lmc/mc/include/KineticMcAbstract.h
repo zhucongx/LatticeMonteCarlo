@@ -48,6 +48,7 @@ class KineticMcFirstAbstract : public McAbstract {
     const pred::RateCorrector rate_corrector_;
     const bool is_rate_corrector_;
     size_t vacancy_lattice_id_;
+    Vector_t unwrapped_vacancy_cartesian_coordinate_;
     std::array<JumpEvent, kEventListSize> event_k_i_list_{};
     JumpEvent event_k_i_{};
     double total_rate_k_{0.0}; // k would be same for all

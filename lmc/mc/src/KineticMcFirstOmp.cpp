@@ -47,7 +47,7 @@ void KineticMcFirstOmp::BuildEventList() {
   total_rate_k_ = 0.0;
   const auto neighbor_vacancy_id_vector =
       config_.GetFirstNeighborsAdjacencyList()[vacancy_lattice_id_];
-#pragma omp parallel  default(none) shared(vacancy_lattice_id_, neighbor_vacancy_id_vector) reduction(+: total_rate_k_)
+#pragma omp parallel default(none) shared(vacancy_lattice_id_, neighbor_vacancy_id_vector) reduction(+: total_rate_k_)
   {
 #pragma omp for
     for (size_t i = 0; i < kEventListSize; ++i) {

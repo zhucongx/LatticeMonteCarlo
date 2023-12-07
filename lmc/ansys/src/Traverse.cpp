@@ -139,7 +139,7 @@ void Traverse::RunReformat() const
     std::cout << i << " / " << final_number_ << std::endl;
     if (config_type_ == "map") {
       auto config = cfg::Config::ReadMap("lattice.txt", "element.txt", "map" + std::to_string(i) + ".txt");
-      config.WriteConfig(std::to_string(i) + ".cfg");
+      config.WriteConfig(std::to_string(i) + ".cfg.gz");
     } else if (config_type_ == "config") {
       auto config = cfg::Config::ReadConfig(std::to_string(i) + ".cfg");
       config.ReassignLatticeVector();
