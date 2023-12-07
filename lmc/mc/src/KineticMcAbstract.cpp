@@ -25,7 +25,7 @@ KineticMcFirstAbstract::KineticMcFirstAbstract(cfg::Config config,
                  temperature,
                  element_set,
                  json_coefficients_filename,
-                 "kmc_log.txt"),
+                 "kmc_log.bin"),
       vacancy_migration_predictor_lru_(json_coefficients_filename, config_, element_set, 100000),
       time_temperature_interpolator_(time_temperature_filename),
       is_time_temperature_interpolator_(!time_temperature_filename.empty()),
@@ -58,10 +58,9 @@ void KineticMcFirstAbstract::Dump() const
   if (steps_ == 0) {
     config_.WriteLattice("lattice.txt");
     config_.WriteElement("element.txt");
-    ofs_ << "steps\ttime\ttemperature\tenergy\taverage_energy\tabsolute_energy\tEa\tdE\ttype" << std::endl;
   }
   if (steps_ % config_dump_steps_ == 0) {
-    // config_.WriteMap("map" + std::to_string(steps_) + ".txt");
+    // config_.WriteMap("map" + std::to_string(step_) + ".txt");
     config_.WriteConfig(std::to_string(steps_) + ".cfg.gz");
     ofs_.flush();
   }
@@ -75,10 +74,45 @@ void KineticMcFirstAbstract::Dump() const
     log_dump_steps = std::min(log_dump_steps, log_dump_steps_);
   }
   if (steps_ % log_dump_steps == 0) {
-    ofs_ << steps_ << '\t' << time_ << '\t' << temperature_ << '\t' << energy_ << '\t'
-         << thermodynamic_averaging_.GetThermodynamicAverage(beta_) << '\t' << absolute_energy_ << '\t'
-         << event_k_i_.GetForwardBarrier() << '\t' << event_k_i_.GetEnergyChange() << '\t'
-         << config_.GetElementAtLatticeId(event_k_i_.GetIdJumpPair().first).GetString() << '\n';
+    // unsigned long long step
+    ofs_.write(reinterpret_cast<const char *>(&steps_), sizeof(steps_));
+    // double time
+    ofs_.write(reinterpret_cast<const char *>(&time_), sizeof(time_));
+    // double temperature
+    ofs_.write(reinterpret_cast<const char *>(&temperature_), sizeof(temperature_));
+    // double energy
+    ofs_.write(reinterpret_cast<const char *>(&energy_), sizeof(energy_));
+
+    // double Ea
+    const double Ea = event_k_i_.GetForwardBarrier();
+    ofs_.write(reinterpret_cast<const char *>(&Ea), sizeof(Ea));
+    // double dE
+    const double dE = event_k_i_.GetEnergyChange();
+    ofs_.write(reinterpret_cast<const char *>(&dE), sizeof(dE));
+
+    // size_t selected_index
+    const size_t selected_id = config_.GetAtomIdFromLatticeId(event_k_i_.GetIdJumpPair().second);
+    ofs_.write(reinterpret_cast<const char *>(&selected_id), sizeof(selected_id));
+
+    // unwraped vacancy position
+    ofs_.write(reinterpret_cast<const char *>(&unwrapped_vacancy_cartesian_coordinate_),
+               sizeof(unwrapped_vacancy_cartesian_coordinate_));
+
+    // // int id
+    // for (const auto &event_k_i: event_k_i_list_) {
+    //   const size_t atom_id = config_.GetAtomIdFromLatticeId(event_k_i.GetIdJumpPair().second);
+    //   ofs_.write(reinterpret_cast<const char *>(&atom_id), sizeof(atom_id));
+    // }
+    // // double Ea
+    // for (const auto &event_k_i: event_k_i_list_) {
+    //   const double dE = event_k_i.GetEnergyChange();
+    //   ofs_.write(reinterpret_cast<const char *>(&dE), sizeof(dE));
+    // }
+    // // double dE
+    // for (const auto &event_k_i: event_k_i_list_) {
+    //   const double dE = event_k_i.GetEnergyChange();
+    //   ofs_.write(reinterpret_cast<const char *>(&dE), sizeof(dE));
+    // }
   }
 }
 size_t KineticMcFirstAbstract::SelectEvent() const
@@ -102,10 +136,12 @@ void KineticMcFirstAbstract::OneStepSimulation()
 {
   UpdateTemperature();
   thermodynamic_averaging_.AddEnergy(energy_);
-  Dump();
   BuildEventList();
-  time_ += (CalculateTime() * GetTimeCorrectionFactor());
   event_k_i_ = event_k_i_list_[SelectEvent()];
+  Dump();
+
+  // modify
+  time_ += (CalculateTime() * GetTimeCorrectionFactor());
   energy_ += event_k_i_.GetEnergyChange();
   absolute_energy_ += event_k_i_.GetEnergyChange();
 
@@ -166,4 +202,3 @@ KineticMcChainAbstract::~KineticMcChainAbstract()
 }
 
 }    // namespace mc
-     // mc
