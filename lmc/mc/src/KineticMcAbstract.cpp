@@ -25,7 +25,7 @@ KineticMcFirstAbstract::KineticMcFirstAbstract(cfg::Config config,
                  temperature,
                  element_set,
                  json_coefficients_filename,
-                 "kmc_log.bin"),
+                 "kmc_log.txt"),
       vacancy_migration_predictor_lru_(json_coefficients_filename, config_, element_set, 100000),
       time_temperature_interpolator_(time_temperature_filename),
       is_time_temperature_interpolator_(!time_temperature_filename.empty()),
@@ -45,7 +45,9 @@ void KineticMcFirstAbstract::UpdateTemperature()
 }
 double KineticMcFirstAbstract::GetTimeCorrectionFactor()
 {
-  if (is_rate_corrector_) { return rate_corrector_.GetTimeCorrectionFactor(temperature_); }
+  if (is_rate_corrector_) {
+    return rate_corrector_.GetTimeCorrectionFactor(temperature_);
+  }
   return 1.0;
 }
 void KineticMcFirstAbstract::Dump() const
@@ -54,10 +56,13 @@ void KineticMcFirstAbstract::Dump() const
     is_restarted_ = false;
     return;
   }
-  if (world_rank_ != 0) { return; }
+  if (world_rank_ != 0) {
+    return;
+  }
   if (steps_ == 0) {
     config_.WriteLattice("lattice.txt");
     config_.WriteElement("element.txt");
+    ofs_ << "steps\ttime\ttemperature\tenergy\tEa\tdE\tselected\tvac1\tvac2\tvac3" << std::endl;
   }
   if (steps_ % config_dump_steps_ == 0) {
     // config_.WriteMap("map" + std::to_string(step_) + ".txt");
@@ -74,45 +79,10 @@ void KineticMcFirstAbstract::Dump() const
     log_dump_steps = std::min(log_dump_steps, log_dump_steps_);
   }
   if (steps_ % log_dump_steps == 0) {
-    // unsigned long long step
-    ofs_.write(reinterpret_cast<const char *>(&steps_), sizeof(steps_));
-    // double time
-    ofs_.write(reinterpret_cast<const char *>(&time_), sizeof(time_));
-    // double temperature
-    ofs_.write(reinterpret_cast<const char *>(&temperature_), sizeof(temperature_));
-    // double energy
-    ofs_.write(reinterpret_cast<const char *>(&energy_), sizeof(energy_));
-
-    // double Ea
-    const double Ea = event_k_i_.GetForwardBarrier();
-    ofs_.write(reinterpret_cast<const char *>(&Ea), sizeof(Ea));
-    // double dE
-    const double dE = event_k_i_.GetEnergyChange();
-    ofs_.write(reinterpret_cast<const char *>(&dE), sizeof(dE));
-
-    // size_t selected_index
-    const size_t selected_id = config_.GetAtomIdFromLatticeId(event_k_i_.GetIdJumpPair().second);
-    ofs_.write(reinterpret_cast<const char *>(&selected_id), sizeof(selected_id));
-
-    // unwraped vacancy position
-    ofs_.write(reinterpret_cast<const char *>(&unwrapped_vacancy_cartesian_coordinate_),
-               sizeof(unwrapped_vacancy_cartesian_coordinate_));
-
-    // // int id
-    // for (const auto &event_k_i: event_k_i_list_) {
-    //   const size_t atom_id = config_.GetAtomIdFromLatticeId(event_k_i.GetIdJumpPair().second);
-    //   ofs_.write(reinterpret_cast<const char *>(&atom_id), sizeof(atom_id));
-    // }
-    // // double Ea
-    // for (const auto &event_k_i: event_k_i_list_) {
-    //   const double dE = event_k_i.GetEnergyChange();
-    //   ofs_.write(reinterpret_cast<const char *>(&dE), sizeof(dE));
-    // }
-    // // double dE
-    // for (const auto &event_k_i: event_k_i_list_) {
-    //   const double dE = event_k_i.GetEnergyChange();
-    //   ofs_.write(reinterpret_cast<const char *>(&dE), sizeof(dE));
-    // }
+    ofs_ << steps_ << '\t' << time_ << '\t' << temperature_ << '\t' << energy_ << '\t'
+         << event_k_i_.GetForwardBarrier() << '\t' << event_k_i_.GetEnergyChange() << '\t'
+         << config_.GetAtomIdFromLatticeId(event_k_i_.GetIdJumpPair().second) << '\t'
+         << unwrapped_vacancy_cartesian_coordinate_ << '\n';
   }
 }
 size_t KineticMcFirstAbstract::SelectEvent() const
@@ -123,7 +93,9 @@ size_t KineticMcFirstAbstract::SelectEvent() const
         return lhs.GetCumulativeProvability() < value;
       });
   // If not find (maybe generated 1), which rarely happens, returns the last event
-  if (it == event_k_i_list_.cend()) { it--; }
+  if (it == event_k_i_list_.cend()) {
+    it--;
+  }
   if (world_size_ > 1) {
     int event_id = static_cast<int>(it - event_k_i_list_.cbegin());
     MPI_Bcast(&event_id, 1, MPI_INT, 0, MPI_COMM_WORLD);
@@ -156,7 +128,9 @@ void KineticMcFirstAbstract::OneStepSimulation()
 }
 void KineticMcFirstAbstract::Simulate()
 {
-  while (steps_ <= maximum_steps_) { OneStepSimulation(); }
+  while (steps_ <= maximum_steps_) {
+    OneStepSimulation();
+  }
 }
 
 KineticMcChainAbstract::KineticMcChainAbstract(cfg::Config config,
