@@ -6,12 +6,14 @@ AlignConsecutiveAssignments: None
 AlignEscapedNewlines: Left
 AlignOperands: false
 #AllowAllParametersOfDeclarationOnNextLine: true
-AllowShortBlocksOnASingleLine: Always
-AllowShortFunctionsOnASingleLine: Inline
+AllowShortBlocksOnASingleLine: Empty
+AllowShortFunctionsOnASingleLine: Empty
 AllowShortIfStatementsOnASingleLine: WithoutElse
 AllowShortLambdasOnASingleLine: None
 AllowShortLoopsOnASingleLine: true
 AllowShortCaseLabelsOnASingleLine: true
+AllowAllArgumentsOnNextLine: true
+AllowAllParametersOfDeclarationOnNextLine: true
 AlwaysBreakAfterReturnType: None
 AlwaysBreakTemplateDeclarations: Yes
 BinPackArguments: false
@@ -35,11 +37,6 @@ ReflowComments: false
 SpaceAfterCStyleCast: true
 SpacesBeforeTrailingComments: 4
 SpacesInContainerLiterals: false
-Standard: c++17
-TabWidth: 2
-UseTab: Never
-IndentPPDirectives: BeforeHash
-#IndentPragmas: true
 SpaceAfterLogicalNot: false
 SpaceAfterTemplateKeyword: false
 SpaceBeforeAssignmentOperators: true
@@ -53,4 +50,10 @@ SpacesInAngles: false
 SpacesInCStyleCastParentheses: false
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
+Standard: c++17
+TabWidth: 2
+UseTab: Never
+IndentPPDirectives: BeforeHash
+#IndentPragmas: true
+
 
