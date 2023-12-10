@@ -98,7 +98,7 @@ class Config {
                                      std::vector<std::string>, std::vector<Vector_t>>;
   using ValueVariant = std::variant<int, double, unsigned long long, std::string>;
 
-  void WriteXyzExtended(const std::string &filename, const std::map<std::string, VectorVariant> &auxiliary_lists,
+  void WriteExtendedXyz(const std::string &filename, const std::map<std::string, VectorVariant> &auxiliary_lists,
                         const std::map<std::string, ValueVariant> &global_list) const;
 
   static Config ReadMap(const std::string &lattice_filename, const std::string &element_filename,

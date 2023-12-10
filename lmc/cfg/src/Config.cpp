@@ -573,7 +573,7 @@ void Config::WriteExtendedConfig(const std::string &filename,
   }
 }
 
-void Config::WriteXyzExtended(const std::string &filename,
+void Config::WriteExtendedXyz(const std::string &filename,
                               const std::map<std::string, VectorVariant> &auxiliary_lists,
                               const std::map<std::string, ValueVariant> &global_list) const
 {
