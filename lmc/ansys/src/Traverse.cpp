@@ -1,6 +1,7 @@
 #include "Traverse.h"
 
 #include <algorithm>
+#include <boost/filesystem.hpp>
 #include <boost/iostreams/filter/bzip2.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
@@ -11,14 +12,24 @@ using json = nlohmann::json;
 
 namespace ansys {
 
-Traverse::Traverse(unsigned long long int initial_steps, unsigned long long int increment_steps,
-                   Element solvent_element, std::set<Element> element_set, size_t smallest_cluster_criteria,
-                   size_t solvent_bond_criteria, const std::string &predictor_filename, std::string log_type,
+Traverse::Traverse(unsigned long long int initial_steps,
+                   unsigned long long int increment_steps,
+                   Element solvent_element,
+                   std::set<Element> element_set,
+                   size_t smallest_cluster_criteria,
+                   size_t solvent_bond_criteria,
+                   const std::string &predictor_filename,
+                   std::string log_type,
                    std::string config_type)
-    : initial_steps_(initial_steps), increment_steps_(increment_steps), final_number_(increment_steps),
-      solvent_element_(solvent_element), element_set_(std::move(element_set)),
-      smallest_cluster_criteria_(smallest_cluster_criteria), solvent_bond_criteria_(solvent_bond_criteria),
-      energy_estimator_(predictor_filename, element_set_), log_type_(std::move(log_type)),
+    : initial_steps_(initial_steps),
+      increment_steps_(increment_steps),
+      final_number_(increment_steps),
+      solvent_element_(solvent_element),
+      element_set_(std::move(element_set)),
+      smallest_cluster_criteria_(smallest_cluster_criteria),
+      solvent_bond_criteria_(solvent_bond_criteria),
+      energy_estimator_(predictor_filename, element_set_),
+      log_type_(std::move(log_type)),
       config_type_(std::move(config_type))
 {
   std::string log_file_name;
@@ -30,15 +41,21 @@ Traverse::Traverse(unsigned long long int initial_steps, unsigned long long int 
     throw std::invalid_argument("Unknown log type: " + log_type_);
   }
   std::ifstream ifs(log_file_name, std::ifstream::in);
-  if (!ifs.is_open()) { throw std::runtime_error("Cannot open " + log_file_name); }
+  if (!ifs.is_open()) {
+    throw std::runtime_error("Cannot open " + log_file_name);
+  }
   unsigned long long step_number;
   double energy{}, time{}, temperature{};
-  while (ifs.peek() != '0') { ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); }
+  while (ifs.peek() != '0') {
+    ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+  }
   if (config_type_ != "config" && config_type_ != "map") {
     throw std::invalid_argument("Unknown config type: " + config_type_);
   }
   while (true) {
-    if (ifs.eof() || ifs.bad()) { break; }
+    if (ifs.eof() || ifs.bad()) {
+      break;
+    }
     if (ifs.peek() == '#') {
       ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
       continue;
@@ -82,40 +99,76 @@ void Traverse::RunAnsys() const
     }
     cfg::Config config;
     if (config_type_ == "config") {
-      config = cfg::Config::ReadConfig(std::to_string(i) + ".cfg");
+      config = cfg::Config::ReadConfig(std::to_string(i) + ".cfg.gz");
       config.ReassignLatticeVector();
     } else if (config_type_ == "map") {
       config = cfg::Config::ReadMap("lattice.txt", "element.txt", "map" + std::to_string(i) + ".txt");
     }
     // basic information
     json ansys_info = json::object();
-    ansys_info["index"] = i;
+    std::map<std::string, cfg::Config::ValueVariant> global_list;
+    ansys_info["steps"] = i;
+    global_list["steps"] = i;
+
     ansys_info["time"] = filename_time_hashset_.at(i);
+    global_list["time"] = filename_time_hashset_.at(i);
+
     ansys_info["temperature"] = filename_temperature_hashset_.at(i);
+    global_list["temperature"] = filename_temperature_hashset_.at(i);
+
     ansys_info["energy"] = filename_energy_hashset_.at(i);
+    global_list["energy"] = filename_energy_hashset_.at(i);
+
     // cluster information
-    ansys_info["clusters"] = SoluteCluster(config, solvent_element_, element_set_, smallest_cluster_criteria_,
-                                           solvent_bond_criteria_, energy_estimator_, chemical_potential)
-                                 .GetClustersInfoAndOutput("cluster", std::to_string(i) + "_cluster.cfg.gz");
+    auto [cluster_json, auxiliary_lists] = SoluteCluster(config,
+                                                         solvent_element_,
+                                                         element_set_,
+                                                         smallest_cluster_criteria_,
+                                                         solvent_bond_criteria_,
+                                                         energy_estimator_,
+                                                         chemical_potential)
+                                               .GetClustersInfo();
+    ansys_info["clusters"] = cluster_json;
+
     // sro information
     ShortRangeOrder short_range_order(config, element_set_);
-    ansys_info["warren_cowley"]["first"] = short_range_order.FindWarrenCowley(1);
-    ansys_info["warren_cowley"]["second"] = short_range_order.FindWarrenCowley(2);
-    ansys_info["warren_cowley"]["third"] = short_range_order.FindWarrenCowley(3);
+    const auto sro1 = short_range_order.FindWarrenCowley(1);
+    ansys_info["warren_cowley"]["first"] = sro1;
+    for (const auto &[pair, value]: sro1) {
+      global_list["sro1_" + pair] = value;
+    }
+
+    const auto sro2 = short_range_order.FindWarrenCowley(2);
+    ansys_info["warren_cowley"]["second"] = sro2;
+    for (const auto &[pair, value]: sro2) {
+      global_list["sro2_" + pair] = value;
+    }
+
+    const auto sro3 = short_range_order.FindWarrenCowley(3);
+    ansys_info["warren_cowley"]["third"] = sro3;
+    for (const auto &[pair, value]: sro3) {
+      global_list["sro3_" + pair] = value;
+    }
+
     // vacancy information
     auto vacancy_lattice_id = config.GetVacancyLatticeId();
-
     static auto convert = [](const std::set<Element> &element_set_base,
                              const std::map<Element, size_t> &element_map) -> std::map<std::string, size_t> {
       std::map<std::string, size_t> string_map;
-      for (const auto &element : element_set_base) { string_map[element.GetString()] = 0; }
-      for (const auto &[element, value] : element_map) { string_map[element.GetString()] = value; }
+      for (const auto &element: element_set_base) {
+        string_map[element.GetString()] = 0;
+      }
+      for (const auto &[element, value]: element_map) {
+        string_map[element.GetString()] = value;
+      }
       return string_map;
     };
     ansys_info["vac_local"]["first"] = convert(element_set_, config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 1));
     ansys_info["vac_local"]["second"] = convert(element_set_, config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 2));
     ansys_info["vac_local"]["third"] = convert(element_set_, config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 3));
 
+    boost::filesystem::create_directories("cluster");
+    config.WriteExtendedXyz("cluster/" + std::to_string(i) + "_cluster.xyz.gz", auxiliary_lists, global_list);
 #pragma omp critical
     {
       ansys_info_array.push_back(ansys_info);
@@ -125,7 +178,7 @@ void Traverse::RunAnsys() const
   std::sort(ansys_info_array.begin(), ansys_info_array.end(), [](const json &lhs, const json &rhs) {
     return lhs["index"] < rhs["index"];
   });
-      std::ofstream ofs("ansys_info.json.gz", std::ios_base::out | std::ios_base::binary);
+  std::ofstream ofs("ansys_info.json.gz", std::ios_base::out | std::ios_base::binary);
   boost::iostreams::filtering_ostream fos;
   fos.push(boost::iostreams::gzip_compressor());
   fos.push(ofs);
