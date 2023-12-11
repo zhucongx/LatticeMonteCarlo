@@ -11,8 +11,7 @@
 using json = nlohmann::json;
 
 namespace ansys {
-static cfg::Config GetConfig(const std::string &config_type, size_t i)
-{
+static cfg::Config GetConfig(const std::string &config_type, size_t i) {
   cfg::Config config;
   if (config_type == "config") {
     config = cfg::Config::ReadConfig(std::to_string(i) + ".cfg.gz");
@@ -24,6 +23,7 @@ static cfg::Config GetConfig(const std::string &config_type, size_t i)
   }
   return config;
 }
+
 Traverse::Traverse(unsigned long long int initial_steps,
                    unsigned long long int increment_steps,
                    Element solvent_element,
@@ -43,8 +43,8 @@ Traverse::Traverse(unsigned long long int initial_steps,
       log_type_(std::move(log_type)),
       config_type_(std::move(config_type)),
       energy_estimator_(predictor_filename, element_set_),
-      vacancy_migration_predictor_(predictor_filename, GetConfig(config_type_, 0), element_set_)
-{
+      vacancy_migration_predictor_(predictor_filename, GetConfig(config_type_, 0), element_set_),
+      energy_change_predictor_site_(predictor_filename, GetConfig(config_type_, 0), element_set_) {
   std::string log_file_name;
   if (log_type_ == "kinetic_mc") {
     log_file_name = "kmc_log.txt";
@@ -90,15 +90,13 @@ Traverse::Traverse(unsigned long long int initial_steps,
 #pragma omp parallel default(none) shared(std::cout)
   {
 #pragma omp master
-    {
-      std::cout << "Using " << omp_get_num_threads() << " threads." << std::endl;
-    }
+    { std::cout << "Using " << omp_get_num_threads() << " threads." << std::endl; }
   }
 }
+
 Traverse::~Traverse() = default;
 
-void Traverse::RunAnsys() const
-{
+void Traverse::RunAnsys() const {
   const auto chemical_potential = energy_estimator_.GetChemicalPotential(solvent_element_);
   json ansys_info_array = json::array();
 #pragma omp parallel for default(none) schedule(static, 1) shared(ansys_info_array, chemical_potential, std::cout)
@@ -173,20 +171,25 @@ void Traverse::RunAnsys() const
     ansys_info["vac_local"]["second"] = convert(element_set_, config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 2));
     ansys_info["vac_local"]["third"] = convert(element_set_, config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 3));
 
-    // exit time
-    auto [barrier_lists, exit_times] =
-        ExitTime(config, solvent_element_, vacancy_migration_predictor_, filename_temperature_hashset_.at(i))
-            .GetBarrierListAndExitTime();
+    // binding energy
+    auto exit_time = ExitTime(config,
+                              solvent_element_,
+                              filename_temperature_hashset_.at(i),
+                              vacancy_migration_predictor_,
+                              energy_change_predictor_site_,
+                              chemical_potential);
+    auto binding_energy = exit_time.GetBindingEnergy();
+    auxiliary_lists["binding_energy"] = binding_energy;
 
+    // exit time
+    auto [barrier_lists, exit_times] =exit_time.GetBarrierListAndExitTime();
     auxiliary_lists["barrier_lists"] = barrier_lists;
     auxiliary_lists["exit_times"] = exit_times;
 
     boost::filesystem::create_directories("analysis");
     config.WriteExtendedXyz("analysis/" + std::to_string(i) + ".xyz.gz", auxiliary_lists, global_list);
 #pragma omp critical
-    {
-      ansys_info_array.push_back(ansys_info);
-    }
+    { ansys_info_array.push_back(ansys_info); }
   }
   std::cout << "Finished. Sorting..." << std::endl;
   std::sort(ansys_info_array.begin(), ansys_info_array.end(), [](const json &lhs, const json &rhs) {
@@ -200,8 +203,8 @@ void Traverse::RunAnsys() const
   fos << ansys_info_array.dump(2) << std::endl;
   std::cout << "Done..." << std::endl;
 }
-void Traverse::RunReformat() const
-{
+
+void Traverse::RunReformat() const {
   for (unsigned long long i = 0; i <= final_number_; i += increment_steps_) {
     std::cout << i << " / " << final_number_ << std::endl;
     if (config_type_ == "map") {

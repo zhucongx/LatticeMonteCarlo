@@ -1,10 +1,11 @@
 #ifndef LMC_LMC_ANSYS_INCLUDE_TRAVERSE_H_
 #define LMC_LMC_ANSYS_INCLUDE_TRAVERSE_H_
 #include "EnergyPredictor.h"
+#include "ExitTime.h"
 #include "ShortRangeOrder.h"
 #include "SoluteCluster.h"
 #include "VacancyMigrationPredictorQuartic.h"
-#include "ExitTime.h"
+
 namespace ansys {
 
 class Traverse {
@@ -36,6 +37,7 @@ class Traverse {
   const std::string config_type_;
   const pred::EnergyPredictor energy_estimator_;
   const pred::VacancyMigrationPredictorQuartic vacancy_migration_predictor_;
+  const pred::EnergyChangePredictorSite energy_change_predictor_site_;
 };
 
 }    // namespace ansys
