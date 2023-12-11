@@ -5,35 +5,38 @@ AccessModifierOffset: -1
 AlignConsecutiveAssignments: None
 AlignEscapedNewlines: Left
 AlignOperands: false
-#AllowAllParametersOfDeclarationOnNextLine: true
+AllowAllArgumentsOnNextLine: true
+AllowAllParametersOfDeclarationOnNextLine: true
 AllowShortBlocksOnASingleLine: Empty
 AllowShortFunctionsOnASingleLine: Empty
 AllowShortIfStatementsOnASingleLine: WithoutElse
 AllowShortLambdasOnASingleLine: None
 AllowShortLoopsOnASingleLine: true
 AllowShortCaseLabelsOnASingleLine: true
-AllowAllArgumentsOnNextLine: true
-AllowAllParametersOfDeclarationOnNextLine: true
 AlwaysBreakAfterReturnType: None
 AlwaysBreakTemplateDeclarations: Yes
 BinPackArguments: false
 BinPackParameters: false
-BreakBeforeBraces: Custom
-BraceWrapping:
-  AfterFunction: true
+BreakBeforeBraces: Attach
 BreakBeforeBinaryOperators: None
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializers: BeforeColon
 BreakInheritanceList: BeforeColon
 PackConstructorInitializers: Never
 ColumnLimit: 120
+EmptyLineBeforeAccessModifier: Always
+#EmptyLineAfterAccessModifier: Always
+IncludeBlocks: Regroup
 IndentCaseLabels: true
 IndentWidth: 2
+KeepEmptyLinesAtTheStartOfBlocks: false
+KeepEmptyLinesAtEOF: true
 MaxEmptyLinesToKeep: 2
 NamespaceIndentation: Inner
 ObjCBlockIndentWidth: 2
 PenaltyBreakAssignment: 4
 ReflowComments: false
+SeparateDefinitionBlocks: Always
 SpaceAfterCStyleCast: true
 SpacesBeforeTrailingComments: 4
 SpacesInContainerLiterals: false
@@ -55,5 +58,3 @@ TabWidth: 2
 UseTab: Never
 IndentPPDirectives: BeforeHash
 #IndentPragmas: true
-
-
