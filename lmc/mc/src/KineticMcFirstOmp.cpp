@@ -45,17 +45,16 @@ KineticMcFirstOmp::KineticMcFirstOmp(cfg::Config config,
 KineticMcFirstOmp::~KineticMcFirstOmp() = default;
 void KineticMcFirstOmp::BuildEventList() {
   total_rate_k_ = 0.0;
-  const auto neighbor_vacancy_id_vector =
-      config_.GetFirstNeighborsAdjacencyList()[vacancy_lattice_id_];
-#pragma omp parallel default(none) shared(vacancy_lattice_id_, neighbor_vacancy_id_vector) reduction(+: total_rate_k_)
+  const auto neighbor_lattice_id_vector = config_.GetFirstNeighborsAdjacencyList()[vacancy_lattice_id_];
+#pragma omp parallel default(none) shared(vacancy_lattice_id_, neighbor_lattice_id_vector) reduction(+: total_rate_k_)
   {
 #pragma omp for
     for (size_t i = 0; i < kEventListSize; ++i) {
-      const auto neighbor_vacancy_id = neighbor_vacancy_id_vector[i];
+      const auto neighbor_lattice_id = neighbor_lattice_id_vector[i];
       JumpEvent lattice_jump_event(
-          {vacancy_lattice_id_, neighbor_vacancy_id},
+          {vacancy_lattice_id_, neighbor_lattice_id},
           vacancy_migration_predictor_lru_.GetBarrierAndDiffFromLatticeIdPair(
-              config_, {vacancy_lattice_id_, neighbor_vacancy_id}),
+              config_, {vacancy_lattice_id_, neighbor_lattice_id}),
           beta_);
       total_rate_k_ += lattice_jump_event.GetForwardRate();
       event_k_i_list_[i] = std::move(lattice_jump_event);
