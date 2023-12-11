@@ -109,11 +109,12 @@ void KineticMcFirstAbstract::OneStepSimulation()
   UpdateTemperature();
   thermodynamic_averaging_.AddEnergy(energy_);
   BuildEventList();
+  double one_step_time = CalculateTime() * GetTimeCorrectionFactor();
   event_k_i_ = event_k_i_list_[SelectEvent()];
   Dump();
 
   // modify
-  time_ += (CalculateTime() * GetTimeCorrectionFactor());
+  time_ += one_step_time;
   energy_ += event_k_i_.GetEnergyChange();
   absolute_energy_ += event_k_i_.GetEnergyChange();
 
