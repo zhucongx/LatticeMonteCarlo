@@ -6,12 +6,12 @@ namespace mc {
 
 class JumpEvent {
   public:
-    /// Constructor
+    // Constructor
     JumpEvent();
     JumpEvent(std::pair<size_t, size_t> jump_pair,
               const std::pair<double, double> &barrier_and_diff,
               double beta);
-    /// Getter
+    // Getter
     [[nodiscard]] const std::pair<size_t, size_t> &GetIdJumpPair() const;
     [[nodiscard]] double GetForwardBarrier() const;
     [[nodiscard]] double GetForwardRate() const;
@@ -21,7 +21,7 @@ class JumpEvent {
     [[nodiscard]] double GetProbability() const;
     [[nodiscard]] double GetCumulativeProvability() const;
     [[nodiscard]] JumpEvent GetReverseJumpEvent() const;
-    /// Setter
+    // Setter
     void SetProbability(double probability);
     void SetCumulativeProbability(double cumulative_probability);
     void CalculateProbability(double total_rates);

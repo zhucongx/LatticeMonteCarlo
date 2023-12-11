@@ -1,32 +1,46 @@
 #ifndef LMC_LMC_CFG_INCLUDE_ATOM_HPP_
 #define LMC_LMC_CFG_INCLUDE_ATOM_HPP_
-#include <fstream>
-#include <map>
-
 #include "Element.hpp"
 #include "VectorMatrix.hpp"
+
+#include <fstream>
+#include <map>
 
 namespace cfg {
 struct Atom {
  public:
-  /// Constructor
+  // Constructor
   Atom() = default;
 
-  Atom(size_t id, const Element element) : id_(id), element_(element) {}
+  Atom(size_t id, const Element element)
+      : id_(id),
+        element_(element) {}
 
-  Atom(size_t id, const std::string &element_string) : id_(id), element_(element_string) {}
+  Atom(size_t id, const std::string &element_string)
+      : id_(id),
+        element_(element_string) {}
 
-  /// Getter
-  [[nodiscard]] size_t GetId() const { return id_; }
+  // Getter
+  [[nodiscard]] size_t GetId() const {
+    return id_;
+  }
 
-  [[nodiscard]] Element GetElement() const { return element_; }
+  [[nodiscard]] Element GetElement() const {
+    return element_;
+  }
 
-  [[nodiscard]] std::string GetElementString() const { return element_.GetString(); }
+  [[nodiscard]] std::string GetElementString() const {
+    return element_.GetString();
+  }
 
-  [[nodiscard]] double GetMass() const { return element_.GetMass(); }
+  [[nodiscard]] double GetMass() const {
+    return element_.GetMass();
+  }
 
-  /// Setter
-  void SetElement(const Element &element) { element_ = element; }
+  // Setter
+  void SetElement(const Element &element) {
+    element_ = element;
+  }
 
   // private:
   // atom id
@@ -35,5 +49,4 @@ struct Atom {
   Element element_{};
 };
 }    // namespace cfg
-
 #endif    //LMC_LMC_CFG_INCLUDE_ATOM_HPP_

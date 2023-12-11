@@ -17,13 +17,13 @@ namespace cfg {
 template<size_t DataSize>
 class LatticeCluster {
   public:
-    /// Constructor
+    // Constructor
     explicit LatticeCluster(std::array<cfg::Lattice, DataSize> lattice_array)
         : lattice_array_(std::move(lattice_array)) {
     }
-    /// Destructor
+    // Destructor
     virtual ~LatticeCluster() = default;
-    /// Getter
+    // Getter
     [[nodiscard]] const cfg::Lattice &GetLatticeAt(size_t i) const {
       return lattice_array_[i];
     }
@@ -38,7 +38,7 @@ class LatticeCluster {
                      [](const auto &lattice) { return lattice.GetId(); });
       return cluster_index;
     }
-    ///Operators
+    //Operators
     friend bool operator==(const LatticeCluster<DataSize> &lhs,
                            const LatticeCluster<DataSize> &rhs) {
       for (size_t i = 0; i < DataSize; ++i) {

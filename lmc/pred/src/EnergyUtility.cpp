@@ -168,9 +168,9 @@ std::vector<std::vector<std::vector<size_t> > > GetAverageClusterParametersMappi
       lattice_id_jump_pair = {0, config.GetFirstNeighborsAdjacencyList()[0][0]};
   const auto lattice_vector = GetSymmetricallySortedLatticeVectorMM2(config, lattice_id_jump_pair);
   std::vector<std::vector<std::vector<size_t> > > cluster_mapping{};
-  /// singlets
+  // singlets
   std::vector<Singlet_MM2_t> singlet_vector;
-  /// pairs
+  // pairs
   std::unordered_set<Pair_MM2_t, boost::hash<Pair_MM2_t> > first_pair_set;
   std::unordered_set<Pair_MM2_t, boost::hash<Pair_MM2_t> > second_pair_set;
   std::unordered_set<Pair_MM2_t, boost::hash<Pair_MM2_t> > third_pair_set;
@@ -213,9 +213,9 @@ std::vector<std::vector<std::vector<size_t> > > GetAverageClusterParametersMappi
       lattice_id_jump_pair = {0, config.GetFirstNeighborsAdjacencyList()[0][0]};
   const auto lattice_vector = GetSymmetricallySortedLatticeVectorMMM(config, lattice_id_jump_pair);
   std::vector<std::vector<std::vector<size_t> > > cluster_mapping{};
-  /// singlets
+  // singlets
   std::vector<Singlet_MMM_t> singlet_vector;
-  /// pairs
+  // pairs
   std::unordered_set<Pair_MMM_t, boost::hash<Pair_MMM_t> > first_pair_set;
   std::unordered_set<Pair_MMM_t, boost::hash<Pair_MMM_t> > second_pair_set;
   std::unordered_set<Pair_MMM_t, boost::hash<Pair_MMM_t> > third_pair_set;

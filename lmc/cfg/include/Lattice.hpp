@@ -6,7 +6,7 @@ namespace cfg {
 
 class Lattice {
   public:
-    /// Constructor
+    // Constructor
     Lattice() = default;
     Lattice(size_t id, const Vector_t &position)
         : id_(id),
@@ -22,7 +22,7 @@ class Lattice {
         : id_(id),
           cartesian_position_{x, y, z},
           relative_position_{x, y, z} {}
-    /// Getter
+    // Getter
     [[nodiscard]] size_t GetId() const {
       return id_;
     }
@@ -32,7 +32,7 @@ class Lattice {
     [[nodiscard]] const Vector_t &GetRelativePosition() const {
       return relative_position_;
     }
-    /// Setter
+    // Setter
     void SetId(size_t id) {
       id_ = id;
     }

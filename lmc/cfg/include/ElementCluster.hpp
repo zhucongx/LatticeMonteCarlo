@@ -14,7 +14,7 @@ namespace cfg {
 
 class ElementCluster {
   public:
-    /// Constructor
+    // Constructor
     ElementCluster() = default;
     ElementCluster(int label, std::vector<Element> element_vector)
         : label_(label), element_vector_(std::move(element_vector)) {
@@ -25,7 +25,7 @@ class ElementCluster {
         : label_(label), element_vector_{std::forward<Ts>(ts)...} {
       std::sort(element_vector_.begin(), element_vector_.end());
     }
-    /// Getter
+    // Getter
     [[nodiscard]] size_t GetSize() const {
       return element_vector_.size();
     }
@@ -35,7 +35,7 @@ class ElementCluster {
     [[nodiscard]] const std::vector<Element> &GetElementVector() const {
       return element_vector_;
     }
-    /// Operators
+    // Operators
     friend bool operator<(const ElementCluster &lhs, const ElementCluster &rhs) {
       if (lhs.element_vector_.size() < rhs.element_vector_.size()) { return true; }
       if (rhs.element_vector_.size() < lhs.element_vector_.size()) { return false; }
