@@ -110,7 +110,7 @@ SoluteCluster::SoluteCluster(const cfg::Config &config,
 }
 
 
-std::tuple<nlohmann::json, std::map<std::string, cfg::Config::VectorVariant>> SoluteCluster::GetClustersInfo()
+std::pair<nlohmann::json, std::map<std::string, cfg::Config::VectorVariant>> SoluteCluster::GetClustersInfo()
 {
   const auto cluster_to_atom_vector = FindAtomListOfClusters();
 
@@ -362,7 +362,7 @@ double SoluteCluster::GetFormationEnergy(const std::vector<size_t> &cluster_atom
     solute_config.ChangeAtomElementTypeAtAtom(atom_id, element);
     energy_change_solution_to_pure_solvent += chemical_potential_map_.at(element);
   }
-  double energy_change_cluster_to_pure_solvent =
+  const double energy_change_cluster_to_pure_solvent =
       energy_estimator_.GetEnergyOfCluster(solute_config, cluster_atom_id_list) -
       energy_estimator_.GetEnergyOfCluster(solvent_config_, cluster_atom_id_list);
   return energy_change_cluster_to_pure_solvent - energy_change_solution_to_pure_solvent;
