@@ -601,7 +601,7 @@ void Config::WriteExtendedXyz(const std::string &filename,
     fos.push(boost::iostreams::bzip2_compressor());
   }
   fos.push(ofs);
-  fos.precision(8);
+  fos.precision(16);
   fos << GetNumAtoms() << '\n';
   fos << "Lattice=\"" << basis_[0] << " " << basis_[1] << " " << basis_[2] << "\" ";
   fos << "pbc=\"T T T\" ";
