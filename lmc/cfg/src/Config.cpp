@@ -32,7 +32,9 @@ Config::Config(const Matrix_t &basis,
     lattice_to_atom_hashmap_.emplace(lattice_id, atom_id);
     atom_to_lattice_hashmap_.emplace(atom_id, lattice_id);
   }
-  if (update_neighbor) { UpdateNeighbors(); }
+  if (update_neighbor) {
+    UpdateNeighbors();
+  }
 }
 
 size_t Config::GetNumAtoms() const
@@ -138,7 +140,9 @@ std::set<Element> Config::GetElementSetWithoutVacancy() const
 {
   std::set<Element> res;
   for (const auto &atom: atom_vector_) {
-    if (atom.GetElement() == ElementName::X) { continue; }
+    if (atom.GetElement() == ElementName::X) {
+      continue;
+    }
     res.insert(atom.GetElement());
   }
   return res;
@@ -147,14 +151,18 @@ std::set<Element> Config::GetElementSetWithoutVacancy() const
 std::map<Element, std::vector<size_t>> Config::GetElementAtomIdVectorMap() const
 {
   std::map<Element, std::vector<size_t>> element_list_map;
-  for (const auto &atom: atom_vector_) { element_list_map[atom.GetElement()].push_back(atom.GetId()); }
+  for (const auto &atom: atom_vector_) {
+    element_list_map[atom.GetElement()].push_back(atom.GetId());
+  }
   return element_list_map;
 }
 
 size_t Config::GetStateHash() const
 {
   size_t seed = 0;
-  for (size_t i = 0; i < GetNumAtoms(); ++i) { boost::hash_combine(seed, lattice_to_atom_hashmap_.at(i)); }
+  for (size_t i = 0; i < GetNumAtoms(); ++i) {
+    boost::hash_combine(seed, lattice_to_atom_hashmap_.at(i));
+  }
   return seed;
 }
 
@@ -276,7 +284,9 @@ double Config::GetVacancyConcentration() const
 {
   size_t vacancy_count = 0;
   for (const auto &atom: GetAtomVector()) {
-    if (atom.GetElement() == ElementName::X) { vacancy_count++; }
+    if (atom.GetElement() == ElementName::X) {
+      vacancy_count++;
+    }
   }
   return static_cast<double>(vacancy_count) / static_cast<double>(GetNumAtoms());
 }
@@ -285,7 +295,9 @@ double Config::GetSoluteConcentration(Element solvent_element) const
 {
   size_t solute_count = 0;
   for (const auto &atom: GetAtomVector()) {
-    if (atom.GetElement() != solvent_element && atom.GetElement() != ElementName::X) { solute_count++; }
+    if (atom.GetElement() != solvent_element && atom.GetElement() != ElementName::X) {
+      solute_count++;
+    }
   }
   return static_cast<double>(solute_count) / static_cast<double>(GetNumAtoms());
 }
@@ -293,7 +305,9 @@ double Config::GetSoluteConcentration(Element solvent_element) const
 std::map<Element, size_t> Config::GetLocalInfoOfLatticeId(size_t lattice_id, size_t shell_number) const
 {
   std::map<Element, size_t> element_count_map;
-  for (const auto &element: GetElementSetWithoutVacancy()) { element_count_map.emplace(element, 0); }
+  for (const auto &element: GetElementSetWithoutVacancy()) {
+    element_count_map.emplace(element, 0);
+  }
   const std::vector<size_t> *neighbor_list = nullptr;
   switch (shell_number) {
     case 1: neighbor_list = &first_neighbors_adjacency_list_.at(lattice_id); break;
@@ -419,7 +433,9 @@ void Config::ReassignLatticeVector()
 Config Config::ReadConfig(const std::string &filename)
 {
   std::ifstream ifs(filename, std::ios_base::in | std::ios_base::binary);
-  if (!ifs) { throw std::runtime_error("Cannot open " + filename); }
+  if (!ifs) {
+    throw std::runtime_error("Cannot open " + filename);
+  }
   boost::iostreams::filtering_istream fis;
   if (boost::filesystem::path(filename).extension() == ".gz") {
     fis.push(boost::iostreams::gzip_decompressor());
@@ -514,14 +530,12 @@ Config Config::ReadConfig(const std::string &filename)
   }
 
   if (neighbor_found) {
-    std::cout << "Using neighbor information from file..." << std::endl;
     Config config(basis, lattice_vector, atom_vector, false);
     config.first_neighbors_adjacency_list_ = first_neighbors_adjacency_list;
     config.second_neighbors_adjacency_list_ = second_neighbors_adjacency_list;
     config.third_neighbors_adjacency_list_ = third_neighbors_adjacency_list;
     return config;
   } else {
-    std::cout << "Updating neighbor list..." << std::endl;
     return Config{basis, lattice_vector, atom_vector, true};
   }
 }
@@ -568,7 +582,9 @@ void Config::WriteExtendedConfig(const std::string &filename,
     fos << atom.GetMass() << '\n'
         << atom.GetElementString() << '\n'
         << lattice_vector_[atom_to_lattice_hashmap_.at(atom.GetId())].GetRelativePosition();
-    for (const auto &auxiliary_list: auxiliary_lists) { ofs << ' ' << auxiliary_list.second[it]; }
+    for (const auto &auxiliary_list: auxiliary_lists) {
+      ofs << ' ' << auxiliary_list.second[it];
+    }
     fos << std::endl;
   }
 }
@@ -614,6 +630,8 @@ void Config::WriteExtendedXyz(const std::string &filename,
       fos << "S:1";
     } else if (ret.type() == typeid(Vector_t)) {
       fos << "R:3";
+    } else if (ret.type() == typeid(std::vector<double>)) {
+      fos << "R:" << std::any_cast<std::vector<double>>(ret).size();
     } else {
       throw std::runtime_error("Unsupported type");
     }
@@ -641,6 +659,10 @@ void Config::WriteExtendedXyz(const std::string &filename,
         fos << std::any_cast<std::string>(ret) << ' ';
       } else if (ret.type() == typeid(Vector_t)) {
         fos << std::any_cast<Vector_t>(ret) << ' ';
+      } else if (ret.type() == typeid(std::vector<double>)) {
+        for (const auto &val: std::any_cast<std::vector<double>>(ret)) {
+          fos << val << ' ';
+        }
       } else {
         throw std::runtime_error("Unsupported type");
       }
@@ -655,7 +677,9 @@ Config Config::ReadMap(const std::string &lattice_filename,
 {
   Config config;
   std::ifstream ifs_lattice(lattice_filename, std::ifstream::in);
-  if (!ifs_lattice.is_open()) { throw std::runtime_error("Cannot open " + lattice_filename); }
+  if (!ifs_lattice.is_open()) {
+    throw std::runtime_error("Cannot open " + lattice_filename);
+  }
   size_t num_atoms;
   ifs_lattice >> num_atoms;
   ifs_lattice.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
@@ -688,7 +712,9 @@ Config Config::ReadMap(const std::string &lattice_filename,
   }
 
   std::ifstream ifs_element(element_filename, std::ifstream::in);
-  if (!ifs_element.is_open()) { throw std::runtime_error("Cannot open " + element_filename); }
+  if (!ifs_element.is_open()) {
+    throw std::runtime_error("Cannot open " + element_filename);
+  }
   std::string type;
   config.atom_vector_.reserve(num_atoms);
   for (size_t atom_id = 0; atom_id < num_atoms; ++atom_id) {
@@ -698,7 +724,9 @@ Config Config::ReadMap(const std::string &lattice_filename,
   }
 
   std::ifstream ifs_map(map_filename, std::ifstream::in);
-  if (!ifs_map.is_open()) { throw std::runtime_error("Cannot open " + map_filename); }
+  if (!ifs_map.is_open()) {
+    throw std::runtime_error("Cannot open " + map_filename);
+  }
   size_t lattice_id;
   for (size_t atom_id = 0; atom_id < num_atoms; ++atom_id) {
     ifs_map >> lattice_id;
@@ -736,7 +764,9 @@ void Config::WriteElement(const std::string &filename) const
 {
   std::ofstream ofs(filename, std::ofstream::out);
   ofs.precision(16);
-  for (const auto &atom: atom_vector_) { ofs << atom.GetElementString() << std::endl; }
+  for (const auto &atom: atom_vector_) {
+    ofs << atom.GetElementString() << std::endl;
+  }
 }
 
 void Config::WriteMap(const std::string &filename) const
@@ -750,13 +780,17 @@ void Config::WriteMap(const std::string &filename) const
 
 void Config::ConvertRelativeToCartesian()
 {
-  for (auto &lattice: lattice_vector_) { lattice.SetCartesianPosition(lattice.GetRelativePosition() * basis_); }
+  for (auto &lattice: lattice_vector_) {
+    lattice.SetCartesianPosition(lattice.GetRelativePosition() * basis_);
+  }
 }
 
 void Config::ConvertCartesianToRelative()
 {
   auto inverse_basis = InverseMatrix(basis_);
-  for (auto &lattice: lattice_vector_) { lattice.SetRelativePosition(lattice.GetCartesianPosition() * inverse_basis); }
+  for (auto &lattice: lattice_vector_) {
+    lattice.SetRelativePosition(lattice.GetCartesianPosition() * inverse_basis);
+  }
 }
 
 void Config::InitializeNeighborsList(size_t num_atoms)
@@ -802,7 +836,9 @@ void Config::UpdateNeighbors()
     std::vector<std::tuple<int, int, int>> offsets;
     for (int x: {-1, 0, 1}) {
       for (int y: {-1, 0, 1}) {
-        for (int z: {-1, 0, 1}) { offsets.emplace_back(x, y, z); }
+        for (int z: {-1, 0, 1}) {
+          offsets.emplace_back(x, y, z);
+        }
       }
     }
     return offsets;
@@ -824,13 +860,21 @@ void Config::UpdateNeighbors()
       for (size_t lattice_id1: cell) {
         for (size_t lattice_id2: neighbor_cell) {
           // Make sure we're not comparing a point to itself, and don't double-count pairs within the same cell
-          if (lattice_id2 >= lattice_id1) { continue; }
+          if (lattice_id2 >= lattice_id1) {
+            continue;
+          }
           // Calculate distance
           Vector_t absolute_distance_vector =
               GetRelativeDistanceVectorLattice(lattice_vector_[lattice_id1], lattice_vector_[lattice_id2]) * basis_;
-          if (std::abs(absolute_distance_vector[0]) > constants::kNearNeighborsCutoff) { continue; }
-          if (std::abs(absolute_distance_vector[1]) > constants::kNearNeighborsCutoff) { continue; }
-          if (std::abs(absolute_distance_vector[2]) > constants::kNearNeighborsCutoff) { continue; }
+          if (std::abs(absolute_distance_vector[0]) > constants::kNearNeighborsCutoff) {
+            continue;
+          }
+          if (std::abs(absolute_distance_vector[1]) > constants::kNearNeighborsCutoff) {
+            continue;
+          }
+          if (std::abs(absolute_distance_vector[2]) > constants::kNearNeighborsCutoff) {
+            continue;
+          }
           const double absolute_distance_square = Inner(absolute_distance_vector);
           // If the distance is less than the cutoff, the points are bonded
           if (absolute_distance_square < first_r_cutoff_square) {
