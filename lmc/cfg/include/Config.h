@@ -16,7 +16,9 @@ class Config {
   /// Constructor
   Config();
 
-  Config(const Matrix_t &basis, std::vector<Lattice> lattice_vector, std::vector<Atom> atom_vector,
+  Config(const Matrix_t &basis,
+         std::vector<Lattice> lattice_vector,
+         std::vector<Atom> atom_vector,
          bool update_neighbor);
 
   /// Getter
@@ -94,15 +96,20 @@ class Config {
   void WriteExtendedConfig(const std::string &filename,
                            const std::map<std::string, std::vector<double>> &auxiliary_lists) const;
 
-  using VectorVariant = std::variant<std::vector<int>, std::vector<size_t>, std::vector<double>,
-                                     std::vector<std::string>, std::vector<Vector_t>>;
-  using ValueVariant = std::variant<int, double, unsigned long long, std::string>;
+  using VectorVariant = std::variant<std::vector<int>,
+                                     std::vector<size_t>,
+                                     std::vector<double>,
+                                     std::vector<std::string>,
+                                     std::vector<Vector_t>,
+                                     std::vector<std::vector<double>>>;
+  using ValueVariant = std::variant<int, double, size_t, unsigned long long, std::string>;
 
-  void WriteExtendedXyz(const std::string &filename, const std::map<std::string, VectorVariant> &auxiliary_lists,
+  void WriteExtendedXyz(const std::string &filename,
+                        const std::map<std::string, VectorVariant> &auxiliary_lists,
                         const std::map<std::string, ValueVariant> &global_list) const;
 
-  static Config ReadMap(const std::string &lattice_filename, const std::string &element_filename,
-                        const std::string &map_filename);
+  static Config
+  ReadMap(const std::string &lattice_filename, const std::string &element_filename, const std::string &map_filename);
 
   void WriteLattice(const std::string &filename) const;
 
@@ -147,7 +154,8 @@ Config GenerateFCC(const Factor_t &factors, Element element);
 
 Config GenerateSoluteConfigFromExcitingPure(Config config, const std::map<Element, size_t> &solute_atom_count);
 
-Config GenerateSoluteConfig(const Factor_t &factors, Element solvent_element,
+Config GenerateSoluteConfig(const Factor_t &factors,
+                            Element solvent_element,
                             const std::map<Element, size_t> &solute_atom_count);
 // Config GenerateClusteredConfigFromExcitingPure(Config config,
 //                                             const std::map<Element, size_t> &solute_atom_count);
