@@ -271,7 +271,7 @@ std::map<Element, double> EnergyPredictor::GetChemicalPotential(Element solvent_
       continue;
     }
     auto config = cfg::GenerateFCC({15, 15, 15}, solvent_element);
-    config.ChangeAtomElementTypeAtAtom(0, element);
+    config.SetAtomElementTypeAtAtom(0, element);
     chemical_potential[element] = GetEnergy(config) - solvent_energy;
   }
   for (auto [element, potential] : chemical_potential) {

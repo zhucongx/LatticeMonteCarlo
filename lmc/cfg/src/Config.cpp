@@ -345,12 +345,12 @@ void Config::LatticeJump(const std::pair<size_t, size_t> &lattice_id_jump_pair)
   lattice_to_atom_hashmap_.at(lattice_id_rhs) = atom_id_lhs;
 }
 
-void Config::ChangeAtomElementTypeAtAtom(size_t atom_id, Element element)
+void Config::SetAtomElementTypeAtAtom(size_t atom_id, Element element)
 {
   atom_vector_.at(atom_id).SetElement(element);
 }
 
-void Config::ChangeAtomElementTypeAtLattice(size_t lattice_id, Element element)
+void Config::SetAtomElementTypeAtLattice(size_t lattice_id, Element element)
 {
   atom_vector_.at(lattice_to_atom_hashmap_.at(lattice_id)).SetElement(element);
 }
@@ -973,7 +973,7 @@ Config GenerateSoluteConfigFromExcitingPure(Config config, const std::map<Elemen
         ++ct;
         selected_lattice_index = dis(generator);
       } while (unavailable_position.find(selected_lattice_index) != unavailable_position.end());
-      config.ChangeAtomElementTypeAtLattice(selected_lattice_index, solute_atom);
+      config.SetAtomElementTypeAtLattice(selected_lattice_index, solute_atom);
       unavailable_position.emplace(selected_lattice_index);
       std::copy(config.GetFirstNeighborsAdjacencyList().at(selected_lattice_index).begin(),
                 config.GetFirstNeighborsAdjacencyList().at(selected_lattice_index).end(),

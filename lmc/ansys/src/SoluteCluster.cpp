@@ -105,7 +105,7 @@ SoluteCluster::SoluteCluster(const cfg::Config &config,
       chemical_potential_map_(chemical_potential_map)
 {
   for (size_t atom_id = 0; atom_id < solvent_config_.GetNumAtoms(); ++atom_id) {
-    solvent_config_.ChangeAtomElementTypeAtAtom(atom_id, solvent_atom_type);
+    solvent_config_.SetAtomElementTypeAtAtom(atom_id, solvent_atom_type);
   }
 }
 
@@ -359,7 +359,7 @@ double SoluteCluster::GetFormationEnergy(const std::vector<size_t> &cluster_atom
   double energy_change_solution_to_pure_solvent = 0;
   for (size_t atom_id: cluster_atom_id_list) {
     Element element = config_.GetElementAtAtomId(atom_id);
-    solute_config.ChangeAtomElementTypeAtAtom(atom_id, element);
+    solute_config.SetAtomElementTypeAtAtom(atom_id, element);
     energy_change_solution_to_pure_solvent += chemical_potential_map_.at(element);
   }
   const double energy_change_cluster_to_pure_solvent =

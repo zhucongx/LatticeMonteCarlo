@@ -16,13 +16,13 @@ std::pair<std::vector<std::vector<double>>, std::vector<double>> ExitTime::GetBa
 {
   std::vector<std::vector<double>> barrier_lists{};
   auto this_config = config_;
-  this_config.ChangeAtomElementTypeAtAtom(this_config.GetVacancyAtomId(), solvent_element_);
+  this_config.SetAtomElementTypeAtAtom(this_config.GetVacancyAtomId(), solvent_element_);
 
   for (size_t atom_id = 0; atom_id < config_.GetNumAtoms(); ++atom_id) {
     std::cout << "atom_id: " << atom_id << std::endl;
     const size_t lattice_id = this_config.GetLatticeIdFromAtomId(atom_id);
     const Element this_element = this_config.GetElementAtAtomId(atom_id);
-    this_config.ChangeAtomElementTypeAtAtom(atom_id, Element(ElementName::X));
+    this_config.SetAtomElementTypeAtAtom(atom_id, Element(ElementName::X));
 
     std::vector<double> barrier_list{};
     barrier_list.reserve(constants::kNumFirstNearestNeighbors);
@@ -31,7 +31,7 @@ std::pair<std::vector<std::vector<double>>, std::vector<double>> ExitTime::GetBa
                                  .GetBarrierAndDiffFromLatticeIdPair(this_config, {lattice_id, neighbor_lattice_id})
                                  .first);
     }
-    this_config.ChangeAtomElementTypeAtAtom(atom_id, this_element);
+    this_config.SetAtomElementTypeAtAtom(atom_id, this_element);
 
     std::sort(barrier_list.begin(), barrier_list.end());
     barrier_lists.push_back(barrier_list);

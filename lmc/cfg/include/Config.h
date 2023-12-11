@@ -82,9 +82,9 @@ class Config {
 
   void LatticeJump(const std::pair<size_t, size_t> &lattice_id_jump_pair);
 
-  void ChangeAtomElementTypeAtAtom(size_t atom_id, Element element);
+  void SetAtomElementTypeAtAtom(size_t atom_id, Element element);
 
-  void ChangeAtomElementTypeAtLattice(size_t lattice_id, Element element);
+  void SetAtomElementTypeAtLattice(size_t lattice_id, Element element);
 
   void ReassignLatticeVector();
 
