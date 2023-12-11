@@ -19,7 +19,7 @@ class SoluteCluster {
                 const pred::EnergyPredictor &energy_estimator,
                 const std::map<Element, double> &chemical_potential_map);
 
-  std::tuple<nlohmann::json, std::map<std::string, cfg::Config::VectorVariant>> GetClustersInfo();
+  [[nodiscard]] std::pair<nlohmann::json, std::map<std::string, cfg::Config::VectorVariant>> GetClustersInfo();
 
  private:
   [[nodiscard]] std::unordered_set<size_t> FindSoluteAtomIndexes() const;
