@@ -67,7 +67,6 @@ void KineticMcFirstAbstract::Dump() const
   if (steps_ % config_dump_steps_ == 0) {
     // config_.WriteMap("map" + std::to_string(step_) + ".txt");
     config_.WriteConfig(std::to_string(steps_) + ".cfg.gz");
-    ofs_.flush();
   }
   unsigned long long int log_dump_steps;
   if (steps_ > 10 * log_dump_steps_) {
@@ -82,7 +81,7 @@ void KineticMcFirstAbstract::Dump() const
     ofs_ << steps_ << '\t' << time_ << '\t' << temperature_ << '\t' << energy_ << '\t'
          << event_k_i_.GetForwardBarrier() << '\t' << event_k_i_.GetEnergyChange() << '\t'
          << config_.GetAtomIdFromLatticeId(event_k_i_.GetIdJumpPair().second) << '\t'
-         << unwrapped_vacancy_cartesian_coordinate_ << '\n';
+         << unwrapped_vacancy_cartesian_coordinate_ << std::endl;
   }
 }
 size_t KineticMcFirstAbstract::SelectEvent() const
