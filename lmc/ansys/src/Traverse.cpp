@@ -11,7 +11,19 @@
 using json = nlohmann::json;
 
 namespace ansys {
-
+static cfg::Config GetConfig(const std::string &config_type, size_t i)
+{
+  cfg::Config config;
+  if (config_type == "config") {
+    config = cfg::Config::ReadConfig(std::to_string(i) + ".cfg.gz");
+    config.ReassignLatticeVector();
+  } else if (config_type == "map") {
+    config = cfg::Config::ReadMap("lattice.txt", "element.txt", "map" + std::to_string(i) + ".txt");
+  } else {
+    throw std::invalid_argument("Unknown config type: " + config_type);
+  }
+  return config;
+}
 Traverse::Traverse(unsigned long long int initial_steps,
                    unsigned long long int increment_steps,
                    Element solvent_element,
@@ -28,9 +40,10 @@ Traverse::Traverse(unsigned long long int initial_steps,
       element_set_(std::move(element_set)),
       smallest_cluster_criteria_(smallest_cluster_criteria),
       solvent_bond_criteria_(solvent_bond_criteria),
-      energy_estimator_(predictor_filename, element_set_),
       log_type_(std::move(log_type)),
-      config_type_(std::move(config_type))
+      config_type_(std::move(config_type)),
+      energy_estimator_(predictor_filename, element_set_),
+      vacancy_migration_predictor_(predictor_filename, GetConfig(config_type_, 0), element_set_)
 {
   std::string log_file_name;
   if (log_type_ == "kinetic_mc") {
@@ -49,9 +62,7 @@ Traverse::Traverse(unsigned long long int initial_steps,
   while (ifs.peek() != '0') {
     ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
   }
-  if (config_type_ != "config" && config_type_ != "map") {
-    throw std::invalid_argument("Unknown config type: " + config_type_);
-  }
+
   while (true) {
     if (ifs.eof() || ifs.bad()) {
       break;
@@ -73,7 +84,6 @@ Traverse::Traverse(unsigned long long int initial_steps,
       filename_energy_hashset_[step_number] = energy;
       filename_temperature_hashset_[step_number] = temperature;
       filename_time_hashset_[step_number] = time;
-
       final_number_ = step_number;
     }
   }
@@ -95,15 +105,11 @@ void Traverse::RunAnsys() const
   for (unsigned long long i = initial_steps_; i <= final_number_; i += increment_steps_) {
 #pragma omp critical
     {
-      std::cout << i << " / " << final_number_ << std::endl;
+      std::cout << i << " / " << final_number_ << " " << std::fixed << std::setprecision(2)
+                << static_cast<double>(i) / static_cast<double>(final_number_) * 100 << "%" << std::endl;
     }
-    cfg::Config config;
-    if (config_type_ == "config") {
-      config = cfg::Config::ReadConfig(std::to_string(i) + ".cfg.gz");
-      config.ReassignLatticeVector();
-    } else if (config_type_ == "map") {
-      config = cfg::Config::ReadMap("lattice.txt", "element.txt", "map" + std::to_string(i) + ".txt");
-    }
+    cfg::Config config = GetConfig(config_type_, i);
+
     // basic information
     json ansys_info = json::object();
     std::map<std::string, cfg::Config::ValueVariant> global_list;
@@ -167,8 +173,16 @@ void Traverse::RunAnsys() const
     ansys_info["vac_local"]["second"] = convert(element_set_, config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 2));
     ansys_info["vac_local"]["third"] = convert(element_set_, config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 3));
 
-    boost::filesystem::create_directories("cluster");
-    config.WriteExtendedXyz("cluster/" + std::to_string(i) + "_cluster.xyz.gz", auxiliary_lists, global_list);
+    // exit time
+    auto [barrier_lists, exit_times] =
+        ExitTime(config, solvent_element_, vacancy_migration_predictor_, filename_temperature_hashset_.at(i))
+            .GetBarrierListAndExitTime();
+
+    auxiliary_lists["barrier_lists"] = barrier_lists;
+    auxiliary_lists["exit_times"] = exit_times;
+
+    boost::filesystem::create_directories("analysis");
+    config.WriteExtendedXyz("analysis/" + std::to_string(i) + ".xyz.gz", auxiliary_lists, global_list);
 #pragma omp critical
     {
       ansys_info_array.push_back(ansys_info);
