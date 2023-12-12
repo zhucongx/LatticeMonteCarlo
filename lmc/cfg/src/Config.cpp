@@ -734,7 +734,6 @@ Config Config::ReadMap(const std::string &lattice_filename,
     config.atom_to_lattice_hashmap_.emplace(atom_id, lattice_id);
     ifs_map.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
   }
-  std::cout << "Using neighbor information from file..." << std::endl;
   return config;
 }
 
