@@ -22,7 +22,7 @@ class ExitTime {
   const Element &solvent_element_;
   const double beta_;
   const pred::VacancyMigrationPredictorQuartic &vacancy_migration_predictor_;
-  const pred::EnergyChangePredictorSite energy_change_predictor_site_;
+  const pred::EnergyChangePredictorSite &energy_change_predictor_site_;
   const std::map<Element, double> &chemical_potential_;
 };
 }    // namespace ansys
