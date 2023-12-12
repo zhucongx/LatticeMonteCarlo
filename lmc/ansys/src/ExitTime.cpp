@@ -48,16 +48,19 @@ std::pair<std::vector<std::vector<double>>, std::vector<double>> ExitTime::GetBa
 
 std::vector<double> ExitTime::GetBindingEnergy() const {
   std::vector<double> binding_energies{};
-
   auto this_config = config_;
   this_config.SetAtomElementTypeAtAtom(this_config.GetVacancyAtomId(), solvent_element_);
-
   for (size_t atom_id = 0; atom_id < this_config.GetNumAtoms(); ++atom_id) {
     std::cerr << "atom_id: " << atom_id << std::endl;
+    const Element this_element = this_config.GetElementAtAtomId(atom_id);
+    this_config.SetAtomElementTypeAtAtom(atom_id, solvent_element_);
+
     const auto potential_change =
         chemical_potential_.at(Element("X")) - chemical_potential_.at(this_config.GetElementAtAtomId(atom_id));
     const auto energy_change = energy_change_predictor_site_.GetDeFromAtomIdSite(this_config, atom_id, Element("X"));
     binding_energies.push_back(energy_change - potential_change);
+
+    this_config.SetAtomElementTypeAtAtom(atom_id, this_element);
   }
   return binding_energies;
 }
