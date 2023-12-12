@@ -19,7 +19,6 @@ std::pair<std::vector<std::vector<double>>, std::vector<double>> ExitTime::GetBa
   auto this_config = config_;
   this_config.SetAtomElementTypeAtAtom(this_config.GetVacancyAtomId(), solvent_element_);
   for (size_t atom_id = 0; atom_id < this_config.GetNumAtoms(); ++atom_id) {
-    std::cerr << "atom_id: " << atom_id << std::endl;
     const size_t lattice_id = this_config.GetLatticeIdFromAtomId(atom_id);
     const Element this_element = this_config.GetElementAtAtomId(atom_id);
     this_config.SetAtomElementTypeAtAtom(atom_id, Element(ElementName::X));
@@ -51,7 +50,6 @@ std::vector<double> ExitTime::GetBindingEnergy() const {
   auto this_config = config_;
   this_config.SetAtomElementTypeAtAtom(this_config.GetVacancyAtomId(), solvent_element_);
   for (size_t atom_id = 0; atom_id < this_config.GetNumAtoms(); ++atom_id) {
-    std::cerr << "atom_id: " << atom_id << std::endl;
     const Element this_element = this_config.GetElementAtAtomId(atom_id);
     this_config.SetAtomElementTypeAtAtom(atom_id, solvent_element_);
 

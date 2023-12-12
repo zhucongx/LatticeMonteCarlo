@@ -180,11 +180,12 @@ void Traverse::RunAnsys() const {
                               chemical_potential);
     auto binding_energy = exit_time.GetBindingEnergy();
     auxiliary_lists["binding_energy"] = binding_energy;
+    ansys_info["vac_local_binding_energy"] = binding_energy[config.GetVacancyLatticeId()];
 
-    // exit time
-    auto [barrier_lists, exit_times] =exit_time.GetBarrierListAndExitTime();
-    auxiliary_lists["barrier_lists"] = barrier_lists;
-    auxiliary_lists["exit_times"] = exit_times;
+    // // exit time
+    // auto [barrier_lists, exit_times] =exit_time.GetBarrierListAndExitTime();
+    // auxiliary_lists["barrier_lists"] = barrier_lists;
+    // auxiliary_lists["exit_times"] = exit_times;
 
     boost::filesystem::create_directories("analysis");
     config.WriteExtendedXyz("analysis/" + std::to_string(i) + ".xyz.gz", auxiliary_lists, global_list);
