@@ -47,17 +47,18 @@ SimulatedAnnealing::SimulatedAnnealing(const Factor_t &factors,
                           initial_temperature,
                           GetElementSetFromSolventAndSolute(solvent_element, solute_atom_count),
                           json_coefficients_filename),
+      ofs_("sa.log", std::ofstream::out),
+      count_{0},
       initial_temperature_(initial_temperature),
       decrement_temperature_(decrement_temperature) {
-  ofs_ = std::ofstream("sa.log", std::ofstream::out);
-
+  ofs_.precision(16);
   const auto energy_predictor = pred::EnergyPredictor(
       json_coefficients_filename, GetElementSetFromSolventAndSolute(solvent_element, solute_atom_count));
   auto chemical_potential = energy_predictor.GetChemicalPotential(solvent_element);
 
   double energy_change_solution_to_pure_solvent = 0;
   for (const auto &[element, count]: solute_atom_count) {
-    energy_change_solution_to_pure_solvent -= chemical_potential[element] * static_cast<double>(count);
+    energy_change_solution_to_pure_solvent += chemical_potential[element] * static_cast<double>(count);
   }
   const double energy_change_cluster_to_pure_solvent =
       energy_predictor.GetEnergy(config_) - energy_predictor.GetEnergy(cfg::GenerateFCC(factors, solvent_element));
@@ -66,7 +67,21 @@ SimulatedAnnealing::SimulatedAnnealing(const Factor_t &factors,
 }
 
 void SimulatedAnnealing::Dump() const {
-  CanonicalMcAbstract::Dump();
+  if (steps_ == 0) {
+    ofs_ << "steps\ttemperature\tenergy\tlowest_energy\tabsolute_energy" << std::endl;
+  }
+
+  if (energy_ < lowest_energy_ - kEpsilon) {
+    lowest_energy_ = energy_;
+    config_.WriteConfig("lowest_energy.cfg.gz");
+    ofs_ << steps_ << '\t' << temperature_ << '\t' << energy_ << '\t' << lowest_energy_ << '\t' << absolute_energy_
+         << std::endl;
+  }
+
+  if (steps_ % log_dump_steps_ == 0) {
+    ofs_ << steps_ << '\t' << temperature_ << '\t' << energy_ << '\t' << lowest_energy_ << '\t' << absolute_energy_
+         << std::endl;
+  }
   if (steps_ % maximum_steps_ == 0 && steps_ != 0) {
     config_.WriteConfig(std::to_string(static_cast<int>(temperature_)) + "K.cfg.gz");
   }
@@ -78,10 +93,19 @@ void SimulatedAnnealing::Simulate() {
     auto lattice_id_jump_pair = GenerateLatticeIdJumpPair();
     auto dE = energy_change_predictor_.GetDeFromLatticeIdPair(config_, lattice_id_jump_pair);
     thermodynamic_averaging_.AddEnergy(energy_);
+    if (energy_ < lowest_energy_ - kEpsilon) {
+      count_ = 0;
+    } else {
+      ++count_;
+    }
     Dump();
     UpdateTemperature();
     SelectEvent(lattice_id_jump_pair, dE);
     ++steps_;
+
+    if (count_ >= 2 * maximum_steps_) {
+      break;
+    }
   }
 }
 
@@ -93,3 +117,42 @@ void SimulatedAnnealing::UpdateTemperature() {
 }
 
 }    // namespace mc
+
+//void SimulatedAnnealing::Simulate() {
+//  std::ofstream ofs("sa_log.txt", std::ofstream::out | std::ofstream::app);
+//  ofs.precision(16);
+
+//  while (steps_ <= maximum_steps_) {
+//    temperature_ = initial_temperature_ / std::log(2 + steps_);
+//
+//    auto atom_id_jump_pair = GenerateAtomIdJumpPair();
+//    auto dE = energy_predictor_.GetDeFromAtomIdPair(config_, atom_id_jump_pair);
+//    if (dE < 0) {
+//      config_.AtomJump(atom_id_jump_pair);
+//      energy_ += dE;
+//    } else {
+//      double possibility = std::exp(-dE / temperature_);
+//      double random_number = one_distribution_(generator_);
+//      if (random_number < possibility) {
+//        config_.AtomJump(atom_id_jump_pair);
+//        energy_ += dE;
+//      }
+//    }
+//
+//    if (energy_ < lowest_energy_ - kEpsilon) {
+//      count_ = 0;
+//    } else {
+//      ++count_;
+//    }
+//
+//    Dump(ofs);
+//    ++steps_;
+//
+//    if (count_ >= early_stop_number_) {
+//      break;
+//    }
+//  }
+//  auto t2 = std::chrono::high_resolution_clock::now();
+//  std::cout << "Simulated Annealing Monte Carlo finished in " << std::setprecision(16)
+//            << std::chrono::duration_cast<std::chrono::seconds>(t2 - t1).count() << " seconds.\n";
+//}

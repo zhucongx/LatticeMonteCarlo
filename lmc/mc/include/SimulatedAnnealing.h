@@ -24,6 +24,10 @@ class SimulatedAnnealing : private CanonicalMcAbstract {
   void Dump() const override;
   void UpdateTemperature();
 
+  // helpful properties
+  mutable double lowest_energy_;
+  mutable std::ofstream ofs_;
+  unsigned long long count_;
   // simulation parameters
   const double initial_temperature_;
   const double decrement_temperature_;
