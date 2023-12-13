@@ -103,7 +103,7 @@ void SimulatedAnnealing::Simulate() {
     SelectEvent(lattice_id_jump_pair, dE);
     ++steps_;
 
-    if (count_ >= 2 * maximum_steps_) {
+    if (count_ >= 10 * maximum_steps_) {
       break;
     }
   }
@@ -117,42 +117,3 @@ void SimulatedAnnealing::UpdateTemperature() {
 }
 
 }    // namespace mc
-
-//void SimulatedAnnealing::Simulate() {
-//  std::ofstream ofs("sa_log.txt", std::ofstream::out | std::ofstream::app);
-//  ofs.precision(16);
-
-//  while (steps_ <= maximum_steps_) {
-//    temperature_ = initial_temperature_ / std::log(2 + steps_);
-//
-//    auto atom_id_jump_pair = GenerateAtomIdJumpPair();
-//    auto dE = energy_predictor_.GetDeFromAtomIdPair(config_, atom_id_jump_pair);
-//    if (dE < 0) {
-//      config_.AtomJump(atom_id_jump_pair);
-//      energy_ += dE;
-//    } else {
-//      double possibility = std::exp(-dE / temperature_);
-//      double random_number = one_distribution_(generator_);
-//      if (random_number < possibility) {
-//        config_.AtomJump(atom_id_jump_pair);
-//        energy_ += dE;
-//      }
-//    }
-//
-//    if (energy_ < lowest_energy_ - kEpsilon) {
-//      count_ = 0;
-//    } else {
-//      ++count_;
-//    }
-//
-//    Dump(ofs);
-//    ++steps_;
-//
-//    if (count_ >= early_stop_number_) {
-//      break;
-//    }
-//  }
-//  auto t2 = std::chrono::high_resolution_clock::now();
-//  std::cout << "Simulated Annealing Monte Carlo finished in " << std::setprecision(16)
-//            << std::chrono::duration_cast<std::chrono::seconds>(t2 - t1).count() << " seconds.\n";
-//}
