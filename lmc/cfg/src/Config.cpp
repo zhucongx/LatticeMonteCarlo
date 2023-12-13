@@ -966,7 +966,7 @@ Config GenerateSoluteConfigFromExcitingPure(Config config, const std::map<Elemen
       size_t ct = 0;
       do {
         if (ct > 10000) {
-          std::cerr << "Size is too small. Cannot generate correct config.\n";
+//          std::cerr << "Size is too small. Cannot generate correct config.\n";
           break;
         }
         ++ct;
