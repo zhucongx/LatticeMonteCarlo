@@ -274,9 +274,9 @@ std::map<Element, double> EnergyPredictor::GetChemicalPotential(Element solvent_
     config.SetAtomElementTypeAtAtom(0, element);
     chemical_potential[element] = GetEnergy(config) - solvent_energy;
   }
-  for (auto [element, potential] : chemical_potential) {
-    std::cout << "Chemical potential: " << element.GetString() << " " << potential << std::endl;
-  }
+  // for (auto [element, potential] : chemical_potential) {
+  //   std::cout << "Chemical potential: " << element.GetString() << " " << potential << std::endl;
+  // }
   return chemical_potential;
 }
 } // pred
