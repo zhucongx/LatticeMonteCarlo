@@ -16,8 +16,6 @@ class CanonicalMcSerial : public CanonicalMcAbstract {
                       unsigned long long int restart_steps,
                       double restart_energy,
                       double temperature,
-        // double initial_temperature,
-        // double decrement_temperature,
                       const std::set<Element> &element_set,
                       const std::string &json_coefficients_filename);
     void Simulate() override;

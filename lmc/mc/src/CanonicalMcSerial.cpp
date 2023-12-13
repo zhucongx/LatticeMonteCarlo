@@ -11,9 +11,6 @@ CanonicalMcSerial::CanonicalMcSerial(cfg::Config config,
                                      const unsigned long long int restart_steps,
                                      const double restart_energy,
                                      const double temperature,
-
-    // const double initial_temperature,
-    // const double decrement_temperature,
                                      const std::set<Element> &element_set,
                                      const std::string &json_coefficients_filename)
     : CanonicalMcAbstract(std::move(config),
@@ -24,8 +21,6 @@ CanonicalMcSerial::CanonicalMcSerial(cfg::Config config,
                           restart_steps,
                           restart_energy,
                           temperature,
-    // initial_temperature,
-    // decrement_temperature,
                           element_set,
                           json_coefficients_filename) {
   if (world_size_ != 1) {
