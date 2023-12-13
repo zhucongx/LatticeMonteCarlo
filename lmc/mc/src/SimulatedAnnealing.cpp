@@ -47,8 +47,7 @@ SimulatedAnnealing::SimulatedAnnealing(const Factor_t &factors,
                           initial_temperature,
                           GetElementSetFromSolventAndSolute(solvent_element, solute_atom_count),
                           json_coefficients_filename),
-      ofs_("sa.log", std::ofstream::out),
-      count_{0},
+      lowest_energy_(0),
       initial_temperature_(initial_temperature),
       decrement_temperature_(decrement_temperature) {
   ofs_.precision(16);
@@ -93,19 +92,18 @@ void SimulatedAnnealing::Simulate() {
     auto lattice_id_jump_pair = GenerateLatticeIdJumpPair();
     auto dE = energy_change_predictor_.GetDeFromLatticeIdPair(config_, lattice_id_jump_pair);
     thermodynamic_averaging_.AddEnergy(energy_);
-    if (energy_ < lowest_energy_ - kEpsilon) {
-      count_ = 0;
-    } else {
-      ++count_;
-    }
+//    if (energy_ < lowest_energy_ - kEpsilon) {
+//      count_ = 0;
+//    } else {
+//      ++count_;
+//    }
     Dump();
     UpdateTemperature();
     SelectEvent(lattice_id_jump_pair, dE);
     ++steps_;
-
-    if (count_ >= 10 * maximum_steps_) {
-      break;
-    }
+//    if (count_ >= 10 * maximum_steps_) {
+//      break;
+//    }
   }
 }
 
