@@ -16,7 +16,7 @@ class SoluteCluster {
                 std::set<Element> element_set,
                 size_t smallest_cluster_criteria,
                 size_t solvent_bond_criteria,
-                const pred::EnergyPredictor &energy_estimator,
+                const pred::EnergyPredictor &energy_predictor,
                 const std::map<Element, double> &chemical_potential_map);
 
   [[nodiscard]] std::pair<nlohmann::json, std::map<std::string, cfg::Config::VectorVariant>> GetClustersInfo();
@@ -44,7 +44,7 @@ class SoluteCluster {
   const std::set<Element> element_set_;
   const size_t smallest_cluster_criteria_;
   const size_t solvent_bond_criteria_;
-  const pred::EnergyPredictor &energy_estimator_;
+  const pred::EnergyPredictor &energy_predictor_;
   const std::map<Element, double> chemical_potential_map_;
 };
 }    // namespace ansys

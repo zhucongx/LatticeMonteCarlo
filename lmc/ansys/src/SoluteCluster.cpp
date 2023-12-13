@@ -93,7 +93,7 @@ SoluteCluster::SoluteCluster(const cfg::Config &config,
                              std::set<Element> element_set,
                              size_t smallest_cluster_criteria,
                              size_t solvent_bond_criteria,
-                             const pred::EnergyPredictor &energy_estimator,
+                             const pred::EnergyPredictor &energy_predictor,
                              const std::map<Element, double> &chemical_potential_map)
     : config_(config),
       solvent_config_(config),
@@ -101,7 +101,7 @@ SoluteCluster::SoluteCluster(const cfg::Config &config,
       element_set_(std::move(element_set)),
       smallest_cluster_criteria_(smallest_cluster_criteria),
       solvent_bond_criteria_(solvent_bond_criteria),
-      energy_estimator_(energy_estimator),
+      energy_predictor_(energy_predictor),
       chemical_potential_map_(chemical_potential_map)
 {
   for (size_t atom_id = 0; atom_id < solvent_config_.GetNumAtoms(); ++atom_id) {
@@ -363,8 +363,8 @@ double SoluteCluster::GetFormationEnergy(const std::vector<size_t> &cluster_atom
     energy_change_solution_to_pure_solvent += chemical_potential_map_.at(element);
   }
   const double energy_change_cluster_to_pure_solvent =
-      energy_estimator_.GetEnergyOfCluster(solute_config, cluster_atom_id_list) -
-      energy_estimator_.GetEnergyOfCluster(solvent_config_, cluster_atom_id_list);
+      energy_predictor_.GetEnergyOfCluster(solute_config, cluster_atom_id_list) -
+      energy_predictor_.GetEnergyOfCluster(solvent_config_, cluster_atom_id_list);
   return energy_change_cluster_to_pure_solvent - energy_change_solution_to_pure_solvent;
 }
 Vector_t SoluteCluster::GetGeometryCenter(const std::vector<size_t> &cluster_atom_id_list) const

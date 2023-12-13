@@ -42,7 +42,7 @@ Traverse::Traverse(unsigned long long int initial_steps,
       solvent_bond_criteria_(solvent_bond_criteria),
       log_type_(std::move(log_type)),
       config_type_(std::move(config_type)),
-      energy_estimator_(predictor_filename, element_set_),
+      energy_predictor_(predictor_filename, element_set_),
       vacancy_migration_predictor_(predictor_filename, GetConfig(config_type_, 0), element_set_),
       energy_change_predictor_site_(predictor_filename, GetConfig(config_type_, 0), element_set_) {
   std::string log_file_name;
@@ -97,7 +97,7 @@ Traverse::Traverse(unsigned long long int initial_steps,
 Traverse::~Traverse() = default;
 
 void Traverse::RunAnsys() const {
-  const auto chemical_potential = energy_estimator_.GetChemicalPotential(solvent_element_);
+  const auto chemical_potential = energy_predictor_.GetChemicalPotential(solvent_element_);
   json ansys_info_array = json::array();
 #pragma omp parallel for default(none) schedule(static, 1) shared(ansys_info_array, chemical_potential, std::cout)
   for (unsigned long long i = initial_steps_; i <= final_number_; i += increment_steps_) {
@@ -129,7 +129,7 @@ void Traverse::RunAnsys() const {
                                                          element_set_,
                                                          smallest_cluster_criteria_,
                                                          solvent_bond_criteria_,
-                                                         energy_estimator_,
+                                                         energy_predictor_,
                                                          chemical_potential)
                                                .GetClustersInfo();
     ansys_info["clusters"] = cluster_json;

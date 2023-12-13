@@ -35,7 +35,7 @@ class Traverse {
       filename_time_hashset_{};
   const std::string log_type_;
   const std::string config_type_;
-  const pred::EnergyPredictor energy_estimator_;
+  const pred::EnergyPredictor energy_predictor_;
   const pred::VacancyMigrationPredictorQuartic vacancy_migration_predictor_;
   const pred::EnergyChangePredictorSite energy_change_predictor_site_;
 };
