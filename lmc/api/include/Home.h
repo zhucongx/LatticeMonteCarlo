@@ -15,7 +15,7 @@ void Run(const Parameter &parameter);
 mc::KineticMcFirstMpi BuildKineticMcFirstMpiFromParameter(const Parameter &parameter);
 mc::KineticMcFirstOmp BuildKineticMcFirstOmpFromParameter(const Parameter &parameter);
 mc::KineticMcChainOmpi BuildKineticMcChainOmpiFromParameter(const Parameter &parameter);
-ansys::SimulatedAnnealing BuildSimulatedAnnealingFromParameter(const Parameter &parameter);
+mc::SimulatedAnnealing BuildSimulatedAnnealingFromParameter(const Parameter &parameter);
 mc::CanonicalMcSerial BuildCanonicalMcSerialFromParameter(const Parameter &parameter);
 mc::CanonicalMcOmp BuildCanonicalMcOmpFromParameter(const Parameter &parameter);
 ansys::Traverse BuildIteratorFromParameter(const Parameter &parameter);

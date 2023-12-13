@@ -43,8 +43,8 @@ void Print(const Parameter &parameter) {
     std::cout << "log_dump_steps: " << parameter.log_dump_steps_ << std::endl;
     std::cout << "config_dump_steps: " << parameter.config_dump_steps_ << std::endl;
     std::cout << "maximum_steps: " << parameter.maximum_steps_ << std::endl;
-    std::cout << "early_stop_steps: " << parameter.early_stop_steps_ << std::endl;
     std::cout << "initial_temperature: " << parameter.initial_temperature_ << std::endl;
+    std::cout << "decrement_temperature: " << parameter.decrement_temperature_ << std::endl;
   } else if (parameter.method == "CanonicalMcSerial" || parameter.method == "CanonicalMcOmp") {
     std::cout << "json_coefficients_filename: " << parameter.json_coefficients_filename_
               << std::endl;
@@ -62,8 +62,6 @@ void Print(const Parameter &parameter) {
     std::cout << "temperature: " << parameter.temperature_ << std::endl;
     std::cout << "restart_steps: " << parameter.restart_steps_ << std::endl;
     std::cout << "restart_energy: " << parameter.restart_energy_ << std::endl;
-    // std::cout << "initial_temperature: " << parameter.initial_temperature_ << std::endl;
-    // std::cout << "decrement_temperature: " << parameter.decrement_temperature_ << std::endl;
   } else if (parameter.method == "Ansys" || parameter.method == "Reformat") {
     std::cout << "json_coefficients_filename: " << parameter.json_coefficients_filename_
               << std::endl;
@@ -191,21 +189,21 @@ mc::KineticMcChainOmpi BuildKineticMcChainOmpiFromParameter(const Parameter &par
                                 parameter.time_temperature_filename_,
                                 parameter.rate_corrector_};
 }
-ansys::SimulatedAnnealing BuildSimulatedAnnealingFromParameter(const Parameter &parameter) {
+mc::SimulatedAnnealing BuildSimulatedAnnealingFromParameter(const Parameter &parameter) {
   std::map<Element, size_t> solute_atom_count;
   for (size_t i = 0; i < parameter.solute_element_set_.size(); ++i) {
     solute_atom_count.insert(std::make_pair(Element(parameter.solute_element_set_[i]),
                                             parameter.solute_number_set_[i]));
   }
 
-  return ansys::SimulatedAnnealing{{parameter.factor_, parameter.factor_, parameter.factor_},
+  return mc::SimulatedAnnealing{{parameter.factor_, parameter.factor_, parameter.factor_},
                                    Element(parameter.solvent_element_),
                                    solute_atom_count,
                                    parameter.log_dump_steps_,
                                    parameter.config_dump_steps_,
                                    parameter.maximum_steps_,
-                                   parameter.early_stop_steps_,
                                    parameter.initial_temperature_,
+                                   parameter.decrement_temperature_,
                                    parameter.json_coefficients_filename_};
 }
 mc::CanonicalMcSerial BuildCanonicalMcSerialFromParameter(const Parameter &parameter) {
@@ -229,8 +227,6 @@ mc::CanonicalMcSerial BuildCanonicalMcSerialFromParameter(const Parameter &param
                                parameter.restart_steps_,
                                parameter.restart_energy_,
                                parameter.temperature_,
-      // parameter.initial_temperature_,
-      // parameter.decrement_temperature_,
                                element_set,
                                parameter.json_coefficients_filename_};
 }
@@ -255,8 +251,6 @@ mc::CanonicalMcOmp BuildCanonicalMcOmpFromParameter(const Parameter &parameter) 
                             parameter.restart_steps_,
                             parameter.restart_energy_,
                             parameter.temperature_,
-      // parameter.initial_temperature_,
-      // parameter.decrement_temperature_,
                             element_set,
                             parameter.json_coefficients_filename_};
 }
