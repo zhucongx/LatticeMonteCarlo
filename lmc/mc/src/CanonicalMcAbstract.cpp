@@ -21,8 +21,6 @@ CanonicalMcAbstract::CanonicalMcAbstract(cfg::Config config,
                                          const unsigned long long int restart_steps,
                                          const double restart_energy,
                                          const double temperature,
-    // const double initial_temperature,
-    // const double decrement_temperature,
                                          const std::set<Element> &element_set,
                                          const std::string &json_coefficients_filename)
     : McAbstract(std::move(config),
@@ -53,14 +51,6 @@ std::pair<size_t, size_t> CanonicalMcAbstract::GenerateLatticeIdJumpPair() {
       == config_.GetElementAtLatticeId(lattice_id2));
   return {lattice_id1, lattice_id2};
 }
-// void CanonicalMcAbstract::UpdateTemperature() {
-//   if (steps_ % maximum_steps_ == 0 && steps_ != 0) {
-//     config_.WriteConfig("end_" + std::to_string(static_cast<int>(temperature_)) + "K.cfg",
-//                         false);
-//     temperature_ -= decrement_temperature_;
-//     beta_ = 1.0 / constants::kBoltzmann / temperature_;
-//   }
-// }
 
 void CanonicalMcAbstract::Dump() const {
   if (is_restarted_) {
