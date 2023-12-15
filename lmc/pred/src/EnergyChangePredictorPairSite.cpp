@@ -133,6 +133,12 @@ double EnergyChangePredictorPairSite::GetDeFromLatticeIdPairWithoutCoupling(
   auto dE2 = GetDeFromLatticeIdSite(config, lattice_id_jump_pair.second, element_first);
   return dE1 + dE2;
 }
+
+double EnergyChangePredictorPairSite::GetDeFromAtomIdSite(const cfg::Config &config,
+                                                         size_t atom_id,
+                                                         Element new_element) const {
+  return GetDeFromLatticeIdSite(config, config.GetLatticeIdFromAtomId(atom_id), new_element);
+}
 double EnergyChangePredictorPairSite::GetDeFromLatticeIdSite(const cfg::Config &config,
                                                             size_t lattice_id,
                                                             Element new_element) const {

@@ -5,6 +5,7 @@
 #include "ShortRangeOrder.h"
 #include "SoluteCluster.h"
 #include "VacancyMigrationPredictorQuartic.h"
+#include "EnergyChangePredictorPairSite.h"
 
 namespace ansys {
 
@@ -37,7 +38,7 @@ class Traverse {
   const std::string config_type_;
   const pred::EnergyPredictor energy_predictor_;
   const pred::VacancyMigrationPredictorQuartic vacancy_migration_predictor_;
-  const pred::EnergyChangePredictorSite energy_change_predictor_site_;
+  const pred::EnergyChangePredictorPairSite energy_change_predictor_pair_site_;
 };
 
 }    // namespace ansys
