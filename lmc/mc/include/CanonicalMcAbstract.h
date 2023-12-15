@@ -1,6 +1,6 @@
 #ifndef LMC_LMC_MC_INCLUDE_CANONICALMCABSTRACT_H_
 #define LMC_LMC_MC_INCLUDE_CANONICALMCABSTRACT_H_
-#include "EnergyChangePredictorPairAll.h"
+#include "EnergyChangePredictorPairSite.h"
 #include "McAbstract.h"
 
 #include <mpi.h>
@@ -29,7 +29,7 @@ class CanonicalMcAbstract : public McAbstract {
   void SelectEvent(const std::pair<size_t, size_t> &lattice_id_jump_pair, double dE);
 
   // helpful properties
-  const pred::EnergyChangePredictorPairAll energy_change_predictor_;
+  const pred::EnergyChangePredictorPairSite energy_change_predictor_;
   mutable std::uniform_int_distribution<size_t> atom_index_selector_;
 };
 

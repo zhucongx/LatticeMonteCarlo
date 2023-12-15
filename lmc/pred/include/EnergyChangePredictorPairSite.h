@@ -1,5 +1,5 @@
-#ifndef LMC_LMC_PRED_INCLUDE_ENERGYCHANGEPREDICTORPAIRALL_H_
-#define LMC_LMC_PRED_INCLUDE_ENERGYCHANGEPREDICTORPAIRALL_H_
+#ifndef LMC_LMC_PRED_INCLUDE_ENERGYCHANGEPREDICTORPAIRSITE_H_
+#define LMC_LMC_PRED_INCLUDE_ENERGYCHANGEPREDICTORPAIRSITE_H_
 #include <string>
 #include <unordered_set>
 #include <unordered_map>
@@ -10,23 +10,23 @@
 #include "EnergyUtility.h"
 
 namespace pred {
-class EnergyChangePredictorPairAll {
+class EnergyChangePredictorPairSite {
   public:
-    EnergyChangePredictorPairAll(const std::string &predictor_filename,
+    EnergyChangePredictorPairSite(const std::string &predictor_filename,
                                  const cfg::Config &reference_config,
                                  std::set<Element> element_set);
-    virtual ~EnergyChangePredictorPairAll();
+    virtual ~EnergyChangePredictorPairSite();
     [[nodiscard]] double GetDeFromAtomIdPair(
         const cfg::Config &config, const std::pair<size_t, size_t> &atom_id_jump_pair) const;
     [[nodiscard]] double GetDeFromLatticeIdPair(
         const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
+  [[nodiscard]] double GetDeFromAtomIdSite(const cfg::Config &config, size_t atom_id, Element new_element) const;
+  [[nodiscard]] double GetDeFromLatticeIdSite(const cfg::Config &config, size_t lattice_id, Element new_element) const;
   private:
     [[nodiscard]] double GetDeFromLatticeIdPairWithCoupling(
         const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
     [[nodiscard]] double GetDeFromLatticeIdPairWithoutCoupling(
         const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
-    [[nodiscard]] double GetDeFromLatticeIdSite(
-        const cfg::Config &config, size_t lattice_id, Element new_element) const;
     [[nodiscard]] double GetDeHelper(
         const std::unordered_map<cfg::ElementCluster, size_t,
                                  boost::hash<cfg::ElementCluster> > &start_hashmap,
@@ -45,4 +45,4 @@ class EnergyChangePredictorPairAll {
     std::unordered_map<size_t, std::unordered_set<size_t> > neighboring_sites_hashmap_{};
 };
 } // pred
-#endif //LMC_LMC_PRED_INCLUDE_ENERGYCHANGEPREDICTORPAIRALL_H_
+#endif //LMC_LMC_PRED_INCLUDE_ENERGYCHANGEPREDICTORPAIRSITE_H_

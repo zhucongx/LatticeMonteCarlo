@@ -1,9 +1,9 @@
-#include "EnergyChangePredictorPairAll.h"
+#include "EnergyChangePredictorPairSite.h"
 #include <omp.h>
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 namespace pred {
-EnergyChangePredictorPairAll::EnergyChangePredictorPairAll(const std::string &predictor_filename,
+EnergyChangePredictorPairSite::EnergyChangePredictorPairSite(const std::string &predictor_filename,
                                                            const cfg::Config &reference_config,
                                                            std::set<Element> element_set)
     : element_set_(std::move(element_set)),
@@ -41,8 +41,8 @@ EnergyChangePredictorPairAll::EnergyChangePredictorPairAll(const std::string &pr
     }
   }
 }
-EnergyChangePredictorPairAll::~EnergyChangePredictorPairAll() = default;
-double EnergyChangePredictorPairAll::GetDeFromAtomIdPair(
+EnergyChangePredictorPairSite::~EnergyChangePredictorPairSite() = default;
+double EnergyChangePredictorPairSite::GetDeFromAtomIdPair(
     const cfg::Config &config, const std::pair<size_t, size_t> &atom_id_jump_pair) const {
   return GetDeFromLatticeIdPair(
       config,
@@ -50,7 +50,7 @@ double EnergyChangePredictorPairAll::GetDeFromAtomIdPair(
        config.GetLatticeIdFromAtomId(atom_id_jump_pair.second)});
 }
 
-double EnergyChangePredictorPairAll::GetDeFromLatticeIdPair(
+double EnergyChangePredictorPairSite::GetDeFromLatticeIdPair(
     const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
   if (config.GetElementAtLatticeId(lattice_id_jump_pair.first)
       == config.GetElementAtLatticeId(lattice_id_jump_pair.second)) {
@@ -62,7 +62,7 @@ double EnergyChangePredictorPairAll::GetDeFromLatticeIdPair(
   }
   return GetDeFromLatticeIdPairWithCoupling(config, lattice_id_jump_pair);
 }
-double EnergyChangePredictorPairAll::GetDeHelper(
+double EnergyChangePredictorPairSite::GetDeHelper(
     const std::unordered_map<cfg::ElementCluster, size_t,
                              boost::hash<cfg::ElementCluster> > &start_hashmap,
     const std::unordered_map<cfg::ElementCluster, size_t,
@@ -86,7 +86,7 @@ double EnergyChangePredictorPairAll::GetDeHelper(
   }
   return dE;
 }
-double EnergyChangePredictorPairAll::GetDeFromLatticeIdPairWithCoupling(
+double EnergyChangePredictorPairSite::GetDeFromLatticeIdPairWithCoupling(
     const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
   const auto element_first = config.GetElementAtLatticeId(lattice_id_jump_pair.first);
   const auto element_second = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
@@ -122,7 +122,7 @@ double EnergyChangePredictorPairAll::GetDeFromLatticeIdPairWithCoupling(
       ordered(initialized_cluster_hashmap_.begin(), initialized_cluster_hashmap_.end());
   return GetDeHelper(start_hashmap, end_hashmap, ordered);
 }
-double EnergyChangePredictorPairAll::GetDeFromLatticeIdPairWithoutCoupling(
+double EnergyChangePredictorPairSite::GetDeFromLatticeIdPairWithoutCoupling(
     const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
   const auto element_first = config.GetElementAtLatticeId(lattice_id_jump_pair.first);
   const auto element_second = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
@@ -133,7 +133,7 @@ double EnergyChangePredictorPairAll::GetDeFromLatticeIdPairWithoutCoupling(
   auto dE2 = GetDeFromLatticeIdSite(config, lattice_id_jump_pair.second, element_first);
   return dE1 + dE2;
 }
-double EnergyChangePredictorPairAll::GetDeFromLatticeIdSite(const cfg::Config &config,
+double EnergyChangePredictorPairSite::GetDeFromLatticeIdSite(const cfg::Config &config,
                                                             size_t lattice_id,
                                                             Element new_element) const {
   const auto old_element = config.GetElementAtLatticeId(lattice_id);

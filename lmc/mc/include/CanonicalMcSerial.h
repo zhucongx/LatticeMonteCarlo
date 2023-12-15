@@ -4,7 +4,7 @@
 #include <mpi.h>
 #include <omp.h>
 #include "CanonicalMcAbstract.h"
-#include "EnergyChangePredictorPairAll.h"
+#include "EnergyChangePredictorPairSite.h"
 namespace mc {
 class CanonicalMcSerial : public CanonicalMcAbstract {
   public:
