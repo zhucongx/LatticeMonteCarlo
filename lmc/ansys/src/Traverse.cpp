@@ -181,6 +181,7 @@ void Traverse::RunAnsys() const {
     auto binding_energy = exit_time.GetBindingEnergy();
     auxiliary_lists["binding_energy"] = binding_energy;
     ansys_info["vac_local_binding_energy"] = binding_energy[config.GetVacancyLatticeId()];
+    global_list["vac_local_binding_energy"] = binding_energy[config.GetVacancyLatticeId()];
 
     // // exit time
     // auto [barrier_lists, exit_times] =exit_time.GetBarrierListAndExitTime();
@@ -194,7 +195,7 @@ void Traverse::RunAnsys() const {
   }
   std::cout << "Finished. Sorting..." << std::endl;
   std::sort(ansys_info_array.begin(), ansys_info_array.end(), [](const json &lhs, const json &rhs) {
-    return lhs["index"] < rhs["index"];
+    return lhs["steps"] < rhs["steps"];
   });
   std::ofstream ofs("ansys_info.json.gz", std::ios_base::out | std::ios_base::binary);
   boost::iostreams::filtering_ostream fos;
