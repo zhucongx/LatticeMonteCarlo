@@ -178,7 +178,7 @@ void Traverse::RunAnsys() const {
                               vacancy_migration_predictor_,
                               energy_change_predictor_site_,
                               chemical_potential);
-    auto binding_energy = exit_time.GetBindingEnergy();
+    const auto binding_energy = exit_time.GetBindingEnergy();
     auxiliary_lists["binding_energy"] = binding_energy;
     ansys_info["vac_local_binding_energy"] = binding_energy[config.GetVacancyLatticeId()];
     global_list["vac_local_binding_energy"] = binding_energy[config.GetVacancyLatticeId()];
