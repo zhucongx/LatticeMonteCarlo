@@ -42,9 +42,14 @@ CanonicalMcAbstract::CanonicalMcAbstract(cfg::Config config,
 }
 std::pair<size_t, size_t> CanonicalMcAbstract::GenerateLatticeIdJumpPair() {
   size_t lattice_id1, lattice_id2;
+  size_t count = 0;
   do {
     lattice_id1 = atom_index_selector_(generator_);
     lattice_id2 = atom_index_selector_(generator_);
+    ++count;
+    if (count > 100000) {
+      return  {lattice_id1, lattice_id2};
+    }
   } while (config_.GetElementAtLatticeId(lattice_id1)
       == config_.GetElementAtLatticeId(lattice_id2));
   return {lattice_id1, lattice_id2};
