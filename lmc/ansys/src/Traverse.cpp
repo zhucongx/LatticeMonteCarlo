@@ -176,20 +176,21 @@ void Traverse::RunAnsys() const {
     ansys_info["vac_local"]["third"] = convert(element_set_, config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 3));
 
     // binding energy
-    const auto exit_time = ExitTime(config,
-                                    solvent_element_,
-                                    filename_temperature_hashset_.at(i),
-                                    vacancy_migration_predictor_,
-                                    energy_change_predictor_pair_site_,
-                                    chemical_potential);
-    const auto binding_energy = exit_time.GetBindingEnergy();
-    auxiliary_lists["binding_energy"] = binding_energy;
-    ansys_info["vac_local_binding_energy"] = binding_energy[config.GetVacancyLatticeId()];
-    global_list["vac_local_binding_energy"] = binding_energy[config.GetVacancyLatticeId()];
+    // const auto exit_time = ExitTime(config,
+    //                                 solvent_element_,
+    //                                 filename_temperature_hashset_.at(i),
+    //                                 vacancy_migration_predictor_,
+    //                                 energy_change_predictor_pair_site_,
+    //                                 chemical_potential);
+    // const auto binding_energy = exit_time.GetBindingEnergy();
+    // auxiliary_lists["binding_energy"] = binding_energy;
+    // ansys_info["vac_local_binding_energy"] = binding_energy[config.GetVacancyLatticeId()];
+    // global_list["vac_local_binding_energy"] = binding_energy[config.GetVacancyLatticeId()];
+    //
+    // const auto profile_energy = exit_time.GetProfileEnergy();
+    // auxiliary_lists["profile_energy"] = profile_energy;
 
-    const auto profile_energy = exit_time.GetProfileEnergy();
-    auxiliary_lists["profile_energy"] = profile_energy;
-    // // exit time
+    // exit time
     // auto [barrier_lists, exit_times] =exit_time.GetBarrierListAndExitTime();
     // auxiliary_lists["barrier_lists"] = barrier_lists;
     // auxiliary_lists["exit_times"] = exit_times;
