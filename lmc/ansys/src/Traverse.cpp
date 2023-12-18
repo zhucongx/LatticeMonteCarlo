@@ -48,6 +48,8 @@ Traverse::Traverse(unsigned long long int initial_steps,
   std::string log_file_name;
   if (log_type_ == "kinetic_mc") {
     log_file_name = "kmc_log.txt";
+  } else if (log_type_ == "kinetic_mc_old") {
+    log_file_name = "kmc_log.txt";
   } else if (log_type_ == "canonical_mc") {
     log_file_name = "cmc_log.txt";
   } else {
@@ -73,6 +75,8 @@ Traverse::Traverse(unsigned long long int initial_steps,
     }
     if (log_type_ == "kinetic_mc") {
       ifs >> step_number >> time >> temperature >> energy;
+    } else if (log_type_ == "kinetic_mc_old") {
+      ifs >> step_number >> time >> energy;
     } else if (log_type_ == "canonical_mc") {
       ifs >> step_number >> temperature >> energy;
     } else {
@@ -173,11 +177,11 @@ void Traverse::RunAnsys() const {
 
     // binding energy
     const auto exit_time = ExitTime(config,
-                              solvent_element_,
-                              filename_temperature_hashset_.at(i),
-                              vacancy_migration_predictor_,
-                              energy_change_predictor_pair_site_,
-                              chemical_potential);
+                                    solvent_element_,
+                                    filename_temperature_hashset_.at(i),
+                                    vacancy_migration_predictor_,
+                                    energy_change_predictor_pair_site_,
+                                    chemical_potential);
     const auto binding_energy = exit_time.GetBindingEnergy();
     auxiliary_lists["binding_energy"] = binding_energy;
     ansys_info["vac_local_binding_energy"] = binding_energy[config.GetVacancyLatticeId()];
