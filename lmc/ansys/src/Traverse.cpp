@@ -176,17 +176,28 @@ void Traverse::RunAnsys() const {
     ansys_info["vac_local"]["third"] = convert(element_set_, config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 3));
 
     // binding energy
-    // const auto exit_time = ExitTime(config,
-    //                                 solvent_element_,
-    //                                 filename_temperature_hashset_.at(i),
-    //                                 vacancy_migration_predictor_,
-    //                                 energy_change_predictor_pair_site_,
-    //                                 chemical_potential);
-    // const auto binding_energy = exit_time.GetBindingEnergy();
-    // auxiliary_lists["binding_energy"] = binding_energy;
-    // ansys_info["vac_local_binding_energy"] = binding_energy[config.GetVacancyLatticeId()];
-    // global_list["vac_local_binding_energy"] = binding_energy[config.GetVacancyLatticeId()];
-    //
+    const auto exit_time = ExitTime(config,
+                                    solvent_element_,
+                                    filename_temperature_hashset_.at(i),
+                                    vacancy_migration_predictor_,
+                                    energy_change_predictor_pair_site_,
+                                    chemical_potential);
+    const auto binding_energy = exit_time.GetBindingEnergy();
+    auxiliary_lists["binding_energy"] = binding_energy;
+
+    ansys_info["vac_local_binding_energy"] = binding_energy[config.GetVacancyLatticeId()];
+    global_list["vac_local_binding_energy"] = binding_energy[config.GetVacancyLatticeId()];
+
+    for (auto &cluster_info: ansys_info["clusters"]) {
+      std::vector<double> binding_energy_list;
+      for (const auto &atom_id: cluster_info["cluster_atom_id_list"]) {
+        binding_energy_list.push_back(binding_energy[atom_id]);
+      }
+      cluster_info.erase("cluster_atom_id_list");
+      cluster_info["vacancy_binding_energy"] =
+          *std::min_element(binding_energy_list.begin(), binding_energy_list.end());
+    }
+
     // const auto profile_energy = exit_time.GetProfileEnergy();
     // auxiliary_lists["profile_energy"] = profile_energy;
 
