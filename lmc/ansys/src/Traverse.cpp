@@ -206,8 +206,8 @@ void Traverse::RunAnsys() const {
     // auxiliary_lists["barrier_lists"] = barrier_lists;
     // auxiliary_lists["exit_times"] = exit_times;
 
-    boost::filesystem::create_directories("analysis");
-    config.WriteExtendedXyz("analysis/" + std::to_string(i) + ".xyz.gz", auxiliary_lists, global_list);
+    boost::filesystem::create_directories("ansys");
+    config.WriteExtendedXyz("ansys/" + std::to_string(i) + ".xyz.gz", auxiliary_lists, global_list);
 #pragma omp critical
     { ansys_info_array.push_back(ansys_info); }
   }
