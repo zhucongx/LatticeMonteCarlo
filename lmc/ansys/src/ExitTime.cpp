@@ -45,46 +45,46 @@ std::pair<std::vector<std::vector<double>>, std::vector<double>> ExitTime::GetBa
   return std::make_pair(barrier_lists, exit_times);
 }
 
-// std::vector<double> ExitTime::GetBindingEnergyMax() const {
-//   std::vector<double> binding_energies{};
-//   auto this_config = config_;
-//   this_config.SetAtomElementTypeAtAtom(this_config.GetVacancyAtomId(), solvent_element_);
-//   for (size_t atom_id = 0; atom_id < this_config.GetNumAtoms(); ++atom_id) {
-//     const Element this_element = this_config.GetElementAtAtomId(atom_id);
-//     std::vector<double> loacal_binding_energies{};
-//     for (const auto &[element, mu]: chemical_potential_) {
-//       if (element == Element("X")) {
-//         continue;
-//       }
-//       this_config.SetAtomElementTypeAtAtom(atom_id, element);
-//       const auto potential_change =
-//           chemical_potential_.at(Element("X")) - chemical_potential_.at(this_config.GetElementAtAtomId(atom_id));
-//       const auto energy_change =
-//           energy_change_predictor_pair_site_.GetDeFromAtomIdSite(this_config, atom_id, Element("X"));
-//       loacal_binding_energies.push_back(energy_change - potential_change);
-//     }
-//
-//     binding_energies.emplace_back(*std::max_element(loacal_binding_energies.begin(), loacal_binding_energies.end()));
-//     this_config.SetAtomElementTypeAtAtom(atom_id, this_element);
-//   }
-//   return binding_energies;
-// }
-
 std::vector<double> ExitTime::GetBindingEnergy() const {
   std::vector<double> binding_energies{};
   auto this_config = config_;
   this_config.SetAtomElementTypeAtAtom(this_config.GetVacancyAtomId(), solvent_element_);
   for (size_t atom_id = 0; atom_id < this_config.GetNumAtoms(); ++atom_id) {
-    const auto potential_change =
-        chemical_potential_.at(Element("X")) - chemical_potential_.at(this_config.GetElementAtAtomId(atom_id));
+    const Element this_element = this_config.GetElementAtAtomId(atom_id);
+    std::vector<double> loacal_binding_energies{};
+    for (const auto &[element, mu]: chemical_potential_) {
+      if (element == Element("X")) {
+        continue;
+      }
+      this_config.SetAtomElementTypeAtAtom(atom_id, element);
+      const auto potential_change =
+          chemical_potential_.at(Element("X")) - chemical_potential_.at(this_config.GetElementAtAtomId(atom_id));
+      const auto energy_change =
+          energy_change_predictor_pair_site_.GetDeFromAtomIdSite(this_config, atom_id, Element("X"));
+      loacal_binding_energies.push_back(energy_change - potential_change);
+    }
 
-    const auto energy_change =
-        energy_change_predictor_pair_site_.GetDeFromAtomIdSite(this_config, atom_id, Element("X"));
-
-    binding_energies.push_back(energy_change - potential_change);
+    binding_energies.emplace_back(*std::max_element(loacal_binding_energies.begin(), loacal_binding_energies.end()));
+    this_config.SetAtomElementTypeAtAtom(atom_id, this_element);
   }
   return binding_energies;
 }
+
+// std::vector<double> ExitTime::GetBindingEnergy() const {
+//   std::vector<double> binding_energies{};
+//   auto this_config = config_;
+//   this_config.SetAtomElementTypeAtAtom(this_config.GetVacancyAtomId(), solvent_element_);
+//   for (size_t atom_id = 0; atom_id < this_config.GetNumAtoms(); ++atom_id) {
+//     const auto potential_change =
+//         chemical_potential_.at(Element("X")) - chemical_potential_.at(this_config.GetElementAtAtomId(atom_id));
+//
+//     const auto energy_change =
+//         energy_change_predictor_pair_site_.GetDeFromAtomIdSite(this_config, atom_id, Element("X"));
+//
+//     binding_energies.push_back(energy_change - potential_change);
+//   }
+//   return binding_energies;
+// }
 
 std::vector<double> ExitTime::GetProfileEnergy() const {
   std::vector<double> profile_energies{};
