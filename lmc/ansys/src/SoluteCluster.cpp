@@ -129,7 +129,10 @@ std::pair<nlohmann::json, std::map<std::string, cfg::Config::VectorVariant>> Sol
     const auto element_number = GetElementsNumber(cluster_atom_id_list);
     const size_t size_without_vacancy = size - element_number.at("X");
 
+    cluster_info["cluster_atom_id_list"] = cluster_atom_id_list;
+
     cluster_info["cluster_id"] = id;
+
     ModifyElementFromVector(
         auxiliary_lists, "cluster_id", cluster_atom_id_list, id + 1, std::vector<size_t>(config_.GetNumAtoms(), 0));
 
