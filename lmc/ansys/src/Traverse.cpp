@@ -222,8 +222,8 @@ void Traverse::RunAnsys() const {
     const auto binding_energy = exit_time.GetBindingEnergy();
     auxiliary_lists["binding_energy"] = binding_energy;
 
-    ansys_info["vac_local_binding_energy"] = binding_energy[config.GetVacancyAtomId()];
-    global_list["vac_local_binding_energy"] = binding_energy[config.GetVacancyAtomId()];
+    ansys_info["vacancy_local_binding_energy"] = binding_energy[config.GetVacancyAtomId()];
+    global_list["vacancy_local_binding_energy"] = binding_energy[config.GetVacancyAtomId()];
 
     for (auto &cluster_info: ansys_info["clusters"]) {
       std::vector<double> binding_energy_list;
