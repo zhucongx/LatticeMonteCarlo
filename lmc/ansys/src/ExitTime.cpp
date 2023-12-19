@@ -70,6 +70,15 @@ std::vector<double> ExitTime::GetBindingEnergy() const {
   return binding_energies;
 }
 
+double ExitTime::GetLocalBindingEnergy() const {
+  const auto potential_change = chemical_potential_.at(Element("X"));
+
+  const auto energy_change =
+      energy_change_predictor_pair_site_.GetDeFromAtomIdSite(config_, config_.GetVacancyAtomId(), solvent_element_);
+
+  return -energy_change - potential_change;
+}
+
 // std::vector<double> ExitTime::GetBindingEnergy() const {
 //   std::vector<double> binding_energies{};
 //   auto this_config = config_;
