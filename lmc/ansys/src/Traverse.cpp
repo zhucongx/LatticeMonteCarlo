@@ -40,7 +40,7 @@ Traverse::Traverse(unsigned long long int initial_steps,
       element_set_(std::move(element_set)),
       smallest_cluster_criteria_(smallest_cluster_criteria),
       solvent_bond_criteria_(solvent_bond_criteria),
-      log_json_(nlohmann::json::object()),
+      log_map_{},
       log_type_(std::move(log_type)),
       config_type_(std::move(config_type)),
       energy_predictor_(predictor_filename, element_set_),
@@ -70,10 +70,10 @@ Traverse::Traverse(unsigned long long int initial_steps,
   std::vector<std::string> headers;
   boost::algorithm::split(headers, buffer, boost::is_any_of("\t"));
   for (const auto &header: headers) {
-    if (header=="steps") {
+    if (header == "steps") {
       continue;
     }
-    log_json_[header] = nlohmann::json::object();
+    log_map_[header] = {};
   }
   // read data
   while (std::getline(ifs, buffer)) {
@@ -94,9 +94,11 @@ Traverse::Traverse(unsigned long long int initial_steps,
     while (line_stream >> buffer) {
       try {
         const auto double_value = boost::lexical_cast<double>(buffer);
-        log_json_[headers[col_index]][step_number] = double_value;
+        std::get<std::unordered_map<unsigned long long, double>>(log_map_[headers[col_index]])[step_number] =
+            double_value;
       } catch (const boost::bad_lexical_cast &) {
-        log_json_[headers[col_index]][step_number] = buffer;
+        std::get<std::unordered_map<unsigned long long, std::string>>(log_map_[headers[col_index]])[step_number] =
+            buffer;
       }
       col_index++;
     }
@@ -131,14 +133,18 @@ void Traverse::RunAnsys() const {
     ansys_info["steps"] = i;
     global_list["steps"] = i;
 
-    ansys_info["time"] = log_json_["time"].at(i);
-    global_list["time"] = log_json_["time"].at(i).get<double>();
+    const auto time = std::get<std::unordered_map<unsigned long long, double>>(log_map_.at("time")).at(i);
+    ansys_info["time"] = time;
+    global_list["time"] = time;
 
-    ansys_info["temperature"] = log_json_["temperature"].at(i);
-    global_list["temperature"] = log_json_["temperature"].at(i).get<double>();
+    const auto temperature = std::get<std::unordered_map<unsigned long long, double>>(log_map_.at("temperature")).at(i);
+    ansys_info["temperature"] = temperature;
+    global_list["temperature"] = temperature;
 
-    ansys_info["energy"] = log_json_["energy"].at(i);
-    global_list["energy"] = log_json_["energy"].at(i).get<double>();
+
+    const auto energy = std::get<std::unordered_map<unsigned long long, double>>(log_map_.at("energy")).at(i);
+    ansys_info["energy"] = energy;
+    global_list["energy"] = energy;
 
     // cluster information
     auto [cluster_json, auxiliary_lists] = SoluteCluster(config,
@@ -192,7 +198,7 @@ void Traverse::RunAnsys() const {
     // binding energy
     const auto exit_time = ExitTime(config,
                                     solvent_element_,
-                                    log_json_["temperature"].at(i),
+                                    temperature,
                                     vacancy_migration_predictor_,
                                     energy_change_predictor_pair_site_,
                                     chemical_potential);

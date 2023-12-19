@@ -6,6 +6,7 @@
 #include "ShortRangeOrder.h"
 #include "SoluteCluster.h"
 #include "VacancyMigrationPredictorQuartic.h"
+
 #include <nlohmann/json.hpp>
 
 namespace ansys {
@@ -39,7 +40,11 @@ class Traverse {
   const std::set<Element> element_set_;
   size_t smallest_cluster_criteria_;
   size_t solvent_bond_criteria_;
-  nlohmann::json log_json_;
+
+  using MapVariant =
+      std::variant<std::unordered_map<unsigned long long, double>, std::unordered_map<unsigned long long, std::string>>;
+
+  std::unordered_map<std::string, MapVariant> log_map_;
 
   const std::string log_type_;
   const std::string config_type_;
