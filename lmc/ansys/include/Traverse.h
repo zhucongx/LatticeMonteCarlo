@@ -6,6 +6,7 @@
 #include "ShortRangeOrder.h"
 #include "SoluteCluster.h"
 #include "VacancyMigrationPredictorQuartic.h"
+#include <nlohmann/json.hpp>
 
 namespace ansys {
 
@@ -38,8 +39,8 @@ class Traverse {
   const std::set<Element> element_set_;
   size_t smallest_cluster_criteria_;
   size_t solvent_bond_criteria_;
-  std::unordered_map<unsigned long long, double> filename_energy_hashset_{}, filename_temperature_hashset_{},
-      filename_time_hashset_{};
+  nlohmann::json log_json_;
+
   const std::string log_type_;
   const std::string config_type_;
   const pred::EnergyPredictor energy_predictor_;

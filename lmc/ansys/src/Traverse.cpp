@@ -1,13 +1,13 @@
 #include "Traverse.h"
 
 #include <algorithm>
-#include <boost/algorithm/string/join.hpp>
+#include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/iostreams/filter/bzip2.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
+#include <boost/lexical_cast.hpp>
 #include <iostream>
-#include <nlohmann/json.hpp>
 #include <omp.h>
 
 namespace ansys {
@@ -40,6 +40,7 @@ Traverse::Traverse(unsigned long long int initial_steps,
       element_set_(std::move(element_set)),
       smallest_cluster_criteria_(smallest_cluster_criteria),
       solvent_bond_criteria_(solvent_bond_criteria),
+      log_json_(nlohmann::json::object()),
       log_type_(std::move(log_type)),
       config_type_(std::move(config_type)),
       energy_predictor_(predictor_filename, element_set_),
@@ -48,7 +49,7 @@ Traverse::Traverse(unsigned long long int initial_steps,
       frame_ofs_("ansys_frame_log.txt", std::ofstream::out),
       cluster_ofs_("ansys_cluster_log.txt", std::ofstream::out) {
   std::string log_file_name;
-  if (log_type_ == "kinetic_mc" || log_type_ == "kinetic_mc_old") {
+  if (log_type_ == "kinetic_mc") {
     log_file_name = "kmc_log.txt";
   } else if (log_type_ == "canonical_mc") {
     log_file_name = "cmc_log.txt";
@@ -59,38 +60,42 @@ Traverse::Traverse(unsigned long long int initial_steps,
   if (!ifs.is_open()) {
     throw std::runtime_error("Cannot open " + log_file_name);
   }
-  unsigned long long step_number;
-  double energy{}, time{}, temperature{};
-  while (ifs.peek() != '0') {
+  while (ifs.peek() == '#') {
     ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
   }
 
-  while (true) {
-    if (ifs.eof() || ifs.bad()) {
-      break;
-    }
-    if (ifs.peek() == '#') {
-      ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+  std::string buffer;
+  // read header
+  std::getline(ifs, buffer);
+  std::vector<std::string> headers;
+  boost::algorithm::split(headers, buffer, boost::is_any_of("\t"));
+  // read data
+  while (std::getline(ifs, buffer)) {
+    if (buffer.empty()) {
       continue;
     }
-    if (log_type_ == "kinetic_mc") {
-      ifs >> step_number >> time >> temperature >> energy;
-    } else if (log_type_ == "kinetic_mc_old") {
-      ifs >> step_number >> time >> energy;
-    } else if (log_type_ == "canonical_mc") {
-      ifs >> step_number >> temperature >> energy;
-    } else {
-      throw std::invalid_argument("Unknown log type: " + log_type_);
+    if (buffer[0] == '#') {
+      continue;
     }
-
-    ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-    if (step_number >= initial_steps_ && (step_number - initial_steps_) % increment_steps == 0) {
-      filename_energy_hashset_[step_number] = energy;
-      filename_temperature_hashset_[step_number] = temperature;
-      filename_time_hashset_[step_number] = time;
-      final_number_ = step_number;
+    std::istringstream line_stream(buffer);
+    unsigned long long step_number;
+    line_stream >> step_number;
+    if (step_number < initial_steps_ || (step_number - initial_steps_) % increment_steps != 0) {
+      continue;
+    }
+    final_number_ = step_number;
+    size_t col_index = 1;
+    while (line_stream >> buffer) {
+      try {
+        const auto double_value = boost::lexical_cast<double>(buffer);
+        log_json_[headers[col_index]][step_number] = double_value;
+      } catch (const boost::bad_lexical_cast &) {
+        log_json_[headers[col_index]][step_number] = buffer;
+      }
+      col_index++;
     }
   }
+
 #pragma omp parallel default(none) shared(std::cout)
   {
 #pragma omp master
@@ -120,14 +125,14 @@ void Traverse::RunAnsys() const {
     ansys_info["steps"] = i;
     global_list["steps"] = i;
 
-    ansys_info["time"] = filename_time_hashset_.at(i);
-    global_list["time"] = filename_time_hashset_.at(i);
+    ansys_info["time"] = log_json_["time"].at(i);
+    global_list["time"] = log_json_["time"].at(i).get<double>();
 
-    ansys_info["temperature"] = filename_temperature_hashset_.at(i);
-    global_list["temperature"] = filename_temperature_hashset_.at(i);
+    ansys_info["temperature"] = log_json_["temperature"].at(i);
+    global_list["temperature"] = log_json_["temperature"].at(i).get<double>();
 
-    ansys_info["energy"] = filename_energy_hashset_.at(i);
-    global_list["energy"] = filename_energy_hashset_.at(i);
+    ansys_info["energy"] = log_json_["energy"].at(i);
+    global_list["energy"] = log_json_["energy"].at(i).get<double>();
 
     // cluster information
     auto [cluster_json, auxiliary_lists] = SoluteCluster(config,
@@ -181,7 +186,7 @@ void Traverse::RunAnsys() const {
     // binding energy
     const auto exit_time = ExitTime(config,
                                     solvent_element_,
-                                    filename_temperature_hashset_.at(i),
+                                    log_json_["temperature"].at(i),
                                     vacancy_migration_predictor_,
                                     energy_change_predictor_pair_site_,
                                     chemical_potential);
@@ -232,7 +237,6 @@ void Traverse::RunAnsys() const {
   fos << ansys_info_array.dump(2) << std::endl;
   std::cout << "Done..." << std::endl;
 }
-
 
 std::string Traverse::GetHeaderClusterString() const {
   std::string header_frame = "steps\ttime\ttemperature\tenergy\tcluster_energy\tcluster_size\t";
