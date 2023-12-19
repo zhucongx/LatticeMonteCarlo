@@ -69,6 +69,12 @@ Traverse::Traverse(unsigned long long int initial_steps,
   std::getline(ifs, buffer);
   std::vector<std::string> headers;
   boost::algorithm::split(headers, buffer, boost::is_any_of("\t"));
+  for (const auto &header: headers) {
+    if (header=="steps") {
+      continue;
+    }
+    log_json_[header] = nlohmann::json::object();
+  }
   // read data
   while (std::getline(ifs, buffer)) {
     if (buffer.empty()) {
