@@ -100,40 +100,6 @@ Traverse::Traverse(unsigned long long int initial_steps,
 
 Traverse::~Traverse() = default;
 
-std::string Traverse::GetHeaderFrameString() const {
-  std::string header_frame = "steps\ttime\ttemperature\tenergy\tnum_cluster\tnum_atom\t";
-  for (const auto &element: element_set_) {
-    header_frame += "num_" + element.GetString() + "\t";
-  }
-  header_frame += "cluster_size_list\t";
-  static const std::vector<std::string> order_list{"first", "second", "third"};
-  for (const auto &order: order_list) {
-    for (auto it1 = element_set_.cbegin(); it1 != element_set_.cend(); ++it1) {
-      for (auto it2 = element_set_.cbegin(); it2 != element_set_.cend(); ++it2) {
-        header_frame += "warren_cowley_" + order + "_" + it1->GetString() + "-" + it2->GetString() + "\t";
-      }
-    }
-  }
-  for (const auto &order: order_list) {
-    for (const auto &element: element_set_) {
-      header_frame += "vacancy_local_" + order + "_" + element.GetString() + "\t";
-    }
-  }
-  header_frame += "vacancy_local_binding_energy\n";
-  return header_frame;
-}
-
-std::string Traverse::GetHeaderClusterString() const {
-  std::string header_frame = "steps\ttime\ttemperature\tenergy\tcluster_energy\tcluster_size\t";
-  for (const auto &element: element_set_) {
-    header_frame += "cluster_";
-    header_frame += element.GetString();
-    header_frame += "\t";
-  }
-  header_frame += "cluster_X\tmass_gyration_radius\tasphericity\tacylindricity\tanisotropy\tvacancy_binding_energy\n";
-  return header_frame;
-}
-
 void Traverse::RunAnsys() const {
   const auto chemical_potential = energy_predictor_.GetChemicalPotential(solvent_element_);
   nlohmann::json ansys_info_array = nlohmann::json::array();
@@ -267,6 +233,19 @@ void Traverse::RunAnsys() const {
   std::cout << "Done..." << std::endl;
 }
 
+
+std::string Traverse::GetHeaderClusterString() const {
+  std::string header_frame = "steps\ttime\ttemperature\tenergy\tcluster_energy\tcluster_size\t";
+  for (const auto &element: element_set_) {
+    header_frame += "cluster_";
+    header_frame += element.GetString();
+    header_frame += "\t";
+  }
+  header_frame += "cluster_X\tmass_gyration_radius\tasphericity\tacylindricity\tanisotropy\t"
+                  "vacancy_binding_energy\tvacancy_local_binding_energy\n";
+  return header_frame;
+}
+
 std::string Traverse::GetClusterString(const nlohmann::json &frame) const {
   std::stringstream cluster_stream;
   cluster_stream.precision(16);
@@ -278,9 +257,33 @@ std::string Traverse::GetClusterString(const nlohmann::json &frame) const {
     }
     cluster_stream << cluster["elements_number"]["X"] << "\t" << cluster["mass_gyration_radius"] << "\t"
                    << cluster["shape"]["asphericity"] << "\t" << cluster["shape"]["acylindricity"] << "\t"
-                   << cluster["shape"]["anisotropy"] << "\t" << cluster["vacancy_binding_energy"] << "\n";
+                   << cluster["shape"]["anisotropy"] << "\t" << cluster["vacancy_binding_energy"] << "\t"
+                   << frame["vacancy_local_binding_energy"] << "\n";
   }
   return cluster_stream.str();
+}
+
+std::string Traverse::GetHeaderFrameString() const {
+  std::string header_frame = "steps\ttime\ttemperature\tenergy\tnum_cluster\tnum_atom\t";
+  for (const auto &element: element_set_) {
+    header_frame += "num_" + element.GetString() + "\t";
+  }
+  header_frame += "cluster_size_list\t";
+  static const std::vector<std::string> order_list{"first", "second", "third"};
+  for (const auto &order: order_list) {
+    for (auto it1 = element_set_.cbegin(); it1 != element_set_.cend(); ++it1) {
+      for (auto it2 = element_set_.cbegin(); it2 != element_set_.cend(); ++it2) {
+        header_frame += "warren_cowley_" + order + "_" + it1->GetString() + "-" + it2->GetString() + "\t";
+      }
+    }
+  }
+  for (const auto &order: order_list) {
+    for (const auto &element: element_set_) {
+      header_frame += "vacancy_local_" + order + "_" + element.GetString() + "\t";
+    }
+  }
+  header_frame += "vacancy_local_binding_energy\n";
+  return header_frame;
 }
 
 std::string Traverse::GetFrameString(const nlohmann::json &frame) const {
