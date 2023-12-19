@@ -1,6 +1,7 @@
 #include "Traverse.h"
 
 #include <algorithm>
+#include <boost/algorithm/string/join.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/iostreams/filter/bzip2.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
@@ -8,7 +9,6 @@
 #include <iostream>
 #include <nlohmann/json.hpp>
 #include <omp.h>
-using json = nlohmann::json;
 
 namespace ansys {
 static cfg::Config GetConfig(const std::string &config_type, size_t i) {
@@ -44,7 +44,9 @@ Traverse::Traverse(unsigned long long int initial_steps,
       config_type_(std::move(config_type)),
       energy_predictor_(predictor_filename, element_set_),
       vacancy_migration_predictor_(predictor_filename, GetConfig(config_type_, 0), element_set_),
-      energy_change_predictor_pair_site_(predictor_filename, GetConfig(config_type_, 0), element_set_) {
+      energy_change_predictor_pair_site_(predictor_filename, GetConfig(config_type_, 0), element_set_),
+      frame_ofs_("ansys_frame_log.txt", std::ofstream::out),
+      cluster_ofs_("ansys_cluster_log.txt", std::ofstream::out) {
   std::string log_file_name;
   if (log_type_ == "kinetic_mc" || log_type_ == "kinetic_mc_old") {
     log_file_name = "kmc_log.txt";
@@ -98,9 +100,45 @@ Traverse::Traverse(unsigned long long int initial_steps,
 
 Traverse::~Traverse() = default;
 
+std::string Traverse::GetHeaderFrameString() const {
+  std::string header_frame = "steps\ttime\ttemperature\tenergy\tnum_cluster\tnum_atom\t";
+  for (const auto &element: element_set_) {
+    header_frame += "num_" + element.GetString() + "\t";
+  }
+  header_frame += "cluster_size_list\t";
+  static const std::vector<std::string> order_list{"first", "second", "third"};
+  for (const auto &order: order_list) {
+    for (auto it1 = element_set_.cbegin(); it1 != element_set_.cend(); ++it1) {
+      for (auto it2 = element_set_.cbegin(); it2 != element_set_.cend(); ++it2) {
+        header_frame += "warren_cowley_" + order + "_" + it1->GetString() + "-" + it2->GetString() + "\t";
+      }
+    }
+  }
+  for (const auto &order: order_list) {
+    for (const auto &element: element_set_) {
+      header_frame += "vacancy_local_" + order + "_" + element.GetString() + "\t";
+    }
+  }
+  header_frame += "vacancy_local_binding_energy\n";
+  return header_frame;
+}
+
+std::string Traverse::GetHeaderClusterString() const {
+  std::string header_frame = "steps\ttime\ttemperature\tenergy\tcluster_energy\tcluster_size\t";
+  for (const auto &element: element_set_) {
+    header_frame += "cluster_";
+    header_frame += element.GetString();
+    header_frame += "\t";
+  }
+  header_frame += "cluster_X\tmass_gyration_radius\tasphericity\tacylindricity\tanisotropy\tvacancy_binding_energy\n";
+  return header_frame;
+}
+
 void Traverse::RunAnsys() const {
   const auto chemical_potential = energy_predictor_.GetChemicalPotential(solvent_element_);
-  json ansys_info_array = json::array();
+  nlohmann::json ansys_info_array = nlohmann::json::array();
+  frame_ofs_ << GetHeaderFrameString() << std::flush;
+  cluster_ofs_ << GetHeaderClusterString() << std::flush;
 #pragma omp parallel for default(none) schedule(static, 1) shared(ansys_info_array, chemical_potential, std::cout)
   for (unsigned long long i = initial_steps_; i <= final_number_; i += increment_steps_) {
 #pragma omp critical
@@ -111,7 +149,7 @@ void Traverse::RunAnsys() const {
     cfg::Config config = GetConfig(config_type_, i);
 
     // basic information
-    json ansys_info = json::object();
+    nlohmann::json ansys_info = nlohmann::json::object();
     std::map<std::string, cfg::Config::ValueVariant> global_list;
     ansys_info["steps"] = i;
     global_list["steps"] = i;
@@ -169,9 +207,10 @@ void Traverse::RunAnsys() const {
       }
       return string_map;
     };
-    ansys_info["vac_local"]["first"] = convert(element_set_, config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 1));
-    ansys_info["vac_local"]["second"] = convert(element_set_, config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 2));
-    ansys_info["vac_local"]["third"] = convert(element_set_, config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 3));
+    ansys_info["vacancy_local"]["first"] = convert(element_set_, config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 1));
+    ansys_info["vacancy_local"]["second"] =
+        convert(element_set_, config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 2));
+    ansys_info["vacancy_local"]["third"] = convert(element_set_, config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 3));
 
     // binding energy
     const auto exit_time = ExitTime(config,
@@ -206,11 +245,17 @@ void Traverse::RunAnsys() const {
 
     boost::filesystem::create_directories("ansys");
     config.WriteExtendedXyz("ansys/" + std::to_string(i) + ".xyz.gz", auxiliary_lists, global_list);
+    const auto cluster_string = GetClusterString(ansys_info);
+    const auto frame_string = GetFrameString(ansys_info);
 #pragma omp critical
-    { ansys_info_array.push_back(ansys_info); }
+    {
+      ansys_info_array.push_back(ansys_info);
+      cluster_ofs_ << cluster_string << std::flush;
+      frame_ofs_ << frame_string << std::flush;
+    }
   }
   std::cout << "Finished. Sorting..." << std::endl;
-  std::sort(ansys_info_array.begin(), ansys_info_array.end(), [](const json &lhs, const json &rhs) {
+  std::sort(ansys_info_array.begin(), ansys_info_array.end(), [](const nlohmann::json &lhs, const nlohmann::json &rhs) {
     return lhs["steps"] < rhs["steps"];
   });
   std::ofstream ofs("ansys_info.json.gz", std::ios_base::out | std::ios_base::binary);
@@ -220,6 +265,69 @@ void Traverse::RunAnsys() const {
   fos.precision(16);
   fos << ansys_info_array.dump(2) << std::endl;
   std::cout << "Done..." << std::endl;
+}
+
+std::string Traverse::GetClusterString(const nlohmann::json &frame) const {
+  std::stringstream cluster_stream;
+  cluster_stream.precision(16);
+  for (const auto &cluster: frame["clusters"]) {
+    cluster_stream << frame["steps"] << "\t" << frame["time"] << "\t" << frame["temperature"] << "\t" << frame["energy"]
+                   << "\t" << cluster["cluster_energy"] << "\t" << cluster["cluster_size"] << "\t";
+    for (const auto &element: element_set_) {
+      cluster_stream << cluster["elements_number"][element.GetString()] << "\t";
+    }
+    cluster_stream << cluster["elements_number"]["X"] << "\t" << cluster["mass_gyration_radius"] << "\t"
+                   << cluster["shape"]["asphericity"] << "\t" << cluster["shape"]["acylindricity"] << "\t"
+                   << cluster["shape"]["anisotropy"] << "\t" << cluster["vacancy_binding_energy"] << "\n";
+  }
+  return cluster_stream.str();
+}
+
+std::string Traverse::GetFrameString(const nlohmann::json &frame) const {
+  std::stringstream frame_stream;
+  frame_stream.precision(16);
+
+  frame_stream << frame["steps"] << "\t" << frame["time"] << "\t" << frame["temperature"] << "\t" << frame["energy"]
+               << "\t";
+
+  constexpr size_t kCriticalSize = 10;
+  size_t num_cluster = 0;
+  size_t num_atom = 0;
+  std::vector<std::string> cluster_size_list;
+  std::map<Element, size_t> element_number_map{};
+  for (const auto &element: element_set_) {
+    element_number_map[element] = 0;
+  }
+
+  for (const auto &cluster: frame["clusters"]) {
+    if (cluster["cluster_size"] >= kCriticalSize) {
+      num_cluster++;
+      num_atom += cluster["cluster_size"].get<size_t>();
+      cluster_size_list.push_back(std::to_string(cluster["cluster_size"].get<size_t>()));
+      for (const auto &element: element_set_) {
+        element_number_map[element] += cluster["elements_number"][element.GetString()].get<size_t>();
+      }
+    }
+  }
+  frame_stream << num_cluster << "\t" << num_atom << "\t";
+  for (const auto &element: element_set_) {
+    frame_stream << element_number_map[element] << "\t";
+  }
+  frame_stream << "\"[" << boost::algorithm::join(cluster_size_list, ",") << "]\"\t";
+
+  for (const auto &order: frame["warren_cowley"]) {
+    for (const auto &pair: order.items()) {
+      frame_stream << pair.value() << "\t";
+    }
+  }
+  for (const auto &order: frame["vacancy_local"]) {
+    for (const auto &pair: order.items()) {
+      frame_stream << pair.value() << "\t";
+    }
+  }
+  frame_stream << frame["vacancy_local_binding_energy"] << "\n";
+
+  return frame_stream.str();
 }
 
 void Traverse::RunReformat() const {

@@ -1,11 +1,11 @@
 #ifndef LMC_LMC_ANSYS_INCLUDE_TRAVERSE_H_
 #define LMC_LMC_ANSYS_INCLUDE_TRAVERSE_H_
+#include "EnergyChangePredictorPairSite.h"
 #include "EnergyPredictor.h"
 #include "ExitTime.h"
 #include "ShortRangeOrder.h"
 #include "SoluteCluster.h"
 #include "VacancyMigrationPredictorQuartic.h"
-#include "EnergyChangePredictorPairSite.h"
 
 namespace ansys {
 
@@ -25,6 +25,12 @@ class Traverse {
   void RunReformat() const;
 
  private:
+  std::string GetHeaderFrameString() const;
+  std::string GetHeaderClusterString() const;
+
+  std::string GetFrameString(const nlohmann::json &frame) const;
+  std::string GetClusterString(const nlohmann::json &frame) const;
+
   const unsigned long long initial_steps_;
   const unsigned long long increment_steps_;
   unsigned long long final_number_;
@@ -39,6 +45,8 @@ class Traverse {
   const pred::EnergyPredictor energy_predictor_;
   const pred::VacancyMigrationPredictorQuartic vacancy_migration_predictor_;
   const pred::EnergyChangePredictorPairSite energy_change_predictor_pair_site_;
+  mutable std::ofstream frame_ofs_;
+  mutable std::ofstream cluster_ofs_;
 };
 
 }    // namespace ansys
