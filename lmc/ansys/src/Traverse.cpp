@@ -46,9 +46,7 @@ Traverse::Traverse(unsigned long long int initial_steps,
       vacancy_migration_predictor_(predictor_filename, GetConfig(config_type_, 0), element_set_),
       energy_change_predictor_pair_site_(predictor_filename, GetConfig(config_type_, 0), element_set_) {
   std::string log_file_name;
-  if (log_type_ == "kinetic_mc") {
-    log_file_name = "kmc_log.txt";
-  } else if (log_type_ == "kinetic_mc_old") {
+  if (log_type_ == "kinetic_mc" || log_type_ == "kinetic_mc_old") {
     log_file_name = "kmc_log.txt";
   } else if (log_type_ == "canonical_mc") {
     log_file_name = "cmc_log.txt";
