@@ -69,12 +69,7 @@ Traverse::Traverse(unsigned long long int initial_steps,
   std::getline(ifs, buffer);
   std::vector<std::string> headers;
   boost::algorithm::split(headers, buffer, boost::is_any_of("\t"));
-  for (const auto &header: headers) {
-    if (header == "steps") {
-      continue;
-    }
-    log_map_[header] = {};
-  }
+
   // read data
   while (std::getline(ifs, buffer)) {
     if (buffer.empty()) {
@@ -92,13 +87,18 @@ Traverse::Traverse(unsigned long long int initial_steps,
     final_number_ = step_number;
     size_t col_index = 1;
     while (line_stream >> buffer) {
+      const auto &key = headers[col_index];
       try {
         const auto double_value = boost::lexical_cast<double>(buffer);
-        std::get<std::unordered_map<unsigned long long, double>>(log_map_[headers[col_index]])[step_number] =
-            double_value;
+        if (!std::holds_alternative<std::unordered_map<unsigned long long, double>>(log_map_[key])) {
+          log_map_[key] = std::unordered_map<unsigned long long, double>();
+        }
+        std::get<std::unordered_map<unsigned long long, double>>(log_map_[key])[step_number] = double_value;
       } catch (const boost::bad_lexical_cast &) {
-        std::get<std::unordered_map<unsigned long long, std::string>>(log_map_[headers[col_index]])[step_number] =
-            buffer;
+        if (!std::holds_alternative<std::unordered_map<unsigned long long, std::string>>(log_map_[key])) {
+          log_map_[key] = std::unordered_map<unsigned long long, std::string>();
+        }
+        std::get<std::unordered_map<unsigned long long, std::string>>(log_map_[key])[step_number] = buffer;
       }
       col_index++;
     }
