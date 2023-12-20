@@ -65,7 +65,7 @@ class Config {
                                      std::vector<std::string>,
                                      std::vector<Vector_t>,
                                      std::vector<std::vector<double>>>;
-  using ValueVariant = std::variant<int, double, size_t, unsigned long long, std::string>;
+  using ValueVariant = std::variant<int, double, size_t, unsigned long long, std::string, std::vector<double>>;
   void WriteExtendedXyz(const std::string &filename,
                         const std::map<std::string, VectorVariant> &auxiliary_lists,
                         const std::map<std::string, ValueVariant> &global_list) const;
