@@ -21,8 +21,7 @@ Config::Config(const Matrix_t &basis,
                bool update_neighbor)
     : basis_(basis),
       lattice_vector_(std::move(lattice_vector)),
-      atom_vector_(std::move(atom_vector))
-{
+      atom_vector_(std::move(atom_vector)) {
   if (lattice_vector_.size() != atom_vector_.size()) {
     throw std::runtime_error("Lattice vector and atom vector size do not match");
   }
@@ -37,53 +36,43 @@ Config::Config(const Matrix_t &basis,
   }
 }
 
-size_t Config::GetNumAtoms() const
-{
+size_t Config::GetNumAtoms() const {
   return atom_vector_.size();
 }
 
-const Matrix_t &Config::GetBasis() const
-{
+const Matrix_t &Config::GetBasis() const {
   return basis_;
 }
 
-const std::unordered_map<size_t, size_t> &Config::GetLatticeToAtomHashmap() const
-{
+const std::unordered_map<size_t, size_t> &Config::GetLatticeToAtomHashmap() const {
   return lattice_to_atom_hashmap_;
 }
 
-const std::unordered_map<size_t, size_t> &Config::GetAtomToLatticeHashmap() const
-{
+const std::unordered_map<size_t, size_t> &Config::GetAtomToLatticeHashmap() const {
   return atom_to_lattice_hashmap_;
 }
 
-const std::vector<Lattice> &Config::GetLatticeVector() const
-{
+const std::vector<Lattice> &Config::GetLatticeVector() const {
   return lattice_vector_;
 }
 
-const std::vector<Atom> &Config::GetAtomVector() const
-{
+const std::vector<Atom> &Config::GetAtomVector() const {
   return atom_vector_;
 }
 
-const std::vector<std::vector<size_t>> &Config::GetFirstNeighborsAdjacencyList() const
-{
+const std::vector<std::vector<size_t>> &Config::GetFirstNeighborsAdjacencyList() const {
   return first_neighbors_adjacency_list_;
 }
 
-const std::vector<std::vector<size_t>> &Config::GetSecondNeighborsAdjacencyList() const
-{
+const std::vector<std::vector<size_t>> &Config::GetSecondNeighborsAdjacencyList() const {
   return second_neighbors_adjacency_list_;
 }
 
-const std::vector<std::vector<size_t>> &Config::GetThirdNeighborsAdjacencyList() const
-{
+const std::vector<std::vector<size_t>> &Config::GetThirdNeighborsAdjacencyList() const {
   return third_neighbors_adjacency_list_;
 }
 
-std::vector<size_t> Config::GetFirstNeighborsAtomIdVectorOfAtom(size_t atom_id) const
-{
+std::vector<size_t> Config::GetFirstNeighborsAtomIdVectorOfAtom(size_t atom_id) const {
   auto lattice_id = atom_to_lattice_hashmap_.at(atom_id);
   std::vector<size_t> first_neighbors_atom_id_vector;
   first_neighbors_atom_id_vector.reserve(constants::kNumFirstNearestNeighbors);
@@ -93,8 +82,7 @@ std::vector<size_t> Config::GetFirstNeighborsAtomIdVectorOfAtom(size_t atom_id) 
   return first_neighbors_atom_id_vector;
 }
 
-std::vector<size_t> Config::GetSecondNeighborsAtomIdVectorOfAtom(size_t atom_id) const
-{
+std::vector<size_t> Config::GetSecondNeighborsAtomIdVectorOfAtom(size_t atom_id) const {
   const auto lattice_id = atom_to_lattice_hashmap_.at(atom_id);
   std::vector<size_t> second_neighbors_atom_id_vector;
   second_neighbors_atom_id_vector.reserve(constants::kNumSecondNearestNeighbors);
@@ -104,8 +92,7 @@ std::vector<size_t> Config::GetSecondNeighborsAtomIdVectorOfAtom(size_t atom_id)
   return second_neighbors_atom_id_vector;
 }
 
-std::vector<size_t> Config::GetThirdNeighborsAtomIdVectorOfAtom(size_t atom_id) const
-{
+std::vector<size_t> Config::GetThirdNeighborsAtomIdVectorOfAtom(size_t atom_id) const {
   const auto lattice_id = atom_to_lattice_hashmap_.at(atom_id);
   std::vector<size_t> third_neighbors_atom_id_vector;
   third_neighbors_atom_id_vector.reserve(constants::kNumThirdNearestNeighbors);
@@ -115,29 +102,24 @@ std::vector<size_t> Config::GetThirdNeighborsAtomIdVectorOfAtom(size_t atom_id) 
   return third_neighbors_atom_id_vector;
 }
 
-size_t Config::GetAtomIdFromLatticeId(size_t lattice_id) const
-{
+size_t Config::GetAtomIdFromLatticeId(size_t lattice_id) const {
   return lattice_to_atom_hashmap_.at(lattice_id);
 }
 
-size_t Config::GetLatticeIdFromAtomId(size_t atom_id) const
-{
+size_t Config::GetLatticeIdFromAtomId(size_t atom_id) const {
   return atom_to_lattice_hashmap_.at(atom_id);
 }
 
-Element Config::GetElementAtAtomId(size_t atom_id) const
-{
+Element Config::GetElementAtAtomId(size_t atom_id) const {
   return atom_vector_[atom_id].GetElement();
 }
 
-Element Config::GetElementAtLatticeId(size_t lattice_id) const
-{
+Element Config::GetElementAtLatticeId(size_t lattice_id) const {
   auto atom_id = lattice_to_atom_hashmap_.at(lattice_id);
   return atom_vector_[atom_id].GetElement();
 }
 
-std::set<Element> Config::GetElementSetWithoutVacancy() const
-{
+std::set<Element> Config::GetElementSetWithoutVacancy() const {
   std::set<Element> res;
   for (const auto &atom: atom_vector_) {
     if (atom.GetElement() == ElementName::X) {
@@ -148,8 +130,7 @@ std::set<Element> Config::GetElementSetWithoutVacancy() const
   return res;
 }
 
-std::map<Element, std::vector<size_t>> Config::GetElementAtomIdVectorMap() const
-{
+std::map<Element, std::vector<size_t>> Config::GetElementAtomIdVectorMap() const {
   std::map<Element, std::vector<size_t>> element_list_map;
   for (const auto &atom: atom_vector_) {
     element_list_map[atom.GetElement()].push_back(atom.GetId());
@@ -157,8 +138,7 @@ std::map<Element, std::vector<size_t>> Config::GetElementAtomIdVectorMap() const
   return element_list_map;
 }
 
-size_t Config::GetStateHash() const
-{
+size_t Config::GetStateHash() const {
   size_t seed = 0;
   for (size_t i = 0; i < GetNumAtoms(); ++i) {
     boost::hash_combine(seed, lattice_to_atom_hashmap_.at(i));
@@ -166,8 +146,7 @@ size_t Config::GetStateHash() const
   return seed;
 }
 
-Vector_t Config::GetLatticePairCenter(const std::pair<size_t, size_t> &lattice_id_jump_pair) const
-{
+Vector_t Config::GetLatticePairCenter(const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
   Vector_t center_position;
   for (const auto kDim: All_Dimensions) {
     double first_relative = GetLatticeVector()[lattice_id_jump_pair.first].GetRelativePosition()[kDim];
@@ -186,8 +165,7 @@ Vector_t Config::GetLatticePairCenter(const std::pair<size_t, size_t> &lattice_i
   return center_position;
 }
 
-Matrix_t Config::GetLatticePairRotationMatrix(const std::pair<size_t, size_t> &lattice_id_jump_pair) const
-{
+Matrix_t Config::GetLatticePairRotationMatrix(const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
   const auto &first_lattice = GetLatticeVector()[lattice_id_jump_pair.first];
   const auto &second_lattice = GetLatticeVector()[lattice_id_jump_pair.second];
 
@@ -206,13 +184,11 @@ Matrix_t Config::GetLatticePairRotationMatrix(const std::pair<size_t, size_t> &l
   return TransposeMatrix({pair_direction, vertical_vector, Cross(pair_direction, vertical_vector)});
 }
 
-size_t Config::GetVacancyAtomId() const
-{
+size_t Config::GetVacancyAtomId() const {
   return GetAtomIdFromLatticeId(GetVacancyLatticeId());
 }
 
-size_t Config::GetVacancyLatticeId() const
-{
+size_t Config::GetVacancyLatticeId() const {
   const auto &atom_vector = GetAtomVector();
   auto it = std::find_if(atom_vector.cbegin(), atom_vector.cend(), [](const auto &atom) {
     return atom.GetElement() == ElementName::X;
@@ -225,8 +201,7 @@ size_t Config::GetVacancyLatticeId() const
   return 0;
 }
 
-std::unordered_set<size_t> Config::GetNeighborsLatticeIdSetOfSite(size_t lattice_id) const
-{
+std::unordered_set<size_t> Config::GetNeighborsLatticeIdSetOfSite(size_t lattice_id) const {
   std::unordered_set<size_t> near_neighbors_hashset;
   near_neighbors_hashset.insert(lattice_id);
   std::copy(GetFirstNeighborsAdjacencyList().at(lattice_id).begin(),
@@ -242,8 +217,7 @@ std::unordered_set<size_t> Config::GetNeighborsLatticeIdSetOfSite(size_t lattice
 }
 
 std::unordered_set<size_t>
-Config::GetNeighborsLatticeIdSetOfPair(const std::pair<size_t, size_t> &lattice_id_pair) const
-{
+Config::GetNeighborsLatticeIdSetOfPair(const std::pair<size_t, size_t> &lattice_id_pair) const {
   std::unordered_set<size_t> near_neighbors_hashset;
   for (const auto lattice_id: {lattice_id_pair.first, lattice_id_pair.second}) {
     near_neighbors_hashset.insert(lattice_id);
@@ -260,8 +234,7 @@ Config::GetNeighborsLatticeIdSetOfPair(const std::pair<size_t, size_t> &lattice_
   return near_neighbors_hashset;
 }
 
-int Config::FindDistanceLabelBetweenLattice(size_t lattice_id1, size_t lattice_id2) const
-{
+int Config::FindDistanceLabelBetweenLattice(size_t lattice_id1, size_t lattice_id2) const {
   const auto &first_neighbors_adjacency_list = GetFirstNeighborsAdjacencyList()[lattice_id1];
   const auto &second_neighbors_adjacency_list = GetSecondNeighborsAdjacencyList()[lattice_id1];
   const auto &third_neighbors_adjacency_list = GetThirdNeighborsAdjacencyList()[lattice_id1];
@@ -280,8 +253,7 @@ int Config::FindDistanceLabelBetweenLattice(size_t lattice_id1, size_t lattice_i
   return -1;
 }
 
-double Config::GetVacancyConcentration() const
-{
+double Config::GetVacancyConcentration() const {
   size_t vacancy_count = 0;
   for (const auto &atom: GetAtomVector()) {
     if (atom.GetElement() == ElementName::X) {
@@ -291,8 +263,7 @@ double Config::GetVacancyConcentration() const
   return static_cast<double>(vacancy_count) / static_cast<double>(GetNumAtoms());
 }
 
-double Config::GetSoluteConcentration(Element solvent_element) const
-{
+double Config::GetSoluteConcentration(Element solvent_element) const {
   size_t solute_count = 0;
   for (const auto &atom: GetAtomVector()) {
     if (atom.GetElement() != solvent_element && atom.GetElement() != ElementName::X) {
@@ -302,8 +273,7 @@ double Config::GetSoluteConcentration(Element solvent_element) const
   return static_cast<double>(solute_count) / static_cast<double>(GetNumAtoms());
 }
 
-std::map<Element, size_t> Config::GetLocalInfoOfLatticeId(size_t lattice_id, size_t shell_number) const
-{
+std::map<Element, size_t> Config::GetLocalInfoOfLatticeId(size_t lattice_id, size_t shell_number) const {
   std::map<Element, size_t> element_count_map;
   for (const auto &element: GetElementSetWithoutVacancy()) {
     element_count_map.emplace(element, 0);
@@ -321,8 +291,8 @@ std::map<Element, size_t> Config::GetLocalInfoOfLatticeId(size_t lattice_id, siz
   }
   return element_count_map;
 }
-void Config::AtomJump(const std::pair<size_t, size_t> &atom_id_jump_pair)
-{
+
+void Config::AtomJump(const std::pair<size_t, size_t> &atom_id_jump_pair) {
   const auto [atom_id_lhs, atom_id_rhs] = atom_id_jump_pair;
   const auto lattice_id_lhs = atom_to_lattice_hashmap_.at(atom_id_lhs);
   const auto lattice_id_rhs = atom_to_lattice_hashmap_.at(atom_id_rhs);
@@ -333,8 +303,7 @@ void Config::AtomJump(const std::pair<size_t, size_t> &atom_id_jump_pair)
   lattice_to_atom_hashmap_.at(lattice_id_rhs) = atom_id_lhs;
 }
 
-void Config::LatticeJump(const std::pair<size_t, size_t> &lattice_id_jump_pair)
-{
+void Config::LatticeJump(const std::pair<size_t, size_t> &lattice_id_jump_pair) {
   const auto [lattice_id_lhs, lattice_id_rhs] = lattice_id_jump_pair;
   const auto atom_id_lhs = lattice_to_atom_hashmap_.at(lattice_id_lhs);
   const auto atom_id_rhs = lattice_to_atom_hashmap_.at(lattice_id_rhs);
@@ -345,18 +314,15 @@ void Config::LatticeJump(const std::pair<size_t, size_t> &lattice_id_jump_pair)
   lattice_to_atom_hashmap_.at(lattice_id_rhs) = atom_id_lhs;
 }
 
-void Config::SetAtomElementTypeAtAtom(size_t atom_id, Element element)
-{
+void Config::SetAtomElementTypeAtAtom(size_t atom_id, Element element) {
   atom_vector_.at(atom_id).SetElement(element);
 }
 
-void Config::SetAtomElementTypeAtLattice(size_t lattice_id, Element element)
-{
+void Config::SetAtomElementTypeAtLattice(size_t lattice_id, Element element) {
   atom_vector_.at(lattice_to_atom_hashmap_.at(lattice_id)).SetElement(element);
 }
 
-void Config::ReassignLatticeVector()
-{
+void Config::ReassignLatticeVector() {
   auto new_lattice_vector(lattice_vector_);
   std::sort(new_lattice_vector.begin(), new_lattice_vector.end(), [](const auto &lhs, const auto &rhs) -> bool {
     return lhs.GetRelativePosition() < rhs.GetRelativePosition();
@@ -430,8 +396,7 @@ void Config::ReassignLatticeVector()
   third_neighbors_adjacency_list_ = new_third_neighbors_adjacency_list;
 }
 
-Config Config::ReadConfig(const std::string &filename)
-{
+Config Config::ReadConfig(const std::string &filename) {
   std::ifstream ifs(filename, std::ios_base::in | std::ios_base::binary);
   if (!ifs) {
     throw std::runtime_error("Cannot open " + filename);
@@ -540,14 +505,12 @@ Config Config::ReadConfig(const std::string &filename)
   }
 }
 
-void Config::WriteConfig(const std::string &filename) const
-{
+void Config::WriteConfig(const std::string &filename) const {
   WriteExtendedConfig(filename, {});
 }
 
 void Config::WriteExtendedConfig(const std::string &filename,
-                                 const std::map<std::string, std::vector<double>> &auxiliary_lists) const
-{
+                                 const std::map<std::string, std::vector<double>> &auxiliary_lists) const {
   std::ofstream ofs(filename, std::ios_base::out | std::ios_base::binary);
   boost::iostreams::filtering_ostream fos;
   if (boost::filesystem::path(filename).extension() == ".gz") {
@@ -591,8 +554,7 @@ void Config::WriteExtendedConfig(const std::string &filename,
 
 void Config::WriteExtendedXyz(const std::string &filename,
                               const std::map<std::string, VectorVariant> &auxiliary_lists,
-                              const std::map<std::string, ValueVariant> &global_list) const
-{
+                              const std::map<std::string, ValueVariant> &global_list) const {
   std::ofstream ofs(filename, std::ios_base::out | std::ios_base::binary);
   boost::iostreams::filtering_ostream fos;
   if (boost::filesystem::path(filename).extension() == ".gz") {
@@ -609,7 +571,19 @@ void Config::WriteExtendedXyz(const std::string &filename,
     fos << key << "=";
     std::visit(
         [&fos](const auto &val) {
-          fos << val << ' ';
+          using ValueType = std::decay_t<decltype(val)>;
+          if constexpr (std::is_same_v<ValueType, std::vector<double>>) {
+            fos << "\"";
+            for (size_t i = 0; i < val.size(); ++i) {
+              fos << val[i];
+              if (i < val.size() - 1) {
+                fos << " ";
+              }
+            }
+            fos << "\" ";
+          } else {
+            fos << val << ' ';
+          }
         },
         value);
   }
@@ -673,8 +647,7 @@ void Config::WriteExtendedXyz(const std::string &filename,
 
 Config Config::ReadMap(const std::string &lattice_filename,
                        const std::string &element_filename,
-                       const std::string &map_filename)
-{
+                       const std::string &map_filename) {
   Config config;
   std::ifstream ifs_lattice(lattice_filename, std::ifstream::in);
   if (!ifs_lattice.is_open()) {
@@ -737,8 +710,7 @@ Config Config::ReadMap(const std::string &lattice_filename,
   return config;
 }
 
-void Config::WriteLattice(const std::string &filename) const
-{
+void Config::WriteLattice(const std::string &filename) const {
   std::ofstream ofs(filename, std::ofstream::out);
   ofs.precision(16);
   ofs << GetNumAtoms() << " positions in total" << '\n';
@@ -759,8 +731,7 @@ void Config::WriteLattice(const std::string &filename) const
   }
 }
 
-void Config::WriteElement(const std::string &filename) const
-{
+void Config::WriteElement(const std::string &filename) const {
   std::ofstream ofs(filename, std::ofstream::out);
   ofs.precision(16);
   for (const auto &atom: atom_vector_) {
@@ -768,8 +739,7 @@ void Config::WriteElement(const std::string &filename) const
   }
 }
 
-void Config::WriteMap(const std::string &filename) const
-{
+void Config::WriteMap(const std::string &filename) const {
   std::ofstream ofs(filename, std::ofstream::out);
   ofs.precision(16);
   for (size_t atom_id = 0; atom_id < atom_vector_.size(); ++atom_id) {
@@ -777,23 +747,20 @@ void Config::WriteMap(const std::string &filename) const
   }
 }
 
-void Config::ConvertRelativeToCartesian()
-{
+void Config::ConvertRelativeToCartesian() {
   for (auto &lattice: lattice_vector_) {
     lattice.SetCartesianPosition(lattice.GetRelativePosition() * basis_);
   }
 }
 
-void Config::ConvertCartesianToRelative()
-{
+void Config::ConvertCartesianToRelative() {
   auto inverse_basis = InverseMatrix(basis_);
   for (auto &lattice: lattice_vector_) {
     lattice.SetRelativePosition(lattice.GetCartesianPosition() * inverse_basis);
   }
 }
 
-void Config::InitializeNeighborsList(size_t num_atoms)
-{
+void Config::InitializeNeighborsList(size_t num_atoms) {
   first_neighbors_adjacency_list_.resize(num_atoms);
   for (auto &neighbor_list: first_neighbors_adjacency_list_) {
     neighbor_list.clear();
@@ -811,8 +778,7 @@ void Config::InitializeNeighborsList(size_t num_atoms)
   }
 }
 
-void Config::UpdateNeighbors()
-{
+void Config::UpdateNeighbors() {
   InitializeNeighborsList(GetNumAtoms());
   const double first_r_cutoff_square = std::pow(constants::kFirstNearestNeighborsCutoff, 2);
   const double second_r_cutoff_square = std::pow(constants::kSecondNearestNeighborsCutoff, 2);
@@ -901,8 +867,7 @@ void Config::UpdateNeighbors()
   }
 }
 
-void RotateLatticeVector(std::vector<Lattice> &lattice_list, const Matrix_t &rotation_matrix)
-{
+void RotateLatticeVector(std::vector<Lattice> &lattice_list, const Matrix_t &rotation_matrix) {
   const auto move_distance_after_rotation = Vector_t{0.5, 0.5, 0.5} - (Vector_t{0.5, 0.5, 0.5} * rotation_matrix);
   for (auto &lattice: lattice_list) {
     auto relative_position = lattice.GetRelativePosition();
@@ -915,8 +880,7 @@ void RotateLatticeVector(std::vector<Lattice> &lattice_list, const Matrix_t &rot
   }
 }
 
-Config GenerateFCC(const Factor_t &factors, Element element)
-{
+Config GenerateFCC(const Factor_t &factors, Element element) {
   Matrix_t basis{{{constants::kLatticeConstant * static_cast<double>(factors[0]), 0, 0},
                   {0, constants::kLatticeConstant * static_cast<double>(factors[1]), 0},
                   {0, 0, constants::kLatticeConstant * static_cast<double>(factors[2])}}};
@@ -952,8 +916,7 @@ Config GenerateFCC(const Factor_t &factors, Element element)
   return Config{basis, lattice_vector, atom_vector, true};
 }
 
-Config GenerateSoluteConfigFromExcitingPure(Config config, const std::map<Element, size_t> &solute_atom_count)
-{
+Config GenerateSoluteConfigFromExcitingPure(Config config, const std::map<Element, size_t> &solute_atom_count) {
   std::unordered_set<size_t> unavailable_position{};
 
   static std::mt19937_64 generator(
@@ -966,7 +929,7 @@ Config GenerateSoluteConfigFromExcitingPure(Config config, const std::map<Elemen
       size_t ct = 0;
       do {
         if (ct > 10000) {
-//          std::cerr << "Size is too small. Cannot generate correct config.\n";
+          //          std::cerr << "Size is too small. Cannot generate correct config.\n";
           break;
         }
         ++ct;
@@ -990,8 +953,7 @@ Config GenerateSoluteConfigFromExcitingPure(Config config, const std::map<Elemen
 
 Config GenerateSoluteConfig(const Factor_t &factors,
                             const Element solvent_element,
-                            const std::map<Element, size_t> &solute_atom_count)
-{
+                            const std::map<Element, size_t> &solute_atom_count) {
   return GenerateSoluteConfigFromExcitingPure(GenerateFCC(factors, solvent_element), solute_atom_count);
 }
 
