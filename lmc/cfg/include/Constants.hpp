@@ -15,6 +15,8 @@ constexpr double kSixthNearestNeighborsCutoff = 7.1;
 constexpr double kSeventhNearestNeighborsCutoff = 7.6;
 constexpr double kNearNeighborsCutoff = kThirdNearestNeighborsCutoff;
 
+constexpr size_t kNumAtomsPerCell = 4;
+
 constexpr size_t kNumThirdNearestSetSizeOfPair = 60;
 constexpr size_t kNumThirdNearestSetSizeOfSite = 1 + 12 + 6 + 24;
 

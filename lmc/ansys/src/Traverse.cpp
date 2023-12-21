@@ -277,13 +277,13 @@ void Traverse::RunAnsys() const {
 }
 
 std::string Traverse::GetHeaderClusterString() const {
-  std::string header_frame = "steps\ttime\ttemperature\tenergy\tcluster_energy\tcluster_size\t";
+  std::string header_frame = "steps\ttime\ttemperature\tenergy\tcluster_id\tcluster_energy\tcluster_size\t";
   for (const auto &element: element_set_) {
     header_frame += "cluster_";
     header_frame += element.GetString();
     header_frame += "\t";
   }
-  header_frame += "cluster_X\tmass_gyration_radius\tasphericity\tacylindricity\tanisotropy\t"
+  header_frame += "cluster_X\teffective_radius\tmass_gyration_radius\tasphericity\tacylindricity\tanisotropy\t"
                   "vacancy_binding_energy\n";
   return header_frame;
 }
@@ -293,13 +293,15 @@ std::string Traverse::GetClusterString(const nlohmann::json &frame) const {
   cluster_stream.precision(16);
   for (const auto &cluster: frame["clusters"]) {
     cluster_stream << frame["steps"] << "\t" << frame["time"] << "\t" << frame["temperature"] << "\t" << frame["energy"]
-                   << "\t" << cluster["cluster_energy"] << "\t" << cluster["cluster_size"] << "\t";
+                   << "\t" << cluster["cluster_id"] << "\t" << cluster["cluster_energy"] << "\t"
+                   << cluster["cluster_size"] << "\t";
     for (const auto &element: element_set_) {
       cluster_stream << cluster["elements_number"][element.GetString()] << "\t";
     }
-    cluster_stream << cluster["elements_number"]["X"] << "\t" << cluster["mass_gyration_radius"] << "\t"
-                   << cluster["shape"]["asphericity"] << "\t" << cluster["shape"]["acylindricity"] << "\t"
-                   << cluster["shape"]["anisotropy"] << "\t" << cluster["vacancy_binding_energy"] << "\n";
+    cluster_stream << cluster["elements_number"]["X"] << "\t" << cluster["effective_radius"] << "\t"
+                   << cluster["mass_gyration_radius"] << "\t" << cluster["asphericity"] << "\t"
+                   << cluster["acylindricity"] << "\t" << cluster["anisotropy"] << "\t"
+                   << cluster["vacancy_binding_energy"] << "\n";
   }
   return cluster_stream.str();
 }

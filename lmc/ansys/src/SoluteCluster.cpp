@@ -1,5 +1,7 @@
 #include "SoluteCluster.h"
 
+#include "ShortRangeOrder.h"
+
 #include <Eigen/Dense>
 #include <cmath>
 #include <filesystem>
@@ -8,9 +10,6 @@
 #include <unordered_map>
 #include <utility>
 
-#include "ShortRangeOrder.h"
-
-using json = nlohmann::json;
 namespace ansys {
 
 // template<typename T>
@@ -61,13 +60,33 @@ namespace ansys {
 //       it->second);
 // }
 
+
+SoluteCluster::SoluteCluster(const cfg::Config &config,
+                             Element solvent_atom_type,
+                             std::set<Element> element_set,
+                             size_t smallest_cluster_criteria,
+                             size_t solvent_bond_criteria,
+                             const pred::EnergyPredictor &energy_predictor,
+                             const std::map<Element, double> &chemical_potential_map)
+    : config_(config),
+      solvent_config_(config),
+      solvent_element_(solvent_atom_type),
+      element_set_(std::move(element_set)),
+      smallest_cluster_criteria_(smallest_cluster_criteria),
+      solvent_bond_criteria_(solvent_bond_criteria),
+      energy_predictor_(energy_predictor),
+      chemical_potential_map_(chemical_potential_map) {
+  for (size_t atom_id = 0; atom_id < solvent_config_.GetNumAtoms(); ++atom_id) {
+    solvent_config_.SetAtomElementTypeAtAtom(atom_id, solvent_atom_type);
+  }
+}
+
 template<typename T>
 void ModifyElementFromVector(std::map<std::string, cfg::Config::VectorVariant> &auxiliary_lists,
                              const std::string &key,
                              const std::vector<size_t> &indices,
                              const T &new_value,
-                             const std::vector<T> default_vector)
-{
+                             const std::vector<T> default_vector) {
   if (auxiliary_lists.find(key) == auxiliary_lists.end()) {
     auxiliary_lists[key] = default_vector;
   }
@@ -87,34 +106,10 @@ void ModifyElementFromVector(std::map<std::string, cfg::Config::VectorVariant> &
       auxiliary_lists[key]);
 }
 
-
-SoluteCluster::SoluteCluster(const cfg::Config &config,
-                             Element solvent_atom_type,
-                             std::set<Element> element_set,
-                             size_t smallest_cluster_criteria,
-                             size_t solvent_bond_criteria,
-                             const pred::EnergyPredictor &energy_predictor,
-                             const std::map<Element, double> &chemical_potential_map)
-    : config_(config),
-      solvent_config_(config),
-      solvent_element_(solvent_atom_type),
-      element_set_(std::move(element_set)),
-      smallest_cluster_criteria_(smallest_cluster_criteria),
-      solvent_bond_criteria_(solvent_bond_criteria),
-      energy_predictor_(energy_predictor),
-      chemical_potential_map_(chemical_potential_map)
-{
-  for (size_t atom_id = 0; atom_id < solvent_config_.GetNumAtoms(); ++atom_id) {
-    solvent_config_.SetAtomElementTypeAtAtom(atom_id, solvent_atom_type);
-  }
-}
-
-
-std::pair<nlohmann::json, std::map<std::string, cfg::Config::VectorVariant>> SoluteCluster::GetClustersInfo()
-{
+std::pair<nlohmann::json, std::map<std::string, cfg::Config::VectorVariant>> SoluteCluster::GetClustersInfo() {
   const auto cluster_to_atom_vector = FindAtomListOfClusters();
 
-  json clusters_info_array = json::array();
+  nlohmann::json clusters_info_array = nlohmann::json::array();
 
   std::map<std::string, cfg::Config::VectorVariant> auxiliary_lists{};
   for (const auto &element: element_set_) {
@@ -123,7 +118,7 @@ std::pair<nlohmann::json, std::map<std::string, cfg::Config::VectorVariant>> Sol
   for (size_t id = 0; id < cluster_to_atom_vector.size(); ++id) {
     const auto &cluster_atom_id_list = cluster_to_atom_vector[id];
 
-    json cluster_info = json::object();
+    nlohmann::json cluster_info = nlohmann::json::object();
 
     const size_t size = cluster_atom_id_list.size();
     const auto element_number = GetElementsNumber(cluster_atom_id_list);
@@ -131,7 +126,7 @@ std::pair<nlohmann::json, std::map<std::string, cfg::Config::VectorVariant>> Sol
 
     cluster_info["cluster_atom_id_list"] = cluster_atom_id_list;
 
-    cluster_info["cluster_id"] = id;
+    cluster_info["cluster_id"] = id + 1;
 
     ModifyElementFromVector(
         auxiliary_lists, "cluster_id", cluster_atom_id_list, id + 1, std::vector<size_t>(config_.GetNumAtoms(), 0));
@@ -142,6 +137,17 @@ std::pair<nlohmann::json, std::map<std::string, cfg::Config::VectorVariant>> Sol
                             cluster_atom_id_list,
                             size_without_vacancy,
                             std::vector<size_t>(config_.GetNumAtoms(), 0));
+
+    const double total_volume = static_cast<double>(size) * std::pow(constants::kLatticeConstant, 3) /
+        static_cast<double>(constants::kNumAtomsPerCell);
+    const double effective_radius = std::pow(3 * total_volume / (4 * M_PI), 1.0 / 3.0);
+    cluster_info["effective_radius"] = effective_radius;
+    ModifyElementFromVector(auxiliary_lists,
+                        "effective_radius",
+                        cluster_atom_id_list,
+                        effective_radius,
+                        std::vector<double>(config_.GetNumAtoms(), NAN));
+
     cluster_info["elements_number"] = element_number;
     for (const auto &[element, number]: element_number) {
       ModifyElementFromVector(auxiliary_lists,
@@ -169,7 +175,11 @@ std::pair<nlohmann::json, std::map<std::string, cfg::Config::VectorVariant>> Sol
 
     const auto geometry_center = GetGeometryCenter(cluster_atom_id_list);
     cluster_info["geometry_center"] = geometry_center;
-    // ModifyElementFromVector(auxiliary_lists, "geometry_center", cluster_atom_id_list, geometry_center);
+    ModifyElementFromVector(auxiliary_lists,
+                            "geometry_center",
+                            cluster_atom_id_list,
+                            geometry_center,
+                            std::vector<Vector_t>(config_.GetNumAtoms(), {NAN, NAN, NAN}));
 
     const auto mass_center = GetMassCenter(cluster_atom_id_list);
     cluster_info["mass_center"] = mass_center;
@@ -201,7 +211,7 @@ std::pair<nlohmann::json, std::map<std::string, cfg::Config::VectorVariant>> Sol
                             std::vector<double>(config_.GetNumAtoms(), NAN));
 
     const auto asphericity = eigenvalues[2] - 0.5 * (eigenvalues[0] + eigenvalues[1]);
-    cluster_info["shape"]["asphericity"] = asphericity;
+    cluster_info["asphericity"] = asphericity;
     ModifyElementFromVector(auxiliary_lists,
                             "cluster_asphericity",
                             cluster_atom_id_list,
@@ -209,7 +219,7 @@ std::pair<nlohmann::json, std::map<std::string, cfg::Config::VectorVariant>> Sol
                             std::vector<double>(config_.GetNumAtoms(), NAN));
 
     const auto acylindricity = eigenvalues[1] - eigenvalues[0];
-    cluster_info["shape"]["acylindricity"] = acylindricity;
+    cluster_info["acylindricity"] = acylindricity;
     ModifyElementFromVector(auxiliary_lists,
                             "cluster_acylindricity",
                             cluster_atom_id_list,
@@ -220,7 +230,7 @@ std::pair<nlohmann::json, std::map<std::string, cfg::Config::VectorVariant>> Sol
             (std::pow(eigenvalues[0], 2) + std::pow(eigenvalues[1], 2) + std::pow(eigenvalues[2], 2)) /
             std::pow(eigenvalues[0] + eigenvalues[1] + eigenvalues[2], 2) -
         0.5;
-    cluster_info["shape"]["anisotropy"] = anisotropy;
+    cluster_info["anisotropy"] = anisotropy;
     ModifyElementFromVector(auxiliary_lists,
                             "cluster_anisotropy",
                             cluster_atom_id_list,
@@ -236,8 +246,7 @@ std::pair<nlohmann::json, std::map<std::string, cfg::Config::VectorVariant>> Sol
   return std::make_pair(clusters_info_array, auxiliary_lists);
 }
 
-std::unordered_set<size_t> SoluteCluster::FindSoluteAtomIndexes() const
-{
+std::unordered_set<size_t> SoluteCluster::FindSoluteAtomIndexes() const {
   std::unordered_set<size_t> solute_atoms_hashset;
   for (const auto &atom: config_.GetAtomVector()) {
     if (atom.GetElement() == solvent_element_) {
@@ -249,8 +258,7 @@ std::unordered_set<size_t> SoluteCluster::FindSoluteAtomIndexes() const
 }
 
 std::vector<std::vector<size_t>>
-SoluteCluster::FindAtomListOfClustersBFSHelper(std::unordered_set<size_t> unvisited_atoms_id_set) const
-{
+SoluteCluster::FindAtomListOfClustersBFSHelper(std::unordered_set<size_t> unvisited_atoms_id_set) const {
   std::vector<std::vector<size_t>> cluster_atom_list;
   std::queue<size_t> visit_id_queue;
   size_t atom_id;
@@ -286,8 +294,7 @@ SoluteCluster::FindAtomListOfClustersBFSHelper(std::unordered_set<size_t> unvisi
   return cluster_atom_list;
 }
 
-std::vector<std::vector<size_t>> SoluteCluster::FindAtomListOfClusters() const
-{
+std::vector<std::vector<size_t>> SoluteCluster::FindAtomListOfClusters() const {
   auto cluster_atom_list = FindAtomListOfClustersBFSHelper(FindSoluteAtomIndexes());
 
   // remove small clusters
@@ -335,9 +342,7 @@ std::vector<std::vector<size_t>> SoluteCluster::FindAtomListOfClusters() const
   return cluster_atom_list;
 }
 
-
-std::map<std::string, size_t> SoluteCluster::GetElementsNumber(const std::vector<size_t> &cluster_atom_id_list) const
-{
+std::map<std::string, size_t> SoluteCluster::GetElementsNumber(const std::vector<size_t> &cluster_atom_id_list) const {
   // initialize map with all the element, because some cluster may not have all types of element
   std::map<std::string, size_t> num_atom_in_one_cluster{{"X", 0}};
   for (const auto &element: element_set_) {
@@ -348,16 +353,16 @@ std::map<std::string, size_t> SoluteCluster::GetElementsNumber(const std::vector
   }
   return num_atom_in_one_cluster;
 }
-double SoluteCluster::GetMass(const std::vector<size_t> &cluster_atom_id_list) const
-{
+
+double SoluteCluster::GetMass(const std::vector<size_t> &cluster_atom_id_list) const {
   double sum_mass = 0;
   for (const auto &atom_id: cluster_atom_id_list) {
     sum_mass += config_.GetAtomVector()[atom_id].GetElement().GetMass();
   }
   return sum_mass;
 }
-double SoluteCluster::GetFormationEnergy(const std::vector<size_t> &cluster_atom_id_list) const
-{
+
+double SoluteCluster::GetFormationEnergy(const std::vector<size_t> &cluster_atom_id_list) const {
   cfg::Config solute_config(solvent_config_);
   double energy_change_solution_to_pure_solvent = 0;
   for (size_t atom_id: cluster_atom_id_list) {
@@ -370,8 +375,8 @@ double SoluteCluster::GetFormationEnergy(const std::vector<size_t> &cluster_atom
       energy_predictor_.GetEnergyOfCluster(solvent_config_, cluster_atom_id_list);
   return energy_change_cluster_to_pure_solvent - energy_change_solution_to_pure_solvent;
 }
-Vector_t SoluteCluster::GetGeometryCenter(const std::vector<size_t> &cluster_atom_id_list) const
-{
+
+Vector_t SoluteCluster::GetGeometryCenter(const std::vector<size_t> &cluster_atom_id_list) const {
   Vector_t geometry_center{};
   Vector_t sum_cos_theta{};
   Vector_t sum_sin_theta{};
@@ -393,8 +398,8 @@ Vector_t SoluteCluster::GetGeometryCenter(const std::vector<size_t> &cluster_ato
   return geometry_center * config_.GetBasis();
   ;    // Cartesian position
 }
-Vector_t SoluteCluster::GetMassCenter(const std::vector<size_t> &cluster_atom_id_list) const
-{
+
+Vector_t SoluteCluster::GetMassCenter(const std::vector<size_t> &cluster_atom_id_list) const {
   // Cartesian position
   Vector_t mass_center{};
   Vector_t sum_cos_theta{};
@@ -418,9 +423,9 @@ Vector_t SoluteCluster::GetMassCenter(const std::vector<size_t> &cluster_atom_id
   }
   return mass_center * config_.GetBasis();
 }
+
 Matrix_t SoluteCluster::GetMassGyrationTensor(const std::vector<size_t> &cluster_atom_id_list,
-                                              const Vector_t &mass_center) const
-{
+                                              const Vector_t &mass_center) const {
   const auto relative_mass_center = mass_center * InverseMatrix(config_.GetBasis());
   Matrix_t gyration_tensor{};
   double sum_mass = 0;
@@ -454,9 +459,9 @@ Matrix_t SoluteCluster::GetMassGyrationTensor(const std::vector<size_t> &cluster
           gyration_tensor[1] * config_.GetBasis() * config_.GetBasis(),
           gyration_tensor[2] * config_.GetBasis() * config_.GetBasis()};
 }
+
 Matrix_t SoluteCluster::GetMassInertiaTensor(const std::vector<size_t> &cluster_atom_id_list,
-                                             const Vector_t &mass_center) const
-{
+                                             const Vector_t &mass_center) const {
   const auto relative_mass_center = mass_center * InverseMatrix(config_.GetBasis());
   Matrix_t inertia_tensor{};
   for (const size_t atom_id: cluster_atom_id_list) {
