@@ -143,10 +143,10 @@ std::pair<nlohmann::json, std::map<std::string, cfg::Config::VectorVariant>> Sol
     const double effective_radius = std::pow(3 * total_volume / (4 * M_PI), 1.0 / 3.0);
     cluster_info["effective_radius"] = effective_radius;
     ModifyElementFromVector(auxiliary_lists,
-                        "effective_radius",
-                        cluster_atom_id_list,
-                        effective_radius,
-                        std::vector<double>(config_.GetNumAtoms(), NAN));
+                            "effective_radius",
+                            cluster_atom_id_list,
+                            effective_radius,
+                            std::vector<double>(config_.GetNumAtoms(), NAN));
 
     cluster_info["elements_number"] = element_number;
     for (const auto &[element, number]: element_number) {
