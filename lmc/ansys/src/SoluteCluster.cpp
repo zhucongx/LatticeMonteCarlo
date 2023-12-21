@@ -238,7 +238,6 @@ std::pair<nlohmann::json, std::map<std::string, cfg::Config::VectorVariant>> Sol
                             std::vector<double>(config_.GetNumAtoms(), NAN));
 
     cluster_info["mass_inertia_tensor"] = GetMassInertiaTensor(cluster_atom_id_list, mass_center);
-    // ModifyElementFromVector(auxiliary_lists, "mass_inertia_tensor", cluster_atom_id_list, mass_inertia_tensor);
 
     clusters_info_array.push_back(cluster_info);
   }
