@@ -5,6 +5,7 @@
 #include <cmath>
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <numeric>
 
 #include "Constants.hpp"
@@ -17,6 +18,14 @@ constexpr std::array<Dimension, 3> All_Dimensions{kXDimension, kYDimension, kZDi
 using Vector_t = std::array<double, kDimension>;
 using Matrix_t = std::array<Vector_t, kDimension>;
 using Factor_t = std::array<size_t, kDimension>;
+
+inline std::string GetVectorTString(const Vector_t &vector, const std::string& delimiter)
+{
+  std::stringstream ss;
+  ss.precision(16);
+  ss << vector[0] << delimiter << vector[1] << delimiter << vector[2];
+  return ss.str();
+}
 
 inline Factor_t ToFactor(const Vector_t &vector)
 {
