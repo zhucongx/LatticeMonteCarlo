@@ -15,10 +15,11 @@ class ExitTime {
            const pred::EnergyChangePredictorPairSite &energy_change_predictor_site,
            const std::map<Element, double> &chemical_potential);
   [[nodiscard]] std::pair<std::vector<std::vector<double>>, std::vector<double>> GetBarrierListAndExitTime() const;
-  [[nodiscard]] double GetLocalBindingEnergy() const;
-  [[nodiscard]] std::vector<double> GetBindingEnergy() const;
-  [[nodiscard]] std::vector<double> GetProfileEnergy() const;
-protected:
+  // [[nodiscard]] double GetLocalBindingEnergy() const;
+  [[nodiscard]] std::map<Element, std::vector<double>> GetBindingEnergy() const;
+  // [[nodiscard]] std::vector<double> GetProfileEnergy() const;
+
+ protected:
   const cfg::Config &config_;
   const Element solvent_element_;
   const double beta_;

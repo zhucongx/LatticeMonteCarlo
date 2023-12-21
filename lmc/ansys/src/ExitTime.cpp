@@ -45,13 +45,12 @@ std::pair<std::vector<std::vector<double>>, std::vector<double>> ExitTime::GetBa
   return std::make_pair(barrier_lists, exit_times);
 }
 
-std::vector<double> ExitTime::GetBindingEnergy() const {
-  std::vector<double> binding_energies{};
+std::map<Element, std::vector<double>> ExitTime::GetBindingEnergy() const {
+  std::map<Element, std::vector<double>> binding_energies{};
   auto this_config = config_;
   this_config.SetAtomElementTypeAtAtom(this_config.GetVacancyAtomId(), solvent_element_);
   for (size_t atom_id = 0; atom_id < this_config.GetNumAtoms(); ++atom_id) {
     const Element this_element = this_config.GetElementAtAtomId(atom_id);
-    std::vector<double> loacal_binding_energies{};
     for (const auto &[element, mu]: chemical_potential_) {
       if (element == Element("X")) {
         continue;
@@ -61,23 +60,26 @@ std::vector<double> ExitTime::GetBindingEnergy() const {
           chemical_potential_.at(Element("X")) - chemical_potential_.at(this_config.GetElementAtAtomId(atom_id));
       const auto energy_change =
           energy_change_predictor_pair_site_.GetDeFromAtomIdSite(this_config, atom_id, Element("X"));
-      loacal_binding_energies.push_back(energy_change - potential_change);
-    }
 
-    binding_energies.emplace_back(*std::max_element(loacal_binding_energies.begin(), loacal_binding_energies.end()));
+      if (binding_energies.find(element) == binding_energies.end()) {
+        binding_energies.insert({element, {}});
+      }
+
+      binding_energies.at(element).push_back(energy_change - potential_change);
+    }
     this_config.SetAtomElementTypeAtAtom(atom_id, this_element);
   }
   return binding_energies;
 }
 
-double ExitTime::GetLocalBindingEnergy() const {
-  const auto potential_change = chemical_potential_.at(Element("X"));
-
-  const auto energy_change =
-      energy_change_predictor_pair_site_.GetDeFromAtomIdSite(config_, config_.GetVacancyAtomId(), solvent_element_);
-
-  return -energy_change - potential_change;
-}
+// double ExitTime::GetLocalBindingEnergy() const {
+//   const auto potential_change = chemical_potential_.at(Element("X"));
+//
+//   const auto energy_change =
+//       energy_change_predictor_pair_site_.GetDeFromAtomIdSite(config_, config_.GetVacancyAtomId(), solvent_element_);
+//
+//   return -energy_change - potential_change;
+// }
 
 // std::vector<double> ExitTime::GetBindingEnergy() const {
 //   std::vector<double> binding_energies{};
@@ -94,23 +96,22 @@ double ExitTime::GetLocalBindingEnergy() const {
 //   }
 //   return binding_energies;
 // }
-
-std::vector<double> ExitTime::GetProfileEnergy() const {
-  std::vector<double> profile_energies{};
-  const auto vacancy_atom_id = config_.GetVacancyAtomId();
-
-  const auto potential_change = chemical_potential_.at(Element("X"));
-  const auto energy_change =
-      energy_change_predictor_pair_site_.GetDeFromAtomIdSite(config_, vacancy_atom_id, solvent_element_);
-  const auto energy_reference = -energy_change - potential_change;
-  for (size_t atom_id = 0; atom_id < config_.GetNumAtoms(); ++atom_id) {
-    if (atom_id == vacancy_atom_id) {
-      profile_energies.push_back(energy_reference);
-      continue;
-    }
-    profile_energies.push_back(
-        energy_reference + energy_change_predictor_pair_site_.GetDeFromAtomIdPair(config_, {atom_id, vacancy_atom_id}));
-  }
-  return profile_energies;
-}
+// std::vector<double> ExitTime::GetProfileEnergy() const {
+//   std::vector<double> profile_energies{};
+//   const auto vacancy_atom_id = config_.GetVacancyAtomId();
+//
+//   const auto potential_change = chemical_potential_.at(Element("X"));
+//   const auto energy_change =
+//       energy_change_predictor_pair_site_.GetDeFromAtomIdSite(config_, vacancy_atom_id, solvent_element_);
+//   const auto energy_reference = -energy_change - potential_change;
+//   for (size_t atom_id = 0; atom_id < config_.GetNumAtoms(); ++atom_id) {
+//     if (atom_id == vacancy_atom_id) {
+//       profile_energies.push_back(energy_reference);
+//       continue;
+//     }
+//     profile_energies.push_back(
+//         energy_reference + energy_change_predictor_pair_site_.GetDeFromAtomIdPair(config_, {atom_id, vacancy_atom_id}));
+//   }
+//   return profile_energies;
+// }
 }    // namespace ansys

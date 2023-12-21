@@ -128,22 +128,22 @@ void Traverse::RunAnsys() const {
     cfg::Config config = GetConfig(config_type_, i);
 
     // basic information
-    nlohmann::json ansys_info = nlohmann::json::object();
+    nlohmann::json frame_info = nlohmann::json::object();
     std::map<std::string, cfg::Config::ValueVariant> global_list;
-    ansys_info["steps"] = i;
+    frame_info["steps"] = i;
     global_list["steps"] = i;
 
     const auto time = std::get<std::unordered_map<unsigned long long, double>>(log_map_.at("time")).at(i);
-    ansys_info["time"] = time;
+    frame_info["time"] = time;
     global_list["time"] = time;
 
     const auto temperature = std::get<std::unordered_map<unsigned long long, double>>(log_map_.at("temperature")).at(i);
-    ansys_info["temperature"] = temperature;
+    frame_info["temperature"] = temperature;
     global_list["temperature"] = temperature;
 
 
     const auto energy = std::get<std::unordered_map<unsigned long long, double>>(log_map_.at("energy")).at(i);
-    ansys_info["energy"] = energy;
+    frame_info["energy"] = energy;
     global_list["energy"] = energy;
 
     // cluster information
@@ -155,24 +155,24 @@ void Traverse::RunAnsys() const {
                                                          energy_predictor_,
                                                          chemical_potential)
                                                .GetClustersInfo();
-    ansys_info["clusters"] = cluster_json;
+    frame_info["clusters"] = cluster_json;
 
     // sro information
     ShortRangeOrder short_range_order(config, element_set_);
     const auto sro1 = short_range_order.FindWarrenCowley(1);
-    ansys_info["warren_cowley"]["first"] = sro1;
+    frame_info["warren_cowley"]["first"] = sro1;
     for (const auto &[pair, value]: sro1) {
       global_list["sro1_" + pair] = value;
     }
 
     const auto sro2 = short_range_order.FindWarrenCowley(2);
-    ansys_info["warren_cowley"]["second"] = sro2;
+    frame_info["warren_cowley"]["second"] = sro2;
     for (const auto &[pair, value]: sro2) {
       global_list["sro2_" + pair] = value;
     }
 
     const auto sro3 = short_range_order.FindWarrenCowley(3);
-    ansys_info["warren_cowley"]["third"] = sro3;
+    frame_info["warren_cowley"]["third"] = sro3;
     for (const auto &[pair, value]: sro3) {
       global_list["sro3_" + pair] = value;
     }
@@ -190,10 +190,22 @@ void Traverse::RunAnsys() const {
       }
       return string_map;
     };
-    ansys_info["vacancy_local"]["first"] = convert(element_set_, config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 1));
-    ansys_info["vacancy_local"]["second"] =
-        convert(element_set_, config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 2));
-    ansys_info["vacancy_local"]["third"] = convert(element_set_, config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 3));
+
+    const auto vac1 = convert(element_set_, config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 1));
+    frame_info["vacancy_local"]["first"] = vac1;
+    for (const auto &[element, value]: vac1) {
+      global_list["vac1_" + element] = value;
+    }
+    const auto vac2 = convert(element_set_, config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 2));
+    frame_info["vacancy_local"]["second"] = vac2;
+    for (const auto &[element, value]: vac2) {
+      global_list["vac2_" + element] = value;
+    }
+    const auto vac3 = convert(element_set_, config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 3));
+    frame_info["vacancy_local"]["third"] = vac3;
+    for (const auto &[element, value]: vac3) {
+      global_list["vac3_" + element] = value;
+    }
 
     // binding energy
     const auto exit_time = ExitTime(config,
@@ -203,15 +215,29 @@ void Traverse::RunAnsys() const {
                                     energy_change_predictor_pair_site_,
                                     chemical_potential);
     const auto binding_energy = exit_time.GetBindingEnergy();
-    auxiliary_lists["binding_energy"] = binding_energy;
 
-    ansys_info["vacancy_local_binding_energy"] = binding_energy[config.GetVacancyAtomId()];
-    global_list["vacancy_local_binding_energy"] = binding_energy[config.GetVacancyAtomId()];
 
-    for (auto &cluster_info: ansys_info["clusters"]) {
+    std::map<std::string, double> vac_element_energy_list;
+    for (const auto &element: element_set_) {
+      const auto element_string = element.GetString();
+      const auto vac_element_energy = binding_energy.at(element)[config.GetVacancyAtomId()];
+      vac_element_energy_list.emplace(element_string, vac_element_energy);
+
+      auxiliary_lists["binding_energy_" + element_string] = binding_energy.at(element);
+      global_list["vacancy_local_binding_energy_" + element_string] = vac_element_energy;
+    }
+    frame_info["vacancy_local_binding_energy"] = vac_element_energy_list;
+
+
+    for (auto &cluster_info: frame_info["clusters"]) {
       std::vector<double> binding_energy_list;
       for (const auto &atom_id: cluster_info["cluster_atom_id_list"]) {
-        binding_energy_list.push_back(binding_energy[atom_id]);
+        std::vector<double> element_energy_list;
+        element_energy_list.reserve(element_set_.size());
+        for (const auto &element: element_set_) {
+          element_energy_list.push_back(binding_energy.at(element)[atom_id]);
+        }
+        binding_energy_list.push_back(*std::max_element(element_energy_list.begin(), element_energy_list.end()));
       }
       cluster_info.erase("cluster_atom_id_list");
       cluster_info["vacancy_binding_energy"] =
@@ -228,11 +254,11 @@ void Traverse::RunAnsys() const {
 
     boost::filesystem::create_directories("ansys");
     config.WriteExtendedXyz("ansys/" + std::to_string(i) + ".xyz.gz", auxiliary_lists, global_list);
-    const auto cluster_string = GetClusterString(ansys_info);
-    const auto frame_string = GetFrameString(ansys_info);
+    const auto cluster_string = GetClusterString(frame_info);
+    const auto frame_string = GetFrameString(frame_info);
 #pragma omp critical
     {
-      ansys_info_array.push_back(ansys_info);
+      ansys_info_array.push_back(frame_info);
       cluster_ofs_ << cluster_string << std::flush;
       frame_ofs_ << frame_string << std::flush;
     }
@@ -258,7 +284,7 @@ std::string Traverse::GetHeaderClusterString() const {
     header_frame += "\t";
   }
   header_frame += "cluster_X\tmass_gyration_radius\tasphericity\tacylindricity\tanisotropy\t"
-                  "vacancy_binding_energy\tvacancy_local_binding_energy\n";
+                  "vacancy_binding_energy\n";
   return header_frame;
 }
 
@@ -273,8 +299,7 @@ std::string Traverse::GetClusterString(const nlohmann::json &frame) const {
     }
     cluster_stream << cluster["elements_number"]["X"] << "\t" << cluster["mass_gyration_radius"] << "\t"
                    << cluster["shape"]["asphericity"] << "\t" << cluster["shape"]["acylindricity"] << "\t"
-                   << cluster["shape"]["anisotropy"] << "\t" << cluster["vacancy_binding_energy"] << "\t"
-                   << frame["vacancy_local_binding_energy"] << "\n";
+                   << cluster["shape"]["anisotropy"] << "\t" << cluster["vacancy_binding_energy"] << "\n";
   }
   return cluster_stream.str();
 }
@@ -287,9 +312,9 @@ std::string Traverse::GetHeaderFrameString() const {
   header_frame += "cluster_size_list\t";
   static const std::vector<std::string> order_list{"first", "second", "third"};
   for (const auto &order: order_list) {
-    for (auto it1 = element_set_.cbegin(); it1 != element_set_.cend(); ++it1) {
-      for (auto it2 = element_set_.cbegin(); it2 != element_set_.cend(); ++it2) {
-        header_frame += "warren_cowley_" + order + "_" + it1->GetString() + "-" + it2->GetString() + "\t";
+    for (auto element1: element_set_) {
+      for (auto element2: element_set_) {
+        header_frame += "warren_cowley_" + order + "_" + element1.GetString() + "-" + element2.GetString() + "\t";
       }
     }
   }
@@ -298,7 +323,12 @@ std::string Traverse::GetHeaderFrameString() const {
       header_frame += "vacancy_local_" + order + "_" + element.GetString() + "\t";
     }
   }
-  header_frame += "vacancy_local_binding_energy\n";
+  for (const auto &element: element_set_) {
+    header_frame += "vacancy_local_binding_energy_" + element.GetString() + "\t";
+  }
+  if (!header_frame.empty() && header_frame.back() == '\t') {
+    header_frame.back() = '\n';
+  }
   return header_frame;
 }
 
@@ -332,7 +362,7 @@ std::string Traverse::GetFrameString(const nlohmann::json &frame) const {
   for (const auto &element: element_set_) {
     frame_stream << element_number_map[element] << "\t";
   }
-  frame_stream << "\"[" << boost::algorithm::join(cluster_size_list, ",") << "]\"\t";
+  frame_stream << "[" << boost::algorithm::join(cluster_size_list, ",") << "]\t";
 
   for (const auto &order: frame["warren_cowley"]) {
     for (const auto &pair: order.items()) {
@@ -344,9 +374,15 @@ std::string Traverse::GetFrameString(const nlohmann::json &frame) const {
       frame_stream << pair.value() << "\t";
     }
   }
-  frame_stream << frame["vacancy_local_binding_energy"] << "\n";
+  for (const auto &element: element_set_) {
+    frame_stream << frame["vacancy_local_binding_energy"][element.GetString()] << "\t";
+  }
 
-  return frame_stream.str();
+  auto frame_string = frame_stream.str();
+  if (!frame_string.empty() && frame_string.back() == '\t') {
+    frame_string.back() = '\n';
+  }
+  return frame_string;
 }
 
 void Traverse::RunReformat() const {
