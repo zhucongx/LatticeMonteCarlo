@@ -1,7 +1,6 @@
 #include "EnergyChangePredictorSite.h"
 #include <omp.h>
 #include <nlohmann/json.hpp>
-using json = nlohmann::json;
 
 namespace pred {
 EnergyChangePredictorSite::EnergyChangePredictorSite(const std::string &predictor_filename,
@@ -13,7 +12,7 @@ EnergyChangePredictorSite::EnergyChangePredictorSite(const std::string &predicto
   initialized_cluster_hashmap_ = InitializeClusterHashMap(element_set_copy);
 
   std::ifstream ifs(predictor_filename, std::ifstream::in);
-  json all_parameters;
+  nlohmann::json all_parameters;
   ifs >> all_parameters;
 
   for (const auto &[element, parameters]: all_parameters.items()) {

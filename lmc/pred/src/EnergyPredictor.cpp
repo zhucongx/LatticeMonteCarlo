@@ -1,7 +1,6 @@
 #include "EnergyPredictor.h"
 #include <omp.h>
 #include <nlohmann/json.hpp>
-using json = nlohmann::json;
 
 namespace pred {
 EnergyPredictor::EnergyPredictor(const std::string &predictor_filename,
@@ -15,7 +14,7 @@ EnergyPredictor::EnergyPredictor(const std::string &predictor_filename,
       ordered(initialized_cluster_hashmap_.begin(), initialized_cluster_hashmap_.end());
 
   std::ifstream ifs(predictor_filename, std::ifstream::in);
-  json all_parameters;
+  nlohmann::json all_parameters;
   ifs >> all_parameters;
 
   for (const auto &[element, parameters] : all_parameters.items()) {

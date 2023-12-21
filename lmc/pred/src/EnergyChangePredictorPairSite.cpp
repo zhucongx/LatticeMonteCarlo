@@ -1,11 +1,12 @@
 #include "EnergyChangePredictorPairSite.h"
-#include <omp.h>
+
 #include <nlohmann/json.hpp>
-using json = nlohmann::json;
+#include <omp.h>
+
 namespace pred {
 EnergyChangePredictorPairSite::EnergyChangePredictorPairSite(const std::string &predictor_filename,
-                                                           const cfg::Config &reference_config,
-                                                           std::set<Element> element_set)
+                                                             const cfg::Config &reference_config,
+                                                             std::set<Element> element_set)
     : element_set_(std::move(element_set)),
       site_mapping_state_(GetClusterParametersMappingStateSite(reference_config)) {
   auto element_set_copy(element_set_);
@@ -13,14 +14,14 @@ EnergyChangePredictorPairSite::EnergyChangePredictorPairSite(const std::string &
   initialized_cluster_hashmap_ = InitializeClusterHashMap(element_set_copy);
 
   std::ifstream ifs(predictor_filename, std::ifstream::in);
-  json all_parameters;
+  nlohmann::json all_parameters;
   ifs >> all_parameters;
 
   for (const auto &[element, parameters]: all_parameters.items()) {
     if (element == "Base") {
       auto base_theta_json = parameters.at("theta");
       base_theta_ = {};
-      for (const auto &theta : base_theta_json) {
+      for (const auto &theta: base_theta_json) {
         base_theta_.emplace_back(theta.get<double>());
       }
       // base_theta_ = std::vector<double>(parameters.at("theta"));
@@ -31,9 +32,12 @@ EnergyChangePredictorPairSite::EnergyChangePredictorPairSite(const std::string &
     auto neighboring_hashset = reference_config.GetNeighborsLatticeIdSetOfSite(i);
     auto sorted_lattice_vector = GetSortedLatticeVectorStateOfSite(reference_config, i);
     std::vector<size_t> lattice_id_vector_state;
-    std::transform(sorted_lattice_vector.begin(), sorted_lattice_vector.end(),
+    std::transform(sorted_lattice_vector.begin(),
+                   sorted_lattice_vector.end(),
                    std::back_inserter(lattice_id_vector_state),
-                   [](const auto &lattice) { return lattice.GetId(); });
+                   [](const auto &lattice) {
+                     return lattice.GetId();
+                   });
 #pragma omp critical
     {
       site_state_hashmap_[i] = std::move(lattice_id_vector_state);
@@ -41,19 +45,21 @@ EnergyChangePredictorPairSite::EnergyChangePredictorPairSite(const std::string &
     }
   }
 }
+
 EnergyChangePredictorPairSite::~EnergyChangePredictorPairSite() = default;
-double EnergyChangePredictorPairSite::GetDeFromAtomIdPair(
-    const cfg::Config &config, const std::pair<size_t, size_t> &atom_id_jump_pair) const {
-  return GetDeFromLatticeIdPair(
-      config,
-      {config.GetLatticeIdFromAtomId(atom_id_jump_pair.first),
-       config.GetLatticeIdFromAtomId(atom_id_jump_pair.second)});
+
+double EnergyChangePredictorPairSite::GetDeFromAtomIdPair(const cfg::Config &config,
+                                                          const std::pair<size_t, size_t> &atom_id_jump_pair) const {
+  return GetDeFromLatticeIdPair(config,
+                                {config.GetLatticeIdFromAtomId(atom_id_jump_pair.first),
+                                 config.GetLatticeIdFromAtomId(atom_id_jump_pair.second)});
 }
 
-double EnergyChangePredictorPairSite::GetDeFromLatticeIdPair(
-    const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
-  if (config.GetElementAtLatticeId(lattice_id_jump_pair.first)
-      == config.GetElementAtLatticeId(lattice_id_jump_pair.second)) {
+double
+EnergyChangePredictorPairSite::GetDeFromLatticeIdPair(const cfg::Config &config,
+                                                      const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
+  if (config.GetElementAtLatticeId(lattice_id_jump_pair.first) ==
+      config.GetElementAtLatticeId(lattice_id_jump_pair.second)) {
     return 0.0;
   }
   const auto &neighbors_of_lhs = neighboring_sites_hashmap_.at(lattice_id_jump_pair.first);
@@ -62,20 +68,17 @@ double EnergyChangePredictorPairSite::GetDeFromLatticeIdPair(
   }
   return GetDeFromLatticeIdPairWithCoupling(config, lattice_id_jump_pair);
 }
+
 double EnergyChangePredictorPairSite::GetDeHelper(
-    const std::unordered_map<cfg::ElementCluster, size_t,
-                             boost::hash<cfg::ElementCluster> > &start_hashmap,
-    const std::unordered_map<cfg::ElementCluster, size_t,
-                             boost::hash<cfg::ElementCluster> > &end_hashmap,
+    const std::unordered_map<cfg::ElementCluster, size_t, boost::hash<cfg::ElementCluster>> &start_hashmap,
+    const std::unordered_map<cfg::ElementCluster, size_t, boost::hash<cfg::ElementCluster>> &end_hashmap,
     const std::map<cfg::ElementCluster, int> &ordered) const {
   std::vector<double> de_encode;
   de_encode.reserve(ordered.size());
-  static const std::vector<double>
-      cluster_counter{256, 1536, 768, 3072, 2048, 3072, 6144, 6144, 6144, 6144, 2048};
+  static const std::vector<double> cluster_counter{256, 1536, 768, 3072, 2048, 3072, 6144, 6144, 6144, 6144, 2048};
   for (const auto &cluster_count: ordered) {
     const auto &cluster = cluster_count.first;
-    auto count_bond = static_cast<double>(end_hashmap.at(cluster))
-        - static_cast<double>(start_hashmap.at(cluster));
+    auto count_bond = static_cast<double>(end_hashmap.at(cluster)) - static_cast<double>(start_hashmap.at(cluster));
     auto total_bond = cluster_counter[static_cast<size_t>(cluster.GetLabel())];
     de_encode.push_back(count_bond / total_bond);
   }
@@ -86,6 +89,7 @@ double EnergyChangePredictorPairSite::GetDeHelper(
   }
   return dE;
 }
+
 double EnergyChangePredictorPairSite::GetDeFromLatticeIdPairWithCoupling(
     const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
   const auto element_first = config.GetElementAtLatticeId(lattice_id_jump_pair.first);
@@ -118,10 +122,10 @@ double EnergyChangePredictorPairSite::GetDeFromLatticeIdPairWithCoupling(
     }
     label++;
   }
-  std::map<cfg::ElementCluster, int>
-      ordered(initialized_cluster_hashmap_.begin(), initialized_cluster_hashmap_.end());
+  std::map<cfg::ElementCluster, int> ordered(initialized_cluster_hashmap_.begin(), initialized_cluster_hashmap_.end());
   return GetDeHelper(start_hashmap, end_hashmap, ordered);
 }
+
 double EnergyChangePredictorPairSite::GetDeFromLatticeIdPairWithoutCoupling(
     const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
   const auto element_first = config.GetElementAtLatticeId(lattice_id_jump_pair.first);
@@ -135,13 +139,14 @@ double EnergyChangePredictorPairSite::GetDeFromLatticeIdPairWithoutCoupling(
 }
 
 double EnergyChangePredictorPairSite::GetDeFromAtomIdSite(const cfg::Config &config,
-                                                         size_t atom_id,
-                                                         Element new_element) const {
+                                                          size_t atom_id,
+                                                          Element new_element) const {
   return GetDeFromLatticeIdSite(config, config.GetLatticeIdFromAtomId(atom_id), new_element);
 }
+
 double EnergyChangePredictorPairSite::GetDeFromLatticeIdSite(const cfg::Config &config,
-                                                            size_t lattice_id,
-                                                            Element new_element) const {
+                                                             size_t lattice_id,
+                                                             Element new_element) const {
   const auto old_element = config.GetElementAtLatticeId(lattice_id);
   if (old_element == new_element) {
     return 0.0;
@@ -171,8 +176,7 @@ double EnergyChangePredictorPairSite::GetDeFromLatticeIdSite(const cfg::Config &
     }
     label++;
   }
-  std::map<cfg::ElementCluster, int>
-      ordered(initialized_cluster_hashmap_.begin(), initialized_cluster_hashmap_.end());
+  std::map<cfg::ElementCluster, int> ordered(initialized_cluster_hashmap_.begin(), initialized_cluster_hashmap_.end());
   return GetDeHelper(start_hashmap, end_hashmap, ordered);
 }
-} // pred
+}    // namespace pred
