@@ -363,6 +363,9 @@ double SoluteCluster::GetMass(const std::vector<size_t> &cluster_atom_id_list) c
 }
 
 double SoluteCluster::GetFormationEnergy(const std::vector<size_t> &cluster_atom_id_list) const {
+  if (cluster_atom_id_list.size() <= 1) {
+    return 0;
+  }
   cfg::Config solute_config(solvent_config_);
   double energy_change_solution_to_pure_solvent = 0;
   for (size_t atom_id: cluster_atom_id_list) {
