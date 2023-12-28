@@ -115,7 +115,7 @@ Traverse::~Traverse() = default;
 
 void Traverse::RunAnsys() const {
   const auto chemical_potential = energy_predictor_.GetChemicalPotential(solvent_element_);
-  nlohmann::json ansys_info_array = nlohmann::json::array();
+  // nlohmann::json ansys_info_array = nlohmann::json::array();
   frame_ofs_ << GetHeaderFrameString() << std::flush;
   cluster_ofs_ << GetHeaderClusterString() << std::flush;
 #pragma omp parallel for default(none) schedule(static, 1) shared(ansys_info_array, chemical_potential, std::cout)
@@ -258,21 +258,21 @@ void Traverse::RunAnsys() const {
     const auto frame_string = GetFrameString(frame_info);
 #pragma omp critical
     {
-      ansys_info_array.push_back(frame_info);
+      // ansys_info_array.push_back(frame_info);
       cluster_ofs_ << cluster_string << std::flush;
       frame_ofs_ << frame_string << std::flush;
     }
   }
-  std::cout << "Finished. Sorting..." << std::endl;
-  std::sort(ansys_info_array.begin(), ansys_info_array.end(), [](const nlohmann::json &lhs, const nlohmann::json &rhs) {
-    return lhs["steps"] < rhs["steps"];
-  });
-  std::ofstream ofs("ansys_info.json.gz", std::ios_base::out | std::ios_base::binary);
-  boost::iostreams::filtering_ostream fos;
-  fos.push(boost::iostreams::gzip_compressor());
-  fos.push(ofs);
-  fos.precision(16);
-  fos << ansys_info_array.dump(2) << std::endl;
+  // std::cout << "Finished. Sorting..." << std::endl;
+  // std::sort(ansys_info_array.begin(), ansys_info_array.end(), [](const nlohmann::json &lhs, const nlohmann::json &rhs) {
+  //   return lhs["steps"] < rhs["steps"];
+  // });
+  // std::ofstream ofs("ansys_info.json.gz", std::ios_base::out | std::ios_base::binary);
+  // boost::iostreams::filtering_ostream fos;
+  // fos.push(boost::iostreams::gzip_compressor());
+  // fos.push(ofs);
+  // fos.precision(16);
+  // fos << ansys_info_array.dump(2) << std::endl;
   std::cout << "Done..." << std::endl;
 }
 
