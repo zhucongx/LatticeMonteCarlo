@@ -118,7 +118,7 @@ void Traverse::RunAnsys() const {
   // nlohmann::json ansys_info_array = nlohmann::json::array();
   frame_ofs_ << GetHeaderFrameString() << std::flush;
   cluster_ofs_ << GetHeaderClusterString() << std::flush;
-#pragma omp parallel for default(none) schedule(static, 1) shared(ansys_info_array, chemical_potential, std::cout)
+#pragma omp parallel for default(none) schedule(static, 1) shared(chemical_potential, std::cout)
   for (unsigned long long i = initial_steps_; i <= final_number_; i += increment_steps_) {
 #pragma omp critical
     {
