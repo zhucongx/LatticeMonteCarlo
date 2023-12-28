@@ -209,7 +209,8 @@ std::pair<nlohmann::json, std::map<std::string, cfg::Config::VectorVariant>> Sol
                             cluster_atom_id_list,
                             mass_gyration_radius,
                             std::vector<double>(config_.GetNumAtoms(), NAN));
-
+    // aspect ratio (l2/l1)
+    // oblateness (l3/l2)
     const auto asphericity = eigenvalues[2] - 0.5 * (eigenvalues[0] + eigenvalues[1]);
     cluster_info["asphericity"] = asphericity;
     ModifyElementFromVector(auxiliary_lists,
