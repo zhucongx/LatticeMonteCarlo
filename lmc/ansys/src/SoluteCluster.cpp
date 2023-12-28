@@ -308,6 +308,10 @@ std::vector<std::vector<size_t>> SoluteCluster::FindAtomListOfClusters() const {
   }
   // add solvent neighbors
   for (auto &cluster: cluster_atom_list) {
+    if(cluster.size() <= solvent_bond_criteria_){
+      continue;
+    }
+
     std::unordered_set<size_t> cluster_set(cluster.begin(), cluster.end());
     std::unordered_set<size_t> neighbor_set;
     for (auto atom_id: cluster) {
