@@ -165,7 +165,9 @@ std::pair<nlohmann::json, std::map<std::string, cfg::Config::VectorVariant>> Sol
                             cluster_mass,
                             std::vector<double>(config_.GetNumAtoms(), NAN));
 
-    const auto cluster_energy = GetFormationEnergy(cluster_atom_id_list) / static_cast<double>(size_without_vacancy);
+    const auto cluster_energy = size_without_vacancy == 0
+        ? 0.0
+        : GetFormationEnergy(cluster_atom_id_list) / static_cast<double>(size_without_vacancy);
     cluster_info["cluster_energy"] = cluster_energy;
     ModifyElementFromVector(auxiliary_lists,
                             "cluster_energy",
