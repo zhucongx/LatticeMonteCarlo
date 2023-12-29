@@ -198,10 +198,9 @@ std::pair<nlohmann::json, std::map<std::string, cfg::Config::VectorVariant>> Sol
         {mass_gyration_tensor[1][0], mass_gyration_tensor[1][1], mass_gyration_tensor[1][2]},
         {mass_gyration_tensor[2][0], mass_gyration_tensor[2][1], mass_gyration_tensor[2][2]}};
     Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eigen_solver(mass_gyration_tensor_eigen);
-    // if (eigen_solver.info() != Eigen::Success) {
-    //   throw std::runtime_error("Eigen solver failed");
-    // }
-    const auto &eigenvalues = eigen_solver.eigenvalues();
+
+    const auto &eigenvalues = eigen_solver.info() == Eigen::Success && size > 1 ? eigen_solver.eigenvalues()
+                                                                                : Eigen::Vector3d{NAN, NAN, NAN};
     const auto mass_gyration_radius = std::sqrt(eigenvalues[0] + eigenvalues[1] + eigenvalues[2]);
     cluster_info["mass_gyration_radius"] = mass_gyration_radius;
     ModifyElementFromVector(auxiliary_lists,
@@ -308,7 +307,7 @@ std::vector<std::vector<size_t>> SoluteCluster::FindAtomListOfClusters() const {
   }
   // add solvent neighbors
   for (auto &cluster: cluster_atom_list) {
-    if(cluster.size() <= solvent_bond_criteria_){
+    if (cluster.size() <= solvent_bond_criteria_) {
       continue;
     }
 
