@@ -133,7 +133,9 @@ void Traverse::RunAnsys() const {
     frame_info["steps"] = i;
     global_list["steps"] = i;
 
-    const auto time = std::get<std::unordered_map<unsigned long long, double>>(log_map_.at("time")).at(i);
+    const auto time = log_map_.find("time") == log_map_.end()
+        ? nan("")
+        : std::get<std::unordered_map<unsigned long long, double>>(log_map_.at("time")).at(i);
     frame_info["time"] = time;
     global_list["time"] = time;
 
