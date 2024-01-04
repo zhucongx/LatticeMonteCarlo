@@ -811,14 +811,17 @@ void Config::UpdateNeighbors() {
   // Create neighbor list, iterate over each cell and find neighboring points
   for (size_t cell_idx = 0; cell_idx < cells.size(); ++cell_idx) {
     auto &cell = cells.at(cell_idx);
-    size_t i = cell_idx / (num_cells[1] * num_cells[2]);
-    size_t j = (cell_idx % (num_cells[1] * num_cells[2])) / num_cells[2];
-    size_t k = cell_idx % num_cells[2];
+    const size_t i = cell_idx / (num_cells[1] * num_cells[2]);
+    const size_t j = (cell_idx % (num_cells[1] * num_cells[2])) / num_cells[2];
+    const size_t k = cell_idx % num_cells[2];
     // Check neighboring cells, taking into account periodic boundaries
     for (auto [di, dj, dk]: OFFSET_LIST) {
-      const size_t ni = (num_cells[0] + i + di) % num_cells[0];
-      const size_t nj = (num_cells[1] + j + dj) % num_cells[1];
-      const size_t nk = (num_cells[2] + k + dk) % num_cells[2];
+      const size_t ni =
+          (num_cells[0] + i + (di >= 0 ? static_cast<size_t>(di) : -static_cast<size_t>(-di))) % num_cells[0];
+      const size_t nj =
+          (num_cells[1] + j + (dj >= 0 ? static_cast<size_t>(dj) : -static_cast<size_t>(-dj))) % num_cells[1];
+      const size_t nk =
+          (num_cells[2] + k + (dk >= 0 ? static_cast<size_t>(dk) : -static_cast<size_t>(-dk))) % num_cells[2];
       const size_t neighbor_cell_idx = (ni * num_cells[1] + nj) * num_cells[2] + nk;
       auto &neighbor_cell = cells.at(neighbor_cell_idx);
       // For each point in the cell, check if it's close to any point in the neighboring cell

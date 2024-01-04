@@ -146,7 +146,7 @@ std::pair<nlohmann::json, std::map<std::string, cfg::Config::VectorVariant>> Sol
                             "effective_radius",
                             cluster_atom_id_list,
                             effective_radius,
-                            std::vector<double>(config_.GetNumAtoms(), NAN));
+                            std::vector<double>(config_.GetNumAtoms(), nan("")));
 
     cluster_info["elements_number"] = element_number;
     for (const auto &[element, number]: element_number) {
@@ -163,7 +163,7 @@ std::pair<nlohmann::json, std::map<std::string, cfg::Config::VectorVariant>> Sol
                             "cluster_mass",
                             cluster_atom_id_list,
                             cluster_mass,
-                            std::vector<double>(config_.GetNumAtoms(), NAN));
+                            std::vector<double>(config_.GetNumAtoms(), nan("")));
 
     const auto cluster_energy = size_without_vacancy == 0
         ? 0.0
@@ -173,7 +173,7 @@ std::pair<nlohmann::json, std::map<std::string, cfg::Config::VectorVariant>> Sol
                             "cluster_energy",
                             cluster_atom_id_list,
                             cluster_energy,
-                            std::vector<double>(config_.GetNumAtoms(), NAN));
+                            std::vector<double>(config_.GetNumAtoms(), nan("")));
 
     const auto geometry_center = GetGeometryCenter(cluster_atom_id_list);
     cluster_info["geometry_center"] = geometry_center;
@@ -181,7 +181,7 @@ std::pair<nlohmann::json, std::map<std::string, cfg::Config::VectorVariant>> Sol
                             "geometry_center",
                             cluster_atom_id_list,
                             geometry_center,
-                            std::vector<Vector_t>(config_.GetNumAtoms(), {NAN, NAN, NAN}));
+                            std::vector<Vector_t>(config_.GetNumAtoms(), {nan(""), nan(""), nan("")}));
 
     const auto mass_center = GetMassCenter(cluster_atom_id_list);
     cluster_info["mass_center"] = mass_center;
@@ -189,7 +189,7 @@ std::pair<nlohmann::json, std::map<std::string, cfg::Config::VectorVariant>> Sol
                             "mass_center",
                             cluster_atom_id_list,
                             mass_center,
-                            std::vector<Vector_t>(config_.GetNumAtoms(), {NAN, NAN, NAN}));
+                            std::vector<Vector_t>(config_.GetNumAtoms(), {nan(""), nan(""), nan("")}));
 
     const auto mass_gyration_tensor = GetMassGyrationTensor(cluster_atom_id_list, mass_center);
     cluster_info["mass_gyration_tensor"] = mass_gyration_tensor;
@@ -201,15 +201,16 @@ std::pair<nlohmann::json, std::map<std::string, cfg::Config::VectorVariant>> Sol
         {mass_gyration_tensor[2][0], mass_gyration_tensor[2][1], mass_gyration_tensor[2][2]}};
     Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eigen_solver(mass_gyration_tensor_eigen);
 
-    const auto &eigenvalues = eigen_solver.info() == Eigen::Success && size > 1 ? eigen_solver.eigenvalues()
-                                                                                : Eigen::Vector3d{NAN, NAN, NAN};
+    const auto &eigenvalues = eigen_solver.info() == Eigen::Success && size > 1
+        ? eigen_solver.eigenvalues()
+        : Eigen::Vector3d{nan(""), nan(""), nan("")};
     const auto mass_gyration_radius = std::sqrt(eigenvalues[0] + eigenvalues[1] + eigenvalues[2]);
     cluster_info["mass_gyration_radius"] = mass_gyration_radius;
     ModifyElementFromVector(auxiliary_lists,
                             "mass_gyration_radius",
                             cluster_atom_id_list,
                             mass_gyration_radius,
-                            std::vector<double>(config_.GetNumAtoms(), NAN));
+                            std::vector<double>(config_.GetNumAtoms(), nan("")));
     // aspect ratio (l2/l1)
     // oblateness (l3/l2)
     const auto asphericity = eigenvalues[2] - 0.5 * (eigenvalues[0] + eigenvalues[1]);
@@ -218,7 +219,7 @@ std::pair<nlohmann::json, std::map<std::string, cfg::Config::VectorVariant>> Sol
                             "cluster_asphericity",
                             cluster_atom_id_list,
                             asphericity,
-                            std::vector<double>(config_.GetNumAtoms(), NAN));
+                            std::vector<double>(config_.GetNumAtoms(), nan("")));
 
     const auto acylindricity = eigenvalues[1] - eigenvalues[0];
     cluster_info["acylindricity"] = acylindricity;
@@ -226,7 +227,7 @@ std::pair<nlohmann::json, std::map<std::string, cfg::Config::VectorVariant>> Sol
                             "cluster_acylindricity",
                             cluster_atom_id_list,
                             acylindricity,
-                            std::vector<double>(config_.GetNumAtoms(), NAN));
+                            std::vector<double>(config_.GetNumAtoms(), nan("")));
 
     const auto anisotropy = 1.5 *
             (std::pow(eigenvalues[0], 2) + std::pow(eigenvalues[1], 2) + std::pow(eigenvalues[2], 2)) /
@@ -237,7 +238,7 @@ std::pair<nlohmann::json, std::map<std::string, cfg::Config::VectorVariant>> Sol
                             "cluster_anisotropy",
                             cluster_atom_id_list,
                             anisotropy,
-                            std::vector<double>(config_.GetNumAtoms(), NAN));
+                            std::vector<double>(config_.GetNumAtoms(), nan("")));
 
     cluster_info["mass_inertia_tensor"] = GetMassInertiaTensor(cluster_atom_id_list, mass_center);
 
