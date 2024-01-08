@@ -15,6 +15,8 @@ class ExitTime {
            const pred::EnergyChangePredictorPairSite &energy_change_predictor_site,
            const std::map<Element, double> &chemical_potential);
   [[nodiscard]] std::pair<std::vector<std::vector<double>>, std::vector<double>> GetBarrierListAndExitTime() const;
+  [[nodiscard]] std::pair<std::vector<std::vector<double>>, std::vector<double>>
+  GetBarrierListAndExitTimeOfCluster(const std::unordered_set<size_t> &atom_id_set) const;
   // [[nodiscard]] double GetLocalBindingEnergy() const;
   [[nodiscard]] std::map<Element, std::vector<double>> GetBindingEnergy() const;
   // [[nodiscard]] std::vector<double> GetProfileEnergy() const;

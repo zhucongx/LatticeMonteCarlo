@@ -231,6 +231,7 @@ void Traverse::RunAnsys() const {
     frame_info["vacancy_local_binding_energy"] = vac_element_energy_list;
 
 
+    std::unordered_set<size_t> atom_id_set;
     for (auto &cluster_info: frame_info["clusters"]) {
       std::vector<double> binding_energy_list;
       for (const auto &atom_id: cluster_info["cluster_atom_id_list"]) {
@@ -241,7 +242,9 @@ void Traverse::RunAnsys() const {
         }
         binding_energy_list.push_back(*std::max_element(element_energy_list.begin(), element_energy_list.end()));
       }
-      cluster_info.erase("cluster_atom_id_list");
+      atom_id_set.insert(cluster_info["cluster_atom_id_list"].begin(), cluster_info["cluster_atom_id_list"].end());
+      //      cluster_info.erase("cluster_atom_id_list");
+
       cluster_info["vacancy_binding_energy"] =
           *std::min_element(binding_energy_list.begin(), binding_energy_list.end());
     }
@@ -250,9 +253,10 @@ void Traverse::RunAnsys() const {
     // auxiliary_lists["profile_energy"] = profile_energy;
 
     // exit time
-    // auto [barrier_lists, exit_times] =exit_time.GetBarrierListAndExitTime();
-    // auxiliary_lists["barrier_lists"] = barrier_lists;
-    // auxiliary_lists["exit_times"] = exit_times;
+    auto [barrier_lists, exit_times] = exit_time.GetBarrierListAndExitTimeOfCluster(atom_id_set);
+    auxiliary_lists["barrier_lists"] = barrier_lists;
+    auxiliary_lists["exit_times"] = exit_times;
+    frame_info["barrier_lists"] = barrier_lists;
 
     boost::filesystem::create_directories("ansys");
     config.WriteExtendedXyz("ansys/" + std::to_string(i) + ".xyz.gz", auxiliary_lists, global_list);
@@ -286,7 +290,7 @@ std::string Traverse::GetHeaderClusterString() const {
     header_frame += "\t";
   }
   header_frame += "cluster_X\teffective_radius\tmass_gyration_radius\tasphericity\tacylindricity\tanisotropy\t"
-                  "vacancy_binding_energy\tgeometry_center\n";
+                  "vacancy_binding_energy\tmigration_barrier\tgeometry_center\n";
   return header_frame;
 }
 
@@ -304,6 +308,15 @@ std::string Traverse::GetClusterString(const nlohmann::json &frame) const {
                    << cluster["mass_gyration_radius"] << "\t" << cluster["asphericity"] << "\t"
                    << cluster["acylindricity"] << "\t" << cluster["anisotropy"] << "\t"
                    << cluster["vacancy_binding_energy"] << "\t";
+
+    cluster_stream << "[";
+    for (const size_t atom_id: cluster["cluster_atom_id_list"]) {
+      for (const double barrier: frame["barrier_lists"][atom_id]) {
+        cluster_stream << barrier << ",";
+      }
+    }
+    cluster_stream << "]\t";
+
     cluster_stream << "[" << GetVectorTString(cluster["geometry_center"], ",") << "]\n";
   }
   return cluster_stream.str();
