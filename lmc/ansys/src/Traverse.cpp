@@ -309,13 +309,15 @@ std::string Traverse::GetClusterString(const nlohmann::json &frame) const {
                    << cluster["acylindricity"] << "\t" << cluster["anisotropy"] << "\t"
                    << cluster["vacancy_binding_energy"] << "\t";
 
-    cluster_stream << "[";
+    double sum = 0;
+    size_t count = 0;
     for (const size_t atom_id: cluster["cluster_atom_id_list"]) {
       for (const double barrier: frame["barrier_lists"][atom_id]) {
-        cluster_stream << barrier << ",";
+        sum += barrier;
+        count++;
       }
     }
-    cluster_stream << "]\t";
+    cluster_stream << sum / count << "\t";
 
     cluster_stream << "[" << GetVectorTString(cluster["geometry_center"], ",") << "]\n";
   }
