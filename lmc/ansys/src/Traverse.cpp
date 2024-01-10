@@ -242,10 +242,9 @@ void Traverse::RunAnsys() const {
         binding_energy_list.push_back(*std::max_element(element_energy_list.begin(), element_energy_list.end()));
       };
 
-      const auto barriers = exit_time.GetAverageBarriers(std::unordered_set<size_t>(
+      cluster_info["barriers"] = exit_time.GetAverageBarriers(std::unordered_set<size_t>(
           cluster_info["cluster_atom_id_list"].begin(), cluster_info["cluster_atom_id_list"].end()));
-
-      cluster_info["barriers"] = barriers;
+      
       cluster_info["vacancy_binding_energy"] =
           *std::min_element(binding_energy_list.begin(), binding_energy_list.end());
       // cluster_info.erase("cluster_atom_id_list");
