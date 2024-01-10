@@ -306,7 +306,7 @@ std::string Traverse::GetClusterString(const nlohmann::json &frame) const {
                    << cluster["mass_gyration_radius"] << "\t" << cluster["asphericity"] << "\t"
                    << cluster["acylindricity"] << "\t" << cluster["anisotropy"] << "\t"
                    << cluster["vacancy_binding_energy"] << "\t";
-    const auto &barriers = cluster["barriers"];
+    const std::vector<double> &barriers = cluster["barriers"];
     cluster_stream << barriers[0] << "\t" << barriers[1] << "\t" << barriers[2] << "\t" << barriers[3] << "\t";
     cluster_stream << "[" << GetVectorTString(cluster["geometry_center"], ",") << "]\n";
   }

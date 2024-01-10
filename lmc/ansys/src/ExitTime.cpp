@@ -45,7 +45,7 @@ std::pair<std::vector<std::vector<double>>, std::vector<double>> ExitTime::GetBa
   return std::make_pair(barrier_lists, exit_times);
 }
 
-std::array<double, 4> ExitTime::GetAverageBarriers(const std::unordered_set<size_t> &atom_id_set) const {
+std::vector<double> ExitTime::GetAverageBarriers(const std::unordered_set<size_t> &atom_id_set) const {
   std::unordered_set<size_t> lattice_id_set{};
   std::unordered_set<size_t> lattice_id_set_plus_nn{};
   for (const auto &atom_id: atom_id_set) {
