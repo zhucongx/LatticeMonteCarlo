@@ -45,62 +45,55 @@ std::pair<std::vector<std::vector<double>>, std::vector<double>> ExitTime::GetBa
   return std::make_pair(barrier_lists, exit_times);
 }
 
-std::pair<std::vector<std::vector<double>>, std::vector<std::vector<double>>>
-ExitTime::GetBarrierListWithinAndOn(const std::unordered_set<size_t> &atom_id_set) const {
+std::pair<double, double> ExitTime::GetAverageBarrierWithinOff(const std::unordered_set<size_t> &atom_id_set) const {
   std::unordered_set<size_t> lattice_id_set{};
+  std::unordered_set<size_t> lattice_id_set_plus_nn{};
   for (const auto &atom_id: atom_id_set) {
-    lattice_id_set.insert(config_.GetLatticeIdFromAtomId(atom_id));
+    const auto lattice_id = config_.GetLatticeIdFromAtomId(atom_id);
+    lattice_id_set.insert(lattice_id);
+    lattice_id_set_plus_nn.insert(lattice_id);
+    for (const auto &neighbor_lattice_id: config_.GetFirstNeighborsAdjacencyList()[lattice_id]) {
+      lattice_id_set_plus_nn.insert(neighbor_lattice_id);
+    }
   }
-
-  std::vector<std::vector<double>> barrier_lists_within{};
-  std::vector<std::vector<double>> barrier_lists_on{};
+  std::cout << lattice_id_set.size() << " " << lattice_id_set_plus_nn.size() << std::endl;
+  std::vector<double> barrier_list_within{};
+  std::vector<double> barrier_list_off{};
   auto this_config = config_;
   this_config.SetAtomElementTypeAtAtom(this_config.GetVacancyAtomId(), solvent_element_);
 
-  for (size_t atom_id = 0; atom_id < this_config.GetNumAtoms(); ++atom_id) {
-    if (atom_id_set.find(atom_id) == atom_id_set.end()) {
-      std::vector<double> barrier_list{};
-      barrier_list.reserve(constants::kNumFirstNearestNeighbors);
-      for (size_t i = 0; i < constants::kNumFirstNearestNeighbors; ++i) {
-        barrier_list.push_back(nan(""));
-      }
-      barrier_lists_within.push_back(barrier_list);
-      barrier_lists_on.push_back(barrier_list);
-      continue;
-    }
+  for (const auto lattice_id: lattice_id_set_plus_nn) {
+    const bool lattice_in_set = lattice_id_set.find(lattice_id) != lattice_id_set.end();
 
-    const size_t lattice_id = this_config.GetLatticeIdFromAtomId(atom_id);
-    const Element this_element = this_config.GetElementAtAtomId(atom_id);
-    this_config.SetAtomElementTypeAtAtom(atom_id, Element(ElementName::X));
-    std::vector<double> barrier_list_within{};
-    std::vector<double> barrier_list_on{};
-    barrier_list_within.reserve(constants::kNumFirstNearestNeighbors);
-    barrier_list_on.reserve(constants::kNumFirstNearestNeighbors);
-    for (auto neighbor_lattice_id: this_config.GetFirstNeighborsAdjacencyList()[lattice_id]) {
-      const auto [Ea, dE] = vacancy_migration_predictor_.GetBarrierAndDiffFromLatticeIdPair(
-          this_config, {lattice_id, neighbor_lattice_id});
-      const double Ea_b = Ea - dE;
-      if (lattice_id_set.find(neighbor_lattice_id) == lattice_id_set.end()) {
-        barrier_list_within.push_back(nan(""));
-        barrier_list_on.push_back(Ea_b);
-      } else {
-        barrier_list_within.push_back(Ea_b);
-        barrier_list_on.push_back(nan(""));
+    const Element this_element = this_config.GetElementAtLatticeId(lattice_id);
+    this_config.SetAtomElementTypeAtLattice(lattice_id, Element(ElementName::X));
+
+    for (const auto neighbor_lattice_id: this_config.GetFirstNeighborsAdjacencyList().at(lattice_id)) {
+      const bool neighbor_in_set = lattice_id_set.find(neighbor_lattice_id) != lattice_id_set.end();
+      const bool neighbor_in_nn = lattice_id_set_plus_nn.find(neighbor_lattice_id) != lattice_id_set_plus_nn.end();
+      if (lattice_in_set && neighbor_in_set) {
+        const auto [Ea, dE] = vacancy_migration_predictor_.GetBarrierAndDiffFromLatticeIdPair(
+            this_config, {lattice_id, neighbor_lattice_id});
+        barrier_list_within.push_back(Ea - dE);
+      }
+      if (!lattice_in_set && !neighbor_in_nn) {
+        const auto [Ea, dE] = vacancy_migration_predictor_.GetBarrierAndDiffFromLatticeIdPair(
+            this_config, {lattice_id, neighbor_lattice_id});
+        barrier_list_off.push_back(Ea - dE);
       }
     }
-    this_config.SetAtomElementTypeAtAtom(atom_id, this_element);
-    auto cmp =[](double d1, double d2) {
-      if (isnan(d1)) return false;
-      if (isnan(d2)) return true;
-      return d1 < d2;
-    };
-    std::sort(barrier_list_within.begin(), barrier_list_within.end(), cmp);
-    std::sort(barrier_list_on.begin(), barrier_list_on.end(), cmp);
-    barrier_lists_within.push_back(barrier_list_within);
-    barrier_lists_on.push_back(barrier_list_on);
+    this_config.SetAtomElementTypeAtLattice(lattice_id, this_element);
   }
 
-  return std::make_pair(barrier_lists_within, barrier_lists_on);
+  const double average_barrier_within = barrier_list_within.empty()
+      ? nan("")
+      : std::accumulate(barrier_list_within.begin(), barrier_list_within.end(), 0.0) /
+          static_cast<double>(barrier_list_within.size());
+  const double average_barrier_off = barrier_list_off.empty()
+      ? nan("")
+      : std::accumulate(barrier_list_off.begin(), barrier_list_off.end(), 0.0) /
+          static_cast<double>(barrier_list_off.size());
+  return std::make_pair(average_barrier_within, average_barrier_off);
 }
 
 std::map<Element, std::vector<double>> ExitTime::GetBindingEnergy() const {
