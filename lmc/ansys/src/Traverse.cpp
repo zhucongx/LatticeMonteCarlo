@@ -253,10 +253,11 @@ void Traverse::RunAnsys() const {
     // auxiliary_lists["profile_energy"] = profile_energy;
 
     // exit time
-    auto [barrier_lists, exit_times] = exit_time.GetBarrierListAndExitTimeOfCluster(atom_id_set);
-    auxiliary_lists["barrier_lists"] = barrier_lists;
-    auxiliary_lists["exit_times"] = exit_times;
-    frame_info["barrier_lists"] = barrier_lists;
+    const auto [barrier_lists_within, barrier_lists_on] = exit_time.GetBarrierListWithinAndOn(atom_id_set);
+    auxiliary_lists["barrier_lists_within"] = barrier_lists_within;
+    auxiliary_lists["barrier_lists_on"] = barrier_lists_on;
+    frame_info["barrier_lists_within"] = barrier_lists_within;
+    frame_info["barrier_lists_on"] = barrier_lists_on;
 
     boost::filesystem::create_directories("ansys");
     config.WriteExtendedXyz("ansys/" + std::to_string(i) + ".xyz.gz", auxiliary_lists, global_list);
@@ -290,7 +291,7 @@ std::string Traverse::GetHeaderClusterString() const {
     header_frame += "\t";
   }
   header_frame += "cluster_X\teffective_radius\tmass_gyration_radius\tasphericity\tacylindricity\tanisotropy\t"
-                  "vacancy_binding_energy\tmigration_barrier\tgeometry_center\n";
+                  "vacancy_binding_energy\tmigration_barrier_within\tmigration_barrier_on\tgeometry_center\n";
   return header_frame;
 }
 
@@ -309,15 +310,48 @@ std::string Traverse::GetClusterString(const nlohmann::json &frame) const {
                    << cluster["acylindricity"] << "\t" << cluster["anisotropy"] << "\t"
                    << cluster["vacancy_binding_energy"] << "\t";
 
-    double sum = 0;
-    size_t count = 0;
+    double sum_within = 0;
+    size_t count_within = 0;
+
+    double sum_on = 0;
+    size_t count_on = 0;
     for (const size_t atom_id: cluster["cluster_atom_id_list"]) {
-      for (const double barrier: frame["barrier_lists"][atom_id]) {
-        sum += barrier;
-        count++;
+      for (const double barrier: frame["barrier_lists_within"][atom_id]) {
+        if (!std::isnan(barrier)) {
+          sum_within += barrier;
+          count_within++;
+        }
+      }
+      for (const double barrier: frame["barrier_lists_on"][atom_id]) {
+        if (!std::isnan(barrier)) {
+          sum_on += barrier;
+          count_on++;
+        }
       }
     }
-    cluster_stream << sum / count << "\t";
+    const double simple_average_within = sum_within / static_cast<double>(count_within);
+    const double simple_average_on = sum_on / static_cast<double>(count_on);
+    cluster_stream << simple_average_within << "\t" << simple_average_on << "\t";
+
+    //    std::vector<double> migration_barriers_at_temperature{0, 0, 0};
+    //    std::vector<double> thermodynamic_sum{0, 0, 0};
+    //    std::vector<double> partition{0, 0, 0};
+    //    std::vector<double> temperature{300, 500, 650};
+    //    for (const size_t atom_id: cluster["cluster_atom_id_list"]) {
+    //      for (const double barrier: frame["barrier_lists"][atom_id]) {
+    //        const double barrier_off = barrier - simple_average;
+    //        for (size_t i = 0; i < 3; ++i) {
+    //          const double exp_value = std::exp(-barrier_off / constants::kBoltzmann / temperature[i]);
+    //          thermodynamic_sum[i] += barrier_off * exp_value;
+    //          partition[i] += exp_value;
+    //        }
+    //      }
+    //    }
+    //    for (size_t i = 0; i < 3; ++i) {
+    //      migration_barriers_at_temperature[i] = thermodynamic_sum[i] / partition[i] + simple_average;
+    //    }
+    //    cluster_stream << migration_barriers_at_temperature[0] << "\t" << migration_barriers_at_temperature[1] << "\t"
+    //                   << migration_barriers_at_temperature[2] << "\t";
 
     cluster_stream << "[" << GetVectorTString(cluster["geometry_center"], ",") << "]\n";
   }
