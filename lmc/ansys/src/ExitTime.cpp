@@ -45,7 +45,7 @@ std::pair<std::vector<std::vector<double>>, std::vector<double>> ExitTime::GetBa
   return std::make_pair(barrier_lists, exit_times);
 }
 
-std::pair<double, double> ExitTime::GetAverageBarrierWithinOff(const std::unordered_set<size_t> &atom_id_set) const {
+std::array<double, 4> ExitTime::GetAverageBarriers(const std::unordered_set<size_t> &atom_id_set) const {
   std::unordered_set<size_t> lattice_id_set{};
   std::unordered_set<size_t> lattice_id_set_plus_nn{};
   for (const auto &atom_id: atom_id_set) {
@@ -56,8 +56,9 @@ std::pair<double, double> ExitTime::GetAverageBarrierWithinOff(const std::unorde
       lattice_id_set_plus_nn.insert(neighbor_lattice_id);
     }
   }
-  std::cout << lattice_id_set.size() << " " << lattice_id_set_plus_nn.size() << std::endl;
-  std::vector<double> barrier_list_within{};
+  std::vector<double> barrier_list_in{};
+  std::vector<double> barrier_list_to{};
+  std::vector<double> barrier_list_on{};
   std::vector<double> barrier_list_off{};
   auto this_config = config_;
   this_config.SetAtomElementTypeAtAtom(this_config.GetVacancyAtomId(), solvent_element_);
@@ -71,29 +72,37 @@ std::pair<double, double> ExitTime::GetAverageBarrierWithinOff(const std::unorde
     for (const auto neighbor_lattice_id: this_config.GetFirstNeighborsAdjacencyList().at(lattice_id)) {
       const bool neighbor_in_set = lattice_id_set.find(neighbor_lattice_id) != lattice_id_set.end();
       const bool neighbor_in_nn = lattice_id_set_plus_nn.find(neighbor_lattice_id) != lattice_id_set_plus_nn.end();
+
+      std::vector<double>* barrier_list = nullptr;
       if (lattice_in_set && neighbor_in_set) {
-        const auto [Ea, dE] = vacancy_migration_predictor_.GetBarrierAndDiffFromLatticeIdPair(
-            this_config, {lattice_id, neighbor_lattice_id});
-        barrier_list_within.push_back(Ea - dE);
+        barrier_list = &barrier_list_in;
+      } else if (lattice_in_set && !neighbor_in_set && neighbor_in_nn) {
+        barrier_list = &barrier_list_to;
+      } else if (!lattice_in_set && !neighbor_in_set && neighbor_in_nn) {
+        barrier_list = &barrier_list_on;
+      } else if (!lattice_in_set && !neighbor_in_nn) {
+        barrier_list = &barrier_list_off;
       }
-      if (!lattice_in_set && !neighbor_in_nn) {
+      if (barrier_list) {
         const auto [Ea, dE] = vacancy_migration_predictor_.GetBarrierAndDiffFromLatticeIdPair(
             this_config, {lattice_id, neighbor_lattice_id});
-        barrier_list_off.push_back(Ea - dE);
+        barrier_list->push_back(Ea - dE);
       }
     }
     this_config.SetAtomElementTypeAtLattice(lattice_id, this_element);
   }
 
-  const double average_barrier_within = barrier_list_within.empty()
-      ? nan("")
-      : std::accumulate(barrier_list_within.begin(), barrier_list_within.end(), 0.0) /
-          static_cast<double>(barrier_list_within.size());
-  const double average_barrier_off = barrier_list_off.empty()
-      ? nan("")
-      : std::accumulate(barrier_list_off.begin(), barrier_list_off.end(), 0.0) /
-          static_cast<double>(barrier_list_off.size());
-  return std::make_pair(average_barrier_within, average_barrier_off);
+  auto compute_average = [](const std::vector<double>& barrier_list) -> double {
+    if (barrier_list.empty()) {
+      return nan("");
+    }
+    return std::accumulate(barrier_list.begin(), barrier_list.end(), 0.0) / static_cast<double>(barrier_list.size());
+  };
+
+  return {compute_average(barrier_list_in),
+          compute_average(barrier_list_to),
+          compute_average(barrier_list_on),
+          compute_average(barrier_list_off)};
 }
 
 std::map<Element, std::vector<double>> ExitTime::GetBindingEnergy() const {

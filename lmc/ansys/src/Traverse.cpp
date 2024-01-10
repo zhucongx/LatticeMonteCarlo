@@ -242,12 +242,12 @@ void Traverse::RunAnsys() const {
         binding_energy_list.push_back(*std::max_element(element_energy_list.begin(), element_energy_list.end()));
       };
 
-      const auto [barrier_within, barrier_off] = exit_time.GetAverageBarrierWithinOff(std::unordered_set<size_t>(
+      const auto barriers = exit_time.GetAverageBarriers(std::unordered_set<size_t>(
           cluster_info["cluster_atom_id_list"].begin(), cluster_info["cluster_atom_id_list"].end()));
 
-      cluster_info["barrier_within"] = barrier_within;
-      cluster_info["barrier_off"] = barrier_off;
-      cluster_info["vacancy_binding_energy"] = *std::min_element(binding_energy_list.begin(), binding_energy_list.end());
+      cluster_info["barriers"] = barriers;
+      cluster_info["vacancy_binding_energy"] =
+          *std::min_element(binding_energy_list.begin(), binding_energy_list.end());
       // cluster_info.erase("cluster_atom_id_list");
     }
 
@@ -286,7 +286,9 @@ std::string Traverse::GetHeaderClusterString() const {
     header_frame += "\t";
   }
   header_frame += "cluster_X\teffective_radius\tmass_gyration_radius\tasphericity\tacylindricity\tanisotropy\t"
-                  "vacancy_binding_energy\tmigration_barrier_within\tmigration_barrier_off\tgeometry_center\n";
+                  "vacancy_binding_energy\t"
+                  "migration_barrier_in\tmigration_barrier_to\tmigration_barrier_on\tmigration_barrier_off\t"
+                  "geometry_center\n";
   return header_frame;
 }
 
@@ -304,9 +306,8 @@ std::string Traverse::GetClusterString(const nlohmann::json &frame) const {
                    << cluster["mass_gyration_radius"] << "\t" << cluster["asphericity"] << "\t"
                    << cluster["acylindricity"] << "\t" << cluster["anisotropy"] << "\t"
                    << cluster["vacancy_binding_energy"] << "\t";
-
-    cluster_stream << cluster["barrier_within"] << "\t" << cluster["barrier_off"] << "\t";
-
+    const auto &barriers = cluster["barriers"];
+    cluster_stream << barriers[0] << "\t" << barriers[1] << "\t" << barriers[2] << "\t" << barriers[3] << "\t";
     cluster_stream << "[" << GetVectorTString(cluster["geometry_center"], ",") << "]\n";
   }
   return cluster_stream.str();
