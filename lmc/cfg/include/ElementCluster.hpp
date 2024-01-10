@@ -1,5 +1,6 @@
 #ifndef LMC_LMC_CFG_INCLUDE_ELEMENTCLUSTER_HPP_
 #define LMC_LMC_CFG_INCLUDE_ELEMENTCLUSTER_HPP_
+#include <algorithm>
 #include <utility>
 #include <vector>
 #include <map>
