@@ -286,8 +286,8 @@ std::string Traverse::GetHeaderClusterString() const {
   }
   header_frame += "cluster_X\teffective_radius\tmass_gyration_radius\tasphericity\tacylindricity\tanisotropy\t"
                   "vacancy_binding_energy\t"
-                  "barrier_mean_in\tmbarrier_mean_to\tbarrier_mean_on\tbarrier_mean_off\t"
-                  "barrier_std_in\tmbarrier_std_to\tbarrier_std_on\tbarrier_std_off\t"
+                  "barrier_mean_in\tbarrier_mean_to\tbarrier_mean_on\tbarrier_mean_off\t"
+                  "barrier_std_in\tbarrier_std_to\tbarrier_std_on\tbarrier_std_off\t"
                   "geometry_center\n";
   return header_frame;
 }
