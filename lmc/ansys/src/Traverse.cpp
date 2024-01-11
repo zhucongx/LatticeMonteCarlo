@@ -286,7 +286,8 @@ std::string Traverse::GetHeaderClusterString() const {
   }
   header_frame += "cluster_X\teffective_radius\tmass_gyration_radius\tasphericity\tacylindricity\tanisotropy\t"
                   "vacancy_binding_energy\t"
-                  "migration_barrier_in\tmigration_barrier_to\tmigration_barrier_on\tmigration_barrier_off\t"
+                  "barrier_mean_in\tmbarrier_mean_to\tbarrier_mean_on\tbarrier_mean_off\t"
+                  "barrier_std_in\tmbarrier_std_to\tbarrier_std_on\tbarrier_std_off\t"
                   "geometry_center\n";
   return header_frame;
 }
@@ -307,6 +308,7 @@ std::string Traverse::GetClusterString(const nlohmann::json &frame) const {
                    << cluster["vacancy_binding_energy"] << "\t";
     const std::vector<double> &barriers = cluster["barriers"];
     cluster_stream << barriers[0] << "\t" << barriers[1] << "\t" << barriers[2] << "\t" << barriers[3] << "\t";
+    cluster_stream << barriers[4] << "\t" << barriers[5] << "\t" << barriers[6] << "\t" << barriers[7] << "\t";
     cluster_stream << "[" << GetVectorTString(cluster["geometry_center"], ",") << "]\n";
   }
   return cluster_stream.str();

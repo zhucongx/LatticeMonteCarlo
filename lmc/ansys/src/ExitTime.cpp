@@ -73,7 +73,7 @@ std::vector<double> ExitTime::GetAverageBarriers(const std::unordered_set<size_t
       const bool neighbor_in_set = lattice_id_set.find(neighbor_lattice_id) != lattice_id_set.end();
       const bool neighbor_in_nn = lattice_id_set_plus_nn.find(neighbor_lattice_id) != lattice_id_set_plus_nn.end();
 
-      std::vector<double>* barrier_list = nullptr;
+      std::vector<double> *barrier_list = nullptr;
       if (lattice_in_set && neighbor_in_set) {
         barrier_list = &barrier_list_in;
       } else if (lattice_in_set && !neighbor_in_set && neighbor_in_nn) {
@@ -92,17 +92,36 @@ std::vector<double> ExitTime::GetAverageBarriers(const std::unordered_set<size_t
     this_config.SetAtomElementTypeAtLattice(lattice_id, this_element);
   }
 
-  auto compute_average = [](const std::vector<double>& barrier_list) -> double {
+  auto compute_average = [](const std::vector<double> &barrier_list) -> double {
     if (barrier_list.empty()) {
       return nan("");
     }
     return std::accumulate(barrier_list.begin(), barrier_list.end(), 0.0) / static_cast<double>(barrier_list.size());
   };
 
-  return {compute_average(barrier_list_in),
-          compute_average(barrier_list_to),
-          compute_average(barrier_list_on),
-          compute_average(barrier_list_off)};
+  auto compute_std = [](const std::vector<double> &barrier_list, const double mean) -> double {
+    if (barrier_list.empty()) {
+      return nan("");
+    }
+    double sum = 0;
+    for (const auto &barrier: barrier_list) {
+      sum += (barrier - mean) * (barrier - mean);
+    }
+    return std::sqrt(sum / static_cast<double>(barrier_list.size()));
+  };
+
+  const double mean_in = compute_average(barrier_list_in);
+  const double mean_to = compute_average(barrier_list_to);
+  const double mean_on = compute_average(barrier_list_on);
+  const double mean_off = compute_average(barrier_list_off);
+
+  const double std_in = compute_std(barrier_list_in, mean_in);
+  const double std_to = compute_std(barrier_list_to, mean_to);
+  const double std_on = compute_std(barrier_list_on, mean_on);
+  const double std_off = compute_std(barrier_list_off, mean_off);
+
+
+  return {mean_in, mean_to, mean_on, mean_off, std_in, std_to, std_on, std_off};
 }
 
 std::map<Element, std::vector<double>> ExitTime::GetBindingEnergy() const {
