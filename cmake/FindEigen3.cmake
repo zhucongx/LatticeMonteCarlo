@@ -71,6 +71,7 @@ else ()
                 HINTS
                 ENV EIGEN3_ROOT
                 ENV EIGEN3_ROOT_DIR
+                ENV TACC_EIGEN_DIR
                 PATHS
                 ${KDE4_INCLUDE_DIR}
                 ${CMAKE_INSTALL_PREFIX}/include/eigen3

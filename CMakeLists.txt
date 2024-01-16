@@ -147,6 +147,10 @@ else ()
     endif ()
 endif ()
 
+if (DEFINED ENV{TACC_BOOST_DIR}) # TACC
+    set(BOOST_ROOT ENV{TACC_BOOST_DIR})
+else ()
+
 find_package(Eigen3 3.4)
 if (NOT EIGEN3_FOUND)
     message(WARNING "Eigen3 not found.")
