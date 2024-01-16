@@ -108,8 +108,8 @@ endfunction()
 ######################################################## BOOST #########################################################
 #set(Boost_USE_DEBUG_LIBS OFF) # ignore debug libs and
 #set(Boost_USE_RELEASE_LIBS ON) # only find release libs
-if (DEFINED ENV{TACC_BOOST_DIR}) # TACC
-    set(boost_system_DIR "$ENV{TACC_BOOST_DIR}")
+if (DEFINED ENV{TACC_BOOST_LIB}) # TACC
+    set(boost_system_DIR "$ENV{TACC_BOOST_LIB}")
 endif ()
 find_package(Boost COMPONENTS filesystem system iostreams REQUIRED)
 target_link_libraries_system(${PROJECT_NAME} PRIVATE Boost::boost Boost::filesystem Boost::system Boost::iostreams)
