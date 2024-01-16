@@ -4,7 +4,6 @@
 #include <any>
 #include <boost/filesystem.hpp>
 #include <boost/functional/hash.hpp>
-#include <boost/iostreams/filter/bzip2.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
 #include <chrono>
@@ -404,8 +403,6 @@ Config Config::ReadConfig(const std::string &filename) {
   boost::iostreams::filtering_istream fis;
   if (boost::filesystem::path(filename).extension() == ".gz") {
     fis.push(boost::iostreams::gzip_decompressor());
-  } else if (boost::filesystem::path(filename).extension() == ".bz2") {
-    fis.push(boost::iostreams::bzip2_decompressor());
   }
   fis.push(ifs);
   // "Number of particles = %i"
@@ -515,8 +512,6 @@ void Config::WriteExtendedConfig(const std::string &filename,
   boost::iostreams::filtering_ostream fos;
   if (boost::filesystem::path(filename).extension() == ".gz") {
     fos.push(boost::iostreams::gzip_compressor());
-  } else if (boost::filesystem::path(filename).extension() == ".bz2") {
-    fos.push(boost::iostreams::bzip2_compressor());
   }
   fos.push(ofs);
   fos.precision(16);
@@ -559,8 +554,6 @@ void Config::WriteExtendedXyz(const std::string &filename,
   boost::iostreams::filtering_ostream fos;
   if (boost::filesystem::path(filename).extension() == ".gz") {
     fos.push(boost::iostreams::gzip_compressor());
-  } else if (boost::filesystem::path(filename).extension() == ".bz2") {
-    fos.push(boost::iostreams::bzip2_compressor());
   }
   fos.push(ofs);
   fos.precision(16);
