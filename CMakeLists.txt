@@ -108,6 +108,9 @@ endfunction()
 ######################################################## BOOST #########################################################
 #set(Boost_USE_DEBUG_LIBS OFF) # ignore debug libs and
 #set(Boost_USE_RELEASE_LIBS ON) # only find release libs
+if (DEFINED ENV{TACC_BOOST_DIR}) # TACC
+    set(BOOST_ROOT ENV{TACC_BOOST_DIR})
+endif ()
 find_package(Boost COMPONENTS filesystem system iostreams REQUIRED)
 target_link_libraries_system(${PROJECT_NAME} PRIVATE Boost::boost Boost::filesystem Boost::system Boost::iostreams)
 ######################################################### MPI ##########################################################
@@ -145,10 +148,6 @@ else ()
     else ()
         message(WARNING "BLAS/LAPACK not found. Using Eigen3 only.")
     endif ()
-endif ()
-
-if (DEFINED ENV{TACC_BOOST_DIR}) # TACC
-    set(BOOST_ROOT ENV{TACC_BOOST_DIR})
 endif ()
 
 find_package(Eigen3 3.4)
