@@ -149,7 +149,7 @@ endif ()
 
 if (DEFINED ENV{TACC_BOOST_DIR}) # TACC
     set(BOOST_ROOT ENV{TACC_BOOST_DIR})
-else ()
+endif ()
 
 find_package(Eigen3 3.4)
 if (NOT EIGEN3_FOUND)
