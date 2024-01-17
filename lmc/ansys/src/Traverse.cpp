@@ -249,6 +249,12 @@ void Traverse::RunAnsys() const {
       // cluster_info.erase("cluster_atom_id_list");
     }
 
+    // exit time
+    // auto [barrier_lists, average_barriers, exit_times] = exit_time.GetBarrierListAndExitTime();
+    // auxiliary_lists["barrier_lists"] = barrier_lists;
+    // auxiliary_lists["average_barriers"] = average_barriers;
+    // auxiliary_lists["exit_times"] = exit_times;
+
     // const auto profile_energy = exit_time.GetProfileEnergy();
     // auxiliary_lists["profile_energy"] = profile_energy;
 

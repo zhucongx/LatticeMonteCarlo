@@ -14,7 +14,7 @@ ExitTime::ExitTime(const cfg::Config &config,
       energy_change_predictor_pair_site_(energy_change_predictor_site),
       chemical_potential_(chemical_potential) {}
 
-std::pair<std::vector<std::vector<double>>, std::vector<double>> ExitTime::GetBarrierListAndExitTime() const {
+std::tuple<std::vector<std::vector<double>>,  std::vector<double>, std::vector<double>> ExitTime::GetBarrierListAndExitTime() const {
   std::vector<std::vector<double>> barrier_lists{};
   auto this_config = config_;
   this_config.SetAtomElementTypeAtAtom(this_config.GetVacancyAtomId(), solvent_element_);
@@ -33,16 +33,20 @@ std::pair<std::vector<std::vector<double>>, std::vector<double>> ExitTime::GetBa
     std::sort(barrier_list.begin(), barrier_list.end());
     barrier_lists.push_back(barrier_list);
   }
+  std::vector<double> average_barriers{};
   std::vector<double> exit_times{};
   exit_times.reserve(this_config.GetNumAtoms());
   for (const auto &barriers: barrier_lists) {
+    double sum_barrier = 0.0;
     double total_rate_k = 0.0;
     for (const auto &barrier: barriers) {
+      sum_barrier += barrier;
       total_rate_k += std::exp(-barrier * beta_);
     }
+    average_barriers.push_back(sum_barrier / static_cast<double>(barriers.size()));
     exit_times.push_back(1.0 / total_rate_k / constants::kPrefactor);
   }
-  return std::make_pair(barrier_lists, exit_times);
+  return std::make_tuple(barrier_lists, average_barriers, exit_times);
 }
 
 std::vector<double> ExitTime::GetAverageBarriers(const std::unordered_set<size_t> &atom_id_set) const {
