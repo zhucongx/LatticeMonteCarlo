@@ -4,6 +4,7 @@
 #include <mutex>
 #include <shared_mutex>
 #include <list>
+#include <unordered_map>
 template<typename K, class V>
 class LruCache {
 public:
