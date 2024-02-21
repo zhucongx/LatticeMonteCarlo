@@ -8,7 +8,7 @@ on:
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
-  BUILD_TYPE: Release
+  BUILD_TYPE: Release, Debug
 
 jobs:
   build:
@@ -22,7 +22,7 @@ jobs:
     - name: Install dependencies on ubuntu
       run: |
         sudo apt update
-        sudo apt install ninja-build cmake libopenmpi-dev libboost-all-dev libeigen3-dev
+        sudo apt install build-essential ninja-build cmake libopenmpi-dev libboost-all-dev libeigen3-dev
         cmake --version
         gcc --version
     - name: Configure CMake
