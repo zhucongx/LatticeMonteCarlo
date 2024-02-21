@@ -6,6 +6,7 @@
 #include "McAbstract.h"
 #include "JumpEvent.h"
 #include "VacancyMigrationPredictorQuarticLru.h"
+#include "VacancyMigrationPredictorE0Lru.h"
 #include "TimeTemperatureInterpolator.h"
 #include "RateCorrector.hpp"
 namespace mc {
@@ -42,7 +43,7 @@ class KineticMcFirstAbstract : public McAbstract {
     static constexpr size_t kEventListSize = constants::kNumFirstNearestNeighbors;
 
     // helpful properties
-    const pred::VacancyMigrationPredictorQuarticLru vacancy_migration_predictor_lru_;
+    const pred::VacancyMigrationPredictorE0Lru vacancy_migration_predictor_lru_;
     const pred::TimeTemperatureInterpolator time_temperature_interpolator_;
     const bool is_time_temperature_interpolator_;
     const pred::RateCorrector rate_corrector_;
