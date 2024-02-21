@@ -12,8 +12,8 @@ namespace pred {
 class VacancyMigrationPredictorE0 {
   public:
     VacancyMigrationPredictorE0(const std::string &predictor_filename,
-                                     const cfg::Config &reference_config,
-                                     std::set<Element> element_set);
+                                const cfg::Config &reference_config,
+                                std::set<Element> element_set);
     virtual ~VacancyMigrationPredictorE0();
     [[nodiscard]] std::pair<double, double> GetBarrierAndDiffFromAtomIdPair(
         const cfg::Config &config,
