@@ -67,9 +67,9 @@ struct ParametersE0 {
   std::vector<double> sigma_x_mmm{};
   std::vector<std::vector<double>> U_mmm{};
 
-  double mu_y{};
-  double sigma_y{};
-  std::vector<double> theta{};
+  std::vector<double> theta_e0{};
+  double mu_y_e0{};
+  double sigma_y_e0{};
 };
 
 struct ParametersDE {
