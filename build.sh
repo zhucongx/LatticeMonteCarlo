@@ -17,9 +17,7 @@ compiler=$2
     read -p "Enter the compiler - [d]efault, [g]cc, [i]ntel, [c]lang: " compiler
 }
 flag=$3
-[[ -z $flag ]] && {
-    read -p "Enter any additional flag: " flag
-}
+
 mode=${mode,,} # convert to lowercase
 compiler=${compiler,,} # convert to lowercase
 
