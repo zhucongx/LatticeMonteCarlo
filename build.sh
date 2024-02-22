@@ -37,7 +37,7 @@ case $compiler in
   *) echo "Invalid compiler. Try again..." ; exit 1 ;;
 esac
 
-echo "Building in $mode mode using $compiler_C, $compiler_CXX compiler and flag($flag)"
+echo "Building in $mode mode using $compiler_C, $compiler_CXX compiler and additional flag($flag)"
 if [ -d "cmake-build" ]; then
   rm -rf cmake-build
 fi
