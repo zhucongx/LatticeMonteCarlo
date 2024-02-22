@@ -16,6 +16,10 @@ compiler=$2
 [[ -z $compiler ]] && {
     read -p "Enter the compiler - [d]efault, [g]cc, [i]ntel, [c]lang: " compiler
 }
+flag=$3
+[[ -z $flag ]] && {
+    read -p "Enter any additional flag: " flag
+}
 mode=${mode,,} # convert to lowercase
 compiler=${compiler,,} # convert to lowercase
 
@@ -34,7 +38,7 @@ case $compiler in
   *) echo "Invalid compiler. Try again..." ; exit 1 ;;
 esac
 
-echo "Building in $mode mode using $compiler_C, $compiler_CXX compiler"
+echo "Building in $mode mode using $compiler_C, $compiler_CXX compiler and flag($flag)"
 if [ -d "cmake-build" ]; then
   rm -rf cmake-build
 fi
@@ -45,7 +49,7 @@ mkdir cmake-build; cd cmake-build || {
 
 # Pass the selected parameters to cmake
 cmake -D CMAKE_C_COMPILER="$compiler_C" -D CMAKE_CXX_COMPILER="$compiler_CXX" \
--D CMAKE_BUILD_TYPE="$mode" -S ..
+-D CMAKE_BUILD_TYPE="$mode" -D ADDITIONAL_FLAGS="$flag"  -S ..
 cmake --build . -j 12
 
 # Moving back to the original directory
