@@ -61,8 +61,8 @@ void CanonicalMcAbstract::Dump() const {
     ofs_ << "steps\ttemperature\tenergy\taverage_energy\tabsolute_energy" << std::endl;
   }
   if (steps_ % config_dump_steps_ == 0) {
-    config_.WriteMap("map" + std::to_string(steps_) + ".txt");
-    config_.WriteConfig(std::to_string(steps_) + ".cfg");
+    // config_.WriteMap("map" + std::to_string(steps_) + ".txt");
+    config_.WriteConfig(std::to_string(steps_) + ".cfg.gz");
   }
   if (steps_ == maximum_steps_) {
     config_.WriteConfig("end.cfg");
