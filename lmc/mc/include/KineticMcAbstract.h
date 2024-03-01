@@ -26,7 +26,8 @@ class KineticMcFirstAbstract : public McAbstract {
                            const std::set<Element> &element_set,
                            const std::string &json_coefficients_filename,
                            const std::string &time_temperature_filename,
-                           bool is_rate_corrector);
+                           bool is_rate_corrector,
+                           const Vector_t &vacancy_trajectory);
     ~KineticMcFirstAbstract() override;
     KineticMcFirstAbstract(const KineticMcFirstAbstract &) = delete;
     void operator=(const mc::KineticMcFirstAbstract &) = delete;
@@ -49,7 +50,7 @@ class KineticMcFirstAbstract : public McAbstract {
     const pred::RateCorrector rate_corrector_;
     const bool is_rate_corrector_;
     size_t vacancy_lattice_id_;
-    Vector_t unwrapped_vacancy_cartesian_coordinate_;
+    Vector_t vacancy_trajectory_;
     std::array<JumpEvent, kEventListSize> event_k_i_list_{};
     JumpEvent event_k_i_{};
     double total_rate_k_{0.0}; // k would be same for all
@@ -68,7 +69,8 @@ class KineticMcChainAbstract : public KineticMcFirstAbstract {
                            const std::set<Element> &element_set,
                            const std::string &json_coefficients_filename,
                            const std::string &time_temperature_filename,
-                           bool is_rate_corrector);
+                           bool is_rate_corrector,
+                           const Vector_t &vacancy_trajectory);
     ~KineticMcChainAbstract() override;
     KineticMcChainAbstract(const KineticMcChainAbstract &) = delete;
     void operator=(const mc::KineticMcChainAbstract &) = delete;

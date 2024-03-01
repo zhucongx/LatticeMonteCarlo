@@ -20,7 +20,8 @@ class KineticMcFirstOmp : public KineticMcFirstAbstract {
                       const std::set<Element> &element_set,
                       const std::string &json_coefficients_filename,
                       const std::string &time_temperature_filename,
-                      bool is_rate_corrector);
+                      bool is_rate_corrector,
+                      const Vector_t &vacancy_trajectory);
     ~KineticMcFirstOmp() override;
   protected:
     void BuildEventList() override;

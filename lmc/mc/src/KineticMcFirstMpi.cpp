@@ -14,7 +14,8 @@ KineticMcFirstMpi::KineticMcFirstMpi(cfg::Config config,
                                      const std::set<Element> &element_set,
                                      const std::string &json_coefficients_filename,
                                      const std::string &time_temperature_filename,
-                                     const bool is_rate_corrector)
+                                     const bool is_rate_corrector,
+                                     const Vector_t &vacancy_trajectory)
     : KineticMcFirstAbstract(std::move(config),
                              log_dump_steps,
                              config_dump_steps,
@@ -27,7 +28,8 @@ KineticMcFirstMpi::KineticMcFirstMpi(cfg::Config config,
                              element_set,
                              json_coefficients_filename,
                              time_temperature_filename,
-                             is_rate_corrector) {
+                             is_rate_corrector,
+                             vacancy_trajectory) {
   if (world_size_ != kEventListSize) {
     std::cout << "Must use " << kEventListSize << " precesses. Terminating...\n" << std::endl;
     MPI_Finalize();

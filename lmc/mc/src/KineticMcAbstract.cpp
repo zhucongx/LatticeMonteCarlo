@@ -1,4 +1,5 @@
 #include "KineticMcAbstract.h"
+
 namespace mc {
 
 KineticMcFirstAbstract::KineticMcFirstAbstract(cfg::Config config,
@@ -13,7 +14,8 @@ KineticMcFirstAbstract::KineticMcFirstAbstract(cfg::Config config,
                                                const std::set<Element> &element_set,
                                                const std::string &json_coefficients_filename,
                                                const std::string &time_temperature_filename,
-                                               const bool is_rate_corrector)
+                                               const bool is_rate_corrector,
+                                               const Vector_t &vacancy_trajectory)
     : McAbstract(std::move(config),
                  log_dump_steps,
                  config_dump_steps,
@@ -32,26 +34,25 @@ KineticMcFirstAbstract::KineticMcFirstAbstract(cfg::Config config,
       rate_corrector_(config_.GetVacancyConcentration(), config_.GetSoluteConcentration(Element("Al"))),
       is_rate_corrector_(is_rate_corrector),
       vacancy_lattice_id_(config_.GetVacancyLatticeId()),
-      unwrapped_vacancy_cartesian_coordinate_(config_.GetLatticeVector()[vacancy_lattice_id_].GetCartesianPosition())
-{
-}
+      vacancy_trajectory_(vacancy_trajectory) {}
+
 KineticMcFirstAbstract::~KineticMcFirstAbstract() = default;
-void KineticMcFirstAbstract::UpdateTemperature()
-{
+
+void KineticMcFirstAbstract::UpdateTemperature() {
   if (is_time_temperature_interpolator_) {
     temperature_ = time_temperature_interpolator_.GetTemperature(time_);
     beta_ = 1.0 / constants::kBoltzmann / temperature_;
   }
 }
-double KineticMcFirstAbstract::GetTimeCorrectionFactor()
-{
+
+double KineticMcFirstAbstract::GetTimeCorrectionFactor() {
   if (is_rate_corrector_) {
     return rate_corrector_.GetTimeCorrectionFactor(temperature_);
   }
   return 1.0;
 }
-void KineticMcFirstAbstract::Dump() const
-{
+
+void KineticMcFirstAbstract::Dump() const {
   if (is_restarted_) {
     is_restarted_ = false;
     return;
@@ -78,14 +79,14 @@ void KineticMcFirstAbstract::Dump() const
     log_dump_steps = std::min(log_dump_steps, log_dump_steps_);
   }
   if (steps_ % log_dump_steps == 0) {
-    ofs_ << steps_ << '\t' << time_ << '\t' << temperature_ << '\t' << energy_ << '\t'
-         << event_k_i_.GetForwardBarrier() << '\t' << event_k_i_.GetEnergyChange() << '\t'
-         << config_.GetAtomIdFromLatticeId(event_k_i_.GetIdJumpPair().second) << '\t'
-         << unwrapped_vacancy_cartesian_coordinate_ << std::endl;
+    ofs_ << steps_ << '\t' << time_ << '\t' << temperature_ << '\t' << energy_ << '\t' << event_k_i_.GetForwardBarrier()
+         << '\t' << event_k_i_.GetEnergyChange() << '\t'
+         << config_.GetAtomIdFromLatticeId(event_k_i_.GetIdJumpPair().second) << '\t' << vacancy_trajectory_
+         << std::endl;
   }
 }
-size_t KineticMcFirstAbstract::SelectEvent() const
-{
+
+size_t KineticMcFirstAbstract::SelectEvent() const {
   const double random_number = unit_distribution_(generator_);
   auto it = std::lower_bound(
       event_k_i_list_.begin(), event_k_i_list_.end(), random_number, [](const auto &lhs, double value) {
@@ -103,8 +104,8 @@ size_t KineticMcFirstAbstract::SelectEvent() const
     return static_cast<size_t>(it - event_k_i_list_.cbegin());
   }
 }
-void KineticMcFirstAbstract::OneStepSimulation()
-{
+
+void KineticMcFirstAbstract::OneStepSimulation() {
   UpdateTemperature();
   thermodynamic_averaging_.AddEnergy(energy_);
   BuildEventList();
@@ -117,7 +118,7 @@ void KineticMcFirstAbstract::OneStepSimulation()
   energy_ += event_k_i_.GetEnergyChange();
   absolute_energy_ += event_k_i_.GetEnergyChange();
 
-  unwrapped_vacancy_cartesian_coordinate_ +=
+  vacancy_trajectory_ +=
       cfg::GetRelativeDistanceVectorLattice(config_.GetLatticeVector()[vacancy_lattice_id_],
                                             config_.GetLatticeVector()[event_k_i_.GetIdJumpPair().second]) *
       config_.GetBasis();
@@ -126,8 +127,8 @@ void KineticMcFirstAbstract::OneStepSimulation()
   ++steps_;
   vacancy_lattice_id_ = event_k_i_.GetIdJumpPair().second;
 }
-void KineticMcFirstAbstract::Simulate()
-{
+
+void KineticMcFirstAbstract::Simulate() {
   while (steps_ <= maximum_steps_) {
     OneStepSimulation();
   }
@@ -145,7 +146,8 @@ KineticMcChainAbstract::KineticMcChainAbstract(cfg::Config config,
                                                const std::set<Element> &element_set,
                                                const std::string &json_coefficients_filename,
                                                const std::string &time_temperature_filename,
-                                               const bool is_rate_corrector)
+                                               const bool is_rate_corrector,
+                                               const Vector_t &vacancy_trajectory)
     : KineticMcFirstAbstract(std::move(config),
                              log_dump_steps,
                              config_dump_steps,
@@ -158,19 +160,19 @@ KineticMcChainAbstract::KineticMcChainAbstract(cfg::Config config,
                              element_set,
                              json_coefficients_filename,
                              time_temperature_filename,
-                             is_rate_corrector),
-      previous_j_lattice_id_(config_.GetFirstNeighborsAdjacencyList()[vacancy_lattice_id_][0])
-{
+                             is_rate_corrector,
+                             vacancy_trajectory),
+      previous_j_lattice_id_(config_.GetFirstNeighborsAdjacencyList()[vacancy_lattice_id_][0]) {
   MPI_Op_create(DataSum, 1, &mpi_op_);
   DefineStruct(&mpi_datatype_);
 }
-void KineticMcChainAbstract::OneStepSimulation()
-{
+
+void KineticMcChainAbstract::OneStepSimulation() {
   KineticMcFirstAbstract::OneStepSimulation();
   previous_j_lattice_id_ = event_k_i_.GetIdJumpPair().first;
 }
-KineticMcChainAbstract::~KineticMcChainAbstract()
-{
+
+KineticMcChainAbstract::~KineticMcChainAbstract() {
   MPI_Op_free(&mpi_op_);
   MPI_Type_free(&mpi_datatype_);
 }
