@@ -1,4 +1,5 @@
 #include "Home.h"
+
 namespace api {
 void Print(const Parameter &parameter) {
   std::cout << "Parameters" << std::endl;
@@ -6,39 +7,42 @@ void Print(const Parameter &parameter) {
   if (parameter.method == "KineticMcFirstMpi" || parameter.method == "KineticMcFirstOmp" ||
       parameter.method == "KineticMcChainOmp" || parameter.method == "KineticMcChainMpi" ||
       parameter.method == "KineticMcChainOmpi") {
-    std::cout << "json_coefficients_filename: " << parameter.json_coefficients_filename_
-              << std::endl;
+    std::cout << "json_coefficients_filename: " << parameter.json_coefficients_filename_ << std::endl;
     std::cout << "config_filename: " << parameter.config_filename_ << std::endl;
     std::cout << "map_filename: " << parameter.map_filename_ << std::endl;
     std::cout << "element_set: ";
-    std::copy(parameter.element_set_.begin(), parameter.element_set_.end(),
+    std::copy(parameter.element_set_.begin(),
+              parameter.element_set_.end(),
               std::ostream_iterator<std::string>(std::cout, " "));
     std::cout << std::endl;
     std::cout << "log_dump_steps: " << parameter.log_dump_steps_ << std::endl;
     std::cout << "config_dump_steps: " << parameter.config_dump_steps_ << std::endl;
     std::cout << "maximum_steps: " << parameter.maximum_steps_ << std::endl;
-    std::cout << "thermodynamic_averaging_steps: " << parameter.thermodynamic_averaging_steps_
-              << std::endl;
+    std::cout << "thermodynamic_averaging_steps: " << parameter.thermodynamic_averaging_steps_ << std::endl;
     std::cout << "temperature: " << parameter.temperature_ << std::endl;
     std::cout << "restart_steps: " << parameter.restart_steps_ << std::endl;
     std::cout << "restart_energy: " << parameter.restart_energy_ << std::endl;
     std::cout << "restart_time: " << parameter.restart_time_ << std::endl;
-    std::cout << "time_temperature_filename: " << parameter.time_temperature_filename_
-              << std::endl;
+    std::cout << "time_temperature_filename: " << parameter.time_temperature_filename_ << std::endl;
     std::cout << "rate_corrector: " << parameter.rate_corrector_ << std::endl;
-  } else if (parameter.method == "SimulatedAnnealing") {
-    std::cout << "json_coefficients_filename: " << parameter.json_coefficients_filename_
+    std::cout << "vacancy_trajectory: " << parameter.vacancy_trajectory_
               << std::endl;
+  } else if (parameter.method == "SimulatedAnnealing") {
+    std::cout << "json_coefficients_filename: " << parameter.json_coefficients_filename_ << std::endl;
     std::cout << "factor: " << parameter.factor_ << std::endl;
     std::cout << "solvent_element: " << parameter.solvent_element_ << std::endl;
     std::cout << "solute_element_set: ";
-    std::copy(parameter.solute_element_set_.begin(), parameter.solute_element_set_.end(),
+    std::copy(parameter.solute_element_set_.begin(),
+              parameter.solute_element_set_.end(),
               std::ostream_iterator<std::string>(std::cout, " "));
     std::cout << std::endl;
     std::cout << "solute_number_set: ";
-    std::transform(parameter.solute_number_set_.begin(), parameter.solute_number_set_.end(),
+    std::transform(parameter.solute_number_set_.begin(),
+                   parameter.solute_number_set_.end(),
                    std::ostream_iterator<std::string>(std::cout, " "),
-                   [](auto number) { return std::to_string(number); });
+                   [](auto number) {
+                     return std::to_string(number);
+                   });
     std::cout << std::endl;
     std::cout << "log_dump_steps: " << parameter.log_dump_steps_ << std::endl;
     std::cout << "config_dump_steps: " << parameter.config_dump_steps_ << std::endl;
@@ -46,28 +50,27 @@ void Print(const Parameter &parameter) {
     std::cout << "initial_temperature: " << parameter.initial_temperature_ << std::endl;
     std::cout << "decrement_temperature: " << parameter.decrement_temperature_ << std::endl;
   } else if (parameter.method == "CanonicalMcSerial" || parameter.method == "CanonicalMcOmp") {
-    std::cout << "json_coefficients_filename: " << parameter.json_coefficients_filename_
-              << std::endl;
+    std::cout << "json_coefficients_filename: " << parameter.json_coefficients_filename_ << std::endl;
     std::cout << "config_filename: " << parameter.config_filename_ << std::endl;
     std::cout << "map_filename: " << parameter.map_filename_ << std::endl;
     std::cout << "element_set: ";
-    std::copy(parameter.element_set_.begin(), parameter.element_set_.end(),
+    std::copy(parameter.element_set_.begin(),
+              parameter.element_set_.end(),
               std::ostream_iterator<std::string>(std::cout, " "));
     std::cout << std::endl;
     std::cout << "log_dump_steps: " << parameter.log_dump_steps_ << std::endl;
     std::cout << "config_dump_steps: " << parameter.config_dump_steps_ << std::endl;
     std::cout << "maximum_steps: " << parameter.maximum_steps_ << std::endl;
-    std::cout << "thermodynamic_averaging_steps: " << parameter.thermodynamic_averaging_steps_
-              << std::endl;
+    std::cout << "thermodynamic_averaging_steps: " << parameter.thermodynamic_averaging_steps_ << std::endl;
     std::cout << "temperature: " << parameter.temperature_ << std::endl;
     std::cout << "restart_steps: " << parameter.restart_steps_ << std::endl;
     std::cout << "restart_energy: " << parameter.restart_energy_ << std::endl;
   } else if (parameter.method == "Ansys" || parameter.method == "Reformat") {
-    std::cout << "json_coefficients_filename: " << parameter.json_coefficients_filename_
-              << std::endl;
+    std::cout << "json_coefficients_filename: " << parameter.json_coefficients_filename_ << std::endl;
     std::cout << "solvent_element: " << parameter.solvent_element_ << std::endl;
     std::cout << "element_set: ";
-    std::copy(parameter.element_set_.begin(), parameter.element_set_.end(),
+    std::copy(parameter.element_set_.begin(),
+              parameter.element_set_.end(),
               std::ostream_iterator<std::string>(std::cout, " "));
     std::cout << std::endl;
     std::cout << "initial_steps: " << parameter.initial_steps_ << std::endl;
@@ -78,6 +81,7 @@ void Print(const Parameter &parameter) {
     std::cout << "config_type: " << parameter.config_type_ << std::endl;
   }
 }
+
 void Run(const Parameter &parameter) {
   if (parameter.method == "KineticMcFirstMpi") {
     auto kinetic_mc_first_mpi = api::BuildKineticMcFirstMpiFromParameter(parameter);
@@ -133,8 +137,10 @@ mc::KineticMcFirstMpi BuildKineticMcFirstMpiFromParameter(const Parameter &param
                                element_set,
                                parameter.json_coefficients_filename_,
                                parameter.time_temperature_filename_,
-                               parameter.rate_corrector_};
+                               parameter.rate_corrector_,
+                               parameter.vacancy_trajectory_};
 }
+
 mc::KineticMcFirstOmp BuildKineticMcFirstOmpFromParameter(const Parameter &parameter) {
   std::set<Element> element_set;
   for (const auto &element_string: parameter.element_set_) {
@@ -160,8 +166,10 @@ mc::KineticMcFirstOmp BuildKineticMcFirstOmpFromParameter(const Parameter &param
                                element_set,
                                parameter.json_coefficients_filename_,
                                parameter.time_temperature_filename_,
-                               parameter.rate_corrector_};
+                               parameter.rate_corrector_,
+                               parameter.vacancy_trajectory_};
 }
+
 mc::KineticMcChainOmpi BuildKineticMcChainOmpiFromParameter(const Parameter &parameter) {
   std::set<Element> element_set;
   for (const auto &element_string: parameter.element_set_) {
@@ -187,25 +195,28 @@ mc::KineticMcChainOmpi BuildKineticMcChainOmpiFromParameter(const Parameter &par
                                 element_set,
                                 parameter.json_coefficients_filename_,
                                 parameter.time_temperature_filename_,
-                                parameter.rate_corrector_};
+                                parameter.rate_corrector_,
+                                parameter.vacancy_trajectory_};
 }
+
 mc::SimulatedAnnealing BuildSimulatedAnnealingFromParameter(const Parameter &parameter) {
   std::map<Element, size_t> solute_atom_count;
   for (size_t i = 0; i < parameter.solute_element_set_.size(); ++i) {
-    solute_atom_count.insert(std::make_pair(Element(parameter.solute_element_set_[i]),
-                                            parameter.solute_number_set_[i]));
+    solute_atom_count.insert(
+        std::make_pair(Element(parameter.solute_element_set_[i]), parameter.solute_number_set_[i]));
   }
 
   return mc::SimulatedAnnealing{{parameter.factor_, parameter.factor_, parameter.factor_},
-                                   Element(parameter.solvent_element_),
-                                   solute_atom_count,
-                                   parameter.log_dump_steps_,
-                                   parameter.config_dump_steps_,
-                                   parameter.maximum_steps_,
-                                   parameter.initial_temperature_,
-                                   parameter.decrement_temperature_,
-                                   parameter.json_coefficients_filename_};
+                                Element(parameter.solvent_element_),
+                                solute_atom_count,
+                                parameter.log_dump_steps_,
+                                parameter.config_dump_steps_,
+                                parameter.maximum_steps_,
+                                parameter.initial_temperature_,
+                                parameter.decrement_temperature_,
+                                parameter.json_coefficients_filename_};
 }
+
 mc::CanonicalMcSerial BuildCanonicalMcSerialFromParameter(const Parameter &parameter) {
   std::set<Element> element_set;
   for (const auto &element_string: parameter.element_set_) {
@@ -230,6 +241,7 @@ mc::CanonicalMcSerial BuildCanonicalMcSerialFromParameter(const Parameter &param
                                element_set,
                                parameter.json_coefficients_filename_};
 }
+
 mc::CanonicalMcOmp BuildCanonicalMcOmpFromParameter(const Parameter &parameter) {
   std::set<Element> element_set;
   for (const auto &element_string: parameter.element_set_) {
@@ -254,18 +266,21 @@ mc::CanonicalMcOmp BuildCanonicalMcOmpFromParameter(const Parameter &parameter) 
                             element_set,
                             parameter.json_coefficients_filename_};
 }
+
 ansys::Traverse BuildIteratorFromParameter(const Parameter &parameter) {
   std::set<Element> element_set;
   for (const auto &element_string: parameter.element_set_) {
     element_set.insert(Element(element_string));
   }
 
-  return ansys::Traverse{parameter.initial_steps_, parameter.increment_steps_,
-                         Element(parameter.solvent_element_), element_set,
+  return ansys::Traverse{parameter.initial_steps_,
+                         parameter.increment_steps_,
+                         Element(parameter.solvent_element_),
+                         element_set,
                          parameter.smallest_cluster_criteria_,
                          parameter.solvent_bond_criteria_,
                          parameter.json_coefficients_filename_,
                          parameter.log_type_,
                          parameter.config_type_};
 }
-} // api
+}    // namespace api
