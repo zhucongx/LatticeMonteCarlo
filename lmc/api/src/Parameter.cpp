@@ -1,21 +1,25 @@
 #include "Parameter.h"
-#include <algorithm>
 
 #include "Utility.h"
+
+#include <algorithm>
+
 namespace api {
 Parameter::Parameter(int argc, char *argv[]) {
   ParseArgs(argc, argv);
   ReadParam(parameters_filename);
 }
+
 Parameter::Parameter(const std::string &param_filename) {
   ReadParam(param_filename);
 }
+
 void Parameter::ParseArgs(int argc, char *argv[]) {
   for (int i = 0; i < argc; i++) {
-    if (!std::strcmp(argv[i], "--p") || !std::strcmp(argv[i], "-p"))
-      parameters_filename = std::string(argv[++i]);
+    if (!std::strcmp(argv[i], "--p") || !std::strcmp(argv[i], "-p")) parameters_filename = std::string(argv[++i]);
   }
 }
+
 void Parameter::ReadParam(const std::string &param_filename) {
   if (param_filename.empty()) {
     return;
@@ -63,8 +67,7 @@ void Parameter::ReadParam(const std::string &param_filename) {
       decrement_temperature_ = stod(segs[1]);
     } else if (segs[0] == "element_set") {
       element_set_.clear();
-      std::copy(segs.begin() + 1, segs.end(),
-                std::back_inserter(element_set_));
+      std::copy(segs.begin() + 1, segs.end(), std::back_inserter(element_set_));
     } else if (segs[0] == "initial_steps") {
       initial_steps_ = stoull(segs[1]);
     } else if (segs[0] == "increment_steps") {
@@ -82,6 +85,11 @@ void Parameter::ReadParam(const std::string &param_filename) {
       } else {
         rate_corrector_ = false;
       }
+    } else if (segs[0] == "vacancy_trajectory") {
+      if (segs.size() != 4) {
+        throw std::runtime_error("vacancy_trajectory should have 3 elements");
+      }
+      vacancy_trajectory_ = Vector_t{stod(segs[1]), stod(segs[2]), stod(segs[3])};
     } else if (segs[0] == "restart_energy") {
       restart_energy_ = stod(segs[1]);
     } else if (segs[0] == "restart_time") {
@@ -92,18 +100,16 @@ void Parameter::ReadParam(const std::string &param_filename) {
       solvent_element_ = std::string(segs[1]);
     } else if (segs[0] == "solute_element_set") {
       solute_element_set_.clear();
-      std::copy(segs.begin() + 1, segs.end(),
-                std::back_inserter(solute_element_set_));
+      std::copy(segs.begin() + 1, segs.end(), std::back_inserter(solute_element_set_));
     } else if (segs[0] == "solute_number_set") {
       solute_number_set_.clear();
-      std::transform(segs.begin() + 1,
-                     segs.end(),
-                     std::back_inserter(solute_number_set_),
-                     [](const auto &number) { return stoul(number); });
+      std::transform(segs.begin() + 1, segs.end(), std::back_inserter(solute_number_set_), [](const auto &number) {
+        return stoul(number);
+      });
     } else if (segs[0] == "early_stop_steps") {
       early_stop_steps_ = stoull(segs[1]);
     }
   }
   ifs.close();
 }
-} // api
+}    // namespace api

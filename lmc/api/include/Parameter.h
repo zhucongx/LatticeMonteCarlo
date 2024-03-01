@@ -6,6 +6,7 @@
 #include <iostream>
 #include <vector>
 #include <iterator>
+#include "VectorMatrix.hpp"
 namespace api {
 struct Parameter {
   public:
@@ -39,6 +40,7 @@ struct Parameter {
     double restart_energy_{};
     double restart_time_{};
     bool rate_corrector_{};
+    Vector_t vacancy_trajectory_{};
 
     unsigned long long int initial_steps_{};
     unsigned long long int increment_steps_{};
