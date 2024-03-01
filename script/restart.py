@@ -56,17 +56,19 @@ if __name__ == '__main__':
     last_time = None
     last_temperature = None
     last_energy = None
+    last_vac_position = None
 
     for i, line in enumerate(reverse_readline(f'./kmc_log_backup.txt')):
         line = line.split()
-        if exists(f'./map{line[0]}.txt'):
+        if exists(f'./{line[0]}.cfg.gz'):
             last_i = i
             last_step = line[0]
             last_time = line[1]
             last_temperature = line[2]
             last_energy = line[3]
+            last_vac_position = line[-3:]
             break
-    print(f"{last_i}, {last_step}, {last_time}, {last_temperature}, {last_energy}")
+    print(f"{last_i}, {last_step}, {last_time}, {last_temperature}, {last_energy}, {last_vac_position}")
     with open(f'./kmc_log_backup.txt', 'r') as f1, open(f'./kmc_log.txt', 'w') as f2:
         for i, line in enumerate(f1):
             f2.write(line)
@@ -82,7 +84,7 @@ if __name__ == '__main__':
         f4.write(f"json_coefficients_filename {old_param['json_coefficients_filename']}\n")
         if "time_temperature_filename" in old_param.keys():
             f4.write(f"time_temperature_filename {old_param['time_temperature_filename']}\n")
-        f4.write(f"map_filename map{last_step}.txt\n")
+        f4.write(f"config_filename {last_step}.cfg.gz\n")
         f4.write(f"log_dump_steps {old_param['log_dump_steps']}\n")
         f4.write(f"config_dump_steps {old_param['config_dump_steps']}\n")
         f4.write(f"maximum_steps {old_param['maximum_steps']}\n")
@@ -93,5 +95,6 @@ if __name__ == '__main__':
         f4.write(f"restart_energy {last_energy}\n")
         f4.write(f"restart_time {last_time}\n")
         f4.write(f"rate_corrector {old_param['rate_corrector']}\n")
+        f4.write(f"vacancy_trajectory {last_vac_position[0]} {last_vac_position[1]} {last_vac_position[2]}\n")
         f4.flush()
     print(f"Done...")
