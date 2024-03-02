@@ -80,9 +80,9 @@ else ()
                 /usr/local/include
                 /usr/include/eigen3
                 /usr/include
-                /sw/pkgs/arc/eigen/eigen-3.4.0
                 ~/.local/include/eigen3
                 ~/.local/include/
+                ~/Softwares
                 PATH_SUFFIXES eigen3 eigen
         )
     endif ()
