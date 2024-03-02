@@ -1,7 +1,6 @@
 #include "KineticMcFirstOmp.h"
 #include <utility>
 #include <chrono>
-#include <omp.h>
 
 namespace mc {
 
