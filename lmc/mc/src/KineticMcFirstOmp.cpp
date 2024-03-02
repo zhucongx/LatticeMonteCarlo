@@ -1,6 +1,8 @@
 #include "KineticMcFirstOmp.h"
 #include <utility>
 #include <chrono>
+#include <omp.h>
+
 namespace mc {
 
 KineticMcFirstOmp::KineticMcFirstOmp(cfg::Config config,
@@ -48,7 +50,7 @@ KineticMcFirstOmp::~KineticMcFirstOmp() = default;
 void KineticMcFirstOmp::BuildEventList() {
   total_rate_k_ = 0.0;
   const auto neighbor_lattice_id_vector = config_.GetFirstNeighborsAdjacencyList()[vacancy_lattice_id_];
-#pragma omp parallel default(none) shared(vacancy_lattice_id_, neighbor_lattice_id_vector) reduction(+: total_rate_k_)
+#pragma omp parallel default(none) shared(neighbor_lattice_id_vector) reduction(+: total_rate_k_)
   {
 #pragma omp for
     for (size_t i = 0; i < kEventListSize; ++i) {
