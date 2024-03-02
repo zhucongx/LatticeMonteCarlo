@@ -111,7 +111,7 @@ endfunction()
 ######################################################## BOOST #########################################################
 #set(Boost_USE_DEBUG_LIBS OFF) # ignore debug libs and
 #set(Boost_USE_RELEASE_LIBS ON) # only find release libs
-find_package(Boost COMPONENTS filesystem system iostreams REQUIRED)
+find_package(Boost COMPONENTS filesystem iostreams REQUIRED)
 target_link_libraries_system(${PROJECT_NAME} PRIVATE Boost::boost Boost::filesystem Boost::iostreams)
 ######################################################### MPI ##########################################################
 find_package(MPI REQUIRED)
