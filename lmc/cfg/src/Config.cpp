@@ -168,13 +168,13 @@ Matrix_t Config::GetLatticePairRotationMatrix(const std::pair<size_t, size_t> &l
   const auto &first_lattice = GetLatticeVector()[lattice_id_jump_pair.first];
   const auto &second_lattice = GetLatticeVector()[lattice_id_jump_pair.second];
 
-  const Vector_t pair_direction = Normalize(GetRelativeDistanceVectorLattice(first_lattice, second_lattice));
+  const Vector_t pair_direction = Normalize(GetRelativeDistanceVectorLattice(first_lattice, second_lattice)*GetBasis());
   Vector_t vertical_vector{};
   for (const auto index: GetFirstNeighborsAdjacencyList().at(lattice_id_jump_pair.first)) {
-    const Vector_t jump_vector = GetRelativeDistanceVectorLattice(first_lattice, GetLatticeVector()[index]);
+    const Vector_t jump_vector = Normalize(GetRelativeDistanceVectorLattice(first_lattice, GetLatticeVector()[index])*GetBasis());
     const double dot_prod = Dot(pair_direction, jump_vector);
     if (std::abs(dot_prod) < kEpsilon) {
-      vertical_vector = Normalize(jump_vector);
+      vertical_vector = jump_vector;
       break;
     }
   }
