@@ -455,8 +455,6 @@ Config Config::ReadConfig(const std::string &filename) {
   double mass;
   std::string type;
   Vector_t relative_position;
-  size_t neighbor_id;
-  bool neighbor_found = false;
 
   std::vector<std::vector<size_t>> first_neighbors_adjacency_list, second_neighbors_adjacency_list,
       third_neighbors_adjacency_list;
@@ -465,41 +463,11 @@ Config Config::ReadConfig(const std::string &filename) {
     fis >> mass >> type >> relative_position;
     atom_vector.emplace_back(lattice_id, type);
     lattice_vector.emplace_back(lattice_id, relative_position * basis, relative_position);
-    if (fis.peek() != '\n') {
-      fis.ignore(std::numeric_limits<std::streamsize>::max(), '#');
-      std::vector<size_t> first_neighbors_list, second_neighbors_list, third_neighbor_list;
-      for (size_t i = 0; i < constants::kNumFirstNearestNeighbors; ++i) {
-        fis >> neighbor_id;
-        first_neighbors_list.push_back(neighbor_id);
-      }
-      first_neighbors_adjacency_list.push_back(first_neighbors_list);
 
-      for (size_t i = 0; i < constants::kNumSecondNearestNeighbors; ++i) {
-        fis >> neighbor_id;
-        second_neighbors_list.push_back(neighbor_id);
-      }
-      second_neighbors_adjacency_list.push_back(second_neighbors_list);
-
-      for (size_t i = 0; i < constants::kNumThirdNearestNeighbors; ++i) {
-        fis >> neighbor_id;
-        third_neighbor_list.push_back(neighbor_id);
-      }
-      third_neighbors_adjacency_list.push_back(third_neighbor_list);
-
-      fis.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-      neighbor_found = true;
-    }
+    fis.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
   }
 
-  if (neighbor_found) {
-    Config config(basis, lattice_vector, atom_vector, false);
-    config.first_neighbors_adjacency_list_ = first_neighbors_adjacency_list;
-    config.second_neighbors_adjacency_list_ = second_neighbors_adjacency_list;
-    config.third_neighbors_adjacency_list_ = third_neighbors_adjacency_list;
-    return config;
-  } else {
-    return Config{basis, lattice_vector, atom_vector, true};
-  }
+  return Config{basis, lattice_vector, atom_vector, true};
 }
 
 void Config::WriteConfig(const std::string &filename) const {
@@ -781,7 +749,7 @@ void Config::UpdateNeighbors() {
                            static_cast<size_t>(std::floor(ScalarLength(basis_[1]) / constants::kNearNeighborsCutoff)),
                            static_cast<size_t>(std::floor(ScalarLength(basis_[2]) / constants::kNearNeighborsCutoff))};
 
-  std::vector<std::vector<size_t>> cells{num_cells[0] * num_cells[0] * num_cells[1] * num_cells[2]};
+  std::vector<std::vector<size_t>> cells{num_cells[0] * num_cells[1] * num_cells[2]};
 
   for (size_t lattice_id = 0; lattice_id < GetNumAtoms(); ++lattice_id) {
     const auto relative_position = lattice_vector_[lattice_id].GetRelativePosition();
