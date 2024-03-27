@@ -37,6 +37,7 @@ class KineticMcFirstAbstract : public McAbstract {
     double GetTimeCorrectionFactor();
     virtual void Dump() const;
     size_t SelectEvent() const;
+    void Debug(double one_step_time) const;
     virtual void BuildEventList() = 0;
     virtual double CalculateTime() = 0;
     virtual void OneStepSimulation();
