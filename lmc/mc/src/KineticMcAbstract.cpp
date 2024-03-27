@@ -115,8 +115,8 @@ void KineticMcFirstAbstract::Debug(double one_step_time) const {
         std::cerr << event.GetForwardBarrier() << '\t' << event.GetEnergyChange() << '\t'
                   << event.GetCumulativeProbability() << std::endl;
       }
+      throw std::runtime_error("Invalid time step");
     }
-    throw std::runtime_error("Invalid time step");
   }
 }
 
@@ -125,7 +125,7 @@ void KineticMcFirstAbstract::OneStepSimulation() {
   thermodynamic_averaging_.AddEnergy(energy_);
   BuildEventList();
   double one_step_time = CalculateTime() * GetTimeCorrectionFactor();
-
+  Debug(one_step_time);
   event_k_i_ = event_k_i_list_[SelectEvent()];
   Dump();
 
