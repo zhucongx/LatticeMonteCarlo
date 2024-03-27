@@ -34,7 +34,7 @@ double JumpEvent::GetProbability() const {
   return probability_;
 }
 
-double JumpEvent::GetCumulativeProvability() const {
+double JumpEvent::GetCumulativeProbability() const {
   return cumulative_probability_;
 }
 

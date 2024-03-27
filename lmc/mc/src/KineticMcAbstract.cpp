@@ -90,7 +90,7 @@ size_t KineticMcFirstAbstract::SelectEvent() const {
   const double random_number = unit_distribution_(generator_);
   auto it = std::lower_bound(
       event_k_i_list_.begin(), event_k_i_list_.end(), random_number, [](const auto &lhs, double value) {
-        return lhs.GetCumulativeProvability() < value;
+        return lhs.GetCumulativeProbability() < value;
       });
   // If not find (maybe generated 1), which rarely happens, returns the last event
   if (it == event_k_i_list_.cend()) {
