@@ -14,7 +14,7 @@ mode=$1
 }
 compiler=$2
 [[ -z $compiler ]] && {
-    read -p "Enter the compiler - [d]efault, [g]cc, [i]ntel, [c]lang: " compiler
+    read -p "Enter the compiler - [d]efault, [g]cc, [i]ntel, [o]neapi, [c]lang, [m]pi: " compiler
 }
 flag=$3
 
