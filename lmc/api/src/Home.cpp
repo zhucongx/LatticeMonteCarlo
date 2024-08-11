@@ -213,7 +213,6 @@ mc::SimulatedAnnealing BuildSimulatedAnnealingFromParameter(const Parameter &par
                                 parameter.config_dump_steps_,
                                 parameter.maximum_steps_,
                                 parameter.initial_temperature_,
-                                parameter.decrement_temperature_,
                                 parameter.json_coefficients_filename_};
 }
 

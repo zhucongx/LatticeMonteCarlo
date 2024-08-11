@@ -35,7 +35,6 @@ SimulatedAnnealing::SimulatedAnnealing(const Factor_t &factors,
                                        const unsigned long long int config_dump_steps,
                                        const unsigned long long int maximum_steps,
                                        const double initial_temperature,
-                                       const double decrement_temperature,
                                        const std::string &json_coefficients_filename)
     : McAbstract(cfg::GenerateSoluteConfig(factors, solvent_element, solute_atom_count),
                  log_dump_steps,
@@ -53,8 +52,7 @@ SimulatedAnnealing::SimulatedAnnealing(const Factor_t &factors,
           json_coefficients_filename, config_, GetElementSetFromSolventAndSolute(solvent_element, solute_atom_count)),
       atom_index_selector_(0, config_.GetNumAtoms() - 1),
       lowest_energy_(0),
-      initial_temperature_(initial_temperature),
-      decrement_temperature_(decrement_temperature){
+      initial_temperature_(initial_temperature){
   ofs_.precision(16);
   const auto energy_predictor = pred::EnergyPredictor(
       json_coefficients_filename, GetElementSetFromSolventAndSolute(solvent_element, solute_atom_count));
@@ -86,15 +84,14 @@ void SimulatedAnnealing::Dump() const {
     ofs_ << steps_ << '\t' << temperature_ << '\t' << energy_ << '\t' << lowest_energy_ << '\t' << absolute_energy_
          << std::endl;
   }
-  if (steps_ % maximum_steps_ == 0 && steps_ != 0) {
-    config_.WriteConfig(std::to_string(static_cast<int>(temperature_)) + "K.cfg.gz");
-  }
+//  if (steps_ % maximum_steps_ == 0 && steps_ != 0) {
+//    config_.WriteConfig(std::to_string(static_cast<int>(temperature_)) + "K.cfg.gz");
+//  }
 }
 void SimulatedAnnealing::UpdateTemperature() {
-  if (steps_ % maximum_steps_ == 0 && steps_ != 0) {
-    temperature_ -= decrement_temperature_;
-    beta_ = 1.0 / constants::kBoltzmann / temperature_;
-  }
+  static const double alpha = 1. - 3. / static_cast<double>(maximum_steps_);
+  temperature_ = initial_temperature_ * std::pow(alpha, steps_);
+  beta_ = 1.0 / constants::kBoltzmann / temperature_;
 }
 std::pair<size_t, size_t> SimulatedAnnealing::GenerateLatticeIdJumpPair() {
   size_t lattice_id1, lattice_id2;
@@ -106,7 +103,7 @@ std::pair<size_t, size_t> SimulatedAnnealing::GenerateLatticeIdJumpPair() {
   return {lattice_id1, lattice_id2};
 }
 void SimulatedAnnealing::SelectEvent(const std::pair<size_t, size_t> &lattice_id_jump_pair,
-                                      const double dE) {
+                                     const double dE) {
   if (dE < 0) {
     config_.LatticeJump(lattice_id_jump_pair);
     energy_ += dE;
@@ -122,8 +119,7 @@ void SimulatedAnnealing::SelectEvent(const std::pair<size_t, size_t> &lattice_id
   }
 }
 void SimulatedAnnealing::Simulate() {
-  while (steps_ <=
-         maximum_steps_ * static_cast<unsigned long long int>(initial_temperature_ / decrement_temperature_ + 1)) {
+  while (steps_ <= maximum_steps_) {
     auto lattice_id_jump_pair = GenerateLatticeIdJumpPair();
     auto dE = energy_change_predictor_.GetDeFromLatticeIdPair(config_, lattice_id_jump_pair);
     thermodynamic_averaging_.AddEnergy(energy_);

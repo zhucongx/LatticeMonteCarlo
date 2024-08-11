@@ -17,7 +17,6 @@ class SimulatedAnnealing : public McAbstract {
                      unsigned long long int config_dump_steps,
                      unsigned long long int maximum_steps,
                      double initial_temperature,
-                     double decrement_temperature,
                      const std::string &json_coefficients_filename);
   void Simulate() override;
  private:
@@ -31,7 +30,6 @@ class SimulatedAnnealing : public McAbstract {
   mutable double lowest_energy_;
   // simulation parameters
   const double initial_temperature_;
-  const double decrement_temperature_;
 };
 }    // namespace mc
 
