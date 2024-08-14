@@ -43,8 +43,8 @@ Traverse::Traverse(unsigned long long int initial_steps,
       log_type_(std::move(log_type)),
       config_type_(std::move(config_type)),
       energy_predictor_(predictor_filename, element_set_),
-      vacancy_migration_predictor_(predictor_filename, GetConfig(config_type_, 0), element_set_),
-      energy_change_predictor_pair_site_(predictor_filename, GetConfig(config_type_, 0), element_set_),
+      vacancy_migration_predictor_(predictor_filename, GetConfig(config_type_, initial_steps_), element_set_),
+      energy_change_predictor_pair_site_(predictor_filename, GetConfig(config_type_, initial_steps_), element_set_),
       frame_ofs_("ansys_frame_log.txt", std::ofstream::out),
       cluster_ofs_("ansys_cluster_log.txt", std::ofstream::out) {
   std::string log_file_name;
@@ -52,6 +52,8 @@ Traverse::Traverse(unsigned long long int initial_steps,
     log_file_name = "kmc_log.txt";
   } else if (log_type_ == "canonical_mc") {
     log_file_name = "cmc_log.txt";
+  } else if (log_type_ == "simulated_annealing") {
+    log_file_name = "sa_log.txt";
   } else {
     throw std::invalid_argument("Unknown log type: " + log_type_);
   }
@@ -117,7 +119,7 @@ void Traverse::RunAnsys() const {
   // nlohmann::json ansys_info_array = nlohmann::json::array();
   frame_ofs_ << GetHeaderFrameString() << std::flush;
   cluster_ofs_ << GetHeaderClusterString() << std::flush;
-#pragma omp parallel for default(none) schedule(static, 1) shared(chemical_potential, std::cout)
+#pragma omp parallel for default(none) schedule(static, 1) shared(chemical_potential, std::cout, std::cerr)
   for (unsigned long long i = initial_steps_; i <= final_number_; i += increment_steps_) {
 #pragma omp critical
     {
@@ -216,8 +218,6 @@ void Traverse::RunAnsys() const {
                                     energy_change_predictor_pair_site_,
                                     chemical_potential);
     const auto binding_energy = exit_time.GetBindingEnergy();
-
-
     std::map<std::string, double> vac_element_energy_list;
     for (const auto &element: element_set_) {
       const auto element_string = element.GetString();
