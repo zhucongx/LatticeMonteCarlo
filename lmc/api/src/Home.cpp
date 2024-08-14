@@ -48,7 +48,6 @@ void Print(const Parameter &parameter) {
     std::cout << "config_dump_steps: " << parameter.config_dump_steps_ << std::endl;
     std::cout << "maximum_steps: " << parameter.maximum_steps_ << std::endl;
     std::cout << "initial_temperature: " << parameter.initial_temperature_ << std::endl;
-    std::cout << "decrement_temperature: " << parameter.decrement_temperature_ << std::endl;
   } else if (parameter.method == "CanonicalMcSerial" || parameter.method == "CanonicalMcOmp") {
     std::cout << "json_coefficients_filename: " << parameter.json_coefficients_filename_ << std::endl;
     std::cout << "config_filename: " << parameter.config_filename_ << std::endl;
