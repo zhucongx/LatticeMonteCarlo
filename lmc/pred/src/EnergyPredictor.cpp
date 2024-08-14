@@ -260,8 +260,7 @@ double EnergyPredictor::GetEnergyOfCluster(
 
 std::map<Element, double> EnergyPredictor::GetChemicalPotential(Element solvent_element) const {
   std::map<Element, double> chemical_potential;
-  auto solvent_config = cfg::GenerateFCC({15, 15, 15}, solvent_element);
-  double solvent_energy = GetEnergy(solvent_config);
+  const double solvent_energy = GetEnergy(cfg::GenerateFCC({15, 15, 15}, solvent_element));
   chemical_potential[solvent_element] = 0;
   auto element_set_copy(element_set_);
   element_set_copy.emplace(ElementName::X);
