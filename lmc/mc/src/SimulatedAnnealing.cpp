@@ -65,7 +65,7 @@ SimulatedAnnealing::SimulatedAnnealing(const Factor_t &factors,
   const double energy_change_cluster_to_pure_solvent =
       energy_predictor.GetEnergy(config_) - energy_predictor.GetEnergy(cfg::GenerateFCC(factors, solvent_element));
   energy_ = energy_change_cluster_to_pure_solvent - energy_change_solution_to_pure_solvent;
-  std::cout << "initial energy_ = " << energy_ << std::endl;
+  std::cout << "initial_energy = " << energy_ << std::endl;
 }
 
 void SimulatedAnnealing::Dump() const {
