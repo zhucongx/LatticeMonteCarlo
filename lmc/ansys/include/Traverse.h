@@ -35,7 +35,7 @@ class Traverse {
 
   const unsigned long long initial_steps_;
   const unsigned long long increment_steps_;
-  unsigned long long final_number_;
+  unsigned long long final_steps_;
   Element solvent_element_;
   const std::set<Element> element_set_;
   size_t smallest_cluster_criteria_;

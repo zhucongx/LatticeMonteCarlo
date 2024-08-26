@@ -34,7 +34,7 @@ Traverse::Traverse(unsigned long long int initial_steps,
                    std::string config_type)
     : initial_steps_(initial_steps),
       increment_steps_(increment_steps),
-      final_number_(increment_steps),
+      final_steps_(increment_steps),
       solvent_element_(solvent_element),
       element_set_(std::move(element_set)),
       smallest_cluster_criteria_(smallest_cluster_criteria),
@@ -85,7 +85,7 @@ Traverse::Traverse(unsigned long long int initial_steps,
     if (step_number < initial_steps_ || (step_number - initial_steps_) % increment_steps != 0) {
       continue;
     }
-    final_number_ = step_number;
+    final_steps_ = step_number;
     size_t col_index = 1;
     while (line_stream >> buffer) {
       const auto &key = headers[col_index];
@@ -120,11 +120,12 @@ void Traverse::RunAnsys() const {
   frame_ofs_ << GetHeaderFrameString() << std::flush;
   cluster_ofs_ << GetHeaderClusterString() << std::flush;
 #pragma omp parallel for default(none) schedule(static, 1) shared(chemical_potential, std::cout, std::cerr)
-  for (unsigned long long i = initial_steps_; i <= final_number_; i += increment_steps_) {
+  for (unsigned long long i = initial_steps_; i <= final_steps_; i += increment_steps_) {
 #pragma omp critical
     {
-      std::cout << i << " / " << final_number_ << " " << std::fixed << std::setprecision(2)
-                << static_cast<double>(i) / static_cast<double>(final_number_) * 100 << "%" << std::endl;
+      std::cout << i << " / " << final_steps_ << " " << std::fixed << std::setprecision(2)
+                << static_cast<double>(i) / static_cast<double>(final_steps_ - initial_steps_ + 1) * 100 << "%"
+                << std::endl;
     }
     cfg::Config config = GetConfig(config_type_, i);
 
@@ -401,8 +402,8 @@ std::string Traverse::GetFrameString(const nlohmann::json &frame) const {
 }
 
 void Traverse::RunReformat() const {
-  for (unsigned long long i = 0; i <= final_number_; i += increment_steps_) {
-    std::cout << i << " / " << final_number_ << std::endl;
+  for (unsigned long long i = 0; i <= final_steps_; i += increment_steps_) {
+    std::cout << i << " / " << final_steps_ << std::endl;
     if (config_type_ == "map") {
       auto config = cfg::Config::ReadMap("lattice.txt", "element.txt", "map" + std::to_string(i) + ".txt");
       config.WriteConfig(std::to_string(i) + ".cfg.gz");
