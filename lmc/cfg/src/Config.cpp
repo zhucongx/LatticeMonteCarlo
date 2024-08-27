@@ -196,8 +196,9 @@ size_t Config::GetVacancyLatticeId() const {
     return GetLatticeIdFromAtomId(it->GetId());
   } else {
     throw std::runtime_error("vacancy not found");
+    // std::cerr << "vacancy not found" << std::endl;
+    // return GetLatticeIdFromAtomId(0);
   }
-  return 0;
 }
 
 std::unordered_set<size_t> Config::GetNeighborsLatticeIdSetOfSite(size_t lattice_id) const {
@@ -442,7 +443,9 @@ Config Config::ReadConfig(const std::string &filename) {
   // finish this line
   fis.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
   // .NO_VELOCITY.
-  fis.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+  if (fis.peek() == '.') {
+    fis.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+  }
   // "entry_count = 3"
   fis.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
   auto basis =
@@ -882,10 +885,13 @@ Config GenerateFCC(const Factor_t &factors, Element element) {
 
 Config GenerateSoluteConfigFromExcitingPure(Config config, const std::map<Element, size_t> &solute_atom_count) {
   std::unordered_set<size_t> unavailable_position{};
+  std::unordered_set<size_t> available_position {};
+  for (size_t i = 0; i < config.GetNumAtoms(); ++i) {
+    available_position.emplace(i);
+  }
 
   static std::mt19937_64 generator(
       static_cast<unsigned long long int>(std::chrono::system_clock::now().time_since_epoch().count()));
-  std::uniform_int_distribution<size_t> dis(0, config.GetNumAtoms() - 1);
 
   size_t selected_lattice_index{};
   for (const auto &[solute_atom, count]: solute_atom_count) {
@@ -897,9 +903,13 @@ Config GenerateSoluteConfigFromExcitingPure(Config config, const std::map<Elemen
           break;
         }
         ++ct;
-        selected_lattice_index = dis(generator);
+        std::vector<size_t> available_positions_vec(available_position.begin(), available_position.end());
+        std::uniform_int_distribution<size_t> dis(0, available_positions_vec.size() - 1);
+        size_t random_index = dis(generator);
+        selected_lattice_index = available_positions_vec[random_index];
       } while (unavailable_position.find(selected_lattice_index) != unavailable_position.end());
       config.SetAtomElementTypeAtLattice(selected_lattice_index, solute_atom);
+      available_position.erase(selected_lattice_index);
       unavailable_position.emplace(selected_lattice_index);
       std::copy(config.GetFirstNeighborsAdjacencyList().at(selected_lattice_index).begin(),
                 config.GetFirstNeighborsAdjacencyList().at(selected_lattice_index).end(),
