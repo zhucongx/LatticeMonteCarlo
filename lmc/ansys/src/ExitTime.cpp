@@ -14,7 +14,8 @@ ExitTime::ExitTime(const cfg::Config &config,
       energy_change_predictor_pair_site_(energy_change_predictor_site),
       chemical_potential_(chemical_potential) {}
 
-std::tuple<std::vector<std::vector<double>>,  std::vector<double>, std::vector<double>> ExitTime::GetBarrierListAndExitTime() const {
+std::tuple<std::vector<std::vector<double>>, std::vector<double>, std::vector<double>>
+ExitTime::GetBarrierListAndExitTime() const {
   std::vector<std::vector<double>> barrier_lists{};
   auto this_config = config_;
   this_config.SetAtomElementTypeAtAtom(this_config.GetVacancyAtomId(), solvent_element_);
@@ -49,7 +50,64 @@ std::tuple<std::vector<std::vector<double>>,  std::vector<double>, std::vector<d
   return std::make_tuple(barrier_lists, average_barriers, exit_times);
 }
 
-std::vector<double> ExitTime::GetAverageBarriers(const std::unordered_set<size_t> &atom_id_set) const {
+std::tuple<
+    std::unordered_map<std::pair<size_t, size_t>, std::pair<double, double>, boost::hash<std::pair<size_t, size_t>>>,
+    std::vector<std::vector<size_t>>,
+    std::vector<std::vector<double>>,
+    std::vector<std::vector<double>>>
+ExitTime::GetJumpEnergetics(const std::unordered_set<size_t> &atom_id_set) const {
+  std::vector<std::vector<size_t>> neighbor_atom_id_lists(
+      config_.GetNumAtoms(), std::vector<size_t>(constants::kNumFirstNearestNeighbors, config_.GetNumAtoms()));
+  std::vector<std::vector<double>> migration_barrier_lists(
+      config_.GetNumAtoms(), std::vector<double>(constants::kNumFirstNearestNeighbors, nan("")));
+  std::vector<std::vector<double>> driving_force_lists(
+      config_.GetNumAtoms(), std::vector<double>(constants::kNumFirstNearestNeighbors, nan("")));
+
+  std::unordered_set<size_t> lattice_id_set{};
+  std::unordered_set<size_t> lattice_id_set_plus_nn{};
+  for (const auto &atom_id: atom_id_set) {
+    const auto lattice_id = config_.GetLatticeIdFromAtomId(atom_id);
+    lattice_id_set.insert(lattice_id);
+    lattice_id_set_plus_nn.insert(lattice_id);
+    for (const auto &neighbor_lattice_id: config_.GetFirstNeighborsAdjacencyList()[lattice_id]) {
+      lattice_id_set_plus_nn.insert(neighbor_lattice_id);
+    }
+  }
+
+  std::unordered_map<std::pair<size_t, size_t>, std::pair<double, double>, boost::hash<std::pair<size_t, size_t>>>
+      energy_barrier_map{};
+  auto this_config = config_;
+  this_config.SetAtomElementTypeAtAtom(this_config.GetVacancyAtomId(), solvent_element_);
+
+  for (const auto lattice_id: lattice_id_set_plus_nn) {
+    const auto atom_id = this_config.GetAtomIdFromLatticeId(lattice_id);
+    std::vector<size_t> neighbor_atom_id_list{};
+    std::vector<double> migration_barrier_list{};
+    std::vector<double> driving_force_list{};
+
+    const Element this_element = this_config.GetElementAtLatticeId(lattice_id);
+    this_config.SetAtomElementTypeAtLattice(lattice_id, Element(ElementName::X));
+    for (const auto neighbor_lattice_id: this_config.GetFirstNeighborsAdjacencyList().at(lattice_id)) {
+      neighbor_atom_id_list.emplace_back(this_config.GetAtomIdFromLatticeId(neighbor_lattice_id));
+      const auto jump_pair = std::make_pair(lattice_id, neighbor_lattice_id);
+      const auto energetic_pair =
+          vacancy_migration_predictor_.GetBarrierAndDiffFromLatticeIdPair(this_config, jump_pair);
+      energy_barrier_map.insert({jump_pair, energetic_pair});
+      migration_barrier_list.push_back(energetic_pair.first);
+      driving_force_list.push_back(energetic_pair.second);
+    }
+    neighbor_atom_id_lists[atom_id] = neighbor_atom_id_list;
+    migration_barrier_lists[atom_id] = migration_barrier_list;
+    driving_force_lists[atom_id] = driving_force_list;
+    this_config.SetAtomElementTypeAtLattice(lattice_id, this_element);
+  }
+  return std::make_tuple(energy_barrier_map, neighbor_atom_id_lists, migration_barrier_lists, driving_force_lists);
+}
+
+std::vector<double> ExitTime::GetAverageBarriers(const std::unordered_set<size_t> &atom_id_set,
+                                                 const std::unordered_map<std::pair<size_t, size_t>,
+                                                      std::pair<double, double>,
+                                                      boost::hash<std::pair<size_t, size_t>>> &pair_energy_map) const {
   std::unordered_set<size_t> lattice_id_set{};
   std::unordered_set<size_t> lattice_id_set_plus_nn{};
   for (const auto &atom_id: atom_id_set) {
@@ -88,8 +146,9 @@ std::vector<double> ExitTime::GetAverageBarriers(const std::unordered_set<size_t
         barrier_list = &barrier_list_off;
       }
       if (barrier_list) {
-        const auto [Ea, dE] = vacancy_migration_predictor_.GetBarrierAndDiffFromLatticeIdPair(
-            this_config, {lattice_id, neighbor_lattice_id});
+        const auto [Ea, dE] = pair_energy_map.at({lattice_id, neighbor_lattice_id});
+        // const auto [Ea, dE] = vacancy_migration_predictor_.GetBarrierAndDiffFromLatticeIdPair(
+        //     this_config, {lattice_id, neighbor_lattice_id});
         barrier_list->push_back(Ea - dE);
       }
     }
@@ -130,6 +189,13 @@ std::vector<double> ExitTime::GetAverageBarriers(const std::unordered_set<size_t
 
 std::map<Element, std::vector<double>> ExitTime::GetBindingEnergy() const {
   std::map<Element, std::vector<double>> binding_energies{};
+  for (const auto &[element, mu]: chemical_potential_) {
+    if (element == Element("X")) {
+      continue;
+    }
+    binding_energies.insert({element, {}});
+  }
+
   auto this_config = config_;
   this_config.SetAtomElementTypeAtAtom(this_config.GetVacancyAtomId(), solvent_element_);
   for (size_t atom_id = 0; atom_id < this_config.GetNumAtoms(); ++atom_id) {
@@ -143,11 +209,6 @@ std::map<Element, std::vector<double>> ExitTime::GetBindingEnergy() const {
           chemical_potential_.at(Element("X")) - chemical_potential_.at(this_config.GetElementAtAtomId(atom_id));
       const auto energy_change =
           energy_change_predictor_pair_site_.GetDeFromAtomIdSite(this_config, atom_id, Element("X"));
-
-      if (binding_energies.find(element) == binding_energies.end()) {
-        binding_energies.insert({element, {}});
-      }
-
       binding_energies.at(element).push_back(energy_change - potential_change);
     }
     this_config.SetAtomElementTypeAtAtom(atom_id, this_element);
@@ -179,22 +240,22 @@ std::map<Element, std::vector<double>> ExitTime::GetBindingEnergy() const {
 //   }
 //   return binding_energies;
 // }
-// std::vector<double> ExitTime::GetProfileEnergy() const {
-//   std::vector<double> profile_energies{};
-//   const auto vacancy_atom_id = config_.GetVacancyAtomId();
-//
-//   const auto potential_change = chemical_potential_.at(Element("X"));
-//   const auto energy_change =
-//       energy_change_predictor_pair_site_.GetDeFromAtomIdSite(config_, vacancy_atom_id, solvent_element_);
-//   const auto energy_reference = -energy_change - potential_change;
-//   for (size_t atom_id = 0; atom_id < config_.GetNumAtoms(); ++atom_id) {
-//     if (atom_id == vacancy_atom_id) {
-//       profile_energies.push_back(energy_reference);
-//       continue;
-//     }
-//     profile_energies.push_back(
-//         energy_reference + energy_change_predictor_pair_site_.GetDeFromAtomIdPair(config_, {atom_id, vacancy_atom_id}));
-//   }
-//   return profile_energies;
-// }
+std::vector<double> ExitTime::GetProfileEnergy() const {
+  std::vector<double> profile_energies{};
+  const auto vacancy_atom_id = config_.GetVacancyAtomId();
+
+  const auto potential_change = chemical_potential_.at(Element("X"));
+  const auto energy_change =
+      energy_change_predictor_pair_site_.GetDeFromAtomIdSite(config_, vacancy_atom_id, solvent_element_);
+  const auto energy_reference = -energy_change - potential_change;
+  for (size_t atom_id = 0; atom_id < config_.GetNumAtoms(); ++atom_id) {
+    if (atom_id == vacancy_atom_id) {
+      profile_energies.push_back(energy_reference);
+      continue;
+    }
+    profile_energies.push_back(
+        energy_reference + energy_change_predictor_pair_site_.GetDeFromAtomIdPair(config_, {atom_id, vacancy_atom_id}));
+  }
+  return profile_energies;
+}
 }    // namespace ansys

@@ -570,6 +570,8 @@ void Config::WriteExtendedXyz(const std::string &filename,
       fos << "R:3";
     } else if (ret.type() == typeid(std::vector<double>)) {
       fos << "R:" << std::any_cast<std::vector<double>>(ret).size();
+    } else if (ret.type() == typeid(std::vector<size_t>)) {
+      fos << "I:" << std::any_cast<std::vector<size_t>>(ret).size();
     } else {
       throw std::runtime_error("Unsupported type");
     }
@@ -599,6 +601,10 @@ void Config::WriteExtendedXyz(const std::string &filename,
         fos << std::any_cast<Vector_t>(ret) << ' ';
       } else if (ret.type() == typeid(std::vector<double>)) {
         for (const auto &val: std::any_cast<std::vector<double>>(ret)) {
+          fos << val << ' ';
+        }
+      } else if (ret.type() == typeid(std::vector<size_t>)) {
+        for (const auto &val: std::any_cast<std::vector<size_t>>(ret)) {
           fos << val << ' ';
         }
       } else {
