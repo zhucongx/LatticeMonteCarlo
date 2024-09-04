@@ -132,35 +132,42 @@ void Traverse::RunAnsys() const {
 
     // basic information
     nlohmann::json frame_info = nlohmann::json::object();
+    std::map<std::string, cfg::Config::VectorVariant> auxiliary_lists{};
     std::map<std::string, cfg::Config::ValueVariant> global_list;
+
     frame_info["steps"] = i;
     global_list["steps"] = i;
-
     const auto time = log_map_.find("time") == log_map_.end()
         ? nan("")
         : std::get<std::unordered_map<unsigned long long, double>>(log_map_.at("time")).at(i);
     frame_info["time"] = time;
     global_list["time"] = time;
-
     const auto temperature = std::get<std::unordered_map<unsigned long long, double>>(log_map_.at("temperature")).at(i);
     frame_info["temperature"] = temperature;
     global_list["temperature"] = temperature;
-
-
     const auto energy = std::get<std::unordered_map<unsigned long long, double>>(log_map_.at("energy")).at(i);
     frame_info["energy"] = energy;
     global_list["energy"] = energy;
 
-    // cluster information
-    auto [cluster_json, auxiliary_lists] = SoluteCluster(config,
-                                                         solvent_element_,
-                                                         element_set_,
-                                                         smallest_cluster_criteria_,
-                                                         solvent_bond_criteria_,
-                                                         energy_predictor_,
-                                                         chemical_potential)
-                                               .GetClustersInfo();
-    frame_info["clusters"] = cluster_json;
+    // basic cluster information
+    SoluteCluster(config,
+                  solvent_element_,
+                  element_set_,
+                  smallest_cluster_criteria_,
+                  solvent_bond_criteria_,
+                  energy_predictor_,
+                  chemical_potential)
+        .GetClustersInfo(frame_info, auxiliary_lists, global_list);
+
+    // binding energy
+    ExitTime(config,
+             solvent_element_,
+             element_set_,
+             temperature,
+             vacancy_migration_predictor_,
+             energy_change_predictor_pair_site_,
+             chemical_potential)
+        .GetExitTimeInfo(frame_info, auxiliary_lists, global_list);
 
     // sro information
     ShortRangeOrder short_range_order(config, element_set_);
@@ -212,91 +219,6 @@ void Traverse::RunAnsys() const {
       global_list["vac3_" + element] = value;
     }
 
-    // binding energy
-    const auto exit_time = ExitTime(config,
-                                    solvent_element_,
-                                    temperature,
-                                    vacancy_migration_predictor_,
-                                    energy_change_predictor_pair_site_,
-                                    chemical_potential);
-
-    const auto profile_energy = exit_time.GetProfileEnergy();
-    auxiliary_lists["profile_energy"] = profile_energy;
-
-    const auto binding_energy = exit_time.GetBindingEnergy();
-    std::vector<double> binding_energy_list;
-    binding_energy_list.reserve(config.GetNumAtoms());
-    for (size_t atom_id = 0; atom_id < config.GetNumAtoms(); ++atom_id) {
-      std::vector<double> element_energy_list;
-      element_energy_list.reserve(element_set_.size());
-      for (const auto &element: element_set_) {
-        element_energy_list.push_back(binding_energy.at(element)[atom_id]);
-      }
-      binding_energy_list.push_back(*std::max_element(element_energy_list.begin(), element_energy_list.end()));
-    }
-    auxiliary_lists["binding_energy"] = binding_energy_list;
-    std::map<std::string, double> vac_element_energy_list;
-    for (const auto &element: element_set_) {
-      const auto element_string = element.GetString();
-      const auto vac_element_energy = binding_energy.at(element)[config.GetVacancyAtomId()];
-      vac_element_energy_list.emplace(element_string, vac_element_energy);
-
-      auxiliary_lists["binding_energy_" + element_string] = binding_energy.at(element);
-      global_list["vacancy_local_binding_energy_" + element_string] = vac_element_energy;
-    }
-    frame_info["vacancy_local_binding_energy"] = vac_element_energy_list;
-
-    std::unordered_set<size_t> all_atom_id_set{};
-    for (const auto &cluster_info: frame_info["clusters"]) {
-      const auto atom_id_set = cluster_info["cluster_atom_id_list"].get<std::unordered_set<size_t>>();
-      all_atom_id_set.insert(atom_id_set.begin(), atom_id_set.end());
-    }
-    const auto [pair_energy_map, neighbor_atom_id_lists, migration_barrier_lists, driving_force_lists] =
-        exit_time.GetJumpEnergetics(all_atom_id_set);
-    auxiliary_lists["neighbor_atom_id_lists"] = neighbor_atom_id_lists;
-    auxiliary_lists["migration_barrier_lists"] = migration_barrier_lists;
-    auxiliary_lists["driving_force_lists"] = driving_force_lists;
-
-    for (auto &cluster_info: frame_info["clusters"]) {
-      std::vector<double> cluster_binding_energy_list;
-      std::map<Element, std::vector<double>> cluster_binding_energy_list_map;
-      for (const auto &element: element_set_) {
-        if (element == Element("X")) {
-          continue;
-        }
-        cluster_binding_energy_list_map.insert({element, {}});
-      }
-      for (const auto &atom_id: cluster_info["cluster_atom_id_list"]) {
-        std::vector<double> element_energy_list;
-        element_energy_list.reserve(element_set_.size());
-        for (const auto &element: element_set_) {
-          cluster_binding_energy_list_map.at(element).push_back(binding_energy.at(element)[atom_id]);
-          element_energy_list.push_back(binding_energy.at(element)[atom_id]);
-        }
-        cluster_binding_energy_list.push_back(
-            *std::max_element(element_energy_list.begin(), element_energy_list.end()));
-      }
-      const auto atom_id_set = cluster_info["cluster_atom_id_list"].get<std::unordered_set<size_t>>();
-      cluster_info["barriers"] = exit_time.GetAverageBarriers(atom_id_set, pair_energy_map);
-
-      cluster_info["vacancy_binding_energy"] =
-          *std::min_element(cluster_binding_energy_list.begin(), cluster_binding_energy_list.end());
-      for (const auto &element: element_set_) {
-        if (element == Element("X")) {
-          continue;
-        }
-        cluster_info["vacancy_binding_energy_" + element.GetString()] = *std::min_element(
-            cluster_binding_energy_list_map.at(element).begin(), cluster_binding_energy_list_map.at(element).end());
-      }
-      // cluster_info.erase("cluster_atom_id_list");
-    }
-
-    // exit time
-    // auto [barrier_lists, average_barriers, exit_times] = exit_time.GetBarrierListAndExitTime();
-    // auxiliary_lists["barrier_lists"] = barrier_lists;
-    // auxiliary_lists["average_barriers"] = average_barriers;
-    // auxiliary_lists["exit_times"] = exit_times;
-
 
     boost::filesystem::create_directories("ansys");
     config.WriteExtendedXyz("ansys/" + std::to_string(i) + ".xyz.gz", auxiliary_lists, global_list);
@@ -330,7 +252,7 @@ std::string Traverse::GetHeaderClusterString() const {
     header_frame += "\t";
   }
   header_frame += "cluster_X\teffective_radius\tmass_gyration_radius\tasphericity\tacylindricity\tanisotropy\t"
-                  "vacancy_binding_energy\t";
+                  "vacancy_profile_energy\tvacancy_binding_energy\t";
   for (const auto &element: element_set_) {
     if (element == Element("X")) {
       continue;
@@ -358,6 +280,7 @@ std::string Traverse::GetClusterString(const nlohmann::json &frame) const {
     cluster_stream << cluster["elements_number"]["X"] << "\t" << cluster["effective_radius"] << "\t"
                    << cluster["mass_gyration_radius"] << "\t" << cluster["asphericity"] << "\t"
                    << cluster["acylindricity"] << "\t" << cluster["anisotropy"] << "\t"
+                   << cluster["vacancy_profile_energy"] << "\t"
                    << cluster["vacancy_binding_energy"] << "\t";
     for (const auto &element: element_set_) {
       cluster_stream << cluster["vacancy_binding_energy_" + element.GetString()] << "\t";
@@ -403,32 +326,12 @@ std::string Traverse::GetFrameString(const nlohmann::json &frame) const {
   frame_stream.precision(16);
 
   frame_stream << frame["steps"] << "\t" << frame["time"] << "\t" << frame["temperature"] << "\t" << frame["energy"]
-               << "\t";
-
-  constexpr size_t kCriticalSize = 10;
-  size_t num_cluster = 0;
-  size_t num_atom = 0;
-  std::vector<std::string> cluster_size_list;
-  std::map<Element, size_t> element_number_map{};
+               << "\t" << frame["num_cluster"] << "\t" << frame["num_atom"] << "\t";
   for (const auto &element: element_set_) {
-    element_number_map[element] = 0;
+    frame_stream <<frame["num_" + element.GetString()] << "\t";
   }
-
-  for (const auto &cluster: frame["clusters"]) {
-    if (cluster["cluster_size"] >= kCriticalSize) {
-      num_cluster++;
-      num_atom += cluster["cluster_size"].get<size_t>();
-      cluster_size_list.push_back(std::to_string(cluster["cluster_size"].get<size_t>()));
-      for (const auto &element: element_set_) {
-        element_number_map[element] += cluster["elements_number"][element.GetString()].get<size_t>();
-      }
-    }
-  }
-  frame_stream << num_cluster << "\t" << num_atom << "\t";
-  for (const auto &element: element_set_) {
-    frame_stream << element_number_map[element] << "\t";
-  }
-  frame_stream << "[" << boost::algorithm::join(cluster_size_list, ",") << "]\t";
+  frame_stream << "[" << boost::algorithm::join(frame["cluster_size_list"].get<std::vector<std::string>>(), ",")
+               << "]\t";
 
   for (const auto &order: frame["warren_cowley"]) {
     for (const auto &pair: order.items()) {

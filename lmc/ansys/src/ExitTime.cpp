@@ -3,16 +3,105 @@
 namespace ansys {
 ExitTime::ExitTime(const cfg::Config &config,
                    const Element &solvent_element,
+                   std::set<Element> element_set,
                    const double temperature,
                    const pred::VacancyMigrationPredictorQuartic &vacancy_migration_predictor,
                    const pred::EnergyChangePredictorPairSite &energy_change_predictor_site,
                    const std::map<Element, double> &chemical_potential)
     : config_(config),
       solvent_element_(solvent_element),
+      element_set_(std::move(element_set)),
       beta_(1.0 / constants::kBoltzmann / temperature),
       vacancy_migration_predictor_(vacancy_migration_predictor),
       energy_change_predictor_pair_site_(energy_change_predictor_site),
       chemical_potential_(chemical_potential) {}
+
+void ExitTime::GetExitTimeInfo(nlohmann::json &frame_info,
+                               std::map<std::string, cfg::Config::VectorVariant> &auxiliary_lists,
+                               std::map<std::string, cfg::Config::ValueVariant> &global_list) const {
+
+  const auto profile_energy = GetProfileEnergy();
+  auxiliary_lists["profile_energy"] = profile_energy;
+
+  const auto binding_energy = GetBindingEnergy();
+  std::vector<double> binding_energy_list;
+  binding_energy_list.reserve(config_.GetNumAtoms());
+  for (size_t atom_id = 0; atom_id < config_.GetNumAtoms(); ++atom_id) {
+    std::vector<double> element_energy_list;
+    element_energy_list.reserve(element_set_.size());
+    for (const auto &element: element_set_) {
+      element_energy_list.push_back(binding_energy.at(element)[atom_id]);
+    }
+    binding_energy_list.push_back(*std::max_element(element_energy_list.begin(), element_energy_list.end()));
+  }
+  auxiliary_lists["binding_energy"] = binding_energy_list;
+
+  std::map<std::string, double> vac_element_energy_list;
+  for (const auto &element: element_set_) {
+    const auto element_string = element.GetString();
+    const auto vac_element_energy = binding_energy.at(element)[config_.GetVacancyAtomId()];
+    vac_element_energy_list.emplace(element_string, vac_element_energy);
+    auxiliary_lists["binding_energy_" + element_string] = binding_energy.at(element);
+  }
+  frame_info["vacancy_local_binding_energy"] = vac_element_energy_list;
+
+
+  std::unordered_set<size_t> all_atom_id_set{};
+  for (const auto &cluster_info: frame_info["clusters"]) {
+    const auto atom_id_set = cluster_info["cluster_atom_id_list"].get<std::unordered_set<size_t>>();
+    all_atom_id_set.insert(atom_id_set.begin(), atom_id_set.end());
+  }
+  const auto [pair_energy_map, neighbor_atom_id_lists, migration_barrier_lists, driving_force_lists] =
+      GetJumpEnergetics(all_atom_id_set);
+  auxiliary_lists["neighbor_atom_id_lists"] = neighbor_atom_id_lists;
+  auxiliary_lists["migration_barrier_lists"] = migration_barrier_lists;
+  auxiliary_lists["driving_force_lists"] = driving_force_lists;
+
+  for (auto &cluster_info: frame_info["clusters"]) {
+    std::vector<double> cluster_binding_energy_list;
+    std::vector<double> cluster_profile_energy_list;
+    std::map<Element, std::vector<double>> cluster_binding_energy_list_map;
+    for (const auto &element: element_set_) {
+      if (element == Element("X")) {
+        continue;
+      }
+      cluster_binding_energy_list_map.insert({element, {}});
+    }
+    for (const auto &atom_id: cluster_info["cluster_atom_id_list"]) {
+      std::vector<double> element_energy_list;
+      element_energy_list.reserve(element_set_.size());
+      for (const auto &element: element_set_) {
+        cluster_binding_energy_list_map.at(element).push_back(binding_energy.at(element)[atom_id]);
+        element_energy_list.push_back(binding_energy.at(element)[atom_id]);
+      }
+      cluster_binding_energy_list.push_back(
+          *std::max_element(element_energy_list.begin(), element_energy_list.end()));
+      cluster_profile_energy_list.push_back(profile_energy[atom_id]);
+    }
+    cluster_info["vacancy_binding_energy"] =
+        *std::min_element(cluster_binding_energy_list.begin(), cluster_binding_energy_list.end());
+    cluster_info["vacancy_profile_energy"] =
+        *std::min_element(cluster_profile_energy_list.begin(), cluster_profile_energy_list.end());
+
+    const auto atom_id_set = cluster_info["cluster_atom_id_list"].get<std::unordered_set<size_t>>();
+    cluster_info["barriers"] = GetAverageBarriers(atom_id_set, pair_energy_map);
+
+    for (const auto &element: element_set_) {
+      if (element == Element("X")) {
+        continue;
+      }
+      cluster_info["vacancy_binding_energy_" + element.GetString()] = *std::min_element(
+          cluster_binding_energy_list_map.at(element).begin(), cluster_binding_energy_list_map.at(element).end());
+    }
+    // cluster_info.erase("cluster_atom_id_list");
+  }
+
+  // auto [barrier_lists, average_barriers, exit_times] = GetBarrierListAndExitTime();
+  // auxiliary_lists["barrier_lists"] = barrier_lists;
+  // auxiliary_lists["average_barriers"] = average_barriers;
+  // auxiliary_lists["exit_times"] = exit_times;
+}
+
 
 std::tuple<std::vector<std::vector<double>>, std::vector<double>, std::vector<double>>
 ExitTime::GetBarrierListAndExitTime() const {

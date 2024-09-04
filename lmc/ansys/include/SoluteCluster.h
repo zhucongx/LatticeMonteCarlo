@@ -12,14 +12,16 @@ namespace ansys {
 class SoluteCluster {
  public:
   SoluteCluster(const cfg::Config &config,
-                Element solvent_atom_type,
+                const Element &solvent_element,
                 std::set<Element> element_set,
                 size_t smallest_cluster_criteria,
                 size_t solvent_bond_criteria,
                 const pred::EnergyPredictor &energy_predictor,
                 const std::map<Element, double> &chemical_potential_map);
 
-  [[nodiscard]] std::pair<nlohmann::json, std::map<std::string, cfg::Config::VectorVariant>> GetClustersInfo();
+  void GetClustersInfo(nlohmann::json &frame_info,
+                       std::map<std::string, cfg::Config::VectorVariant> &auxiliary_lists,
+                       std::map<std::string, cfg::Config::ValueVariant> &global_list) const;
 
  private:
   [[nodiscard]] std::unordered_set<size_t> FindSoluteAtomIndexes() const;

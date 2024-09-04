@@ -62,7 +62,7 @@ namespace ansys {
 
 
 SoluteCluster::SoluteCluster(const cfg::Config &config,
-                             Element solvent_atom_type,
+                             const Element &solvent_element,
                              std::set<Element> element_set,
                              size_t smallest_cluster_criteria,
                              size_t solvent_bond_criteria,
@@ -70,14 +70,14 @@ SoluteCluster::SoluteCluster(const cfg::Config &config,
                              const std::map<Element, double> &chemical_potential_map)
     : config_(config),
       solvent_config_(config),
-      solvent_element_(solvent_atom_type),
+      solvent_element_(solvent_element),
       element_set_(std::move(element_set)),
       smallest_cluster_criteria_(smallest_cluster_criteria),
       solvent_bond_criteria_(solvent_bond_criteria),
       energy_predictor_(energy_predictor),
       chemical_potential_map_(chemical_potential_map) {
   for (size_t atom_id = 0; atom_id < solvent_config_.GetNumAtoms(); ++atom_id) {
-    solvent_config_.SetAtomElementTypeAtAtom(atom_id, solvent_atom_type);
+    solvent_config_.SetAtomElementTypeAtAtom(atom_id, solvent_element_);
   }
 }
 
@@ -106,12 +106,12 @@ void ModifyElementFromVector(std::map<std::string, cfg::Config::VectorVariant> &
       auxiliary_lists[key]);
 }
 
-std::pair<nlohmann::json, std::map<std::string, cfg::Config::VectorVariant>> SoluteCluster::GetClustersInfo() {
-  const auto cluster_to_atom_vector = FindAtomListOfClusters();
-
+void SoluteCluster::GetClustersInfo(nlohmann::json &frame_info,
+                                    std::map<std::string, cfg::Config::VectorVariant> &auxiliary_lists,
+                                    std::map<std::string, cfg::Config::ValueVariant> &global_list) const {
   nlohmann::json clusters_info_array = nlohmann::json::array();
 
-  std::map<std::string, cfg::Config::VectorVariant> auxiliary_lists{};
+  const auto cluster_to_atom_vector = FindAtomListOfClusters();
   for (const auto &element: element_set_) {
     auxiliary_lists["cluster_" + element.GetString()] = std::vector<size_t>(config_.GetNumAtoms(), 0);
   }
@@ -244,8 +244,33 @@ std::pair<nlohmann::json, std::map<std::string, cfg::Config::VectorVariant>> Sol
 
     clusters_info_array.push_back(cluster_info);
   }
+  frame_info["clusters"] = clusters_info_array;
 
-  return std::make_pair(clusters_info_array, auxiliary_lists);
+  constexpr size_t kCriticalSize = 10;
+  size_t num_cluster = 0;
+  size_t num_atom = 0;
+  std::vector<std::string> cluster_size_list;
+  std::map<Element, size_t> element_number_map{};
+  for (const auto &element: element_set_) {
+    element_number_map[element] = 0;
+  }
+
+  for (const auto &cluster: clusters_info_array) {
+    if (cluster["cluster_size"] >= kCriticalSize) {
+      num_cluster++;
+      num_atom += cluster["cluster_size"].get<size_t>();
+      cluster_size_list.push_back(std::to_string(cluster["cluster_size"].get<size_t>()));
+      for (const auto &element: element_set_) {
+        element_number_map[element] += cluster["elements_number"][element.GetString()].get<size_t>();
+      }
+    }
+  }
+  frame_info["num_cluster"] = num_cluster;
+  frame_info["num_atom"] = num_atom;
+  for (const auto &element: element_set_) {
+    frame_info["num_" + element.GetString()] = element_number_map[element];
+  }
+  frame_info["cluster_size_list"] = cluster_size_list;
 }
 
 std::unordered_set<size_t> SoluteCluster::FindSoluteAtomIndexes() const {

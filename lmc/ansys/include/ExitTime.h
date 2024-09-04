@@ -4,16 +4,24 @@
 #include "Config.h"
 #include "EnergyChangePredictorPairSite.h"
 #include "VacancyMigrationPredictorQuartic.h"
+#include <nlohmann/json.hpp>
 
 namespace ansys {
 class ExitTime {
  public:
   ExitTime(const cfg::Config &config,
            const Element &solvent_element,
+           std::set<Element> element_set,
            double temperature,
            const pred::VacancyMigrationPredictorQuartic &vacancy_migration_predictor,
            const pred::EnergyChangePredictorPairSite &energy_change_predictor_site,
            const std::map<Element, double> &chemical_potential);
+
+  void GetExitTimeInfo(nlohmann::json &frame_info,
+                       std::map<std::string, cfg::Config::VectorVariant> &auxiliary_lists,
+                       std::map<std::string, cfg::Config::ValueVariant> &global_list) const;
+
+ protected:
   [[nodiscard]] std::tuple<
       std::unordered_map<std::pair<size_t, size_t>, std::pair<double, double>, boost::hash<std::pair<size_t, size_t>>>,
       std::vector<std::vector<size_t>>,
@@ -31,9 +39,9 @@ class ExitTime {
   [[nodiscard]] std::map<Element, std::vector<double>> GetBindingEnergy() const;
   [[nodiscard]] std::vector<double> GetProfileEnergy() const;
 
- protected:
   const cfg::Config &config_;
   const Element solvent_element_;
+  const std::set<Element> element_set_;
   const double beta_;
   const pred::VacancyMigrationPredictorQuartic &vacancy_migration_predictor_;
   const pred::EnergyChangePredictorPairSite &energy_change_predictor_pair_site_;
