@@ -365,7 +365,7 @@ std::string Traverse::GetClusterString(const nlohmann::json &frame) const {
     const std::vector<double> &barriers = cluster["barriers"];
     cluster_stream << barriers[0] << "\t" << barriers[1] << "\t" << barriers[2] << "\t" << barriers[3] << "\t";
     cluster_stream << barriers[4] << "\t" << barriers[5] << "\t" << barriers[6] << "\t" << barriers[7] << "\t";
-    cluster_stream << "[" << GetVectorTString(cluster["geometry_center"], ",") << "]\n";
+    cluster_stream << "[" << GetVectorToString(cluster["geometry_center"], ",") << "]\n";
   }
   return cluster_stream.str();
 }

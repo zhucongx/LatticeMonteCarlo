@@ -19,7 +19,7 @@ using Vector_t = std::array<double, kDimension>;
 using Matrix_t = std::array<Vector_t, kDimension>;
 using Factor_t = std::array<size_t, kDimension>;
 
-inline std::string GetVectorTString(const Vector_t &vector, const std::string& delimiter)
+inline std::string GetVectorToString(const Vector_t &vector, const std::string& delimiter)
 {
   std::stringstream ss;
   ss.precision(16);
