@@ -81,7 +81,12 @@ std::map<std::string, double> ShortRangeOrder::FindWarrenCowley(const size_t she
   for (const auto &element1 : element_set_) {
     for (const auto &element2 : element_set_) { warren_cowley[element1.GetString() + "-" + element2.GetString()] = 0; }
   }
-  const auto &element_list_map = config_.GetElementAtomIdVectorMap();
+  auto element_list_map = config_.GetElementAtomIdVectorMap();
+  for (const auto type : element_set_) {
+    if (element_list_map.find(type) == element_list_map.end()) {
+      element_list_map[type] = {};
+    }
+  }
   std::map<Element, double> concentration;
   // std::map<Element, double> count;
   for (const auto type : element_set_) {
