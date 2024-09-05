@@ -235,10 +235,15 @@ std::vector<double> ExitTime::GetAverageBarriers(const std::unordered_set<size_t
         barrier_list = &barrier_list_off;
       }
       if (barrier_list) {
-        const auto [Ea, dE] = pair_energy_map.at({lattice_id, neighbor_lattice_id});
-        // const auto [Ea, dE] = vacancy_migration_predictor_.GetBarrierAndDiffFromLatticeIdPair(
-        //     this_config, {lattice_id, neighbor_lattice_id});
-        barrier_list->push_back(Ea - dE);
+        const auto jump_pair = std::make_pair(lattice_id, neighbor_lattice_id);
+        double Ea, dE;
+        if (pair_energy_map.find(jump_pair) == pair_energy_map.end()) {
+          std::tie(Ea, dE) = vacancy_migration_predictor_.GetBarrierAndDiffFromLatticeIdPair(
+              this_config, {lattice_id, neighbor_lattice_id});
+        } else{
+          std::tie(Ea, dE) = pair_energy_map.at({lattice_id, neighbor_lattice_id});
+        }
+        barrier_list->push_back(Ea - dE / 2);
       }
     }
     this_config.SetAtomElementTypeAtLattice(lattice_id, this_element);
