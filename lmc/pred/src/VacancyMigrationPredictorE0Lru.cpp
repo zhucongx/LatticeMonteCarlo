@@ -2,9 +2,9 @@
 namespace pred {
 
 VacancyMigrationPredictorE0Lru::VacancyMigrationPredictorE0Lru(const std::string &predictor_filename,
-                                                                         const cfg::Config &reference_config,
-                                                                         const std::set<Element> &element_set,
-                                                                         size_t cache_size)
+                                                               const cfg::Config &reference_config,
+                                                               const std::set<Element> &element_set,
+                                                               size_t cache_size)
     : VacancyMigrationPredictorE0(predictor_filename, reference_config, element_set),
       lru_cache_(cache_size) {}
 VacancyMigrationPredictorE0Lru::~VacancyMigrationPredictorE0Lru() = default;
