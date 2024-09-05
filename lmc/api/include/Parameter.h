@@ -40,6 +40,7 @@ struct Parameter {
     double restart_energy_{};
     double restart_time_{};
     bool rate_corrector_{};
+    bool early_stop_{};
     Vector_t vacancy_trajectory_{};
 
     unsigned long long int initial_steps_{};

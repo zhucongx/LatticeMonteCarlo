@@ -27,7 +27,8 @@ class KineticMcFirstAbstract : public McAbstract {
                            const std::string &json_coefficients_filename,
                            const std::string &time_temperature_filename,
                            bool is_rate_corrector,
-                           const Vector_t &vacancy_trajectory);
+                           const Vector_t &vacancy_trajectory,
+                           bool is_early_stop);
     ~KineticMcFirstAbstract() override;
     KineticMcFirstAbstract(const KineticMcFirstAbstract &) = delete;
     void operator=(const mc::KineticMcFirstAbstract &) = delete;
@@ -41,6 +42,7 @@ class KineticMcFirstAbstract : public McAbstract {
     virtual void BuildEventList() = 0;
     virtual double CalculateTime() = 0;
     virtual void OneStepSimulation();
+    void IsEscaped();
     // constants
     static constexpr size_t kEventListSize = constants::kNumFirstNearestNeighbors;
 
@@ -52,6 +54,7 @@ class KineticMcFirstAbstract : public McAbstract {
     const bool is_rate_corrector_;
     size_t vacancy_lattice_id_;
     Vector_t vacancy_trajectory_;
+    const bool is_early_stop_;
     std::array<JumpEvent, kEventListSize> event_k_i_list_{};
     JumpEvent event_k_i_{};
     double total_rate_k_{0.0}; // k would be same for all
@@ -71,7 +74,8 @@ class KineticMcChainAbstract : public KineticMcFirstAbstract {
                            const std::string &json_coefficients_filename,
                            const std::string &time_temperature_filename,
                            bool is_rate_corrector,
-                           const Vector_t &vacancy_trajectory);
+                           const Vector_t &vacancy_trajectory,
+                           bool is_early_stop);
     ~KineticMcChainAbstract() override;
     KineticMcChainAbstract(const KineticMcChainAbstract &) = delete;
     void operator=(const mc::KineticMcChainAbstract &) = delete;

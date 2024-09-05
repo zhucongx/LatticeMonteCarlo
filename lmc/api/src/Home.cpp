@@ -27,6 +27,7 @@ void Print(const Parameter &parameter) {
     std::cout << "rate_corrector: " << parameter.rate_corrector_ << std::endl;
     std::cout << "vacancy_trajectory: " << parameter.vacancy_trajectory_
               << std::endl;
+    std::cout << "early_stop: " << parameter.early_stop_ << std::endl;
   } else if (parameter.method == "SimulatedAnnealing") {
     std::cout << "json_coefficients_filename: " << parameter.json_coefficients_filename_ << std::endl;
     std::cout << "factor: " << parameter.factor_ << std::endl;
@@ -137,7 +138,8 @@ mc::KineticMcFirstMpi BuildKineticMcFirstMpiFromParameter(const Parameter &param
                                parameter.json_coefficients_filename_,
                                parameter.time_temperature_filename_,
                                parameter.rate_corrector_,
-                               parameter.vacancy_trajectory_};
+                               parameter.vacancy_trajectory_,
+                               parameter.early_stop_};
 }
 
 mc::KineticMcFirstOmp BuildKineticMcFirstOmpFromParameter(const Parameter &parameter) {
@@ -166,7 +168,8 @@ mc::KineticMcFirstOmp BuildKineticMcFirstOmpFromParameter(const Parameter &param
                                parameter.json_coefficients_filename_,
                                parameter.time_temperature_filename_,
                                parameter.rate_corrector_,
-                               parameter.vacancy_trajectory_};
+                               parameter.vacancy_trajectory_,
+                               parameter.early_stop_};
 }
 
 mc::KineticMcChainOmpi BuildKineticMcChainOmpiFromParameter(const Parameter &parameter) {
@@ -195,7 +198,8 @@ mc::KineticMcChainOmpi BuildKineticMcChainOmpiFromParameter(const Parameter &par
                                 parameter.json_coefficients_filename_,
                                 parameter.time_temperature_filename_,
                                 parameter.rate_corrector_,
-                                parameter.vacancy_trajectory_};
+                                parameter.vacancy_trajectory_,
+                                parameter.early_stop_};
 }
 
 mc::SimulatedAnnealing BuildSimulatedAnnealingFromParameter(const Parameter &parameter) {

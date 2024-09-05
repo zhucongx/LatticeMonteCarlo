@@ -26,7 +26,8 @@ class KineticMcChainOmpi : public KineticMcChainAbstract {
                        const std::string &json_coefficients_filename,
                        const std::string &time_temperature_filename,
                        bool is_rate_corrector,
-                       const Vector_t &vacancy_trajectory);
+                       const Vector_t &vacancy_trajectory,
+                       bool is_early_stop);
   protected:
     void BuildEventList() override;
     double CalculateTime() override;

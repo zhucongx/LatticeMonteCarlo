@@ -15,7 +15,8 @@ KineticMcFirstAbstract::KineticMcFirstAbstract(cfg::Config config,
                                                const std::string &json_coefficients_filename,
                                                const std::string &time_temperature_filename,
                                                const bool is_rate_corrector,
-                                               const Vector_t &vacancy_trajectory)
+                                               const Vector_t &vacancy_trajectory,
+                                               bool is_early_stop)
     : McAbstract(std::move(config),
                  log_dump_steps,
                  config_dump_steps,
@@ -34,7 +35,8 @@ KineticMcFirstAbstract::KineticMcFirstAbstract(cfg::Config config,
       rate_corrector_(config_.GetVacancyConcentration(), config_.GetSoluteConcentration(Element("Al"))),
       is_rate_corrector_(is_rate_corrector),
       vacancy_lattice_id_(config_.GetVacancyLatticeId()),
-      vacancy_trajectory_(vacancy_trajectory) {}
+      vacancy_trajectory_(vacancy_trajectory),
+      is_early_stop_(is_early_stop) {}
 
 KineticMcFirstAbstract::~KineticMcFirstAbstract() = default;
 
@@ -127,6 +129,8 @@ void KineticMcFirstAbstract::OneStepSimulation() {
   double one_step_time = CalculateTime() * GetTimeCorrectionFactor();
   Debug(one_step_time);
   event_k_i_ = event_k_i_list_[SelectEvent()];
+
+  IsEscaped();
   Dump();
 
   // modify
@@ -150,6 +154,25 @@ void KineticMcFirstAbstract::Simulate() {
   }
 }
 
+void KineticMcFirstAbstract::IsEscaped() {
+  if (is_early_stop_) {
+    size_t Al_count = 0;
+    for (auto neighbor_lattice_id: config_.GetFirstNeighborsAdjacencyList()[vacancy_lattice_id_]) {
+      if (config_.GetElementAtLatticeId(neighbor_lattice_id) == Element("Al")) {
+        Al_count++;
+      }
+    }
+    if (Al_count == constants::kNumFirstNearestNeighbors) {
+      if (world_rank_ == 0) {
+      config_.WriteConfig("escaped.cfg.gz");
+      std::cout << "t_exit: " << time_ << std::endl;
+      std::cout << "steps: " << steps_ << std::endl;
+      }
+      steps_ = maximum_steps_ + 1;
+    }
+  }
+}
+
 KineticMcChainAbstract::KineticMcChainAbstract(cfg::Config config,
                                                const unsigned long long int log_dump_steps,
                                                const unsigned long long int config_dump_steps,
@@ -163,7 +186,8 @@ KineticMcChainAbstract::KineticMcChainAbstract(cfg::Config config,
                                                const std::string &json_coefficients_filename,
                                                const std::string &time_temperature_filename,
                                                const bool is_rate_corrector,
-                                               const Vector_t &vacancy_trajectory)
+                                               const Vector_t &vacancy_trajectory,
+                                               bool is_early_stop)
     : KineticMcFirstAbstract(std::move(config),
                              log_dump_steps,
                              config_dump_steps,
@@ -177,7 +201,8 @@ KineticMcChainAbstract::KineticMcChainAbstract(cfg::Config config,
                              json_coefficients_filename,
                              time_temperature_filename,
                              is_rate_corrector,
-                             vacancy_trajectory),
+                             vacancy_trajectory,
+                             is_early_stop),
       previous_j_lattice_id_(config_.GetFirstNeighborsAdjacencyList()[vacancy_lattice_id_][0]) {
   MPI_Op_create(DataSum, 1, &mpi_op_);
   DefineStruct(&mpi_datatype_);

@@ -90,7 +90,14 @@ void Parameter::ReadParam(const std::string &param_filename) {
         throw std::runtime_error("vacancy_trajectory should have 3 elements");
       }
       vacancy_trajectory_ = Vector_t{stod(segs[1]), stod(segs[2]), stod(segs[3])};
-    } else if (segs[0] == "restart_energy") {
+    } else if (segs[0] == "early_stop") {
+      std::string bool_string = std::string(segs[1]);
+      if (bool_string == "true") {
+        early_stop_ = true;
+      } else {
+        early_stop_ = false;
+      }
+    }else if (segs[0] == "restart_energy") {
       restart_energy_ = stod(segs[1]);
     } else if (segs[0] == "restart_time") {
       restart_time_ = stod(segs[1]);
