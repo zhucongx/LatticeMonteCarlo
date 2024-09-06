@@ -1,5 +1,7 @@
 #include "ExitTime.h"
 
+#include "Eigen/Dense"
+
 namespace ansys {
 ExitTime::ExitTime(const cfg::Config &config,
                    const Element &solvent_element,
@@ -19,9 +21,8 @@ ExitTime::ExitTime(const cfg::Config &config,
 void ExitTime::GetExitTimeInfo(nlohmann::json &frame_info,
                                std::map<std::string, cfg::Config::VectorVariant> &auxiliary_lists,
                                std::map<std::string, cfg::Config::ValueVariant> &global_list) const {
-
-  const auto profile_energy = GetProfileEnergy();
-  auxiliary_lists["profile_energy"] = profile_energy;
+  const auto profile_energy_list = GetProfileEnergy();
+  auxiliary_lists["profile_energy"] = profile_energy_list;
 
   const auto binding_energy = GetBindingEnergy();
   std::vector<double> binding_energy_list;
@@ -74,9 +75,8 @@ void ExitTime::GetExitTimeInfo(nlohmann::json &frame_info,
         cluster_binding_energy_list_map.at(element).push_back(binding_energy.at(element)[atom_id]);
         element_energy_list.push_back(binding_energy.at(element)[atom_id]);
       }
-      cluster_binding_energy_list.push_back(
-          *std::max_element(element_energy_list.begin(), element_energy_list.end()));
-      cluster_profile_energy_list.push_back(profile_energy[atom_id]);
+      cluster_binding_energy_list.push_back(*std::max_element(element_energy_list.begin(), element_energy_list.end()));
+      cluster_profile_energy_list.push_back(profile_energy_list[atom_id]);
     }
     cluster_info["vacancy_binding_energy"] =
         *std::min_element(cluster_binding_energy_list.begin(), cluster_binding_energy_list.end());
@@ -84,6 +84,8 @@ void ExitTime::GetExitTimeInfo(nlohmann::json &frame_info,
         *std::min_element(cluster_profile_energy_list.begin(), cluster_profile_energy_list.end());
 
     const auto atom_id_set = cluster_info["cluster_atom_id_list"].get<std::unordered_set<size_t>>();
+    cluster_info["markov_escape_time"] =
+        BuildMarkovChain(atom_id_set, neighbor_atom_id_lists, migration_barrier_lists, binding_energy_list);
     cluster_info["barriers"] = GetAverageBarriers(atom_id_set, pair_energy_map);
 
     for (const auto &element: element_set_) {
@@ -102,6 +104,61 @@ void ExitTime::GetExitTimeInfo(nlohmann::json &frame_info,
   // auxiliary_lists["exit_times"] = exit_times;
 }
 
+double ExitTime::BuildMarkovChain(const std::unordered_set<size_t> &atom_id_set,
+                                  const std::vector<std::vector<size_t>> &neighbor_atom_id_lists,
+                                  const std::vector<std::vector<double>> &migration_barrier_lists,
+                                  const std::vector<double> &base_energy_list) const {
+  std::unordered_set<size_t> atom_id_set_plus_nn{};
+  for (const auto &atom_id: atom_id_set) {
+    atom_id_set_plus_nn.insert(atom_id);
+    for (const auto neighbor_atom_id: neighbor_atom_id_lists[atom_id]) {
+      atom_id_set_plus_nn.insert(neighbor_atom_id);
+    }
+  }
+  const int transient_size = static_cast<int>(atom_id_set_plus_nn.size());
+
+  Eigen::MatrixXd transient_matrix = Eigen::MatrixXd::Zero(transient_size, transient_size);
+  Eigen::MatrixXd I = Eigen::MatrixXd::Identity(transient_size, transient_size);
+  Eigen::VectorXd probability_vector = Eigen::VectorXd::Zero(transient_size);
+  Eigen::VectorXd tau_vector = Eigen::VectorXd::Zero(transient_size);
+
+  std::unordered_map<size_t, int> atom_index_map;
+  for (int index = 0; index < transient_size; ++index) {
+    auto atom_id = *std::next(atom_id_set_plus_nn.begin(), index);
+    atom_index_map.insert({atom_id,index});
+  }
+
+  for (const auto &atom_id: atom_id_set_plus_nn) {
+    int index = atom_index_map[atom_id];
+    probability_vector(index) = std::exp(-base_energy_list.at(atom_id) * beta_);
+
+    std::vector<double> rates;
+    double total_rate = 0.0;
+
+    for (size_t j = 0; j < constants::kNumFirstNearestNeighbors; ++j) {
+      double barrier = migration_barrier_lists.at(atom_id).at(j);
+      double rate = constants::kPrefactor * std::exp(-barrier * beta_);
+      rates.push_back(rate);
+      total_rate += rate;
+    }
+    tau_vector(index) = 1.0 / total_rate;
+
+    // Populate the Markov matrix
+    for (size_t j = 0; j < constants::kNumFirstNearestNeighbors; ++j) {
+      size_t neighbor_atom_id = neighbor_atom_id_lists.at(atom_id).at(j);
+      auto it = atom_index_map.find(neighbor_atom_id);
+      if (it == atom_index_map.end()) {
+        // Jump to absorbing state
+        continue;
+      }
+      auto neighbor_idx = it->second;
+      transient_matrix(index, neighbor_idx) = rates.at(j) / total_rate;
+    }
+  }
+  probability_vector /= probability_vector.sum();
+  const double escape_time = probability_vector.transpose() * (I - transient_matrix).inverse() * tau_vector;
+  return escape_time;
+}
 
 std::tuple<std::vector<std::vector<double>>, std::vector<double>, std::vector<double>>
 ExitTime::GetBarrierListAndExitTime() const {
@@ -193,8 +250,9 @@ ExitTime::GetJumpEnergetics(const std::unordered_set<size_t> &atom_id_set) const
   return std::make_tuple(energy_barrier_map, neighbor_atom_id_lists, migration_barrier_lists, driving_force_lists);
 }
 
-std::vector<double> ExitTime::GetAverageBarriers(const std::unordered_set<size_t> &atom_id_set,
-                                                 const std::unordered_map<std::pair<size_t, size_t>,
+std::vector<double>
+ExitTime::GetAverageBarriers(const std::unordered_set<size_t> &atom_id_set,
+                             const std::unordered_map<std::pair<size_t, size_t>,
                                                       std::pair<double, double>,
                                                       boost::hash<std::pair<size_t, size_t>>> &pair_energy_map) const {
   std::unordered_set<size_t> lattice_id_set{};
@@ -240,7 +298,7 @@ std::vector<double> ExitTime::GetAverageBarriers(const std::unordered_set<size_t
         if (pair_energy_map.find(jump_pair) == pair_energy_map.end()) {
           std::tie(Ea, dE) = vacancy_migration_predictor_.GetBarrierAndDiffFromLatticeIdPair(
               this_config, {lattice_id, neighbor_lattice_id});
-        } else{
+        } else {
           std::tie(Ea, dE) = pair_energy_map.at({lattice_id, neighbor_lattice_id});
         }
         barrier_list->push_back(Ea - dE / 2);
