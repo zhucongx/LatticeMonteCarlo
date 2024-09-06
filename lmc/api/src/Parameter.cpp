@@ -76,6 +76,8 @@ void Parameter::ReadParam(const std::string &param_filename) {
       smallest_cluster_criteria_ = stoul(segs[1]);
     } else if (segs[0] == "solvent_bond_criteria") {
       solvent_bond_criteria_ = stoul(segs[1]);
+    } else if (segs[0] == "escape_temperature") {
+      escape_temperature_ = stod(segs[1]);
     } else if (segs[0] == "restart_steps") {
       restart_steps_ = stoull(segs[1]);
     } else if (segs[0] == "rate_corrector") {

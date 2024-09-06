@@ -281,6 +281,7 @@ ansys::Traverse BuildIteratorFromParameter(const Parameter &parameter) {
                          element_set,
                          parameter.smallest_cluster_criteria_,
                          parameter.solvent_bond_criteria_,
+                          parameter.escape_temperature_,
                          parameter.json_coefficients_filename_,
                          parameter.log_type_,
                          parameter.config_type_};

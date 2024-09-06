@@ -47,6 +47,7 @@ struct Parameter {
     unsigned long long int increment_steps_{};
     size_t smallest_cluster_criteria_{};
     size_t solvent_bond_criteria_{};
+    double escape_temperature_{};
 
     size_t factor_{};
     std::string solvent_element_{};

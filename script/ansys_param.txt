@@ -10,3 +10,4 @@ initial_steps 0
 increment_steps 10000
 smallest_cluster_criteria 4
 solvent_bond_criteria 3
+escape_temperature 300

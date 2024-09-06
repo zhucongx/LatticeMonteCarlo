@@ -29,6 +29,7 @@ Traverse::Traverse(unsigned long long int initial_steps,
                    std::set<Element> element_set,
                    size_t smallest_cluster_criteria,
                    size_t solvent_bond_criteria,
+                   double escape_temperature,
                    const std::string &predictor_filename,
                    std::string log_type,
                    std::string config_type)
@@ -39,6 +40,7 @@ Traverse::Traverse(unsigned long long int initial_steps,
       element_set_(std::move(element_set)),
       smallest_cluster_criteria_(smallest_cluster_criteria),
       solvent_bond_criteria_(solvent_bond_criteria),
+      escape_temperature_(escape_temperature),
       log_map_{},
       log_type_(std::move(log_type)),
       config_type_(std::move(config_type)),
@@ -163,7 +165,7 @@ void Traverse::RunAnsys() const {
     ExitTime(config,
              solvent_element_,
              element_set_,
-             temperature,
+             escape_temperature_ == 0 ? temperature : escape_temperature_,
              vacancy_migration_predictor_,
              energy_change_predictor_pair_site_,
              chemical_potential)
@@ -280,8 +282,7 @@ std::string Traverse::GetClusterString(const nlohmann::json &frame) const {
     cluster_stream << cluster["elements_number"]["X"] << "\t" << cluster["effective_radius"] << "\t"
                    << cluster["mass_gyration_radius"] << "\t" << cluster["asphericity"] << "\t"
                    << cluster["acylindricity"] << "\t" << cluster["anisotropy"] << "\t"
-                   << cluster["vacancy_profile_energy"] << "\t"
-                   << cluster["vacancy_binding_energy"] << "\t";
+                   << cluster["vacancy_profile_energy"] << "\t" << cluster["vacancy_binding_energy"] << "\t";
     for (const auto &element: element_set_) {
       cluster_stream << cluster["vacancy_binding_energy_" + element.GetString()] << "\t";
     }
@@ -328,7 +329,7 @@ std::string Traverse::GetFrameString(const nlohmann::json &frame) const {
   frame_stream << frame["steps"] << "\t" << frame["time"] << "\t" << frame["temperature"] << "\t" << frame["energy"]
                << "\t" << frame["num_cluster"] << "\t" << frame["num_atom"] << "\t";
   for (const auto &element: element_set_) {
-    frame_stream <<frame["num_" + element.GetString()] << "\t";
+    frame_stream << frame["num_" + element.GetString()] << "\t";
   }
   frame_stream << "[" << boost::algorithm::join(frame["cluster_size_list"].get<std::vector<std::string>>(), ",")
                << "]\t";

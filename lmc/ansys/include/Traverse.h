@@ -19,6 +19,7 @@ class Traverse {
            std::set<Element> element_set,
            size_t smallest_cluster_criteria,
            size_t solvent_bond_criteria,
+           double escape_temperature,
            const std::string &predictor_filename,
            std::string log_type,
            std::string config_type);
@@ -40,7 +41,7 @@ class Traverse {
   const std::set<Element> element_set_;
   size_t smallest_cluster_criteria_;
   size_t solvent_bond_criteria_;
-
+  double escape_temperature_;
   using MapVariant =
       std::variant<std::unordered_map<unsigned long long, double>, std::unordered_map<unsigned long long, std::string>>;
 
