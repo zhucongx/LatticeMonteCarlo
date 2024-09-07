@@ -20,6 +20,9 @@ VacancyMigrationPredictorE0::VacancyMigrationPredictorE0(const std::string &pred
       std::map<cfg::ElementCluster, int>(initialized_cluster_hashmap_.begin(), initialized_cluster_hashmap_.end());
 
   std::ifstream ifs(predictor_filename, std::ifstream::in);
+  if (!ifs) {
+    throw std::runtime_error("Cannot open " + predictor_filename);
+  }
   nlohmann::json all_parameters;
   ifs >> all_parameters;
   for (const auto &[element, parameters]: all_parameters.items()) {

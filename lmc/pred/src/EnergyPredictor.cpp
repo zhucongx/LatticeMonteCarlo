@@ -14,6 +14,9 @@ EnergyPredictor::EnergyPredictor(const std::string &predictor_filename,
       ordered(initialized_cluster_hashmap_.begin(), initialized_cluster_hashmap_.end());
 
   std::ifstream ifs(predictor_filename, std::ifstream::in);
+  if (!ifs) {
+    throw std::runtime_error("Cannot open " + predictor_filename);
+  }
   nlohmann::json all_parameters;
   ifs >> all_parameters;
 

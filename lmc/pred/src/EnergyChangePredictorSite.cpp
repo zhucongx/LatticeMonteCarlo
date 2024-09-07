@@ -12,6 +12,9 @@ EnergyChangePredictorSite::EnergyChangePredictorSite(const std::string &predicto
   initialized_cluster_hashmap_ = InitializeClusterHashMap(element_set_copy);
 
   std::ifstream ifs(predictor_filename, std::ifstream::in);
+  if (!ifs) {
+    throw std::runtime_error("Cannot open " + predictor_filename);
+  }
   nlohmann::json all_parameters;
   ifs >> all_parameters;
 
