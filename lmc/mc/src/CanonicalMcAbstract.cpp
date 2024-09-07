@@ -65,7 +65,7 @@ void CanonicalMcAbstract::Dump() const {
     config_.WriteConfig(std::to_string(steps_) + ".cfg.gz");
   }
   if (steps_ == maximum_steps_) {
-    config_.WriteConfig("end.cfg");
+    config_.WriteConfig("end.cfg.gz");
   }
   unsigned long long int log_dump_steps;
   if (steps_ > 10 * log_dump_steps_) {
