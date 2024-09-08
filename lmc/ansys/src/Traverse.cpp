@@ -287,7 +287,7 @@ std::string Traverse::GetClusterString(const nlohmann::json &frame) const {
     for (const auto &element: element_set_) {
       cluster_stream << cluster["vacancy_binding_energy_" + element.GetString()] << "\t";
     }
-    const std::vector<double> &barriers = cluster["barriers"];
+    const auto barriers = cluster["barriers"].get<std::vector<double>>();
     cluster_stream << barriers[0] << "\t" << barriers[1] << "\t" << barriers[2] << "\t" << barriers[3] << "\t";
     cluster_stream << barriers[4] << "\t" << barriers[5] << "\t" << barriers[6] << "\t" << barriers[7] << "\t";
     cluster_stream << "[" << GetVectorToString(cluster["geometry_center"], ",") << "]\n";
