@@ -36,7 +36,8 @@ KineticMcFirstAbstract::KineticMcFirstAbstract(cfg::Config config,
       is_rate_corrector_(is_rate_corrector),
       vacancy_lattice_id_(config_.GetVacancyLatticeId()),
       vacancy_trajectory_(vacancy_trajectory),
-      is_early_stop_(is_early_stop) {}
+      is_early_stop_(is_early_stop),
+      solvent_element_(config_.GetSolventElement()){}
 
 KineticMcFirstAbstract::~KineticMcFirstAbstract() = default;
 
@@ -159,13 +160,20 @@ void KineticMcFirstAbstract::Simulate() {
 
 void KineticMcFirstAbstract::IsEscaped() {
   if (is_early_stop_) {
-    size_t Al_count = 0;
+    size_t solvent_count_first = 0;
+    size_t solvent_count_second = 0;
     for (auto neighbor_lattice_id: config_.GetFirstNeighborsAdjacencyList()[vacancy_lattice_id_]) {
-      if (config_.GetElementAtLatticeId(neighbor_lattice_id) == Element("Al")) {
-        Al_count++;
+      if (config_.GetElementAtLatticeId(neighbor_lattice_id) == solvent_element_) {
+        solvent_count_first++;
       }
     }
-    if (Al_count == constants::kNumFirstNearestNeighbors) {
+    for (auto neighbor_lattice_id: config_.GetSecondNeighborsAdjacencyList()[vacancy_lattice_id_]) {
+      if (config_.GetElementAtLatticeId(neighbor_lattice_id) == solvent_element_) {
+        solvent_count_second++;
+      }
+    }
+    if (solvent_count_first == constants::kNumFirstNearestNeighbors &&
+        solvent_count_second == constants::kNumSecondNearestNeighbors) {
       if (world_rank_ == 0) {
       config_.WriteConfig("escaped.cfg.gz");
       std::cout << "t_exit: " << time_ << std::endl;

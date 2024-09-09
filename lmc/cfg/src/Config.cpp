@@ -291,6 +291,18 @@ std::map<Element, size_t> Config::GetLocalInfoOfLatticeId(size_t lattice_id, siz
   }
   return element_count_map;
 }
+Element Config::GetSolventElement() const {
+ auto element_atom_id_vector_map = GetElementAtomIdVectorMap();
+ auto solvent_element = Element("X");
+ size_t max_count = 0;
+ for (const auto &[element, atom_id_vector]: element_atom_id_vector_map) {
+   if (atom_id_vector.size() > max_count) {
+     max_count = atom_id_vector.size();
+     solvent_element = element;
+   }
+ }
+ return solvent_element;
+}
 
 void Config::AtomJump(const std::pair<size_t, size_t> &atom_id_jump_pair) {
   const auto [atom_id_lhs, atom_id_rhs] = atom_id_jump_pair;

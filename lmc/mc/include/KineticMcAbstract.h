@@ -58,6 +58,7 @@ class KineticMcFirstAbstract : public McAbstract {
     std::array<JumpEvent, kEventListSize> event_k_i_list_{};
     JumpEvent event_k_i_{};
     double total_rate_k_{0.0}; // k would be same for all
+    const Element solvent_element_;
 };
 class KineticMcChainAbstract : public KineticMcFirstAbstract {
   public:
