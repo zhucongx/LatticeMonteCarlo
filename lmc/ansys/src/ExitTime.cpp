@@ -84,10 +84,19 @@ void ExitTime::GetExitTimeInfo(nlohmann::json &frame_info,
         *std::min_element(cluster_profile_energy_list.begin(), cluster_profile_energy_list.end());
 
     const auto atom_id_set = cluster_info["cluster_atom_id_list"].get<std::unordered_set<size_t>>();
-    cluster_info["markov_escape_time"] =
+    std::unordered_set<size_t> atom_id_set_plus_nn{};
+    for (const auto &atom_id: atom_id_set) {
+      atom_id_set_plus_nn.insert(atom_id);
+      for (const auto neighbor_atom_id: neighbor_atom_id_lists[atom_id]) {
+        atom_id_set_plus_nn.insert(neighbor_atom_id);
+      }
+    }
+    cluster_info["to_shell_markov_escape_time"] =
         BuildMarkovChain(atom_id_set, neighbor_atom_id_lists, migration_barrier_lists, binding_energy_list);
-    cluster_info["barriers"] = GetAverageBarriers(atom_id_set, pair_energy_map);
+    cluster_info["off_shell_markov_escape_time"] =
+        BuildMarkovChain(atom_id_set_plus_nn, neighbor_atom_id_lists, migration_barrier_lists, binding_energy_list);
 
+    cluster_info["barriers"] = GetAverageBarriers(atom_id_set, pair_energy_map);
     for (const auto &element: element_set_) {
       if (element == Element("X")) {
         continue;
@@ -108,14 +117,8 @@ double ExitTime::BuildMarkovChain(const std::unordered_set<size_t> &atom_id_set,
                                   const std::vector<std::vector<size_t>> &neighbor_atom_id_lists,
                                   const std::vector<std::vector<double>> &migration_barrier_lists,
                                   const std::vector<double> &base_energy_list) const {
-  std::unordered_set<size_t> atom_id_set_plus_nn{};
-  for (const auto &atom_id: atom_id_set) {
-    atom_id_set_plus_nn.insert(atom_id);
-    for (const auto neighbor_atom_id: neighbor_atom_id_lists[atom_id]) {
-      atom_id_set_plus_nn.insert(neighbor_atom_id);
-    }
-  }
-  const int transient_size = static_cast<int>(atom_id_set_plus_nn.size());
+
+  const int transient_size = static_cast<int>(atom_id_set.size());
 
   Eigen::MatrixXd transient_matrix = Eigen::MatrixXd::Zero(transient_size, transient_size);
   Eigen::MatrixXd I = Eigen::MatrixXd::Identity(transient_size, transient_size);
@@ -124,11 +127,11 @@ double ExitTime::BuildMarkovChain(const std::unordered_set<size_t> &atom_id_set,
 
   std::unordered_map<size_t, int> atom_index_map;
   for (int index = 0; index < transient_size; ++index) {
-    auto atom_id = *std::next(atom_id_set_plus_nn.begin(), index);
+    auto atom_id = *std::next(atom_id_set.begin(), index);
     atom_index_map.insert({atom_id,index});
   }
 
-  for (const auto &atom_id: atom_id_set_plus_nn) {
+  for (const auto &atom_id: atom_id_set) {
     int index = atom_index_map[atom_id];
     probability_vector(index) = std::exp(-base_energy_list.at(atom_id) * beta_);
 
