@@ -162,6 +162,7 @@ void KineticMcFirstAbstract::IsEscaped() {
   if (is_early_stop_) {
     size_t solvent_count_first = 0;
     size_t solvent_count_second = 0;
+    size_t solvent_count_third = 0;
     for (auto neighbor_lattice_id: config_.GetFirstNeighborsAdjacencyList()[vacancy_lattice_id_]) {
       if (config_.GetElementAtLatticeId(neighbor_lattice_id) == solvent_element_) {
         solvent_count_first++;
@@ -172,12 +173,18 @@ void KineticMcFirstAbstract::IsEscaped() {
         solvent_count_second++;
       }
     }
+    for (auto neighbor_lattice_id: config_.GetThirdNeighborsAdjacencyList()[vacancy_lattice_id_]) {
+      if (config_.GetElementAtLatticeId(neighbor_lattice_id) == solvent_element_) {
+        solvent_count_third++;
+      }
+    }
     if (solvent_count_first == constants::kNumFirstNearestNeighbors &&
-        solvent_count_second == constants::kNumSecondNearestNeighbors) {
+        solvent_count_second == constants::kNumSecondNearestNeighbors &&
+        solvent_count_third == constants::kNumThirdNearestNeighbors) {
       if (world_rank_ == 0) {
-      config_.WriteConfig("escaped.cfg.gz");
-      std::cout << "t_exit: " << time_ << std::endl;
-      std::cout << "steps: " << steps_ << std::endl;
+        config_.WriteConfig("escaped.cfg.gz");
+        std::cout << "t_exit: " << time_ << std::endl;
+        std::cout << "steps: " << steps_ << std::endl;
       }
       steps_ = maximum_steps_ + 1;
     }
