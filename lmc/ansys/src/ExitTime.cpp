@@ -54,9 +54,9 @@ void ExitTime::GetExitTimeInfo(nlohmann::json &frame_info,
   }
   const auto [pair_energy_map, neighbor_atom_id_lists, migration_barrier_lists, driving_force_lists] =
       GetJumpEnergetics(all_atom_id_set);
-  auxiliary_lists["neighbor_atom_id_lists"] = neighbor_atom_id_lists;
-  auxiliary_lists["migration_barrier_lists"] = migration_barrier_lists;
-  auxiliary_lists["driving_force_lists"] = driving_force_lists;
+  // auxiliary_lists["neighbor_atom_id_lists"] = neighbor_atom_id_lists;
+  // auxiliary_lists["migration_barrier_lists"] = migration_barrier_lists;
+  // auxiliary_lists["driving_force_lists"] = driving_force_lists;
 
   for (auto &cluster_info: frame_info["clusters"]) {
     std::vector<double> cluster_binding_energy_list;
