@@ -50,7 +50,7 @@ mkdir cmake-build; cd cmake-build || {
 # Pass the selected parameters to cmake
 cmake -D CMAKE_C_COMPILER="$compiler_C" -D CMAKE_CXX_COMPILER="$compiler_CXX" \
 -D CMAKE_BUILD_TYPE="$mode" -D ADDITIONAL_FLAGS="$flag"  -S ..
-cmake --build . -j 12
+cmake --build . -j 8
 
 # Moving back to the original directory
 cd ..
