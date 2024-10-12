@@ -64,8 +64,8 @@ void KineticMcFirstAbstract::Dump() const {
     return;
   }
   if (steps_ == 0) {
-    config_.WriteLattice("lattice.txt");
-    config_.WriteElement("element.txt");
+    // config_.WriteLattice("lattice.txt");
+    // config_.WriteElement("element.txt");
     ofs_ << "steps\ttime\ttemperature\tenergy\tEa\tdE\tselected\tvac1\tvac2\tvac3" << std::endl;
   }
   if (steps_ % config_dump_steps_ == 0) {
