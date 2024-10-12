@@ -56,8 +56,8 @@ void CanonicalMcAbstract::Dump() const {
     return;
   }
   if (steps_ == 0) {
-    config_.WriteLattice("lattice.txt");
-    config_.WriteElement("element.txt");
+    // config_.WriteLattice("lattice.txt");
+    // config_.WriteElement("element.txt");
     ofs_ << "steps\ttemperature\tenergy\taverage_energy\tabsolute_energy" << std::endl;
   }
   if (steps_ % config_dump_steps_ == 0) {
