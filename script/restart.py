@@ -96,5 +96,6 @@ if __name__ == '__main__':
         f4.write(f"restart_time {last_time}\n")
         f4.write(f"rate_corrector {old_param['rate_corrector']}\n")
         f4.write(f"vacancy_trajectory {last_vac_position[0]} {last_vac_position[1]} {last_vac_position[2]}\n")
+        f4.write(f"early_stop {old_param['early_stop']}\n")
         f4.flush()
     print(f"Done...")
