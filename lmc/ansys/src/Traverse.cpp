@@ -165,7 +165,7 @@ void Traverse::RunAnsys() const {
     ExitTime(config,
              solvent_element_,
              element_set_,
-             escape_temperature_ == 0 ? temperature : escape_temperature_,
+             escape_temperature_ <= kEpsilon ? temperature : escape_temperature_,
              vacancy_migration_predictor_,
              energy_change_predictor_pair_site_,
              chemical_potential)
