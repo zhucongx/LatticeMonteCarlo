@@ -383,7 +383,7 @@ void Traverse::RunReformat() const {
         throw std::invalid_argument("Unknown config type: " + config_type_);
       }
     } catch (const std::exception &e) {
-      throw std::invalid_argument("Error when working with " + std::to_string(i));
+      std::cerr << "Error when working with " + std::to_string(i);
     }
   }
 }
