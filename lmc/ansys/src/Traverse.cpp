@@ -358,6 +358,7 @@ std::string Traverse::GetFrameString(const nlohmann::json &frame) const {
 }
 
 void Traverse::RunReformat() const {
+#pragma omp parallel for default(none) schedule(static, 1) shared(std::cout, std::cerr)
   for (unsigned long long i = 0; i <= final_steps_; i += increment_steps_) {
     std::cout << i << " / " << final_steps_ << std::endl;
     if (config_type_ == "map") {
