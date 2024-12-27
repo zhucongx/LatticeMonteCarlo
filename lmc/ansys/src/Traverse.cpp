@@ -383,8 +383,9 @@ void Traverse::RunReformat() const {
         throw std::invalid_argument("Unknown config type: " + config_type_);
       }
     } catch (const std::exception &e) {
-      std::cerr << "Error when working with " + std::to_string(i);
+      std::cerr << "Error when working with " + std::to_string(i) << std::endl;
     }
   }
+  std::cout << "Done..." << std::endl;
 }
 }    // namespace ansys
