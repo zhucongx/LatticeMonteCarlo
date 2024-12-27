@@ -367,19 +367,23 @@ void Traverse::RunReformat() const {
               static_cast<double>(final_steps_ - initial_steps_ + 1) * 100
                 << "%" << std::endl;
     }
-    if (config_type_ == "map") {
-      auto config = cfg::Config::ReadMap("lattice.txt", "element.txt", "map" + std::to_string(i) + ".txt");
-      config.WriteConfig(std::to_string(i) + ".cfg.gz");
-    } else if (config_type_ == "config") {
-      auto config = cfg::Config::ReadConfig(std::to_string(i) + ".cfg.gz");
-      config.ReassignLatticeVector();
-      if (i == 0) {
-        config.WriteLattice("lattice.txt");
-        config.WriteElement("element.txt");
+    try {
+      if (config_type_ == "map") {
+        auto config = cfg::Config::ReadMap("lattice.txt", "element.txt", "map" + std::to_string(i) + ".txt");
+        config.WriteConfig(std::to_string(i) + ".cfg.gz");
+      } else if (config_type_ == "config") {
+        auto config = cfg::Config::ReadConfig(std::to_string(i) + ".cfg.gz");
+        config.ReassignLatticeVector();
+        if (i == 0) {
+          config.WriteLattice("lattice.txt");
+          config.WriteElement("element.txt");
+        }
+        config.WriteMap("map" + std::to_string(i) + ".txt");
+      } else {
+        throw std::invalid_argument("Unknown config type: " + config_type_);
       }
-      config.WriteMap("map" + std::to_string(i) + ".txt");
-    } else {
-      throw std::invalid_argument("Unknown config type: " + config_type_);
+    } catch (const std::exception &e) {
+      throw std::invalid_argument("Error when working with " + std::to_string(i)_);
     }
   }
 }
