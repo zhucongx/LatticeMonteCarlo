@@ -359,7 +359,7 @@ std::string Traverse::GetFrameString(const nlohmann::json &frame) const {
 
 void Traverse::RunReformat() const {
 #pragma omp parallel for default(none) schedule(static, 1) shared(std::cout, std::cerr)
-  for (unsigned long long i = 0; i <= final_steps_; i += increment_steps_) {
+  for (unsigned long long i = initial_steps_; i <= final_steps_; i += increment_steps_) {
 #pragma omp critical
     {
       std::cout << i << " / " << final_steps_ << " " << std::fixed << std::setprecision(2)
