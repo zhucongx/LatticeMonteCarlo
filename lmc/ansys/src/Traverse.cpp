@@ -115,13 +115,13 @@ Traverse::Traverse(unsigned long long int initial_steps,
 Traverse::~Traverse() = default;
 
 void Traverse::RunAnsys() const {
-  auto frame_ofs("ansys_frame_log.txt", std::ofstream::out);
-  auto cluster_ofs("ansys_cluster_log.txt", std::ofstream::out);
+  std::ofstream  frame_ofs("ansys_frame_log.txt", std::ofstream::out);
+  std::ofstream  cluster_ofs("ansys_cluster_log.txt", std::ofstream::out);
   const auto chemical_potential = energy_predictor_.GetChemicalPotential(solvent_element_);
   // nlohmann::json ansys_info_array = nlohmann::json::array();
   frame_ofs << GetHeaderFrameString() << std::flush;
   cluster_ofs << GetHeaderClusterString() << std::flush;
-#pragma omp parallel for default(none) schedule(static, 1) shared(chemical_potential, std::cout, std::cerr)
+#pragma omp parallel for default(none) schedule(static, 1) shared(chemical_potential, std::cout, std::cerr, frame_ofs, cluster_ofs)
   for (unsigned long long i = initial_steps_; i <= final_steps_; i += increment_steps_) {
 #pragma omp critical
     {
