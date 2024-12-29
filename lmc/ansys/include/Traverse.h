@@ -52,8 +52,6 @@ class Traverse {
   const pred::EnergyPredictor energy_predictor_;
   const pred::VacancyMigrationPredictorQuartic vacancy_migration_predictor_;
   const pred::EnergyChangePredictorPairSite energy_change_predictor_pair_site_;
-  mutable std::ofstream frame_ofs_;
-  mutable std::ofstream cluster_ofs_;
 };
 
 }    // namespace ansys

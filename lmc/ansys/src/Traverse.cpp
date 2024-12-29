@@ -46,9 +46,7 @@ Traverse::Traverse(unsigned long long int initial_steps,
       config_type_(std::move(config_type)),
       energy_predictor_(predictor_filename, element_set_),
       vacancy_migration_predictor_(predictor_filename, GetConfig(config_type_, initial_steps_), element_set_),
-      energy_change_predictor_pair_site_(predictor_filename, GetConfig(config_type_, initial_steps_), element_set_),
-      frame_ofs_("ansys_frame_log.txt", std::ofstream::out),
-      cluster_ofs_("ansys_cluster_log.txt", std::ofstream::out) {
+      energy_change_predictor_pair_site_(predictor_filename, GetConfig(config_type_, initial_steps_), element_set_) {
   std::string log_file_name;
   if (log_type_ == "kinetic_mc") {
     log_file_name = "kmc_log.txt";
@@ -117,10 +115,12 @@ Traverse::Traverse(unsigned long long int initial_steps,
 Traverse::~Traverse() = default;
 
 void Traverse::RunAnsys() const {
+  auto frame_ofs("ansys_frame_log.txt", std::ofstream::out);
+  auto cluster_ofs("ansys_cluster_log.txt", std::ofstream::out);
   const auto chemical_potential = energy_predictor_.GetChemicalPotential(solvent_element_);
   // nlohmann::json ansys_info_array = nlohmann::json::array();
-  frame_ofs_ << GetHeaderFrameString() << std::flush;
-  cluster_ofs_ << GetHeaderClusterString() << std::flush;
+  frame_ofs << GetHeaderFrameString() << std::flush;
+  cluster_ofs << GetHeaderClusterString() << std::flush;
 #pragma omp parallel for default(none) schedule(static, 1) shared(chemical_potential, std::cout, std::cerr)
   for (unsigned long long i = initial_steps_; i <= final_steps_; i += increment_steps_) {
 #pragma omp critical
@@ -229,8 +229,8 @@ void Traverse::RunAnsys() const {
 #pragma omp critical
     {
       // ansys_info_array.push_back(frame_info);
-      cluster_ofs_ << cluster_string << std::flush;
-      frame_ofs_ << frame_string << std::flush;
+      cluster_ofs << cluster_string << std::flush;
+      frame_ofs << frame_string << std::flush;
     }
   }
   // std::cout << "Finished. Sorting..." << std::endl;
