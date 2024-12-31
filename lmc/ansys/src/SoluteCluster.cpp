@@ -305,8 +305,7 @@ SoluteCluster::FindAtomListOfClustersBFSHelper(std::unordered_set<size_t> unvisi
       atom_list_of_one_cluster.push_back(atom_id);
       for (const auto &neighbors_list: {
                config_.GetFirstNeighborsAtomIdVectorOfAtom(atom_id),
-               // config_.GetSecondNeighborsAtomIdVectorOfAtom(atom_id),
-               // config_.GetThirdNeighborsAtomIdVectorOfAtom(atom_id),
+               // config_.GetSecondNeighborsAtomIdVectorOfAtom(atom_id)
            }) {
         for (auto neighbor_id: neighbors_list) {
           it = unvisited_atoms_id_set.find(neighbor_id);

@@ -7,7 +7,6 @@ ExitTime::ExitTime(const cfg::Config &config,
                    const Element &solvent_element,
                    std::set<Element> element_set,
                    const double temperature,
-                   const pred::EnergyPredictor &energy_predictor_,
                    const pred::VacancyMigrationPredictorQuartic &vacancy_migration_predictor,
                    const pred::EnergyChangePredictorPairSite &energy_change_predictor_site,
                    const std::map<Element, double> &chemical_potential)
@@ -15,7 +14,6 @@ ExitTime::ExitTime(const cfg::Config &config,
       solvent_element_(solvent_element),
       element_set_(std::move(element_set)),
       beta_(1.0 / constants::kBoltzmann / temperature),
-      energy_predictor_(energy_predictor_),
       vacancy_migration_predictor_(vacancy_migration_predictor),
       energy_change_predictor_pair_site_(energy_change_predictor_site),
       chemical_potential_(chemical_potential) {}
@@ -25,8 +23,6 @@ void ExitTime::GetExitTimeInfo(nlohmann::json &frame_info,
                                std::map<std::string, cfg::Config::ValueVariant> &global_list) const {
   const auto profile_energy_list = GetProfileEnergy();
   auxiliary_lists["profile_energy"] = profile_energy_list;
-  const auto formation_energy_list = GetFormationEnergy();
-  auxiliary_lists["formation_energy"] = formation_energy_list;
 
   const auto binding_energy = GetBindingEnergy();
   std::vector<double> binding_energy_list;
@@ -58,14 +54,13 @@ void ExitTime::GetExitTimeInfo(nlohmann::json &frame_info,
   }
   const auto [pair_energy_map, neighbor_atom_id_lists, migration_barrier_lists, driving_force_lists] =
       GetJumpEnergetics(all_atom_id_set);
-  auxiliary_lists["neighbor_atom_id_lists"] = neighbor_atom_id_lists;
-  auxiliary_lists["migration_barrier_lists"] = migration_barrier_lists;
-  auxiliary_lists["driving_force_lists"] = driving_force_lists;
+  // auxiliary_lists["neighbor_atom_id_lists"] = neighbor_atom_id_lists;
+  // auxiliary_lists["migration_barrier_lists"] = migration_barrier_lists;
+  // auxiliary_lists["driving_force_lists"] = driving_force_lists;
 
   for (auto &cluster_info: frame_info["clusters"]) {
     std::vector<double> cluster_binding_energy_list;
     std::vector<double> cluster_profile_energy_list;
-    std::vector<double> cluster_formation_energy_list;
     std::map<Element, std::vector<double>> cluster_binding_energy_list_map;
     for (const auto &element: element_set_) {
       if (element == Element("X")) {
@@ -82,14 +77,11 @@ void ExitTime::GetExitTimeInfo(nlohmann::json &frame_info,
       }
       cluster_binding_energy_list.push_back(*std::max_element(element_energy_list.begin(), element_energy_list.end()));
       cluster_profile_energy_list.push_back(profile_energy_list[atom_id]);
-      cluster_formation_energy_list.push_back(formation_energy_list[atom_id]);
     }
     cluster_info["vacancy_binding_energy"] =
         *std::min_element(cluster_binding_energy_list.begin(), cluster_binding_energy_list.end());
     cluster_info["vacancy_profile_energy"] =
         *std::min_element(cluster_profile_energy_list.begin(), cluster_profile_energy_list.end());
-    cluster_info["vacancy_formation_energy"] =
-        *std::min_element(cluster_formation_energy_list.begin(), cluster_formation_energy_list.end());
 
     const auto atom_id_set = cluster_info["cluster_atom_id_list"].get<std::unordered_set<size_t>>();
     std::unordered_set<size_t> atom_id_set_plus_nn{};
@@ -99,19 +91,6 @@ void ExitTime::GetExitTimeInfo(nlohmann::json &frame_info,
         atom_id_set_plus_nn.insert(neighbor_atom_id);
       }
     }
-    // for (const auto &atom_id: atom_id_set) {
-    //   atom_id_set_plus_nn.insert(atom_id);
-    //   size_t lattice_id = config_.GetLatticeIdFromAtomId(atom_id);
-    //   for (const auto &neighbor_lattice_id: config_.GetFirstNeighborsAdjacencyList()[lattice_id]) {
-    //     atom_id_set_plus_nn.insert(config_.GetAtomIdFromLatticeId(neighbor_lattice_id));
-    //   }
-    //   for (const auto &neighbor_lattice_id: config_.GetSecondNeighborsAdjacencyList()[lattice_id]) {
-    //     atom_id_set_plus_nn.insert(config_.GetAtomIdFromLatticeId(neighbor_lattice_id));
-    //   }
-    //   for (const auto &neighbor_lattice_id: config_.GetThirdNeighborsAdjacencyList()[lattice_id]) {
-    //     atom_id_set_plus_nn .insert(config_.GetAtomIdFromLatticeId(neighbor_lattice_id));
-    //   }
-    // }
     cluster_info["to_shell_markov_escape_time"] =
         BuildMarkovChain(atom_id_set, neighbor_atom_id_lists, migration_barrier_lists, binding_energy_list);
     cluster_info["off_shell_markov_escape_time"] =
@@ -242,12 +221,6 @@ ExitTime::GetJumpEnergetics(const std::unordered_set<size_t> &atom_id_set) const
     for (const auto &neighbor_lattice_id: config_.GetFirstNeighborsAdjacencyList()[lattice_id]) {
       lattice_id_set_plus_nn.insert(neighbor_lattice_id);
     }
-    // for (const auto &neighbor_lattice_id: config_.GetSecondNeighborsAdjacencyList()[lattice_id]) {
-    //   lattice_id_set_plus_nn.insert(neighbor_lattice_id);
-    // }
-    // for (const auto &neighbor_lattice_id: config_.GetThirdNeighborsAdjacencyList()[lattice_id]) {
-    //   lattice_id_set_plus_nn.insert(neighbor_lattice_id);
-    // }
   }
 
   std::unordered_map<std::pair<size_t, size_t>, std::pair<double, double>, boost::hash<std::pair<size_t, size_t>>>
@@ -439,32 +412,5 @@ std::vector<double> ExitTime::GetProfileEnergy() const {
         energy_reference + energy_change_predictor_pair_site_.GetDeFromAtomIdPair(config_, {atom_id, vacancy_atom_id}));
   }
   return profile_energies;
-}
-
-std::vector<double> ExitTime::GetFormationEnergy() const {
-  std::vector<double> formation_energies{};
-
-  const auto vacancy_atom_id = config_.GetVacancyAtomId();
-  auto this_config = config_;
-  this_config.SetAtomElementTypeAtAtom(vacancy_atom_id, solvent_element_);
-
-  // const double  total_energy = energy_predictor_.GetEnergy(this_config);
-  // const auto real_chemical_potential = energy_predictor_.GetRealChemicalPotential(solvent_element_);
-
-  // double formation_energy_reference = total_energy;
-  // for (const auto &[element, mu]: real_chemical_potential) {
-  //   if (element == Element("X")) {
-  //     continue;
-  //   }
-  //   formation_energy_reference -= mu * static_cast<double>(element_count_map.at(element));
-  // }
-
-  for (size_t atom_id = 0; atom_id < this_config.GetNumAtoms(); ++atom_id) {
-    const Element this_element = this_config.GetElementAtAtomId(atom_id);
-
-    const double energy_change = energy_change_predictor_pair_site_.GetDeFromAtomIdSite(this_config, atom_id, Element("X"));
-    formation_energies.push_back(energy_change + chemical_potential_.at(this_element) - chemical_potential_.at(Element("X")));
-  }
-  return formation_energies;
 }
 }    // namespace ansys
