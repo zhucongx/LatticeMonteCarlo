@@ -223,7 +223,16 @@ std::unordered_set<size_t> Config::GetNeighborsLatticeIdSetOfSite(size_t lattice
             std::inserter(near_neighbors_hashset, near_neighbors_hashset.begin()));
   return near_neighbors_hashset;
 }
-
+std::unordered_set<size_t> Config::GetNeighborsAtomIdSetOfAtom(size_t atom_id) const {
+  std::unordered_set<size_t> near_neighbors_hashset;
+  near_neighbors_hashset.insert(atom_id);
+  const auto lattice_id = atom_to_lattice_hashmap_.at(atom_id);
+  const auto lattice_id_set = GetNeighborsLatticeIdSetOfSite(lattice_id);
+  for (const auto neighbor_lattice_id: lattice_id_set) {
+    near_neighbors_hashset.insert(lattice_to_atom_hashmap_.at(neighbor_lattice_id));
+  }
+  return near_neighbors_hashset;
+}
 std::unordered_set<size_t>
 Config::GetNeighborsLatticeIdSetOfPair(const std::pair<size_t, size_t> &lattice_id_pair) const {
   std::unordered_set<size_t> near_neighbors_hashset;

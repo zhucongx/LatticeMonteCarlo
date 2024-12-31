@@ -45,6 +45,7 @@ class Config {
   [[nodiscard]] std::unordered_set<size_t>
   GetNeighborsLatticeIdSetOfPair(const std::pair<size_t, size_t> &lattice_id_pair) const;
   [[nodiscard]] std::unordered_set<size_t> GetNeighborsLatticeIdSetOfSite(size_t lattice_id) const;
+  [[nodiscard]] std::unordered_set<size_t> GetNeighborsAtomIdSetOfAtom(size_t atom_id) const;
   [[nodiscard]] int FindDistanceLabelBetweenLattice(size_t lattice_id1, size_t lattice_id2) const;
   [[nodiscard]] double GetVacancyConcentration() const;
   [[nodiscard]] double GetSoluteConcentration(Element solvent_element) const;
