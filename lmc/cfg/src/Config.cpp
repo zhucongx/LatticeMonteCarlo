@@ -137,6 +137,14 @@ std::map<Element, std::vector<size_t>> Config::GetElementAtomIdVectorMap() const
   return element_list_map;
 }
 
+std::map<Element, size_t> Config::GetElementCountMap() const {
+  std::map<Element, size_t> element_count_map;
+  for (const auto &atom: atom_vector_) {
+    element_count_map[atom.GetElement()]++;
+  }
+  return element_count_map;
+}
+
 size_t Config::GetStateHash() const {
   size_t seed = 0;
   for (size_t i = 0; i < GetNumAtoms(); ++i) {

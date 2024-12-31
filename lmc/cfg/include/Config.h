@@ -36,6 +36,7 @@ class Config {
   [[nodiscard]] Element GetElementAtLatticeId(size_t lattice_id) const;
   [[nodiscard]] std::set<Element> GetElementSetWithoutVacancy() const;
   [[nodiscard]] std::map<Element, std::vector<size_t>> GetElementAtomIdVectorMap() const;
+  [[nodiscard]] std::map<Element, size_t> GetElementCountMap() const;
   [[nodiscard]] size_t GetStateHash() const;
   [[nodiscard]] Vector_t GetLatticePairCenter(const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
   [[nodiscard]] Matrix_t GetLatticePairRotationMatrix(const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
