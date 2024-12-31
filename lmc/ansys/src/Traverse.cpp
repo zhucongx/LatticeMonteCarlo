@@ -256,7 +256,7 @@ std::string Traverse::GetHeaderClusterString() const {
   }
   header_frame += "cluster_X\teffective_radius\tmass_gyration_radius\tasphericity\tacylindricity\tanisotropy\t"
                   "to_shell_markov_escape_time\toff_shell_markov_escape_time\t"
-                  "vacancy_profile_energy\tvacancy_binding_energy\tvacancy_formation_energy\t";
+                  "vacancy_profile_energy\tvacancy_binding_energy\t";
   for (const auto &element: element_set_) {
     if (element == Element("X")) {
       continue;
@@ -285,8 +285,7 @@ std::string Traverse::GetClusterString(const nlohmann::json &frame) const {
                    << cluster["mass_gyration_radius"] << "\t" << cluster["asphericity"] << "\t"
                    << cluster["acylindricity"] << "\t" << cluster["anisotropy"] << "\t"
                    << cluster["to_shell_markov_escape_time"] << "\t" << cluster["off_shell_markov_escape_time"] << "\t"
-                   << cluster["vacancy_profile_energy"] << "\t" << cluster["vacancy_binding_energy"] << "\t"
-                   << cluster["vacancy_formation_energy"] << "\t";;
+                   << cluster["vacancy_profile_energy"] << "\t" << cluster["vacancy_binding_energy"] << "\t";
     for (const auto &element: element_set_) {
       cluster_stream << cluster["vacancy_binding_energy_" + element.GetString()] << "\t";
     }

@@ -45,8 +45,8 @@ class ExitTime {
                                               boost::hash<std::pair<size_t, size_t>>> &pair_energy_map) const;
   // [[nodiscard]] double GetLocalBindingEnergy() const;
   [[nodiscard]] std::map<Element, std::vector<double>> GetBindingEnergy() const; // based on definition in Acta Materialia 2024 Xi
-  [[nodiscard]] std::vector<double> GetProfileEnergy() const; // directly change position of vacancy
-  [[nodiscard]] std::vector<double> GetFormationEnergy() const; // based on the formation energy change
+  // [[nodiscard]] std::vector<double> GetSwapEnergy() const; // directly change position of vacancy (different behaviors for clusters with or without vacancy, don't use. )
+  [[nodiscard]] std::vector<double> GetProfileEnergy() const; // based on the formation energy change
 
   const cfg::Config &config_;
   const Element solvent_element_;

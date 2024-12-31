@@ -25,8 +25,6 @@ void ExitTime::GetExitTimeInfo(nlohmann::json &frame_info,
                                std::map<std::string, cfg::Config::ValueVariant> &global_list) const {
   const auto profile_energy_list = GetProfileEnergy();
   auxiliary_lists["profile_energy"] = profile_energy_list;
-  const auto formation_energy_list = GetFormationEnergy();
-  auxiliary_lists["formation_energy"] = formation_energy_list;
 
   const auto binding_energy = GetBindingEnergy();
   std::vector<double> binding_energy_list;
@@ -65,7 +63,6 @@ void ExitTime::GetExitTimeInfo(nlohmann::json &frame_info,
   for (auto &cluster_info: frame_info["clusters"]) {
     std::vector<double> cluster_binding_energy_list;
     std::vector<double> cluster_profile_energy_list;
-    std::vector<double> cluster_formation_energy_list;
     std::map<Element, std::vector<double>> cluster_binding_energy_list_map;
     for (const auto &element: element_set_) {
       if (element == Element("X")) {
@@ -82,14 +79,11 @@ void ExitTime::GetExitTimeInfo(nlohmann::json &frame_info,
       }
       cluster_binding_energy_list.push_back(*std::max_element(element_energy_list.begin(), element_energy_list.end()));
       cluster_profile_energy_list.push_back(profile_energy_list[atom_id]);
-      cluster_formation_energy_list.push_back(formation_energy_list[atom_id]);
     }
     cluster_info["vacancy_binding_energy"] =
         *std::min_element(cluster_binding_energy_list.begin(), cluster_binding_energy_list.end());
     cluster_info["vacancy_profile_energy"] =
         *std::min_element(cluster_profile_energy_list.begin(), cluster_profile_energy_list.end());
-    cluster_info["vacancy_formation_energy"] =
-        *std::min_element(cluster_formation_energy_list.begin(), cluster_formation_energy_list.end());
 
     const auto atom_id_set = cluster_info["cluster_atom_id_list"].get<std::unordered_set<size_t>>();
     std::unordered_set<size_t> atom_id_set_plus_nn{};
@@ -422,26 +416,26 @@ std::map<Element, std::vector<double>> ExitTime::GetBindingEnergy() const {
 //   }
 //   return binding_energies;
 // }
+// std::vector<double> ExitTime::GetSwapEnergy() const {
+//   std::vector<double> profile_energies{};
+//   const auto vacancy_atom_id = config_.GetVacancyAtomId();
+//
+//   const auto potential_change = chemical_potential_.at(Element("X"));
+//   const auto energy_change =
+//       energy_change_predictor_pair_site_.GetDeFromAtomIdSite(config_, vacancy_atom_id, solvent_element_);
+//   const auto energy_reference = -energy_change - potential_change;
+//   for (size_t atom_id = 0; atom_id < config_.GetNumAtoms(); ++atom_id) {
+//     if (atom_id == vacancy_atom_id) {
+//       profile_energies.push_back(energy_reference);
+//       continue;
+//     }
+//     profile_energies.push_back(
+//         energy_reference + energy_change_predictor_pair_site_.GetDeFromAtomIdPair(config_, {atom_id, vacancy_atom_id}));
+//   }
+//   return profile_energies;
+// }
+
 std::vector<double> ExitTime::GetProfileEnergy() const {
-  std::vector<double> profile_energies{};
-  const auto vacancy_atom_id = config_.GetVacancyAtomId();
-
-  const auto potential_change = chemical_potential_.at(Element("X"));
-  const auto energy_change =
-      energy_change_predictor_pair_site_.GetDeFromAtomIdSite(config_, vacancy_atom_id, solvent_element_);
-  const auto energy_reference = -energy_change - potential_change;
-  for (size_t atom_id = 0; atom_id < config_.GetNumAtoms(); ++atom_id) {
-    if (atom_id == vacancy_atom_id) {
-      profile_energies.push_back(energy_reference);
-      continue;
-    }
-    profile_energies.push_back(
-        energy_reference + energy_change_predictor_pair_site_.GetDeFromAtomIdPair(config_, {atom_id, vacancy_atom_id}));
-  }
-  return profile_energies;
-}
-
-std::vector<double> ExitTime::GetFormationEnergy() const {
   std::vector<double> formation_energies{};
 
   const auto vacancy_atom_id = config_.GetVacancyAtomId();
