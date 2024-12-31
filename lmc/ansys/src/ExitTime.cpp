@@ -458,10 +458,24 @@ std::vector<double> ExitTime::GetFormationEnergy() const {
   //   }
   //   formation_energy_reference -= mu * static_cast<double>(element_count_map.at(element));
   // }
+  // std::unordered_set<size_t> neighbor_atom_set = this_config.GetNeighborsAtomIdSetOfAtom(vacancy_atom_id);
 
   for (size_t atom_id = 0; atom_id < this_config.GetNumAtoms(); ++atom_id) {
+    if (atom_id == vacancy_atom_id) {
+      std::vector<double> try_list;
+      for (const auto &element: element_set_) {
+        if (element == Element("X")) {
+          continue;
+        }
+        this_config.SetAtomElementTypeAtAtom(vacancy_atom_id, element);
+        const double energy_change = energy_change_predictor_pair_site_.GetDeFromAtomIdSite(this_config, atom_id, Element("X"));
+        try_list.push_back(energy_change + chemical_potential_.at(element) - chemical_potential_.at(Element("X")));
+      }
+      formation_energies.push_back(*std::max_element(try_list.begin(), try_list.end()));
+      this_config.SetAtomElementTypeAtAtom(vacancy_atom_id, solvent_element_);
+      continue;
+    }
     const Element this_element = this_config.GetElementAtAtomId(atom_id);
-
     const double energy_change = energy_change_predictor_pair_site_.GetDeFromAtomIdSite(this_config, atom_id, Element("X"));
     formation_energies.push_back(energy_change + chemical_potential_.at(this_element) - chemical_potential_.at(Element("X")));
   }
