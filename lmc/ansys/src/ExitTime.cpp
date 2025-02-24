@@ -106,11 +106,8 @@ void ExitTime::GetExitTimeInfo(nlohmann::json &frame_info,
     //     atom_id_set_plus_nn .insert(config_.GetAtomIdFromLatticeId(neighbor_lattice_id));
     //   }
     // }
-    // cluster_info["to_shell_markov_escape_time"] =
-    //     BuildMarkovChain(atom_id_set, neighbor_atom_id_lists, migration_barrier_lists, binding_energy_list);
-    cluster_info["markov_escape_time_binding"] =
-        BuildMarkovChain(atom_id_set_plus_nn, neighbor_atom_id_lists, migration_barrier_lists, binding_energy_list);
-    cluster_info["markov_escape_time_profile"] =
+
+    cluster_info["markov_escape_time"] =
         BuildMarkovChain(atom_id_set_plus_nn, neighbor_atom_id_lists, migration_barrier_lists, profile_energy_list);
 
     cluster_info["barriers"] = GetAverageBarriers(atom_id_set, pair_energy_map);
