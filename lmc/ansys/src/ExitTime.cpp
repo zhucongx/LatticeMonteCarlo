@@ -88,6 +88,14 @@ void ExitTime::GetExitTimeInfo(nlohmann::json &frame_info,
         *std::min_element(cluster_binding_energy_list.begin(), cluster_binding_energy_list.end());
     cluster_info["vacancy_profile_energy"] =
         *std::min_element(cluster_profile_energy_list.begin(), cluster_profile_energy_list.end());
+    for (const auto &element: element_set_) {
+      if (element == Element("X")) {
+        continue;
+      }
+      cluster_info["vacancy_binding_energy_" + element.GetString()] = *std::min_element(
+          cluster_binding_energy_list_map.at(element).begin(), cluster_binding_energy_list_map.at(element).end());
+    }
+
 
     const auto atom_id_set = cluster_info["cluster_atom_id_list"].get<std::unordered_set<size_t>>();
     std::unordered_set<size_t> atom_id_set_plus_nn{};
@@ -97,31 +105,13 @@ void ExitTime::GetExitTimeInfo(nlohmann::json &frame_info,
         atom_id_set_plus_nn.insert(neighbor_atom_id);
       }
     }
-    // for (const auto &atom_id: atom_id_set) {
-    //   atom_id_set_plus_nn.insert(atom_id);
-    //   size_t lattice_id = config_.GetLatticeIdFromAtomId(atom_id);
-    //   for (const auto &neighbor_lattice_id: config_.GetFirstNeighborsAdjacencyList()[lattice_id]) {
-    //     atom_id_set_plus_nn.insert(config_.GetAtomIdFromLatticeId(neighbor_lattice_id));
-    //   }
-    //   for (const auto &neighbor_lattice_id: config_.GetSecondNeighborsAdjacencyList()[lattice_id]) {
-    //     atom_id_set_plus_nn.insert(config_.GetAtomIdFromLatticeId(neighbor_lattice_id));
-    //   }
-    //   for (const auto &neighbor_lattice_id: config_.GetThirdNeighborsAdjacencyList()[lattice_id]) {
-    //     atom_id_set_plus_nn .insert(config_.GetAtomIdFromLatticeId(neighbor_lattice_id));
-    //   }
-    // }
+
 
     cluster_info["markov_escape_time"] =
         BuildMarkovChain(atom_id_set_plus_nn, neighbor_atom_id_lists, migration_barrier_lists, profile_energy_list);
-
     cluster_info["barriers"] = GetAverageBarriers(atom_id_set, pair_energy_map);
-    for (const auto &element: element_set_) {
-      if (element == Element("X")) {
-        continue;
-      }
-      cluster_info["vacancy_binding_energy_" + element.GetString()] = *std::min_element(
-          cluster_binding_energy_list_map.at(element).begin(), cluster_binding_energy_list_map.at(element).end());
-    }
+
+
     // cluster_info.erase("cluster_atom_id_list");
   }
 
