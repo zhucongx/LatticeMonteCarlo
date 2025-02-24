@@ -317,9 +317,9 @@ std::string Traverse::GetHeaderFrameString() const {
       header_frame += "vacancy_local_" + order + "_" + element.GetString() + "\t";
     }
   }
-  for (const auto &element: element_set_) {
-    header_frame += "vacancy_local_binding_energy_" + element.GetString() + "\t";
-  }
+  // for (const auto &element: element_set_) {
+  //   header_frame += "vacancy_local_binding_energy_" + element.GetString() + "\t";
+  // }
   if (!header_frame.empty() && header_frame.back() == '\t') {
     header_frame.back() = '\n';
   }
@@ -348,9 +348,9 @@ std::string Traverse::GetFrameString(const nlohmann::json &frame) const {
       frame_stream << pair.value() << "\t";
     }
   }
-  for (const auto &element: element_set_) {
-    frame_stream << frame["vacancy_local_binding_energy"][element.GetString()] << "\t";
-  }
+  // for (const auto &element: element_set_) {
+  //   frame_stream << frame["vacancy_local_binding_energy"][element.GetString()] << "\t";
+  // }
 
   auto frame_string = frame_stream.str();
   if (!frame_string.empty() && frame_string.back() == '\t') {

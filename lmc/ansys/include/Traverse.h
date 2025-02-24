@@ -28,11 +28,11 @@ class Traverse {
   void RunReformat() const;
 
  private:
-  std::string GetHeaderFrameString() const;
-  std::string GetHeaderClusterString() const;
+  [[nodiscard]] std::string GetHeaderFrameString() const;
+  [[nodiscard]] std::string GetHeaderClusterString() const;
 
-  std::string GetFrameString(const nlohmann::json &frame) const;
-  std::string GetClusterString(const nlohmann::json &frame) const;
+  [[nodiscard]] std::string GetFrameString(const nlohmann::json &frame) const;
+  [[nodiscard]] std::string GetClusterString(const nlohmann::json &frame) const;
 
   const unsigned long long initial_steps_;
   const unsigned long long increment_steps_;

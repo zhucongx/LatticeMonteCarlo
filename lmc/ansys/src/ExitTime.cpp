@@ -41,14 +41,16 @@ void ExitTime::GetExitTimeInfo(nlohmann::json &frame_info,
   }
   auxiliary_lists["binding_energy"] = binding_energy_list;
 
-  std::map<std::string, double> vac_element_energy_list;
   for (const auto &element: element_set_) {
-    const auto element_string = element.GetString();
-    const auto vac_element_energy = binding_energy.at(element)[config_.GetVacancyAtomId()];
-    vac_element_energy_list.emplace(element_string, vac_element_energy);
-    auxiliary_lists["binding_energy_" + element_string] = binding_energy.at(element);
+    auxiliary_lists["binding_energy_" + element.GetString()] = binding_energy.at(element);
   }
-  frame_info["vacancy_local_binding_energy"] = vac_element_energy_list;
+
+  // std::map<std::string, double> vac_element_energy_list;
+  // for (const auto &element: element_set_) {
+  //   const auto vac_element_energy = binding_energy.at(element)[config_.GetVacancyAtomId()];
+  //   vac_element_energy_list.emplace(element.GetString(), vac_element_energy);
+  // }
+  // frame_info["vacancy_local_binding_energy"] = vac_element_energy_list;
 
 
   std::unordered_set<size_t> all_atom_id_set{};
