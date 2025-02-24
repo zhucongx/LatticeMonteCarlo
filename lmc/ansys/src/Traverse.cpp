@@ -174,24 +174,24 @@ void Traverse::RunAnsys() const {
         .GetExitTimeInfo(frame_info, auxiliary_lists, global_list);
 
     // sro information
-    ShortRangeOrder short_range_order(config, element_set_);
-    const auto sro1 = short_range_order.FindWarrenCowley(1);
-    frame_info["warren_cowley"]["first"] = sro1;
-    for (const auto &[pair, value]: sro1) {
-      global_list["sro1_" + pair] = value;
-    }
-
-    const auto sro2 = short_range_order.FindWarrenCowley(2);
-    frame_info["warren_cowley"]["second"] = sro2;
-    for (const auto &[pair, value]: sro2) {
-      global_list["sro2_" + pair] = value;
-    }
-
-    const auto sro3 = short_range_order.FindWarrenCowley(3);
-    frame_info["warren_cowley"]["third"] = sro3;
-    for (const auto &[pair, value]: sro3) {
-      global_list["sro3_" + pair] = value;
-    }
+    // ShortRangeOrder short_range_order(config, element_set_);
+    // const auto sro1 = short_range_order.FindWarrenCowley(1);
+    // frame_info["warren_cowley"]["first"] = sro1;
+    // for (const auto &[pair, value]: sro1) {
+    //   global_list["sro1_" + pair] = value;
+    // }
+    //
+    // const auto sro2 = short_range_order.FindWarrenCowley(2);
+    // frame_info["warren_cowley"]["second"] = sro2;
+    // for (const auto &[pair, value]: sro2) {
+    //   global_list["sro2_" + pair] = value;
+    // }
+    //
+    // const auto sro3 = short_range_order.FindWarrenCowley(3);
+    // frame_info["warren_cowley"]["third"] = sro3;
+    // for (const auto &[pair, value]: sro3) {
+    //   global_list["sro3_" + pair] = value;
+    // }
 
     // vacancy information
     // auto vacancy_lattice_id = config.GetVacancyLatticeId();
@@ -303,14 +303,14 @@ std::string Traverse::GetHeaderFrameString() const {
     header_frame += "num_" + element.GetString() + "\t";
   }
   header_frame += "cluster_size_list\t";
-  static const std::vector<std::string> order_list{"first", "second", "third"};
-  for (const auto &order: order_list) {
-    for (auto element1: element_set_) {
-      for (auto element2: element_set_) {
-        header_frame += "warren_cowley_" + order + "_" + element1.GetString() + "-" + element2.GetString() + "\t";
-      }
-    }
-  }
+  // static const std::vector<std::string> order_list{"first", "second", "third"};
+  // for (const auto &order: order_list) {
+  //   for (auto element1: element_set_) {
+  //     for (auto element2: element_set_) {
+  //       header_frame += "warren_cowley_" + order + "_" + element1.GetString() + "-" + element2.GetString() + "\t";
+  //     }
+  //   }
+  // }
   // for (const auto &order: order_list) {
   //   for (const auto &element: element_set_) {
   //     header_frame += "vacancy_local_" + order + "_" + element.GetString() + "\t";
@@ -337,11 +337,11 @@ std::string Traverse::GetFrameString(const nlohmann::json &frame) const {
   frame_stream << "[" << boost::algorithm::join(frame["cluster_size_list"].get<std::vector<std::string>>(), ",")
                << "]\t";
 
-  for (const auto &order: frame["warren_cowley"]) {
-    for (const auto &pair: order.items()) {
-      frame_stream << pair.value() << "\t";
-    }
-  }
+  // for (const auto &order: frame["warren_cowley"]) {
+  //   for (const auto &pair: order.items()) {
+  //     frame_stream << pair.value() << "\t";
+  //   }
+  // }
   // for (const auto &order: frame["vacancy_local"]) {
   //   for (const auto &pair: order.items()) {
   //     frame_stream << pair.value() << "\t";
