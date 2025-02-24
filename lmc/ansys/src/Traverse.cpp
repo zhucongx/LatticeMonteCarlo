@@ -194,34 +194,33 @@ void Traverse::RunAnsys() const {
     }
 
     // vacancy information
-    auto vacancy_lattice_id = config.GetVacancyLatticeId();
-    static auto convert = [](const std::set<Element> &element_set_base,
-                             const std::map<Element, size_t> &element_map) -> std::map<std::string, size_t> {
-      std::map<std::string, size_t> string_map;
-      for (const auto &element: element_set_base) {
-        string_map[element.GetString()] = 0;
-      }
-      for (const auto &[element, value]: element_map) {
-        string_map[element.GetString()] = value;
-      }
-      return string_map;
-    };
-
-    const auto vac1 = convert(element_set_, config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 1));
-    frame_info["vacancy_local"]["first"] = vac1;
-    for (const auto &[element, value]: vac1) {
-      global_list["vac1_" + element] = value;
-    }
-    const auto vac2 = convert(element_set_, config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 2));
-    frame_info["vacancy_local"]["second"] = vac2;
-    for (const auto &[element, value]: vac2) {
-      global_list["vac2_" + element] = value;
-    }
-    const auto vac3 = convert(element_set_, config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 3));
-    frame_info["vacancy_local"]["third"] = vac3;
-    for (const auto &[element, value]: vac3) {
-      global_list["vac3_" + element] = value;
-    }
+    // auto vacancy_lattice_id = config.GetVacancyLatticeId();
+    // static auto convert = [](const std::set<Element> &element_set_base,
+    //                          const std::map<Element, size_t> &element_map) -> std::map<std::string, size_t> {
+    //   std::map<std::string, size_t> string_map;
+    //   for (const auto &element: element_set_base) {
+    //     string_map[element.GetString()] = 0;
+    //   }
+    //   for (const auto &[element, value]: element_map) {
+    //     string_map[element.GetString()] = value;
+    //   }
+    //   return string_map;
+    // };
+    // const auto vac1 = convert(element_set_, config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 1));
+    // frame_info["vacancy_local"]["first"] = vac1;
+    // for (const auto &[element, value]: vac1) {
+    //   global_list["vac1_" + element] = value;
+    // }
+    // const auto vac2 = convert(element_set_, config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 2));
+    // frame_info["vacancy_local"]["second"] = vac2;
+    // for (const auto &[element, value]: vac2) {
+    //   global_list["vac2_" + element] = value;
+    // }
+    // const auto vac3 = convert(element_set_, config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 3));
+    // frame_info["vacancy_local"]["third"] = vac3;
+    // for (const auto &[element, value]: vac3) {
+    //   global_list["vac3_" + element] = value;
+    // }
 
 
     boost::filesystem::create_directories("ansys");
@@ -312,11 +311,11 @@ std::string Traverse::GetHeaderFrameString() const {
       }
     }
   }
-  for (const auto &order: order_list) {
-    for (const auto &element: element_set_) {
-      header_frame += "vacancy_local_" + order + "_" + element.GetString() + "\t";
-    }
-  }
+  // for (const auto &order: order_list) {
+  //   for (const auto &element: element_set_) {
+  //     header_frame += "vacancy_local_" + order + "_" + element.GetString() + "\t";
+  //   }
+  // }
   // for (const auto &element: element_set_) {
   //   header_frame += "vacancy_local_binding_energy_" + element.GetString() + "\t";
   // }
@@ -343,11 +342,11 @@ std::string Traverse::GetFrameString(const nlohmann::json &frame) const {
       frame_stream << pair.value() << "\t";
     }
   }
-  for (const auto &order: frame["vacancy_local"]) {
-    for (const auto &pair: order.items()) {
-      frame_stream << pair.value() << "\t";
-    }
-  }
+  // for (const auto &order: frame["vacancy_local"]) {
+  //   for (const auto &pair: order.items()) {
+  //     frame_stream << pair.value() << "\t";
+  //   }
+  // }
   // for (const auto &element: element_set_) {
   //   frame_stream << frame["vacancy_local_binding_energy"][element.GetString()] << "\t";
   // }
