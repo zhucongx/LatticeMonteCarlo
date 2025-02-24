@@ -6,7 +6,8 @@ namespace ansys {
 ExitTime::ExitTime(const cfg::Config &config,
                    const Element &solvent_element,
                    std::set<Element> element_set,
-                   const double temperature,
+                   const double escape_temperature,
+                   const double current_temperature,
                    const pred::EnergyPredictor &energy_predictor_,
                    const pred::VacancyMigrationPredictorQuartic &vacancy_migration_predictor,
                    const pred::EnergyChangePredictorPairSite &energy_change_predictor_site,
@@ -14,7 +15,8 @@ ExitTime::ExitTime(const cfg::Config &config,
     : config_(config),
       solvent_element_(solvent_element),
       element_set_(std::move(element_set)),
-      beta_(1.0 / constants::kBoltzmann / temperature),
+      beta_escape_(1.0 / constants::kBoltzmann / escape_temperature),
+      beta_current_(1.0 / constants::kBoltzmann / current_temperature),
       energy_predictor_(energy_predictor_),
       vacancy_migration_predictor_(vacancy_migration_predictor),
       energy_change_predictor_pair_site_(energy_change_predictor_site),
@@ -147,14 +149,14 @@ double ExitTime::BuildMarkovChain(const std::unordered_set<size_t> &atom_id_set,
 
   for (const auto &atom_id: atom_id_set) {
     int index = atom_index_map[atom_id];
-    probability_vector(index) = std::exp(-base_energy_list.at(atom_id) * beta_);
+    probability_vector(index) = std::exp(-base_energy_list.at(atom_id) * beta_escape_);
 
     std::vector<double> rates;
     double total_rate = 0.0;
 
     for (size_t j = 0; j < constants::kNumFirstNearestNeighbors; ++j) {
       double barrier = migration_barrier_lists.at(atom_id).at(j);
-      double rate = constants::kPrefactor * std::exp(-barrier * beta_);
+      double rate = constants::kPrefactor * std::exp(-barrier * beta_escape_);
       rates.push_back(rate);
       total_rate += rate;
     }
@@ -205,7 +207,7 @@ ExitTime::GetBarrierListAndExitTime() const {
     double total_rate_k = 0.0;
     for (const auto &barrier: barriers) {
       sum_barrier += barrier;
-      total_rate_k += std::exp(-barrier * beta_);
+      total_rate_k += std::exp(-barrier * beta_escape_);
     }
     average_barriers.push_back(sum_barrier / static_cast<double>(barriers.size()));
     exit_times.push_back(1.0 / total_rate_k / constants::kPrefactor);

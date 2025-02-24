@@ -246,7 +246,7 @@ void SoluteCluster::GetClustersInfo(nlohmann::json &frame_info,
   }
   frame_info["clusters"] = clusters_info_array;
 
-  constexpr size_t kCriticalSize = 10;
+  constexpr size_t kCriticalSize = 0;
   size_t num_cluster = 0;
   size_t num_atom = 0;
   std::vector<std::string> cluster_size_list;

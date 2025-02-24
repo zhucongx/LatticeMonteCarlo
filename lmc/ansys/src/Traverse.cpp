@@ -144,9 +144,9 @@ void Traverse::RunAnsys() const {
         : std::get<std::unordered_map<unsigned long long, double>>(log_map_.at("time")).at(i);
     frame_info["time"] = time;
     global_list["time"] = time;
-    const auto temperature = std::get<std::unordered_map<unsigned long long, double>>(log_map_.at("temperature")).at(i);
-    frame_info["temperature"] = temperature;
-    global_list["temperature"] = temperature;
+    const auto current_temperature = std::get<std::unordered_map<unsigned long long, double>>(log_map_.at("temperature")).at(i);
+    frame_info["temperature"] = current_temperature;
+    global_list["temperature"] = current_temperature;
     const auto energy = std::get<std::unordered_map<unsigned long long, double>>(log_map_.at("energy")).at(i);
     frame_info["energy"] = energy;
     global_list["energy"] = energy;
@@ -165,7 +165,8 @@ void Traverse::RunAnsys() const {
     ExitTime(config,
              solvent_element_,
              element_set_,
-             escape_temperature_ <= kEpsilon ? temperature : escape_temperature_,
+             escape_temperature_,
+             current_temperature,
              energy_predictor_,
              vacancy_migration_predictor_,
              energy_change_predictor_pair_site_,

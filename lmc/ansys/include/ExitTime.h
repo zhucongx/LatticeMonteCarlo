@@ -14,7 +14,8 @@ class ExitTime {
   ExitTime(const cfg::Config &config,
            const Element &solvent_element,
            std::set<Element> element_set,
-           double temperature,
+           const double escape_temperature, // use this for Markov chain escape time
+           const double current_temperature,  // use this for vacancy concentration
            const pred::EnergyPredictor &energy_predictor_,
            const pred::VacancyMigrationPredictorQuartic &vacancy_migration_predictor,
            const pred::EnergyChangePredictorPairSite &energy_change_predictor_site,
@@ -48,10 +49,12 @@ class ExitTime {
   // [[nodiscard]] std::vector<double> GetSwapEnergy() const; // directly change position of vacancy (different behaviors for clusters with or without vacancy, don't use. )
   [[nodiscard]] std::vector<double> GetProfileEnergy() const; // based on the formation energy change
 
+  [[nodiscard]] double GetMatrixVacancyConcentration() const;
   const cfg::Config &config_;
   const Element solvent_element_;
   const std::set<Element> element_set_;
-  const double beta_;
+  const double beta_escape_;
+  const double beta_current_;
   const pred::EnergyPredictor &energy_predictor_;
   const pred::VacancyMigrationPredictorQuartic &vacancy_migration_predictor_;
   const pred::EnergyChangePredictorPairSite &energy_change_predictor_pair_site_;
