@@ -255,7 +255,7 @@ std::string Traverse::GetHeaderClusterString() const {
     header_frame += "\t";
   }
   header_frame += "cluster_X\teffective_radius\tmass_gyration_radius\tasphericity\tacylindricity\tanisotropy\t"
-                  "markov_escape_time\t"
+                  "markov_escape_time\tmarkov_current_time\teffective_binding_energy\t"
                   "vacancy_profile_energy\tvacancy_binding_energy\t";
   for (const auto &element: element_set_) {
     if (element == Element("X")) {
@@ -284,7 +284,8 @@ std::string Traverse::GetClusterString(const nlohmann::json &frame) const {
     cluster_stream << cluster["elements_number"]["X"] << "\t" << cluster["effective_radius"] << "\t"
                    << cluster["mass_gyration_radius"] << "\t" << cluster["asphericity"] << "\t"
                    << cluster["acylindricity"] << "\t" << cluster["anisotropy"] << "\t"
-                   << cluster["markov_escape_time"] << "\t"
+                   << cluster["markov_escape_time"] << "\t" << cluster["markov_current_time"] << "\t"
+                   << cluster["effective_binding_energy"] << "\t"
                    << cluster["vacancy_profile_energy"] << "\t" << cluster["vacancy_binding_energy"] << "\t";
     for (const auto &element: element_set_) {
       cluster_stream << cluster["vacancy_binding_energy_" + element.GetString()] << "\t";
@@ -302,6 +303,8 @@ std::string Traverse::GetHeaderFrameString() const {
   for (const auto &element: element_set_) {
     header_frame += "num_" + element.GetString() + "\t";
   }
+  header_frame += "profile_vacancy_concentration\tbinding_vacancy_concentration\tprofile_simp_vacancy_concentration\t"
+                  "binding_simp_vacancy_concentration\teffective_binding_simp_vacancy_concentration\t";
   header_frame += "cluster_size_list\t";
   // static const std::vector<std::string> order_list{"first", "second", "third"};
   // for (const auto &order: order_list) {
@@ -334,6 +337,11 @@ std::string Traverse::GetFrameString(const nlohmann::json &frame) const {
   for (const auto &element: element_set_) {
     frame_stream << frame["num_" + element.GetString()] << "\t";
   }
+  frame_stream << frame["profile_vacancy_concentration"] << "\t"
+               << frame["binding_vacancy_concentration"] << "\t"
+               << frame["profile_simp_vacancy_concentration"] << "\t"
+               << frame["binding_simp_vacancy_concentration"] << "\t"
+               << frame["effective_binding_simp_vacancy_concentration"] << "\t";
   frame_stream << "[" << boost::algorithm::join(frame["cluster_size_list"].get<std::vector<std::string>>(), ",")
                << "]\t";
 

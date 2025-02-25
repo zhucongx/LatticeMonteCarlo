@@ -64,6 +64,10 @@ void ExitTime::GetExitTimeInfo(nlohmann::json &frame_info,
   // auxiliary_lists["migration_barrier_lists"] = migration_barrier_lists;
   // auxiliary_lists["driving_force_lists"] = driving_force_lists;
 
+  std::vector<double> profile_energy_simp_list(config_.GetNumAtoms(), 0),
+      binding_energy_simp_list(config_.GetNumAtoms(), 0), effective_binding_simp_list(config_.GetNumAtoms(), 0);
+
+
   for (auto &cluster_info: frame_info["clusters"]) {
     std::vector<double> cluster_binding_energy_list;
     std::vector<double> cluster_profile_energy_list;
@@ -84,10 +88,12 @@ void ExitTime::GetExitTimeInfo(nlohmann::json &frame_info,
       cluster_binding_energy_list.push_back(*std::max_element(element_energy_list.begin(), element_energy_list.end()));
       cluster_profile_energy_list.push_back(profile_energy_list[atom_id]);
     }
-    cluster_info["vacancy_binding_energy"] =
+    const double vacancy_binding_energy =
         *std::min_element(cluster_binding_energy_list.begin(), cluster_binding_energy_list.end());
-    cluster_info["vacancy_profile_energy"] =
+    const double vacancy_profile_energy =
         *std::min_element(cluster_profile_energy_list.begin(), cluster_profile_energy_list.end());
+    cluster_info["vacancy_binding_energy"] = vacancy_binding_energy;
+    cluster_info["vacancy_profile_energy"] = vacancy_profile_energy;
     for (const auto &element: element_set_) {
       if (element == Element("X")) {
         continue;
@@ -105,15 +111,49 @@ void ExitTime::GetExitTimeInfo(nlohmann::json &frame_info,
         atom_id_set_plus_nn.insert(neighbor_atom_id);
       }
     }
+    const double markov_escape_time = BuildMarkovChain(
+        atom_id_set_plus_nn, neighbor_atom_id_lists, migration_barrier_lists, profile_energy_list, beta_escape_);
+    const double markov_current_time = BuildMarkovChain(
+        atom_id_set_plus_nn, neighbor_atom_id_lists, migration_barrier_lists, profile_energy_list, beta_current_);
 
-
-    cluster_info["markov_escape_time"] =
-        BuildMarkovChain(atom_id_set_plus_nn, neighbor_atom_id_lists, migration_barrier_lists, profile_energy_list);
-    cluster_info["barriers"] = GetAverageBarriers(atom_id_set, pair_energy_map);
-
-
+    cluster_info["markov_escape_time"] = markov_escape_time;
+    cluster_info["markov_current_time"] = markov_current_time;
+    const auto barriers = GetAverageBarriers(atom_id_set, pair_energy_map);
+    cluster_info["barriers"] = barriers;
+    const double effective_binding_energy = -std::log(markov_current_time*constants::kPrefactor)/beta_current_ + barriers[3];
+    cluster_info["effective_binding_energy"] = effective_binding_energy;
+    for (const auto &atom_id: cluster_info["cluster_atom_id_list"]) {
+      profile_energy_simp_list[atom_id] = vacancy_profile_energy;
+      binding_energy_simp_list[atom_id] = vacancy_binding_energy;
+      effective_binding_simp_list[atom_id] = effective_binding_energy;
+    }
     // cluster_info.erase("cluster_atom_id_list");
   }
+
+
+  double initial_vacancy_concentration = config_.GetVacancyConcentration();
+
+  auto compute_concentration = [&](const std::vector<double>& energy_list) {
+    double sum_rate = 0;
+    double sum_probability = 0;
+    std::vector<double> rates(config_.GetNumAtoms());
+    for (size_t atom_id = 0; atom_id < config_.GetNumAtoms(); ++atom_id) {
+      rates[atom_id] = std::exp(-energy_list[atom_id] * beta_current_);
+      sum_rate += rates[atom_id];
+    }
+    for (size_t atom_id = 0; atom_id < config_.GetNumAtoms(); ++atom_id) {
+      if (all_atom_id_set.find(atom_id) == all_atom_id_set.end()) {
+        sum_probability += rates[atom_id] / sum_rate;
+      }
+    }
+    return sum_probability * initial_vacancy_concentration;
+  };
+
+  frame_info["profile_vacancy_concentration"] = compute_concentration(profile_energy_list);
+  frame_info["binding_vacancy_concentration"] = compute_concentration(binding_energy_list);
+  frame_info["profile_simp_vacancy_concentration"] = compute_concentration(profile_energy_simp_list);
+  frame_info["binding_simp_vacancy_concentration"] = compute_concentration(binding_energy_simp_list);
+  frame_info["effective_binding_simp_vacancy_concentration"] = compute_concentration(effective_binding_simp_list);
 
   // auto [barrier_lists, average_barriers, exit_times] = GetBarrierListAndExitTime();
   // auxiliary_lists["barrier_lists"] = barrier_lists;
@@ -124,7 +164,8 @@ void ExitTime::GetExitTimeInfo(nlohmann::json &frame_info,
 double ExitTime::BuildMarkovChain(const std::unordered_set<size_t> &atom_id_set,
                                   const std::vector<std::vector<size_t>> &neighbor_atom_id_lists,
                                   const std::vector<std::vector<double>> &migration_barrier_lists,
-                                  const std::vector<double> &base_energy_list) const {
+                                  const std::vector<double> &base_energy_list,
+                                  const double beta) const {
 
   const int transient_size = static_cast<int>(atom_id_set.size());
 
@@ -141,14 +182,14 @@ double ExitTime::BuildMarkovChain(const std::unordered_set<size_t> &atom_id_set,
 
   for (const auto &atom_id: atom_id_set) {
     int index = atom_index_map[atom_id];
-    probability_vector(index) = std::exp(-base_energy_list.at(atom_id) * beta_escape_);
+    probability_vector(index) = std::exp(-base_energy_list.at(atom_id) * beta);
 
     std::vector<double> rates;
     double total_rate = 0.0;
 
     for (size_t j = 0; j < constants::kNumFirstNearestNeighbors; ++j) {
       double barrier = migration_barrier_lists.at(atom_id).at(j);
-      double rate = constants::kPrefactor * std::exp(-barrier * beta_escape_);
+      double rate = constants::kPrefactor * std::exp(-barrier * beta);
       rates.push_back(rate);
       total_rate += rate;
     }

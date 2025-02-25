@@ -29,7 +29,8 @@ class ExitTime {
   [[nodiscard]] double BuildMarkovChain(const std::unordered_set<size_t> &atom_id_set,
                                         const std::vector<std::vector<size_t>> &neighbor_atom_id_lists,
                                         const std::vector<std::vector<double>> &migration_barrier_lists,
-                                        const std::vector<double> &base_energy_list) const;
+                                        const std::vector<double> &base_energy_list,
+                                        double beta) const;
 
   [[nodiscard]] std::tuple<
       std::unordered_map<std::pair<size_t, size_t>, std::pair<double, double>, boost::hash<std::pair<size_t, size_t>>>,
