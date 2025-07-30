@@ -111,7 +111,7 @@ endfunction()
 ######################################################## BOOST #########################################################
 #set(Boost_USE_DEBUG_LIBS OFF) # ignore debug libs and
 #set(Boost_USE_RELEASE_LIBS ON) # only find release libs
-find_package(Boost COMPONENTS filesystem iostreams REQUIRED)
+find_package(Boost REQUIRED COMPONENTS filesystem iostreams)
 target_link_libraries_system(${PROJECT_NAME} PRIVATE Boost::boost Boost::filesystem Boost::iostreams)
 ######################################################### MPI ##########################################################
 find_package(MPI REQUIRED)
@@ -187,10 +187,8 @@ target_link_libraries_system(${PROJECT_NAME} PRIVATE Eigen3::Eigen)
 message(STATUS "Downloading nlohmann_json from Github")
 FetchContent_Declare(
         json
-        GIT_REPOSITORY https://github.com/ArthurSonzogni/nlohmann_json_cmake_fetchcontent
-        GIT_TAG v3.11.2
-        GIT_PROGRESS TRUE
-        GIT_SHALLOW TRUE
+        URL https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz
+        DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
 FetchContent_MakeAvailable(json)
 target_link_libraries_system(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
