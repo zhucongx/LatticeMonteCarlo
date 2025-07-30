@@ -18,8 +18,8 @@ compiler=$2
 }
 flag=$3
 
-mode=${mode,,} # convert to lowercase
-compiler=${compiler,,} # convert to lowercase
+mode=$(echo "$mode" | tr '[:upper:]' '[:lower:]')
+compiler=$(echo "$compiler" | tr '[:upper:]' '[:lower:]')
 
 # Decide build mode based on user input
 case $mode in
