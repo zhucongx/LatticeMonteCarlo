@@ -114,7 +114,7 @@ void ExitTime::GetExitTimeInfo(nlohmann::json &frame_info,
     const double markov_escape_time = BuildMarkovChain(
         atom_id_set_plus_nn, neighbor_atom_id_lists, migration_barrier_lists, profile_energy_list, beta_escape_);
     const double markov_current_time = BuildMarkovChain(
-        atom_id_set_plus_nn, neighbor_atom_id_lists, migration_barrier_lists, profile_energy_list, beta_current_);
+        atom_id_set_plus_nn, neighbor_atom_id_lists, migration_barrier_lists, binding_energy_list, beta_escape_);
 
     cluster_info["markov_escape_time"] = markov_escape_time;
     cluster_info["markov_current_time"] = markov_current_time;
