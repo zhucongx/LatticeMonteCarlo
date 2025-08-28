@@ -185,7 +185,6 @@ Vector_t Config::GetSoluteCenterOfMass() const {
   return mass_center * basis_;
 }
 
-
 std::map<Element, std::vector<size_t>> Config::GetElementAtomIdVectorMap() const {
   std::map<Element, std::vector<size_t>> element_list_map;
   for (const auto &atom: atom_vector_) {
