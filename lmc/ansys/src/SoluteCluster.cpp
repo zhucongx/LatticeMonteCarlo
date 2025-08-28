@@ -435,7 +435,6 @@ Vector_t SoluteCluster::GetGeometryCenter(const std::vector<size_t> &cluster_ato
 }
 
 Vector_t SoluteCluster::GetMassCenter(const std::vector<size_t> &cluster_atom_id_list) const {
-  // Cartesian position
   Vector_t mass_center{};
   Vector_t sum_cos_theta{};
   Vector_t sum_sin_theta{};
