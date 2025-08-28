@@ -122,10 +122,9 @@ void Parameter::ReadParam(const std::string &param_filename) {
       std::transform(segs.begin() + 1, segs.end(), std::back_inserter(solute_number_set_), [](const auto &number) {
         return stoul(number);
       });
+    } else if (segs[0] == "early_stop_steps") {
+      early_stop_steps_ = stoull(segs[1]);
     }
-    // else if (segs[0] == "early_stop_steps") {
-    //   early_stop_steps_ = stoull(segs[1]);
-    // }
   }
   ifs.close();
 }
