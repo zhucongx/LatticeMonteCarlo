@@ -15,5 +15,4 @@ restart_time 0
 rate_corrector false
 vacancy_trajectory 0 0 0
 early_stop false
-solute_com_trajectory 0 0 0
 solute_disp false
