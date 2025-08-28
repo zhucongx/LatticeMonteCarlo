@@ -51,6 +51,8 @@ class Config {
   [[nodiscard]] double GetSoluteConcentration(Element solvent_element) const;
   [[nodiscard]] std::map<Element, size_t> GetLocalInfoOfLatticeId(size_t lattice_id, size_t shell_number) const;
   [[nodiscard]] Element GetSolventElement() const;
+  [[nodiscard]] double GetTotalSoluteMass() const;
+  [[nodiscard]] Vector_t GetSoluteCenterOfMass() const;
   // Modify config
   void AtomJump(const std::pair<size_t, size_t> &atom_id_jump_pair);
   void LatticeJump(const std::pair<size_t, size_t> &lattice_id_jump_pair);

@@ -129,6 +129,63 @@ std::set<Element> Config::GetElementSetWithoutVacancy() const {
   return res;
 }
 
+double Config::GetTotalSoluteMass() const {
+  const auto solvent_element = GetSolventElement();
+  double total_mass = 0.0;
+
+  for (const auto& atom : atom_vector_) {
+    // Skip solvent atoms
+    if (atom.GetElement() != solvent_element) {
+      total_mass += atom.GetElement().GetMass();
+    }
+  }
+
+  return total_mass;
+}
+
+Vector_t Config::GetSoluteCenterOfMass() const {
+  const auto solvent_element = GetSolventElement();
+  Vector_t mass_center{};
+  Vector_t sum_cos_theta{};
+  Vector_t sum_sin_theta{};
+  double sum_mass = 0.0;
+
+  for (const auto& atom : atom_vector_) {
+    // Skip solvent atoms and vacancy
+    if (atom.GetElement() == solvent_element || atom.GetElement() == ElementName::X) {
+      continue;
+    }
+
+    const auto& lattice_id = atom_to_lattice_hashmap_.at(atom.GetId());
+    const auto& relative_position = lattice_vector_[lattice_id].GetRelativePosition();
+    const double mass = atom.GetElement().GetMass();
+
+    sum_mass += mass;
+    for (const auto kDim : All_Dimensions) {
+      const double theta = relative_position[kDim] * 2 * M_PI;
+      sum_cos_theta[kDim] += std::cos(theta) * mass;
+      sum_sin_theta[kDim] += std::sin(theta) * mass;
+    }
+  }
+
+  // If there are no solute atoms, return zero vector
+  if (std::abs(sum_mass) < kEpsilon) {
+    return mass_center;
+  }
+
+  const auto cos_theta_bar = sum_cos_theta / sum_mass;
+  const auto sin_theta_bar = sum_sin_theta / sum_mass;
+
+  for (const auto kDim : All_Dimensions) {
+    const double theta_bar = std::atan2(-sin_theta_bar[kDim], -cos_theta_bar[kDim]) + M_PI;
+    mass_center[kDim] = theta_bar / (2 * M_PI);
+  }
+
+  // Convert from relative to Cartesian coordinates
+  return mass_center * basis_;
+}
+
+
 std::map<Element, std::vector<size_t>> Config::GetElementAtomIdVectorMap() const {
   std::map<Element, std::vector<size_t>> element_list_map;
   for (const auto &atom: atom_vector_) {
