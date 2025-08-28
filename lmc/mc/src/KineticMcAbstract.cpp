@@ -40,7 +40,6 @@ KineticMcFirstAbstract::KineticMcFirstAbstract(cfg::Config config,
       is_early_stop_(is_early_stop),
       is_solute_disp_(is_solute_disp),
       solvent_element_(config_.GetSolventElement()),
-      solute_com_trajectory_(config_.GetSoluteCenterOfMass()),
       total_solute_mass_(config_.GetTotalSoluteMass()){}
 
 
