@@ -53,7 +53,7 @@ struct Parameter {
     std::string solvent_element_{};
     std::vector<std::string> solute_element_set_{};
     std::vector<size_t> solute_number_set_{};
-    // unsigned long long int early_stop_steps_{};
+    unsigned long long int early_stop_steps_{};
 };
 } // api
 #endif //LMC_LMC_API_INCLUDE_PARAMETER_H_
