@@ -28,6 +28,7 @@ void Print(const Parameter &parameter) {
     std::cout << "vacancy_trajectory: " << parameter.vacancy_trajectory_
               << std::endl;
     std::cout << "early_stop: " << parameter.early_stop_ << std::endl;
+    std::cout << "solute_disp: " << parameter.solute_disp_ << std::endl;
   } else if (parameter.method == "SimulatedAnnealing") {
     std::cout << "json_coefficients_filename: " << parameter.json_coefficients_filename_ << std::endl;
     std::cout << "factor: " << parameter.factor_ << std::endl;
@@ -139,7 +140,8 @@ mc::KineticMcFirstMpi BuildKineticMcFirstMpiFromParameter(const Parameter &param
                                parameter.time_temperature_filename_,
                                parameter.rate_corrector_,
                                parameter.vacancy_trajectory_,
-                               parameter.early_stop_};
+                               parameter.early_stop_,
+                               parameter.solute_disp_};
 }
 
 mc::KineticMcFirstOmp BuildKineticMcFirstOmpFromParameter(const Parameter &parameter) {
@@ -169,7 +171,8 @@ mc::KineticMcFirstOmp BuildKineticMcFirstOmpFromParameter(const Parameter &param
                                parameter.time_temperature_filename_,
                                parameter.rate_corrector_,
                                parameter.vacancy_trajectory_,
-                               parameter.early_stop_};
+                               parameter.early_stop_,
+                               parameter.solute_disp_};
 }
 
 mc::KineticMcChainOmpi BuildKineticMcChainOmpiFromParameter(const Parameter &parameter) {
@@ -199,7 +202,8 @@ mc::KineticMcChainOmpi BuildKineticMcChainOmpiFromParameter(const Parameter &par
                                 parameter.time_temperature_filename_,
                                 parameter.rate_corrector_,
                                 parameter.vacancy_trajectory_,
-                                parameter.early_stop_};
+                                parameter.early_stop_,
+                                parameter.solute_disp_};
 }
 
 mc::SimulatedAnnealing BuildSimulatedAnnealingFromParameter(const Parameter &parameter) {
@@ -281,7 +285,7 @@ ansys::Traverse BuildIteratorFromParameter(const Parameter &parameter) {
                          element_set,
                          parameter.smallest_cluster_criteria_,
                          parameter.solvent_bond_criteria_,
-                          parameter.escape_temperature_,
+                         parameter.escape_temperature_,
                          parameter.json_coefficients_filename_,
                          parameter.log_type_,
                          parameter.config_type_};

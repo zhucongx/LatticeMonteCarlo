@@ -99,7 +99,14 @@ void Parameter::ReadParam(const std::string &param_filename) {
       } else {
         early_stop_ = false;
       }
-    }else if (segs[0] == "restart_energy") {
+    } else if (segs[0] == "solute_disp") {
+      std::string bool_string = std::string(segs[1]);
+      if (bool_string == "true") {
+        solute_disp_ = true;
+      } else {
+        solute_disp_ = false;
+      }
+    } else if (segs[0] == "restart_energy") {
       restart_energy_ = stod(segs[1]);
     } else if (segs[0] == "restart_time") {
       restart_time_ = stod(segs[1]);
@@ -115,9 +122,10 @@ void Parameter::ReadParam(const std::string &param_filename) {
       std::transform(segs.begin() + 1, segs.end(), std::back_inserter(solute_number_set_), [](const auto &number) {
         return stoul(number);
       });
-    } else if (segs[0] == "early_stop_steps") {
-      early_stop_steps_ = stoull(segs[1]);
     }
+    // else if (segs[0] == "early_stop_steps") {
+    //   early_stop_steps_ = stoull(segs[1]);
+    // }
   }
   ifs.close();
 }

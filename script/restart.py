@@ -66,7 +66,8 @@ if __name__ == '__main__':
             last_time = line[1]
             last_temperature = line[2]
             last_energy = line[3]
-            last_vac_position = line[-3:]
+            # Check if solute_disp data is present (line has 13 columns instead of 10)
+            last_vac_position = line[7:10]  # vac1, vac2, vac3
             break
     print(f"{last_i}, {last_step}, {last_time}, {last_temperature}, {last_energy}, {last_vac_position}")
     with open(f'./kmc_log_backup.txt', 'r') as f1, open(f'./kmc_log.txt', 'w') as f2:
@@ -97,5 +98,8 @@ if __name__ == '__main__':
         f4.write(f"rate_corrector {old_param['rate_corrector']}\n")
         f4.write(f"vacancy_trajectory {last_vac_position[0]} {last_vac_position[1]} {last_vac_position[2]}\n")
         f4.write(f"early_stop {old_param['early_stop']}\n")
+        # Add solute_disp parameter if it exists in old parameters
+        if "solute_disp" in old_param.keys():
+            f4.write(f"solute_disp {old_param['solute_disp']}\n")
         f4.flush()
     print(f"Done...")
