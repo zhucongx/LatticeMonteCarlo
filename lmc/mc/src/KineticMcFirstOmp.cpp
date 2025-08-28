@@ -18,7 +18,8 @@ KineticMcFirstOmp::KineticMcFirstOmp(cfg::Config config,
                                      const std::string &time_temperature_filename,
                                      const bool is_rate_corrector,
                                      const Vector_t &vacancy_trajectory,
-                                     bool is_early_stop)
+                                     bool is_early_stop,
+                                     bool is_solute_disp)
     : KineticMcFirstAbstract(std::move(config),
                              log_dump_steps,
                              config_dump_steps,
@@ -33,7 +34,8 @@ KineticMcFirstOmp::KineticMcFirstOmp(cfg::Config config,
                              time_temperature_filename,
                              is_rate_corrector,
                              vacancy_trajectory,
-                             is_early_stop) {
+                             is_early_stop,
+                             is_solute_disp) {
   if (world_size_ != 1) {
     std::cout << "Must use 1 precesses. Terminating...\n" << std::endl;
     MPI_Finalize();

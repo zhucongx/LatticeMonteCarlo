@@ -16,7 +16,8 @@ KineticMcFirstAbstract::KineticMcFirstAbstract(cfg::Config config,
                                                const std::string &time_temperature_filename,
                                                const bool is_rate_corrector,
                                                const Vector_t &vacancy_trajectory,
-                                               bool is_early_stop)
+                                               bool is_early_stop,
+                                               bool is_solute_disp)
     : McAbstract(std::move(config),
                  log_dump_steps,
                  config_dump_steps,
@@ -37,7 +38,11 @@ KineticMcFirstAbstract::KineticMcFirstAbstract(cfg::Config config,
       vacancy_lattice_id_(config_.GetVacancyLatticeId()),
       vacancy_trajectory_(vacancy_trajectory),
       is_early_stop_(is_early_stop),
-      solvent_element_(config_.GetSolventElement()){}
+      is_solute_disp_(is_solute_disp),
+      solvent_element_(config_.GetSolventElement()),
+      solute_com_trajectory_(config_.GetSoluteCenterOfMass()),
+      total_solute_mass_(config_.GetTotalSoluteMass()){}
+
 
 KineticMcFirstAbstract::~KineticMcFirstAbstract() = default;
 
@@ -66,7 +71,7 @@ void KineticMcFirstAbstract::Dump() const {
   if (steps_ == 0) {
     // config_.WriteLattice("lattice.txt");
     // config_.WriteElement("element.txt");
-    ofs_ << "steps\ttime\ttemperature\tenergy\tEa\tdE\tselected\tvac1\tvac2\tvac3" << std::endl;
+    ofs_ << "steps\ttime\ttemperature\tenergy\tEa\tdE\tselected\tvac1\tvac2\tvac3\tsolute_com1\tsolute_com2\tsolute_com3" << std::endl;
   }
   if (steps_ % config_dump_steps_ == 0) {
     // config_.WriteMap("map" + std::to_string(step_) + ".txt");
@@ -88,7 +93,7 @@ void KineticMcFirstAbstract::Dump() const {
     ofs_ << steps_ << '\t' << time_ << '\t' << temperature_ << '\t' << energy_ << '\t' << event_k_i_.GetForwardBarrier()
          << '\t' << event_k_i_.GetEnergyChange() << '\t'
          << config_.GetAtomIdFromLatticeId(event_k_i_.GetIdJumpPair().second) << '\t' << vacancy_trajectory_
-         << std::endl;
+         << '\t' << solute_com_trajectory_ << std::endl;
   }
 }
 
@@ -131,7 +136,7 @@ void KineticMcFirstAbstract::OneStepSimulation() {
   thermodynamic_averaging_.AddEnergy(energy_);
   BuildEventList();
   double one_step_time = CalculateTime() * GetTimeCorrectionFactor();
-  Debug(one_step_time);
+  // Debug(one_step_time);
   event_k_i_ = event_k_i_list_[SelectEvent()];
 
   IsEscaped();
@@ -142,14 +147,30 @@ void KineticMcFirstAbstract::OneStepSimulation() {
   energy_ += event_k_i_.GetEnergyChange();
   absolute_energy_ += event_k_i_.GetEnergyChange();
 
-  vacancy_trajectory_ +=
-      cfg::GetRelativeDistanceVectorLattice(config_.GetLatticeVector()[vacancy_lattice_id_],
-                                            config_.GetLatticeVector()[event_k_i_.GetIdJumpPair().second]) *
-      config_.GetBasis();
-
+  // Calculate vacancy displacement for this step
+  const auto jump_lattice_id = event_k_i_.GetIdJumpPair().second;
+  Vector_t vacancy_disp = cfg::GetRelativeDistanceVectorLattice(
+      config_.GetLatticeVector()[vacancy_lattice_id_],
+      config_.GetLatticeVector()[jump_lattice_id]) * config_.GetBasis();
+  
+  vacancy_trajectory_ += vacancy_disp;
+  
+  // Update solute center of mass trajectory if is_solute_disp_ is true
+  if (is_solute_disp_) {
+    // Get the jumping atom's information
+    const auto jumping_element = config_.GetElementAtLatticeId(jump_lattice_id);
+    
+    // Only update if the jumping atom is a solute atom
+    if (jumping_element != solvent_element_) {
+      const auto jumping_atom_mass = jumping_element.GetMass();
+      // Atom displacement is opposite to vacancy displacement
+      solute_com_trajectory_ -= vacancy_disp * (jumping_atom_mass / total_solute_mass_);
+    }
+  }
+  
   config_.LatticeJump(event_k_i_.GetIdJumpPair());
   ++steps_;
-  vacancy_lattice_id_ = event_k_i_.GetIdJumpPair().second;
+  vacancy_lattice_id_ = jump_lattice_id;
 }
 
 void KineticMcFirstAbstract::Simulate() {
@@ -205,7 +226,8 @@ KineticMcChainAbstract::KineticMcChainAbstract(cfg::Config config,
                                                const std::string &time_temperature_filename,
                                                const bool is_rate_corrector,
                                                const Vector_t &vacancy_trajectory,
-                                               bool is_early_stop)
+                                               bool is_early_stop,
+                                               bool is_solute_disp)
     : KineticMcFirstAbstract(std::move(config),
                              log_dump_steps,
                              config_dump_steps,
@@ -220,7 +242,8 @@ KineticMcChainAbstract::KineticMcChainAbstract(cfg::Config config,
                              time_temperature_filename,
                              is_rate_corrector,
                              vacancy_trajectory,
-                             is_early_stop),
+                             is_early_stop,
+                             is_solute_disp),
       previous_j_lattice_id_(config_.GetFirstNeighborsAdjacencyList()[vacancy_lattice_id_][0]) {
   MPI_Op_create(DataSum, 1, &mpi_op_);
   DefineStruct(&mpi_datatype_);

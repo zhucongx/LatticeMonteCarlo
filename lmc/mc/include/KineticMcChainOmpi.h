@@ -27,7 +27,8 @@ class KineticMcChainOmpi : public KineticMcChainAbstract {
                        const std::string &time_temperature_filename,
                        bool is_rate_corrector,
                        const Vector_t &vacancy_trajectory,
-                       bool is_early_stop);
+                       bool is_early_stop,
+                       bool is_solute_disp);
   protected:
     void BuildEventList() override;
     double CalculateTime() override;
