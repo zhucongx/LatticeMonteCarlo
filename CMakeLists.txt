@@ -193,29 +193,29 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(json)
 target_link_libraries_system(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
 ######################################################## SPGLIB ########################################################
-#[[message(STATUS "Downloading spglib from Github")
-FetchContent_Declare(
-        Spglib
-        GIT_REPOSITORY https://github.com/spglib/spglib.git
-        GIT_TAG v2.1.0-rc2
-        GIT_PROGRESS TRUE
-        GIT_SHALLOW TRUE
-        SYSTEM TRUE
-)
+# message(STATUS "Downloading spglib from Github")
+# FetchContent_Declare(
+#         Spglib
+#         GIT_REPOSITORY https://github.com/spglib/spglib.git
+#         GIT_TAG v2.1.0-rc2
+#         GIT_PROGRESS TRUE
+#         GIT_SHALLOW TRUE
+#         SYSTEM TRUE
+# )
 
-set(CMAKE_BUILD_TYPE_BACKUP ${MAKE_BUILD_TYPE})
-set(CMAKE_BUILD_TYPE Release)
-set(SPGLIB_USE_OMP ON)
-set(SPGLIB_WITH_TESTS OFF)
-FetchContent_MakeAvailable(Spglib)
-set(CMAKE_BUILD_TYPE ${MAKE_BUILD_TYPE_BACKUP})
+# set(CMAKE_BUILD_TYPE_BACKUP ${MAKE_BUILD_TYPE})
+# set(CMAKE_BUILD_TYPE Release)
+# set(SPGLIB_USE_OMP ON)
+# set(SPGLIB_WITH_TESTS OFF)
+# FetchContent_MakeAvailable(Spglib)
+# set(CMAKE_BUILD_TYPE ${MAKE_BUILD_TYPE_BACKUP})
 
-#FetchContent_GetProperties(Spglib)
-#if (NOT Spglib_POPULATED)
-#    FetchContent_Populate(Spglib)
-#    add_subdirectory(${spglib_SOURCE_DIR} ${spglib_BINARY_DIR} EXCLUDE_FROM_ALL)
-#endif ()
-target_link_libraries_system(${PROJECT_NAME} PRIVATE Spglib::symspg)]]
+# #FetchContent_GetProperties(Spglib)
+# #if (NOT Spglib_POPULATED)
+# #    FetchContent_Populate(Spglib)
+# #    add_subdirectory(${spglib_SOURCE_DIR} ${spglib_BINARY_DIR} EXCLUDE_FROM_ALL)
+# #endif ()
+# target_link_libraries_system(${PROJECT_NAME} PRIVATE Spglib::symspg)
 ###################################################### GOOGLETEST ######################################################
 #set(TEST "on")
 #IF(TEST)
