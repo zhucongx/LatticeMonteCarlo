@@ -33,7 +33,7 @@ case $compiler in
   g|gcc) compiler_C=gcc compiler_CXX=g++ ;;
   i|intel) compiler_C=icc compiler_CXX=icpc ;;
   o|intel-oneapi) compiler_C=icx compiler_CXX=icpx ;;
-  c|clang) compiler_C=clang compiler_CXX=clang ;;
+  c|clang) compiler_C=clang compiler_CXX=clang++ ;;
   m|mpi) compiler_C=mpicc compiler_CXX=mpicxx ;;
   *) echo "Invalid compiler. Try again..." ; exit 1 ;;
 esac
