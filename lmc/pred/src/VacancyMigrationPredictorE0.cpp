@@ -154,6 +154,7 @@ double VacancyMigrationPredictorE0::GetE0(const cfg::Config &config,
   }
   double logD = 0;
   // #pragma omp parallel for default(none) shared(encode_mmm, new_size, old_size, element_parameters) reduction(+:logD)
+  // TODO(perf): Vectorize with Eigen or BLAS (gemv/noalias) to speed up PCA dot-products.
   for (size_t j = 0; j < new_size; ++j) {
     double pca_dot = 0;
     for (size_t i = 0; i < old_size; ++i) {

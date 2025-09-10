@@ -83,6 +83,9 @@ VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::st
       {
         site_bond_cluster_mm2_hashmap_[{i, j}] = lattice_id_vector_mm2;
       }
+      // TODO(arch): Consider storing these neighbor lists in contiguous arrays with
+      // deterministic indices (site*12 + nn_idx). This avoids unordered_map<pair>
+      // lookups on hot paths and reduces bounds-checked .at() overhead.
     }
   }
 }
@@ -193,6 +196,7 @@ double VacancyMigrationPredictorQuartic::GetKs(const cfg::Config &config,
   }
   double logKs = 0;
 // #pragma omp parallel for default(none) shared(encode_mm2_forward, encode_mm2_backward, new_size, old_size, element_parameters) reduction(+:logKs)
+  // TODO(perf): Vectorize this dot-product using Eigen (gemv) or MKL for better CPU throughput.
   for (size_t j = 0; j < new_size; ++j) {
     double pca_dot = 0;
     for (size_t i = 0; i < old_size; ++i) {
@@ -229,6 +233,7 @@ double VacancyMigrationPredictorQuartic::GetD(const cfg::Config &config,
   }
   double logD = 0;
 // #pragma omp parallel for default(none) shared(encode_mmm, new_size, old_size, element_parameters) reduction(+:logD)
+  // TODO(perf): Vectorize dot-products with Eigen or BLAS (noalias gemv) to reduce loop overhead.
   for (size_t j = 0; j < new_size; ++j) {
     double pca_dot = 0;
     for (size_t i = 0; i < old_size; ++i) {

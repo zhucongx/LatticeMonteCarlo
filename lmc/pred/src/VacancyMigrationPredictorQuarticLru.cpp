@@ -11,6 +11,10 @@ VacancyMigrationPredictorQuarticLru::~VacancyMigrationPredictorQuarticLru() = de
 std::pair<double, double> VacancyMigrationPredictorQuarticLru::GetBarrierAndDiffFromLatticeIdPair(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
+  // TODO(perf): Consider building the LRU cache key from a compact "element signature"
+  // (e.g., small ints for element types) instead of atom ids. Barriers depend on local
+  // composition, not specific atom indices, so an element-based key drastically reduces
+  // key space and hash cost while increasing hit rate.
   const auto key = GetHashFromConfigAndLatticeIdPair(config, lattice_id_jump_pair);
   std::pair<double, double> value;
   if (lru_cache_.Get(key, value)) {
@@ -25,6 +29,12 @@ std::pair<double, double> VacancyMigrationPredictorQuarticLru::GetBarrierAndDiff
 size_t VacancyMigrationPredictorQuarticLru::GetHashFromConfigAndLatticeIdPair(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
+  // TODO(perf): Switch to an element-type signature here (e.g., hash small enums for
+  // each required lattice position) rather than hashing atom ids. This avoids
+  // repeated map lookups (lattice->atom->element) and improves cache locality.
+  // TODO(arch): Consider flattening the pair->neighbor lookup tables into
+  // contiguous arrays (site*12 + nn_idx) to avoid unordered_map<pair> lookups
+  // and bounds-checked .at() on hot paths.
   const auto &lattice_id_list_state = site_bond_cluster_state_hashmap_.at(lattice_id_jump_pair);
   const auto &lattice_id_list_mmm = site_bond_cluster_mmm_hashmap_.at(lattice_id_jump_pair);
   const auto &lattice_id_list_mm2 = site_bond_cluster_mm2_hashmap_.at(lattice_id_jump_pair);

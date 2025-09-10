@@ -24,6 +24,10 @@ public:
     }
   }
   [[nodiscard]] bool Get(const K key, V &value) {
+    // TODO(perf): Use shared locking for reads to reduce contention under OpenMP.
+    // Option A: try a shared_lock + no LRU reordering on hit (or defer reordering).
+    // Option B: provide a thread-local cache layer and merge misses to the global LRU
+    // outside parallel regions to avoid lock contention entirely.
     std::unique_lock<std::shared_mutex> lock(mu_);
     auto it = cache_hashmap_.find(key);
     if (it == cache_hashmap_.end()) {

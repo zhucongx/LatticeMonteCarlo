@@ -50,6 +50,10 @@ KineticMcFirstOmp::KineticMcFirstOmp(cfg::Config config,
   }
 }
 KineticMcFirstOmp::~KineticMcFirstOmp() = default;
+  // TODO(perf): This outer OMP over 12 neighbors often contends with the LRU cache
+  // locks inside the predictor. Prefer a sequential loop here and keep the predictor's
+  // internal parallel sections (dE/D/Ks) enabled, or use thread-local LRU caches.
+  // Consider also reusing the previous step's reverse event to avoid one prediction.
 void KineticMcFirstOmp::BuildEventList() {
   total_rate_k_ = 0.0;
   const auto neighbor_lattice_id_vector = config_.GetFirstNeighborsAdjacencyList()[vacancy_lattice_id_];
@@ -69,6 +73,9 @@ void KineticMcFirstOmp::BuildEventList() {
   }
   double cumulative_probability = 0.0;
   for (auto &event_it : event_k_i_list_) {
+    // TODO(perf): Consider sampling over a uniform in [0,total_rate_k_] and
+    // linearly scanning events by accumulating forward rates, so we can skip
+    // building/using normalized probabilities and cumulative sums here.
     event_it.CalculateProbability(total_rate_k_);
     cumulative_probability += event_it.GetProbability();
     event_it.SetCumulativeProbability(cumulative_probability);

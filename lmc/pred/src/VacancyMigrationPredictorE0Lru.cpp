@@ -11,6 +11,8 @@ VacancyMigrationPredictorE0Lru::~VacancyMigrationPredictorE0Lru() = default;
 std::pair<double, double> VacancyMigrationPredictorE0Lru::GetBarrierAndDiffFromLatticeIdPair(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
+  // TODO(perf): Use an element-type based signature for the LRU key (composition pattern)
+  // instead of atom ids. This both improves hit rate and reduces hash/key construction cost.
   const auto key = GetHashFromConfigAndLatticeIdPair(config, lattice_id_jump_pair);
   std::pair<double, double> value;
   if (lru_cache_.Get(key, value)) {
@@ -25,6 +27,9 @@ std::pair<double, double> VacancyMigrationPredictorE0Lru::GetBarrierAndDiffFromL
 size_t VacancyMigrationPredictorE0Lru::GetHashFromConfigAndLatticeIdPair(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
+  // TODO(perf): Replace atom-id hashing with a compact encoding of element types
+  // for the required local neighborhood. Consider also flattening pair->neighbor
+  // maps into arrays to avoid unordered_map<pair> lookups and .at() bounds checks.
   const auto &lattice_id_list_state = site_bond_cluster_state_hashmap_.at(lattice_id_jump_pair);
   const auto &lattice_id_list_mmm = site_bond_cluster_mmm_hashmap_.at(lattice_id_jump_pair);
 
