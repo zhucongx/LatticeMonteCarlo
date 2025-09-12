@@ -52,7 +52,9 @@ SimulatedAnnealing::SimulatedAnnealing(const Factor_t &factors,
           json_coefficients_filename, config_, GetElementSetFromSolventAndSolute(solvent_element, solute_atom_count)),
       atom_index_selector_(0, config_.GetNumAtoms() - 1),
       lowest_energy_(0),
-      initial_temperature_(initial_temperature){
+      initial_temperature_(initial_temperature),
+      stage_length_(std::max<unsigned long long int>(1ULL, maximum_steps_ / static_cast<unsigned long long int>(num_stages_))),
+      stagnation_threshold_(3 * stage_length_){
   ofs_.precision(16);
   const auto energy_predictor = pred::EnergyPredictor(
       json_coefficients_filename, GetElementSetFromSolventAndSolute(solvent_element, solute_atom_count));
@@ -66,6 +68,10 @@ SimulatedAnnealing::SimulatedAnnealing(const Factor_t &factors,
       energy_predictor.GetEnergy(config_) - energy_predictor.GetEnergy(cfg::GenerateFCC(factors, solvent_element));
   energy_ = energy_change_cluster_to_pure_solvent - energy_change_solution_to_pure_solvent;
   std::cout << "initial_energy = " << energy_ << std::endl;
+  // initialize schedule state related to energy tracking
+  best_energy_so_far_ = energy_;
+  last_improvement_step_ = steps_;
+  stage_start_step_ = steps_;
 }
 
 void SimulatedAnnealing::Dump() const {
@@ -89,9 +95,43 @@ void SimulatedAnnealing::Dump() const {
 //  }
 }
 void SimulatedAnnealing::UpdateTemperature() {
-  static const double alpha = 1. - 3. / static_cast<double>(maximum_steps_);
-  temperature_ = initial_temperature_ * std::pow(alpha, steps_);
-  beta_ = 1.0 / constants::kBoltzmann / temperature_;
+  // Acceptance window based temperature adjustment (thermostat-like)
+  if (window_trials_ >= window_size_) {
+    const double acc = static_cast<double>(window_accepts_) / static_cast<double>(window_trials_);
+    // Dynamic target band shrinks with progress: early (acc_early_min_..acc_early_max_) → late (acc_late_min_..acc_late_max_)
+    const double progress = static_cast<double>(steps_) / static_cast<double>(std::max<unsigned long long int>(1ULL, maximum_steps_));
+    const double acc_max = acc_early_max_ + (acc_late_max_ - acc_early_max_) * progress;
+    const double acc_min = acc_early_min_ + (acc_late_min_ - acc_early_min_) * progress;
+    (void)acc_min; // not heating by default; reserved for future use
+    if (acc > acc_max) {
+      temperature_ *= cool_down_factor_;
+    }
+    window_trials_ = 0;
+    window_accepts_ = 0;
+  }
+
+  // Stagewise geometric step when current stage ends
+  if (steps_ - stage_start_step_ >= stage_length_) {
+    temperature_ *= stage_ratio_;
+    stage_start_step_ = steps_;
+  }
+
+  // Reheat on stagnation of the best energy
+  if (reheats_done_ < max_reheats_ && (steps_ - last_improvement_step_ >= stagnation_threshold_) &&
+      (steps_ - last_reheat_step_ >= stage_length_) && (static_cast<double>(steps_) / std::max(1ULL, maximum_steps_) > 0.3)) {
+    const double reheat_factor = 1.05;  // milder reheat
+    temperature_ *= reheat_factor;
+    last_improvement_step_ = steps_;
+    last_reheat_step_ = steps_;
+    ++reheats_done_;
+    stage_start_step_ = steps_;
+  }
+
+  // Continuous baseline cooling to ensure monotone descent trend
+  temperature_ *= std::exp(-baseline_c_ / static_cast<double>(std::max<unsigned long long int>(1ULL, maximum_steps_)));
+
+  // update beta
+  beta_ = 1.0 / constants::kBoltzmann / std::max(temperature_, 1e-12);
 }
 std::pair<size_t, size_t> SimulatedAnnealing::GenerateLatticeIdJumpPair() {
   size_t lattice_id1, lattice_id2;
@@ -102,12 +142,13 @@ std::pair<size_t, size_t> SimulatedAnnealing::GenerateLatticeIdJumpPair() {
       == config_.GetElementAtLatticeId(lattice_id2));
   return {lattice_id1, lattice_id2};
 }
-void SimulatedAnnealing::SelectEvent(const std::pair<size_t, size_t> &lattice_id_jump_pair,
+bool SimulatedAnnealing::SelectEvent(const std::pair<size_t, size_t> &lattice_id_jump_pair,
                                      const double dE) {
   if (dE < 0) {
     config_.LatticeJump(lattice_id_jump_pair);
     energy_ += dE;
     absolute_energy_ += dE;
+    return true;
   } else {
     double possibility = std::exp(-dE * beta_);
     double random_number = unit_distribution_(generator_);
@@ -115,17 +156,35 @@ void SimulatedAnnealing::SelectEvent(const std::pair<size_t, size_t> &lattice_id
       config_.LatticeJump(lattice_id_jump_pair);
       energy_ += dE;
       absolute_energy_ += dE;
+      return true;
     }
   }
+  return false;
 }
 void SimulatedAnnealing::Simulate() {
   while (steps_ <= maximum_steps_) {
     auto lattice_id_jump_pair = GenerateLatticeIdJumpPair();
     auto dE = energy_change_predictor_.GetDeFromLatticeIdPair(config_, lattice_id_jump_pair);
+
+    // perform Metropolis step at current temperature
+    const bool accepted = SelectEvent(lattice_id_jump_pair, dE);
+    // update acceptance window stats
+    ++window_trials_;
+    if (accepted) {
+      ++window_accepts_;
+      if (energy_ < best_energy_so_far_ - kEpsilon) {
+        best_energy_so_far_ = energy_;
+        last_improvement_step_ = steps_;
+      }
+    }
+
+    // statistics and logging
     thermodynamic_averaging_.AddEnergy(energy_);
     Dump();
+
+    // update schedule for next step
     UpdateTemperature();
-    SelectEvent(lattice_id_jump_pair, dE);
+
     ++steps_;
   }
 }
