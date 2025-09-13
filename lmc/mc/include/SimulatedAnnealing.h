@@ -50,6 +50,7 @@ class SimulatedAnnealing : public McAbstract {
   const double acc_late_max_{0.20};
   const double cool_down_factor_{0.98};  // if acceptance too high
   // reheating on stagnation
+  const double reheat_factor_{1.1};  // milder reheat
   double best_energy_so_far_{0.0};
   unsigned long long int last_improvement_step_{0};
   const unsigned long long int stagnation_threshold_{};  // in steps, set relative to stage_length_

@@ -119,8 +119,7 @@ void SimulatedAnnealing::UpdateTemperature() {
   // Reheat on stagnation of the best energy
   if (reheats_done_ < max_reheats_ && (steps_ - last_improvement_step_ >= stagnation_threshold_) &&
       (steps_ - last_reheat_step_ >= stage_length_) && (static_cast<double>(steps_) / std::max(1ULL, maximum_steps_) > 0.3)) {
-    const double reheat_factor = 1.05;  // milder reheat
-    temperature_ *= reheat_factor;
+    temperature_ *= reheat_factor_;
     last_improvement_step_ = steps_;
     last_reheat_step_ = steps_;
     ++reheats_done_;
