@@ -11,8 +11,6 @@ VacancyMigrationPredictorE0Lru::~VacancyMigrationPredictorE0Lru() = default;
 std::pair<double, double> VacancyMigrationPredictorE0Lru::GetBarrierAndDiffFromLatticeIdPair(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
-  // TODO(perf): Use an element-type based signature for the LRU key (composition pattern)
-  // instead of atom ids. This both improves hit rate and reduces hash/key construction cost.
   const auto key = GetHashFromConfigAndLatticeIdPair(config, lattice_id_jump_pair);
   std::pair<double, double> value;
   if (lru_cache_.Get(key, value)) {
@@ -34,11 +32,12 @@ size_t VacancyMigrationPredictorE0Lru::GetHashFromConfigAndLatticeIdPair(
   const auto &lattice_id_list_mmm = site_bond_cluster_mmm_hashmap_.at(lattice_id_jump_pair);
 
   size_t seed = 0;
+  // Use element-type signature instead of atom ids to define the key.
   for (size_t i = 0; i < constants::kNumThirdNearestSetSizeOfPair; i++) {
-    boost::hash_combine(seed, config.GetAtomIdFromLatticeId(lattice_id_list_state[i]));
+    boost::hash_combine(seed, hash_value(config.GetElementAtLatticeId(lattice_id_list_state[i])));
   }
   for (size_t i = 0; i < (constants::kNumThirdNearestSetSizeOfPair - 2); i++) {
-    boost::hash_combine(seed, config.GetAtomIdFromLatticeId(lattice_id_list_mmm[i]));
+    boost::hash_combine(seed, hash_value(config.GetElementAtLatticeId(lattice_id_list_mmm[i])));
   }
 
   return seed;

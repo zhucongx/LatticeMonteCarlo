@@ -29,9 +29,6 @@ std::pair<double, double> VacancyMigrationPredictorQuarticLru::GetBarrierAndDiff
 size_t VacancyMigrationPredictorQuarticLru::GetHashFromConfigAndLatticeIdPair(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
-  // TODO(perf): Switch to an element-type signature here (e.g., hash small enums for
-  // each required lattice position) rather than hashing atom ids. This avoids
-  // repeated map lookups (lattice->atom->element) and improves cache locality.
   // TODO(arch): Consider flattening the pair->neighbor lookup tables into
   // contiguous arrays (site*12 + nn_idx) to avoid unordered_map<pair> lookups
   // and bounds-checked .at() on hot paths.
@@ -40,14 +37,16 @@ size_t VacancyMigrationPredictorQuarticLru::GetHashFromConfigAndLatticeIdPair(
   const auto &lattice_id_list_mm2 = site_bond_cluster_mm2_hashmap_.at(lattice_id_jump_pair);
 
   size_t seed = 0;
+  // Use element-type signature instead of atom ids to define the key.
+  // This increases cache hit rate and reduces key-construction overhead.
   for (size_t i = 0; i < constants::kNumThirdNearestSetSizeOfPair; i++) {
-    boost::hash_combine(seed, config.GetAtomIdFromLatticeId(lattice_id_list_state[i]));
+    boost::hash_combine(seed, hash_value(config.GetElementAtLatticeId(lattice_id_list_state[i])));
   }
   for (size_t i = 0; i < (constants::kNumThirdNearestSetSizeOfPair - 2); i++) {
-    boost::hash_combine(seed, config.GetAtomIdFromLatticeId(lattice_id_list_mmm[i]));
+    boost::hash_combine(seed, hash_value(config.GetElementAtLatticeId(lattice_id_list_mmm[i])));
   }
   for (size_t i = 0; i < (constants::kNumThirdNearestSetSizeOfPair - 2); i++) {
-    boost::hash_combine(seed, config.GetAtomIdFromLatticeId(lattice_id_list_mm2[i]));
+    boost::hash_combine(seed, hash_value(config.GetElementAtLatticeId(lattice_id_list_mm2[i])));
   }
   return seed;
 }
