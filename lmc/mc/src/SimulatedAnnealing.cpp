@@ -81,7 +81,9 @@ void SimulatedAnnealing::Dump() const {
 
   if (energy_ < lowest_energy_ - kEpsilon) {
     lowest_energy_ = energy_;
-    config_.WriteConfig("lowest_energy.cfg.gz");
+    if (steps_ > maximum_steps_ * 0.01) {   // avoid writing too many files at early stage
+      config_.WriteConfig("lowest_energy.cfg.gz");
+    }
     ofs_ << steps_ << '\t' << temperature_ << '\t' << energy_ << '\t' << lowest_energy_ << '\t' << absolute_energy_
          << std::endl;
   }
