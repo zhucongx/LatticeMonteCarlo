@@ -6,6 +6,7 @@
 #include <mpi.h>
 #include <omp.h>
 #include <random>
+#include <utility>
 
 namespace mc {
 class SimulatedAnnealing : public McAbstract {
@@ -24,39 +25,43 @@ class SimulatedAnnealing : public McAbstract {
   void UpdateTemperature();
   std::pair<size_t, size_t> GenerateLatticeIdJumpPair();
   bool SelectEvent(const std::pair<size_t, size_t> &lattice_id_jump_pair, double dE);
-  // helpful properties
+  // predictors / selectors
   const pred::EnergyChangePredictorPairSite energy_change_predictor_;
   mutable std::uniform_int_distribution<size_t> atom_index_selector_;
-  mutable double lowest_energy_;
-  // simulation parameters
+
+  // runtime tracking (energies / progress)
+  mutable double lowest_energy_{};
+  double recent_best_energy_{};
+  unsigned long long int last_improvement_step_{0};
+
+  // schedule parameters
   const double initial_temperature_;
 
-  // internal schedule state (no external params)
-  // stagewise geometric controls
-  unsigned long long int stage_start_step_{0};
-  const size_t num_stages_{40};
-  const unsigned long long int stage_length_;
-  const double stage_ratio_{0.98};
-  // continuous baseline geometric cooling: T *= exp(-baseline_c_/maximum_steps_) per step
-  const double baseline_c_{1.5};
-  // acceptance window controls
+  // smooth per-step geometric: T *= exp(-baseline_c_/N)
+  // choose baseline_c_ so that T_end/T0 ≈ exp(-baseline_c_)
+  const double baseline_c_{2.25};
+
+  // reheat ratio configuration (avoid magic numbers)
+  const double reheat_trigger_ratio_{0.01};    // 1% of N
+  const double reheat_cooldown_ratio_{0.005};  // 0.5% of N
+  // reheat thresholds (absolute steps)
+  const unsigned long long int reheat_trigger_steps_;   // steps without improvement to trigger reheat
+  const unsigned long long int reheat_cooldown_steps_;  // minimal interval between reheats
+  // acceptance window configuration
+  const unsigned int window_size_{5000};
+  // (min, max) targets at early and late progress
+  const std::pair<double, double> acc_early_{0.35, 0.55};
+  const std::pair<double, double> acc_late_{0.05, 0.20};
+  const double cool_down_factor_{0.98};  // if acceptance too high
+  // acceptance window state
   unsigned int window_trials_{0};
   unsigned int window_accepts_{0};
-  const unsigned int window_size_{5000};
-  // acceptance targets (linearly interpolated early -> late)
-  const double acc_early_min_{0.35};
-  const double acc_early_max_{0.55};
-  const double acc_late_min_{0.05};
-  const double acc_late_max_{0.20};
-  const double cool_down_factor_{0.98};  // if acceptance too high
-  // reheating on stagnation
-  const double reheat_factor_{1.1};  // milder reheat
-  double best_energy_so_far_{0.0};
-  unsigned long long int last_improvement_step_{0};
-  const unsigned long long int stagnation_threshold_{};  // in steps, set relative to stage_length_
+
+  // reheating configuration / state
+  const double reheat_factor_{1.10};
+  const size_t max_reheats_{5};
   unsigned long long int last_reheat_step_{0};
   size_t reheats_done_{0};
-  const size_t max_reheats_{3};
 };
 }    // namespace mc
 

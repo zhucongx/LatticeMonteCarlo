@@ -53,8 +53,8 @@ SimulatedAnnealing::SimulatedAnnealing(const Factor_t &factors,
       atom_index_selector_(0, config_.GetNumAtoms() - 1),
       lowest_energy_(0),
       initial_temperature_(initial_temperature),
-      stage_length_(std::max<unsigned long long int>(1ULL, maximum_steps_ / static_cast<unsigned long long int>(num_stages_))),
-      stagnation_threshold_(3 * stage_length_){
+      reheat_trigger_steps_(std::max<unsigned long long int>(1ULL, static_cast<unsigned long long>(maximum_steps_ * reheat_trigger_ratio_))),
+      reheat_cooldown_steps_(std::max<unsigned long long int>(1ULL, static_cast<unsigned long long>(maximum_steps_ * reheat_cooldown_ratio_))){
   ofs_.precision(16);
   const auto energy_predictor = pred::EnergyPredictor(
       json_coefficients_filename, GetElementSetFromSolventAndSolute(solvent_element, solute_atom_count));
@@ -69,9 +69,10 @@ SimulatedAnnealing::SimulatedAnnealing(const Factor_t &factors,
   energy_ = energy_change_cluster_to_pure_solvent - energy_change_solution_to_pure_solvent;
   std::cout << "initial_energy = " << energy_ << std::endl;
   // initialize schedule state related to energy tracking
-  best_energy_so_far_ = energy_;
+  lowest_energy_ = energy_;
+  recent_best_energy_ = energy_;
   last_improvement_step_ = steps_;
-  stage_start_step_ = steps_;
+  // stage concept removed; schedule is fully smooth
 }
 
 void SimulatedAnnealing::Dump() const {
@@ -95,13 +96,15 @@ void SimulatedAnnealing::Dump() const {
 //  }
 }
 void SimulatedAnnealing::UpdateTemperature() {
+  // Dynamic target band shrinks with progress: early (acc_early_.first..acc_early_.second)
+  // → late (acc_late_.first..acc_late_.second)
+  const double progress = static_cast<double>(steps_) / static_cast<double>(std::max<unsigned long long int>(1ULL, maximum_steps_));
+  const double acc_max = acc_early_.second + (acc_late_.second - acc_early_.second) * progress;
+  const double acc_min = acc_early_.first + (acc_late_.first - acc_early_.first) * progress;
+
   // Acceptance window based temperature adjustment (thermostat-like)
   if (window_trials_ >= window_size_) {
     const double acc = static_cast<double>(window_accepts_) / static_cast<double>(window_trials_);
-    // Dynamic target band shrinks with progress: early (acc_early_min_..acc_early_max_) → late (acc_late_min_..acc_late_max_)
-    const double progress = static_cast<double>(steps_) / static_cast<double>(std::max<unsigned long long int>(1ULL, maximum_steps_));
-    const double acc_max = acc_early_max_ + (acc_late_max_ - acc_early_max_) * progress;
-    const double acc_min = acc_early_min_ + (acc_late_min_ - acc_early_min_) * progress;
     (void)acc_min; // not heating by default; reserved for future use
     if (acc > acc_max) {
       temperature_ *= cool_down_factor_;
@@ -110,20 +113,17 @@ void SimulatedAnnealing::UpdateTemperature() {
     window_accepts_ = 0;
   }
 
-  // Stagewise geometric step when current stage ends
-  if (steps_ - stage_start_step_ >= stage_length_) {
-    temperature_ *= stage_ratio_;
-    stage_start_step_ = steps_;
-  }
-
-  // Reheat on stagnation of the best energy
-  if (reheats_done_ < max_reheats_ && (steps_ - last_improvement_step_ >= stagnation_threshold_) &&
-      (steps_ - last_reheat_step_ >= stage_length_) && (static_cast<double>(steps_) / std::max(1ULL, maximum_steps_) > 0.3)) {
+  // Reheat on stagnation: require (no recent improvement) AND (acceptance too low)
+  const double acc_est = (window_trials_ > 0u) ? (static_cast<double>(window_accepts_) / static_cast<double>(window_trials_)) : 1.0;
+  if (reheats_done_ < max_reheats_ &&
+      (steps_ - last_improvement_step_ >= reheat_trigger_steps_) &&
+      (steps_ - last_reheat_step_ >= reheat_cooldown_steps_) &&
+      (acc_est < acc_min)) {
     temperature_ *= reheat_factor_;
     last_improvement_step_ = steps_;
     last_reheat_step_ = steps_;
+    recent_best_energy_ = energy_;
     ++reheats_done_;
-    stage_start_step_ = steps_;
   }
 
   // Continuous baseline cooling to ensure monotone descent trend
@@ -171,8 +171,9 @@ void SimulatedAnnealing::Simulate() {
     ++window_trials_;
     if (accepted) {
       ++window_accepts_;
-      if (energy_ < best_energy_so_far_ - kEpsilon) {
-        best_energy_so_far_ = energy_;
+      // improvement detection relative to recent baseline (not global lowest)
+      if (energy_ < recent_best_energy_ - kEpsilon) {
+        recent_best_energy_ = energy_;
         last_improvement_step_ = steps_;
       }
     }
