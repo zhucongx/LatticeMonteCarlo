@@ -32,7 +32,7 @@ class SimulatedAnnealing : public McAbstract {
   // runtime tracking (energies / progress)
   mutable double lowest_energy_{};
   double recent_best_energy_{};
-  unsigned long long int last_improvement_step_{0};
+  unsigned long long int last_improvement_step_{};
 
   // schedule parameters
   const double initial_temperature_;
