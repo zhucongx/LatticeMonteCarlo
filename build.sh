@@ -16,7 +16,10 @@ compiler=$2
 [[ -z $compiler ]] && {
     read -p "Enter the compiler - [d]efault, [g]cc, [i]ntel, [o]neapi, [c]lang, [m]pi: " compiler
 }
-flag=$3
+# Support unlimited additional flags starting from the 3rd argument.
+# Example: ./build.sh r d -DENABLE_X=ON -DSOME_FLAG=1 -Wno-error
+# If none are provided, leave empty (no interactive prompt).
+flags="${@:3}"
 
 mode=$(echo "$mode" | tr '[:upper:]' '[:lower:]')
 compiler=$(echo "$compiler" | tr '[:upper:]' '[:lower:]')
@@ -38,7 +41,7 @@ case $compiler in
   *) echo "Invalid compiler. Try again..." ; exit 1 ;;
 esac
 
-echo "Building in $mode mode using $compiler_C, $compiler_CXX compiler and additional flag ($flag)."
+echo "Building in $mode mode using $compiler_C, $compiler_CXX compiler and additional flags: ${flags:-<none>}"
 if [ -d "cmake-build" ]; then
   rm -rf cmake-build
 fi
@@ -49,7 +52,7 @@ mkdir cmake-build; cd cmake-build || {
 
 # Pass the selected parameters to cmake
 cmake -D CMAKE_C_COMPILER="$compiler_C" -D CMAKE_CXX_COMPILER="$compiler_CXX" \
--D CMAKE_BUILD_TYPE="$mode" -D ADDITIONAL_FLAGS="$flag"  -S ..
+-D CMAKE_BUILD_TYPE="$mode" -D ADDITIONAL_FLAGS="$flags"  -S ..
 cmake --build . -j 8
 
 # Moving back to the original directory
