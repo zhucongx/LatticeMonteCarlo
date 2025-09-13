@@ -22,7 +22,7 @@ class SimulatedAnnealing : public McAbstract {
   void Simulate() override;
  private:
   virtual void Dump() const;
-  void UpdateTemperature();
+  void UpdateTemperature(bool accepted);
   std::pair<size_t, size_t> GenerateLatticeIdJumpPair();
   bool SelectEvent(const std::pair<size_t, size_t> &lattice_id_jump_pair, double dE);
   // predictors / selectors

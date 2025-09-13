@@ -94,7 +94,17 @@ void SimulatedAnnealing::Dump() const {
 //    config_.WriteConfig(std::to_string(static_cast<int>(temperature_)) + "K.cfg.gz");
 //  }
 }
-void SimulatedAnnealing::UpdateTemperature() {
+void SimulatedAnnealing::UpdateTemperature(const bool accepted) {
+  // Update acceptance window and improvement detection for this step
+  ++window_trials_;
+  if (accepted) {
+    ++window_accepts_;
+    if (energy_ < recent_best_energy_ - kEpsilon) {
+      recent_best_energy_ = energy_;
+      last_improvement_step_ = steps_;
+    }
+  }
+
   // Dynamic target band shrinks with progress: early (acc_early_.first..acc_early_.second)
   // → late (acc_late_.first..acc_late_.second)
   const double progress = static_cast<double>(steps_) / static_cast<double>(std::max<unsigned long long int>(1ULL, maximum_steps_));
@@ -161,31 +171,19 @@ bool SimulatedAnnealing::SelectEvent(const std::pair<size_t, size_t> &lattice_id
 }
 void SimulatedAnnealing::Simulate() {
   while (steps_ <= maximum_steps_) {
-    auto lattice_id_jump_pair = GenerateLatticeIdJumpPair();
-    auto dE = energy_change_predictor_.GetDeFromLatticeIdPair(config_, lattice_id_jump_pair);
-
-    Dump();
-
-    // perform Metropolis step at current temperature
-    const bool accepted = SelectEvent(lattice_id_jump_pair, dE);
-
-    // update acceptance window stats
-    ++window_trials_;
-    if (accepted) {
-      ++window_accepts_;
-      // improvement detection relative to recent baseline (not global lowest)
-      if (energy_ < recent_best_energy_ - kEpsilon) {
-        recent_best_energy_ = energy_;
-        last_improvement_step_ = steps_;
-      }
-    }
 
     // statistics and logging
     thermodynamic_averaging_.AddEnergy(energy_);
+    Dump();
+
+    // generate trial move
+    const auto lattice_id_jump_pair = GenerateLatticeIdJumpPair();
+    const auto dE = energy_change_predictor_.GetDeFromLatticeIdPair(config_, lattice_id_jump_pair);
+    // perform Metropolis step at current temperature
+    const bool accepted = SelectEvent(lattice_id_jump_pair, dE);
 
     // update schedule for next step
-    UpdateTemperature();
-
+    UpdateTemperature(accepted);
     ++steps_;
   }
 }
