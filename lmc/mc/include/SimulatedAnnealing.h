@@ -41,18 +41,22 @@ class SimulatedAnnealing : public McAbstract {
   // choose baseline_c_ so that T_end/T0 ≈ exp(-baseline_c_)
   const double baseline_c_{2.25};
 
-  // reheat ratio configuration (avoid magic numbers)
+  // reheat ratio configuration
   const double reheat_trigger_ratio_{0.03};    // 3% of N
   const double reheat_cooldown_ratio_{0.03};   // 3% of N
+  // acceptance window configuration
+  const double window_ratio_{0.01};   // 1% of N
+
   // reheat thresholds (absolute steps)
   const unsigned long long int reheat_trigger_steps_;   // steps without improvement to trigger reheat
   const unsigned long long int reheat_cooldown_steps_;  // minimal interval between reheats
-  // acceptance window configuration
-  const unsigned int window_size_{5000};
+  const unsigned int window_size_;                      // sliding window size for acceptance ratio
+
   // (min, max) targets at early and late progress
-  const std::pair<double, double> acc_early_{0.35, 0.55};
-  const std::pair<double, double> acc_late_{0.05, 0.20};
-  const double cool_down_factor_{0.98};  // if acceptance too high
+  const double acc_max_{0.50};
+  const double acc_min_{0.05};
+  const double cool_down_factor_{0.99};  // if acceptance too high
+
   // acceptance window state
   unsigned int window_trials_{0};
   unsigned int window_accepts_{0};

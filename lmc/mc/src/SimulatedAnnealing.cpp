@@ -53,7 +53,9 @@ SimulatedAnnealing::SimulatedAnnealing(const Factor_t &factors,
       atom_index_selector_(0, config_.GetNumAtoms() - 1),
       initial_temperature_(initial_temperature),
       reheat_trigger_steps_(std::max<unsigned long long int>(1ULL, static_cast<unsigned long long>(maximum_steps_ * reheat_trigger_ratio_))),
-      reheat_cooldown_steps_(std::max<unsigned long long int>(1ULL, static_cast<unsigned long long>(maximum_steps_ * reheat_cooldown_ratio_))){
+      reheat_cooldown_steps_(std::max<unsigned long long int>(1ULL, static_cast<unsigned long long>(maximum_steps_ * reheat_cooldown_ratio_))),
+      window_size_(std::max<unsigned long long int>(1ULL, static_cast<unsigned long long>(maximum_steps_ * window_ratio_))) {
+  // open log file
   ofs_.precision(16);
   const auto energy_predictor = pred::EnergyPredictor(
       json_coefficients_filename, GetElementSetFromSolventAndSolute(solvent_element, solute_atom_count));
@@ -107,17 +109,11 @@ void SimulatedAnnealing::UpdateTemperature(const bool accepted) {
     }
   }
 
-  // Dynamic target band shrinks with progress: early (acc_early_.first..acc_early_.second)
-  // → late (acc_late_.first..acc_late_.second)
-  const double progress = static_cast<double>(steps_) / static_cast<double>(std::max<unsigned long long int>(1ULL, maximum_steps_));
-  const double acc_max = acc_early_.second + (acc_late_.second - acc_early_.second) * progress;
-  const double acc_min = acc_early_.first + (acc_late_.first - acc_early_.first) * progress;
-
   // Acceptance window based temperature adjustment (thermostat-like)
   if (window_trials_ >= window_size_) {
     const double acc = static_cast<double>(window_accepts_) / static_cast<double>(window_trials_);
-    (void)acc_min; // not heating by default; reserved for future use
-    if (acc > acc_max) {
+    (void)acc_min_; // not heating by default; reserved for future use
+    if (acc > acc_max_) {
       temperature_ *= cool_down_factor_;
     }
     window_trials_ = 0;
@@ -129,7 +125,7 @@ void SimulatedAnnealing::UpdateTemperature(const bool accepted) {
   if (reheats_done_ < max_reheats_ &&
       (steps_ - last_improvement_step_ >= reheat_trigger_steps_) &&
       (steps_ - last_reheat_step_ >= reheat_cooldown_steps_) &&
-      (acc_est < acc_min)) {
+      (acc_est < acc_min_)) {
     temperature_ *= reheat_factor_;
     last_improvement_step_ = steps_;
     last_reheat_step_ = steps_;
