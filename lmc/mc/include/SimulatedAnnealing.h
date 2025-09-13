@@ -42,8 +42,8 @@ class SimulatedAnnealing : public McAbstract {
   const double baseline_c_{2.25};
 
   // reheat ratio configuration (avoid magic numbers)
-  const double reheat_trigger_ratio_{0.01};    // 1% of N
-  const double reheat_cooldown_ratio_{0.005};  // 0.5% of N
+  const double reheat_trigger_ratio_{0.03};    // 3% of N
+  const double reheat_cooldown_ratio_{0.03};   // 3% of N
   // reheat thresholds (absolute steps)
   const unsigned long long int reheat_trigger_steps_;   // steps without improvement to trigger reheat
   const unsigned long long int reheat_cooldown_steps_;  // minimal interval between reheats
