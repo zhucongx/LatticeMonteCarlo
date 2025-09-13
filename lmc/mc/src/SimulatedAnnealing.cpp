@@ -51,7 +51,6 @@ SimulatedAnnealing::SimulatedAnnealing(const Factor_t &factors,
       energy_change_predictor_(
           json_coefficients_filename, config_, GetElementSetFromSolventAndSolute(solvent_element, solute_atom_count)),
       atom_index_selector_(0, config_.GetNumAtoms() - 1),
-      lowest_energy_(0),
       initial_temperature_(initial_temperature),
       reheat_trigger_steps_(std::max<unsigned long long int>(1ULL, static_cast<unsigned long long>(maximum_steps_ * reheat_trigger_ratio_))),
       reheat_cooldown_steps_(std::max<unsigned long long int>(1ULL, static_cast<unsigned long long>(maximum_steps_ * reheat_cooldown_ratio_))){
@@ -165,8 +164,11 @@ void SimulatedAnnealing::Simulate() {
     auto lattice_id_jump_pair = GenerateLatticeIdJumpPair();
     auto dE = energy_change_predictor_.GetDeFromLatticeIdPair(config_, lattice_id_jump_pair);
 
+    Dump();
+
     // perform Metropolis step at current temperature
     const bool accepted = SelectEvent(lattice_id_jump_pair, dE);
+
     // update acceptance window stats
     ++window_trials_;
     if (accepted) {
@@ -180,7 +182,6 @@ void SimulatedAnnealing::Simulate() {
 
     // statistics and logging
     thermodynamic_averaging_.AddEnergy(energy_);
-    Dump();
 
     // update schedule for next step
     UpdateTemperature();
