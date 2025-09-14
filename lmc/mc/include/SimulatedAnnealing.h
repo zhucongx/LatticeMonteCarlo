@@ -39,13 +39,13 @@ class SimulatedAnnealing : public McAbstract {
 
   // smooth per-step geometric: T *= exp(-baseline_c_/N)
   // choose baseline_c_ so that T_end/T0 ≈ exp(-baseline_c_)
-  const double baseline_c_{2.25};
+  const double baseline_c_{3};
 
   // reheat ratio configuration
-  const double reheat_trigger_ratio_{0.03};    // 3% of N
-  const double reheat_cooldown_ratio_{0.03};   // 3% of N
+  const double reheat_trigger_ratio_{0.05};
+  const double reheat_cooldown_ratio_{0.10};
   // acceptance window configuration
-  const double window_ratio_{0.01};   // 1% of N
+  const double window_ratio_{0.001};
 
   // reheat thresholds (absolute steps)
   const unsigned long long int reheat_trigger_steps_;   // steps without improvement to trigger reheat
