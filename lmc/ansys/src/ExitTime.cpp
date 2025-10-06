@@ -113,14 +113,14 @@ void ExitTime::GetExitTimeInfo(nlohmann::json &frame_info,
     }
     const double markov_escape_time = BuildMarkovChain(
         atom_id_set_plus_nn, neighbor_atom_id_lists, migration_barrier_lists, profile_energy_list, beta_escape_);
-    const double markov_current_time = BuildMarkovChain(
-        atom_id_set_plus_nn, neighbor_atom_id_lists, migration_barrier_lists, profile_energy_list, beta_current_);
+    // const double markov_current_time = BuildMarkovChain(
+        // atom_id_set_plus_nn, neighbor_atom_id_lists, migration_barrier_lists, profile_energy_list, beta_current_);
 
     cluster_info["markov_escape_time"] = markov_escape_time;
-    cluster_info["markov_current_time"] = markov_current_time;
+    // cluster_info["markov_current_time"] = markov_current_time;
     const auto barriers = GetAverageBarriers(atom_id_set, pair_energy_map);
     cluster_info["barriers"] = barriers;
-    const double effective_binding_energy = -std::log(markov_current_time*constants::kPrefactor)/beta_current_ + barriers[3];
+    const double effective_binding_energy = -std::log(markov_escape_time*constants::kPrefactor)/beta_escape_ + barriers[3];
     cluster_info["effective_binding_energy"] = effective_binding_energy;
     for (const auto &atom_id: cluster_info["cluster_atom_id_list"]) {
       profile_energy_simp_list[atom_id] = vacancy_profile_energy;
