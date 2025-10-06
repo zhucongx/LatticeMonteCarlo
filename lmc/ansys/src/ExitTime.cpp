@@ -114,7 +114,7 @@ void ExitTime::GetExitTimeInfo(nlohmann::json &frame_info,
     const double markov_escape_time = BuildMarkovChain(
         atom_id_set_plus_nn, neighbor_atom_id_lists, migration_barrier_lists, profile_energy_list, beta_escape_);
     const double markov_current_time = BuildMarkovChain(
-        atom_id_set_plus_nn, neighbor_atom_id_lists, migration_barrier_lists, binding_energy_list, beta_escape_);
+        atom_id_set_plus_nn, neighbor_atom_id_lists, migration_barrier_lists, profile_energy_list, beta_current_);
 
     cluster_info["markov_escape_time"] = markov_escape_time;
     cluster_info["markov_current_time"] = markov_current_time;
@@ -200,7 +200,7 @@ double ExitTime::BuildMarkovChain(const std::unordered_set<size_t> &atom_id_set,
       size_t neighbor_atom_id = neighbor_atom_id_lists.at(atom_id).at(j);
       auto it = atom_index_map.find(neighbor_atom_id);
       if (it == atom_index_map.end()) {
-        // Jump to absorbing state
+        // Jump to an absorbing state
         continue;
       }
       auto neighbor_idx = it->second;
