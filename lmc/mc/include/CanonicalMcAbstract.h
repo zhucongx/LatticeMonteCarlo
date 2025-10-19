@@ -30,10 +30,7 @@ class CanonicalMcAbstract : public McAbstract {
 
   // helpful properties
   const pred::EnergyChangePredictorPairSite energy_change_predictor_;
-  std::vector<size_t> solute_lattice_id_vector_;
-
   mutable std::uniform_int_distribution<size_t> atom_index_selector_;
-
 };
 
 }    // namespace mc
