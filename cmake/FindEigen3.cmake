@@ -76,6 +76,12 @@ else ()
                 ${KDE4_INCLUDE_DIR}
                 ${CMAKE_INSTALL_PREFIX}/include/eigen3
                 ${CMAKE_INSTALL_PREFIX}/include
+                /opt/homebrew/include/eigen3
+                /opt/homebrew/include
+                /opt/local/include/eigen3
+                /opt/local/include
+                /opt/homebrew/opt/eigen/include/eigen3
+                /opt/homebrew/opt/eigen/include
                 /usr/local/include/eigen3
                 /usr/local/include
                 /usr/include/eigen3
