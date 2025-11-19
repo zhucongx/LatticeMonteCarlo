@@ -151,9 +151,9 @@ else ()
 endif ()
 
 find_package(Eigen3 3.4)
+# If a suitable system version wasn't found, download the exact version we need.
 if (NOT EIGEN3_FOUND)
-    message(WARNING "Eigen3 not found.")
-    message(STATUS "Downloading Eigen3 from Gitlab")
+    message(STATUS "System Eigen3 not found or version is < 3.4. Downloading from Gitlab.")
     FetchContent_Declare(
             Eigen3
             GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
@@ -162,8 +162,11 @@ if (NOT EIGEN3_FOUND)
             GIT_SHALLOW TRUE
     )
     FetchContent_MakeAvailable(Eigen3)
-    set(EIGEN3_INCLUDE_DIRS ${eigen3_SOURCE_DIR})
+else()
+    message(STATUS "Found compatible system Eigen3 version ${EIGEN3_VERSION}")
 endif ()
+
+# Link to the Eigen3::Eigen target, which is now available either from the system or FetchContent.
 target_link_libraries_system(${PROJECT_NAME} PRIVATE Eigen3::Eigen)
 ###################################################### ARMADILLO #######################################################
 #find_package(ARMADILLO REQUIRED)
