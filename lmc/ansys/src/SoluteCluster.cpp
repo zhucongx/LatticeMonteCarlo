@@ -86,7 +86,7 @@ void ModifyElementFromVector(std::map<std::string, cfg::Config::VectorVariant> &
                              const std::string &key,
                              const std::vector<size_t> &indices,
                              const T &new_value,
-                             const std::vector<T> default_vector) {
+                             const std::vector<T> &default_vector) {
   if (auxiliary_lists.find(key) == auxiliary_lists.end()) {
     auxiliary_lists[key] = default_vector;
   }
