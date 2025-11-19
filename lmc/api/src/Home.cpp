@@ -1,7 +1,17 @@
 #include "Home.h"
+#include <mpi.h>
+
+bool IsRoot() {
+  int rank = 0;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  return rank == 0;
+}
 
 namespace api {
 void Print(const Parameter &parameter) {
+  if (!IsRoot()) {
+    return;
+  }
   std::cout << "Parameters" << std::endl;
   std::cout << "simulation_method: " << parameter.method << std::endl;
   if (parameter.method == "KineticMcFirstMpi" || parameter.method == "KineticMcFirstOmp" ||
@@ -125,7 +135,9 @@ mc::KineticMcFirstMpi BuildKineticMcFirstMpiFromParameter(const Parameter &param
   } else {
     config = cfg::Config::ReadMap("lattice.txt", "element.txt", parameter.map_filename_);
   }
-  std::cout << "Finish config reading. Start KMC." << std::endl;
+  if (IsRoot()) {
+    std::cout << "Finish config reading. Start KMC." << std::endl;
+  }
   return mc::KineticMcFirstMpi{config,
                                parameter.log_dump_steps_,
                                parameter.config_dump_steps_,
@@ -156,7 +168,9 @@ mc::KineticMcFirstOmp BuildKineticMcFirstOmpFromParameter(const Parameter &param
   } else {
     config = cfg::Config::ReadMap("lattice.txt", "element.txt", parameter.map_filename_);
   }
-  std::cout << "Finish config reading. Start KMC." << std::endl;
+  if (IsRoot()) {
+    std::cout << "Finish config reading. Start KMC." << std::endl;
+  }
   return mc::KineticMcFirstOmp{config,
                                parameter.log_dump_steps_,
                                parameter.config_dump_steps_,
@@ -187,7 +201,9 @@ mc::KineticMcChainOmpi BuildKineticMcChainOmpiFromParameter(const Parameter &par
   } else {
     config = cfg::Config::ReadMap("lattice.txt", "element.txt", parameter.map_filename_);
   }
-  std::cout << "Finish config reading. Start KMC." << std::endl;
+  if (IsRoot()) {
+    std::cout << "Finish config reading. Start KMC." << std::endl;
+  }
   return mc::KineticMcChainOmpi{config,
                                 parameter.log_dump_steps_,
                                 parameter.config_dump_steps_,
@@ -235,7 +251,9 @@ mc::CanonicalMcSerial BuildCanonicalMcSerialFromParameter(const Parameter &param
   } else {
     config = cfg::Config::ReadMap("lattice.txt", "element.txt", parameter.map_filename_);
   }
-  std::cout << "Finish config reading. Start CMC." << std::endl;
+  if (IsRoot()) {
+    std::cout << "Finish config reading. Start CMC." << std::endl;
+  }
   return mc::CanonicalMcSerial{config,
                                parameter.log_dump_steps_,
                                parameter.config_dump_steps_,
@@ -260,7 +278,9 @@ mc::CanonicalMcOmp BuildCanonicalMcOmpFromParameter(const Parameter &parameter) 
   } else {
     config = cfg::Config::ReadMap("lattice.txt", "element.txt", parameter.map_filename_);
   }
-  std::cout << "Finish config reading. Start CMC." << std::endl;
+  if (IsRoot()) {
+    std::cout << "Finish config reading. Start CMC." << std::endl;
+  }
   return mc::CanonicalMcOmp{config,
                             parameter.log_dump_steps_,
                             parameter.config_dump_steps_,

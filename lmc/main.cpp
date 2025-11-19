@@ -1,13 +1,36 @@
 #include "Home.h"
+#include <mpi.h>
+
+class MpiSession {
+public:
+  MpiSession(int *argc, char ***argv) {
+    int provided = MPI_THREAD_SINGLE;
+    MPI_Init_thread(argc, argv, MPI_THREAD_FUNNELED, &provided);
+  }
+  MpiSession(const MpiSession &) = delete;
+  MpiSession &operator=(const MpiSession &) = delete;
+  ~MpiSession() {
+    MPI_Finalize();
+  }
+};
 
 int main(int argc, char *argv[]) {
-  std::cout << "Compiled on " << __DATE__ << " at " << __TIME__ << std::endl;
-  if (argc == 1) {
-    std::cout << "No input parameter filename." << std::endl;
-    return 1;
+  MpiSession mpi_session(&argc, &argv);
+  int world_rank = 0;
+  MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+
+  if (world_rank == 0) {
+    std::cout << "Compiled on " << __DATE__ << " at " << __TIME__ << std::endl;
+    if (argc == 1) {
+      std::cout << "No input parameter filename." << std::endl;
+      return 1;
+    }
   }
+
   api::Parameter parameter(argc, argv);
-  api::Print(parameter);
+  if (world_rank == 0) {
+    api::Print(parameter);
+  }
   api::Run(parameter);
   return 0;
 }

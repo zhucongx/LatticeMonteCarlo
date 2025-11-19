@@ -35,9 +35,10 @@ KineticMcFirstMpi::KineticMcFirstMpi(cfg::Config config,
                              is_early_stop,
                              is_solute_disp) {
   if (world_size_ != kEventListSize) {
-    std::cout << "Must use " << kEventListSize << " precesses. Terminating...\n" << std::endl;
-    MPI_Finalize();
-    exit(0);
+    if (world_rank_ == 0) {
+      std::cout << "Must use " << kEventListSize << " precesses. Terminating...\n" << std::endl;
+    }
+    MPI_Abort(MPI_COMM_WORLD, 1);
   }
   if (world_rank_ == 0) {
     std::cout << "Using " << world_size_ << " processes." << std::endl;

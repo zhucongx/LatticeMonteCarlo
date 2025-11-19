@@ -24,9 +24,10 @@ CanonicalMcSerial::CanonicalMcSerial(cfg::Config config,
                           element_set,
                           json_coefficients_filename) {
   if (world_size_ != 1) {
-    std::cout << "Must use 1 precesses. Terminating...\n" << std::endl;
-    MPI_Finalize();
-    exit(0);
+    if (world_rank_ == 0) {
+      std::cout << "Must use 1 process for CanonicalMcSerial. Terminating...\n" << std::endl;
+    }
+    MPI_Abort(MPI_COMM_WORLD, 1);
   }
 #pragma omp parallel  default(none) shared(std::cout)
   {

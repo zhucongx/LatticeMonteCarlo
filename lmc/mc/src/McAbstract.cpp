@@ -35,13 +35,9 @@ McAbstract::McAbstract(cfg::Config config,
 {
   ofs_.precision(16);
 
-  MPI_Init(nullptr, nullptr);
   MPI_Comm_rank(MPI_COMM_WORLD, &world_rank_);
   MPI_Comm_size(MPI_COMM_WORLD, &world_size_);
 }
-McAbstract::~McAbstract()
-{
-  MPI_Finalize();
-}
+McAbstract::~McAbstract() = default;
 
 }    // namespace mc
