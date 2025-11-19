@@ -85,7 +85,9 @@ add_executable(${PROJECT_NAME} ${PROJECT_NAME}/main.cpp ${PROJECT_SRC})
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_INCLUDE})
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "${PROJECT_NAME}.exe")
 ###################################################### BUILD LIBS ######################################################
-cmake_policy(SET CMP0135 NEW) # Use modern timestamp behavior for FetchContent
+if(POLICY CMP0135)
+    cmake_policy(SET CMP0135 NEW) # Use modern timestamp behavior for FetchContent
+endif()
 include(FetchContent)
 function(target_link_libraries_system target scope)
     set(libs ${ARGN})
@@ -110,7 +112,9 @@ endfunction()
 ####################################################### PKGCONFIG ######################################################
 #find_package(PkgConfig)
 ######################################################## BOOST #########################################################
-cmake_policy(SET CMP0167 NEW) # Use modern FindBoost module
+if(POLICY CMP0167)
+    cmake_policy(SET CMP0167 NEW) # Use modern FindBoost module
+endif ()
 #set(Boost_USE_DEBUG_LIBS OFF) # ignore debug libs and
 #set(Boost_USE_RELEASE_LIBS ON) # only find release libs
 find_package(Boost REQUIRED COMPONENTS filesystem iostreams)
