@@ -1,6 +1,7 @@
 #include "Home.h"
 
 int main(int argc, char *argv[]) {
+  std::cout << "Compiled on " << __DATE__ << " at " << __TIME__ << std::endl;
   if (argc == 1) {
     std::cout << "No input parameter filename." << std::endl;
     return 1;
