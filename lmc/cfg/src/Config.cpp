@@ -21,6 +21,7 @@ Config::Config(const Matrix_t &basis,
     : basis_(basis),
       lattice_vector_(std::move(lattice_vector)),
       atom_vector_(std::move(atom_vector)) {
+  map_shift_list_.resize(atom_vector_.size(), {0, 0, 0});
   if (lattice_vector_.size() != atom_vector_.size()) {
     throw std::runtime_error("Lattice vector and atom vector size do not match");
   }
@@ -57,6 +58,10 @@ const std::vector<Lattice> &Config::GetLatticeVector() const {
 
 const std::vector<Atom> &Config::GetAtomVector() const {
   return atom_vector_;
+}
+
+const std::vector<std::array<int, 3>> &Config::GetMapShiftList() const {
+  return map_shift_list_;
 }
 
 const std::vector<std::vector<size_t>> &Config::GetFirstNeighborsAdjacencyList() const {
@@ -393,6 +398,16 @@ void Config::LatticeJump(const std::pair<size_t, size_t> &lattice_id_jump_pair) 
   const auto atom_id_lhs = lattice_to_atom_hashmap_.at(lattice_id_lhs);
   const auto atom_id_rhs = lattice_to_atom_hashmap_.at(lattice_id_rhs);
 
+  const Vector_t displacement =
+      lattice_vector_[lattice_id_rhs].GetRelativePosition() - lattice_vector_[lattice_id_lhs].GetRelativePosition();
+
+  const auto image_change = ElementFloor(displacement + 0.5);
+
+  for (const auto kDim : All_Dimensions) {
+    map_shift_list_[atom_id_lhs][kDim] += static_cast<int>(image_change[kDim]);
+    map_shift_list_[atom_id_rhs][kDim] -= static_cast<int>(image_change[kDim]);
+  }
+
   atom_to_lattice_hashmap_.at(atom_id_lhs) = lattice_id_rhs;
   atom_to_lattice_hashmap_.at(atom_id_rhs) = lattice_id_lhs;
   lattice_to_atom_hashmap_.at(lattice_id_lhs) = atom_id_rhs;
@@ -653,6 +668,8 @@ void Config::WriteExtendedXyz(const std::string &filename,
       fos << "S:1";
     } else if (ret.type() == typeid(Vector_t)) {
       fos << "R:3";
+    } else if (ret.type() == typeid(std::array<int, 3>)) {
+      fos << "I:3";
     } else if (ret.type() == typeid(std::vector<double>)) {
       fos << "R:" << std::any_cast<std::vector<double>>(ret).size();
     } else if (ret.type() == typeid(std::vector<size_t>)) {
@@ -684,6 +701,9 @@ void Config::WriteExtendedXyz(const std::string &filename,
         fos << std::any_cast<std::string>(ret) << ' ';
       } else if (ret.type() == typeid(Vector_t)) {
         fos << std::any_cast<Vector_t>(ret) << ' ';
+      } else if (ret.type() == typeid(std::array<int, 3>)) {
+        const auto &val = std::any_cast<std::array<int, 3>>(ret);
+        fos << val[0] << ' ' << val[1] << ' ' << val[2] << ' ';
       } else if (ret.type() == typeid(std::vector<double>)) {
         for (const auto &val: std::any_cast<std::vector<double>>(ret)) {
           fos << val << ' ';

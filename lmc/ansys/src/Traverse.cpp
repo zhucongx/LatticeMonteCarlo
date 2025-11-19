@@ -224,6 +224,7 @@ void Traverse::RunAnsys() const {
 
 
     boost::filesystem::create_directories("ansys");
+    auxiliary_lists["map_shift"] = config.GetMapShiftList();
     config.WriteExtendedXyz("ansys/" + std::to_string(i) + ".xyz.gz", auxiliary_lists, global_list);
     const auto cluster_string = GetClusterString(frame_info);
     const auto frame_string = GetFrameString(frame_info);

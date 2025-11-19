@@ -24,6 +24,7 @@ class Config {
   [[nodiscard]] const Matrix_t &GetBasis() const;
   [[nodiscard]] const std::vector<Lattice> &GetLatticeVector() const;
   [[nodiscard]] const std::vector<Atom> &GetAtomVector() const;
+  [[nodiscard]] const std::vector<std::array<int, 3>> &GetMapShiftList() const;
   [[nodiscard]] const std::vector<std::vector<size_t>> &GetFirstNeighborsAdjacencyList() const;
   [[nodiscard]] const std::vector<std::vector<size_t>> &GetSecondNeighborsAdjacencyList() const;
   [[nodiscard]] const std::vector<std::vector<size_t>> &GetThirdNeighborsAdjacencyList() const;
@@ -69,6 +70,7 @@ class Config {
                                      std::vector<double>,
                                      std::vector<std::string>,
                                      std::vector<Vector_t>,
+                                     std::vector<std::array<int, 3>>,
                                      std::vector<std::vector<double>>,
                                      std::vector<std::vector<size_t>>>;
   using ValueVariant = std::variant<int, double, size_t, unsigned long long, std::string, std::vector<double>>;
@@ -94,9 +96,9 @@ class Config {
   Matrix_t basis_{};
   std::vector<Lattice> lattice_vector_{};
   std::vector<Atom> atom_vector_{};
+  std::vector<std::array<int, 3>> map_shift_list_{};
   std::unordered_map<size_t, size_t> lattice_to_atom_hashmap_{};
   std::unordered_map<size_t, size_t> atom_to_lattice_hashmap_{};
-  // nearest neighbor lists
   std::vector<std::vector<size_t>> first_neighbors_adjacency_list_{};
   std::vector<std::vector<size_t>> second_neighbors_adjacency_list_{};
   std::vector<std::vector<size_t>> third_neighbors_adjacency_list_{};
