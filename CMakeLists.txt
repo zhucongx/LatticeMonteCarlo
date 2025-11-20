@@ -126,7 +126,7 @@ target_link_libraries_system(${PROJECT_NAME} PRIVATE MPI::MPI_CXX)
 find_package(OpenMP REQUIRED)
 target_link_libraries_system(${PROJECT_NAME} PRIVATE OpenMP::OpenMP_CXX)
 ######################################################## EIGEN #########################################################
-find_package(MKL QUIET)
+find_package(MKL)
 if (MKL_FOUND AND NOT (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
     message(STATUS "MKL found. Using MKL BLAS/LAPACK.")
     set(BLA_VENDOR Intel10_64ilp)
