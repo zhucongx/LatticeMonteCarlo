@@ -599,9 +599,9 @@ void Config::WriteExtendedConfig(const std::string &filename,
   fos << "H0(3,3) = " << basis_[2][2] << " A\n";
   fos << ".NO_VELOCITY.\n";
   fos << "entry_count = " << 6 + auxiliary_lists.size() << "\n";
-  fos << "auxiliary[0] = ix [reduced unit] \n";
-  fos << "auxiliary[1] = iy [reduced unit] \n";
-  fos << "auxiliary[2] = iz [reduced unit] \n";
+  fos << "auxiliary[0] = ix\n";
+  fos << "auxiliary[1] = iy\n";
+  fos << "auxiliary[2] = iz\n";
 
   size_t auxiliary_index = 3;
   for (const auto &auxiliary_list: auxiliary_lists) {
