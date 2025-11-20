@@ -126,7 +126,7 @@ target_link_libraries_system(${PROJECT_NAME} PRIVATE MPI::MPI_CXX)
 find_package(OpenMP REQUIRED)
 target_link_libraries_system(${PROJECT_NAME} PRIVATE OpenMP::OpenMP_CXX)
 ######################################################## EIGEN #########################################################
-find_package(MKL)
+find_package(MKL QUIET)
 if (MKL_FOUND AND NOT (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
     message(STATUS "MKL found. Using MKL BLAS/LAPACK.")
     set(BLA_VENDOR Intel10_64ilp)
@@ -142,7 +142,7 @@ else ()
             add_definitions(-mkl)
         endif ()
     else ()
-        message(WARNING "MKLROOT not found. Using generic BLAS/LAPACK.")
+        message(STATUS "MKLROOT not found. Using generic BLAS/LAPACK.")
         set(BLA_VENDOR Generic)
         add_definitions(-DEIGEN_USE_LAPACK -DEIGEN_USE_BLAS)
     endif ()
@@ -152,14 +152,14 @@ else ()
         target_link_libraries_system(${PROJECT_NAME} PRIVATE BLAS::BLAS)
         target_link_libraries_system(${PROJECT_NAME} PRIVATE LAPACK::LAPACK)
     else ()
-        message(WARNING "BLAS/LAPACK not found. Using Eigen3 only.")
+        message(STATUS "BLAS/LAPACK not found. Using Eigen3 only.")
     endif ()
 endif ()
 
 find_package(Eigen3 3.4)
 # If a suitable system version wasn't found, download the exact version we need.
-if (NOT EIGEN3_FOUND)
-    message(STATUS "System Eigen3 not found or version is < 3.4. Downloading from Gitlab.")
+if (NOT Eigen3_FOUND AND NOT EIGEN3_FOUND)
+    message(STATUS "System Eigen3 not found or version is < 3.4.")
     message(STATUS "Downloading Eigen3 from Githab")
     FetchContent_Declare(
             Eigen3
@@ -168,11 +168,13 @@ if (NOT EIGEN3_FOUND)
             # GIT_PROGRESS TRUE
             # GIT_SHALLOW TRUE
     )
+#    set(FETCHCONTENT_QUIET ON CACHE BOOL "" FORCE)
     FetchContent_MakeAvailable(Eigen3)
-else ()
-    message(STATUS "Found compatible system Eigen3 version ${EIGEN3_VERSION}")
+elseif (Eigen3_FOUND)
+    message(STATUS "Found compatible system Eigen3 version ${Eigen3_VERSION}")
+elseif (EIGEN3_FOUND)
+        message(STATUS "Found compatible system Eigen3 version ${EIGEN3_VERSION}")
 endif ()
-
 # Link to the Eigen3::Eigen target, which is now available either from the system or FetchContent.
 target_link_libraries_system(${PROJECT_NAME} PRIVATE Eigen3::Eigen)
 ###################################################### ARMADILLO #######################################################
