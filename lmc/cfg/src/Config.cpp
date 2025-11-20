@@ -598,9 +598,12 @@ void Config::WriteExtendedConfig(const std::string &filename,
   fos << "H0(3,2) = " << basis_[2][1] << " A\n";
   fos << "H0(3,3) = " << basis_[2][2] << " A\n";
   fos << ".NO_VELOCITY.\n";
-  fos << "entry_count = " << 3 + auxiliary_lists.size() << "\n";
+  fos << "entry_count = " << 6 + auxiliary_lists.size() << "\n";
+  fos << "auxiliary[0] = ix [reduced unit] \n";
+  fos << "auxiliary[1] = iy [reduced unit] \n";
+  fos << "auxiliary[2] = iz [reduced unit] \n";
 
-  size_t auxiliary_index = 0;
+  size_t auxiliary_index = 3;
   for (const auto &auxiliary_list: auxiliary_lists) {
     fos << "auxiliary[" << auxiliary_index << "] = " << auxiliary_list.first << " [reduced unit]\n";
     ++auxiliary_index;
@@ -610,7 +613,8 @@ void Config::WriteExtendedConfig(const std::string &filename,
     const auto &atom = atom_vector_[it];
     fos << atom.GetMass() << '\n'
         << atom.GetElementString() << '\n'
-        << lattice_vector_[atom_to_lattice_hashmap_.at(atom.GetId())].GetRelativePosition();
+        << lattice_vector_[atom_to_lattice_hashmap_.at(atom.GetId())].GetRelativePosition()
+        << ' ' << map_shift_list_[it];
     for (const auto &auxiliary_list: auxiliary_lists) {
       ofs << ' ' << auxiliary_list.second[it];
     }
