@@ -60,7 +60,7 @@ const std::vector<Atom> &Config::GetAtomVector() const {
   return atom_vector_;
 }
 
-const std::vector<std::array<int, 3>> &Config::GetMapShiftList() const {
+const std::vector<Vector_i> &Config::GetMapShiftList() const {
   return map_shift_list_;
 }
 
@@ -651,7 +651,7 @@ void Config::WriteExtendedXyz(const std::string &filename,
         },
         value);
   }
-  fos << "Properties=species:S:1:pos:R:3";
+  fos << "Properties=species:S:1:pos:R:3:map_shift:I:3";
   for (const auto &[key, auxiliary_list]: auxiliary_lists) {
     fos << ":" << key << ":";
     std::any ret;
@@ -668,7 +668,7 @@ void Config::WriteExtendedXyz(const std::string &filename,
       fos << "S:1";
     } else if (ret.type() == typeid(Vector_d)) {
       fos << "R:3";
-    } else if (ret.type() == typeid(std::array<int, 3>)) {
+    } else if (ret.type() == typeid(Vector_i)) {
       fos << "I:3";
     } else if (ret.type() == typeid(std::vector<double>)) {
       fos << "R:" << std::any_cast<std::vector<double>>(ret).size();
@@ -682,7 +682,8 @@ void Config::WriteExtendedXyz(const std::string &filename,
 
   for (size_t it = 0; it < GetNumAtoms(); ++it) {
     const auto &cartesian_position = lattice_vector_[atom_to_lattice_hashmap_.at(it)].GetCartesianPosition();
-    fos << atom_vector_[it].GetElementString() << ' ' << cartesian_position << ' ';
+    const auto &map_shift = map_shift_list_[it];
+    fos << atom_vector_[it].GetElementString() << ' ' << cartesian_position << ' ' << map_shift << ' ';
 
     for (const auto &[key, auxiliary_list]: auxiliary_lists) {
       std::any ret;
@@ -701,9 +702,8 @@ void Config::WriteExtendedXyz(const std::string &filename,
         fos << std::any_cast<std::string>(ret) << ' ';
       } else if (ret.type() == typeid(Vector_d)) {
         fos << std::any_cast<Vector_d>(ret) << ' ';
-      } else if (ret.type() == typeid(std::array<int, 3>)) {
-        const auto &val = std::any_cast<std::array<int, 3>>(ret);
-        fos << val[0] << ' ' << val[1] << ' ' << val[2] << ' ';
+      } else if (ret.type() == typeid(Vector_i)) {
+        fos << std::any_cast<Vector_i>(ret) << ' ';
       } else if (ret.type() == typeid(std::vector<double>)) {
         for (const auto &val: std::any_cast<std::vector<double>>(ret)) {
           fos << val << ' ';

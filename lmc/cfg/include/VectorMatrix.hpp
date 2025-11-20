@@ -16,6 +16,7 @@ constexpr std::array<Dimension, 3> All_Dimensions{kXDimension, kYDimension, kZDi
 
 // By default, it is always a 1 by 3 vector
 using Vector_d = std::array<double, kDimension>;
+using Vector_i = std::array<int, kDimension>;
 using Matrix_d = std::array<Vector_d, kDimension>;
 using Factor_t = std::array<size_t, kDimension>;
 
@@ -38,6 +39,12 @@ inline Vector_d ToVector(const Factor_t &factor)
 }
 
 inline std::ostream &operator<<(std::ostream &os, const Vector_d &vector)
+{
+  os << std::fixed << vector[0] << ' ' << vector[1] << ' ' << vector[2];
+  return os;
+}
+
+inline std::ostream &operator<<(std::ostream &os, const Vector_i &vector)
 {
   os << std::fixed << vector[0] << ' ' << vector[1] << ' ' << vector[2];
   return os;
