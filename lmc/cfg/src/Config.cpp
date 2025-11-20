@@ -14,7 +14,7 @@
 namespace cfg {
 Config::Config() = default;
 
-Config::Config(const Matrix_t &basis,
+Config::Config(const Matrix_d &basis,
                std::vector<Lattice> lattice_vector,
                std::vector<Atom> atom_vector,
                bool update_neighbor)
@@ -40,7 +40,7 @@ size_t Config::GetNumAtoms() const {
   return atom_vector_.size();
 }
 
-const Matrix_t &Config::GetBasis() const {
+const Matrix_d &Config::GetBasis() const {
   return basis_;
 }
 
@@ -148,11 +148,11 @@ double Config::GetTotalSoluteMass() const {
   return total_mass;
 }
 
-Vector_t Config::GetSoluteCenterOfMass() const {
+Vector_d Config::GetSoluteCenterOfMass() const {
   const auto solvent_element = GetSolventElement();
-  Vector_t mass_center{};
-  Vector_t sum_cos_theta{};
-  Vector_t sum_sin_theta{};
+  Vector_d mass_center{};
+  Vector_d sum_cos_theta{};
+  Vector_d sum_sin_theta{};
   double sum_mass = 0.0;
 
   for (const auto& atom : atom_vector_) {
@@ -214,8 +214,8 @@ size_t Config::GetStateHash() const {
   return seed;
 }
 
-Vector_t Config::GetLatticePairCenter(const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
-  Vector_t center_position;
+Vector_d Config::GetLatticePairCenter(const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
+  Vector_d center_position;
   for (const auto kDim: All_Dimensions) {
     double first_relative = GetLatticeVector()[lattice_id_jump_pair.first].GetRelativePosition()[kDim];
     const double second_relative = GetLatticeVector()[lattice_id_jump_pair.second].GetRelativePosition()[kDim];
@@ -233,14 +233,14 @@ Vector_t Config::GetLatticePairCenter(const std::pair<size_t, size_t> &lattice_i
   return center_position;
 }
 
-Matrix_t Config::GetLatticePairRotationMatrix(const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
+Matrix_d Config::GetLatticePairRotationMatrix(const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
   const auto &first_lattice = GetLatticeVector()[lattice_id_jump_pair.first];
   const auto &second_lattice = GetLatticeVector()[lattice_id_jump_pair.second];
 
-  const Vector_t pair_direction = Normalize(GetRelativeDistanceVectorLattice(first_lattice, second_lattice)*GetBasis());
-  Vector_t vertical_vector{};
+  const Vector_d pair_direction = Normalize(GetRelativeDistanceVectorLattice(first_lattice, second_lattice)*GetBasis());
+  Vector_d vertical_vector{};
   for (const auto index: GetFirstNeighborsAdjacencyList().at(lattice_id_jump_pair.first)) {
-    const Vector_t jump_vector = Normalize(GetRelativeDistanceVectorLattice(first_lattice, GetLatticeVector()[index])*GetBasis());
+    const Vector_d jump_vector = Normalize(GetRelativeDistanceVectorLattice(first_lattice, GetLatticeVector()[index])*GetBasis());
     const double dot_prod = Dot(pair_direction, jump_vector);
     if (std::abs(dot_prod) < kEpsilon) {
       vertical_vector = jump_vector;
@@ -398,7 +398,7 @@ void Config::LatticeJump(const std::pair<size_t, size_t> &lattice_id_jump_pair) 
   const auto atom_id_lhs = lattice_to_atom_hashmap_.at(lattice_id_lhs);
   const auto atom_id_rhs = lattice_to_atom_hashmap_.at(lattice_id_rhs);
 
-  const Vector_t displacement =
+  const Vector_d displacement =
       lattice_vector_[lattice_id_rhs].GetRelativePosition() - lattice_vector_[lattice_id_lhs].GetRelativePosition();
 
   const auto image_change = ElementFloor(displacement + 0.5);
@@ -549,7 +549,7 @@ Config Config::ReadConfig(const std::string &filename) {
   // "entry_count = 3"
   fis.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
   auto basis =
-      Matrix_t{{{basis_xx, basis_xy, basis_xz}, {basis_yx, basis_yy, basis_yz}, {basis_zx, basis_zy, basis_zz}}};
+      Matrix_d{{{basis_xx, basis_xy, basis_xz}, {basis_yx, basis_yy, basis_yz}, {basis_zx, basis_zy, basis_zz}}};
   std::vector<Atom> atom_vector;
   atom_vector.reserve(num_atoms);
   std::vector<Lattice> lattice_vector;
@@ -557,7 +557,7 @@ Config Config::ReadConfig(const std::string &filename) {
 
   double mass;
   std::string type;
-  Vector_t relative_position;
+  Vector_d relative_position;
 
   std::vector<std::vector<size_t>> first_neighbors_adjacency_list, second_neighbors_adjacency_list,
       third_neighbors_adjacency_list;
@@ -666,7 +666,7 @@ void Config::WriteExtendedXyz(const std::string &filename,
       fos << "R:1";
     } else if (ret.type() == typeid(std::string)) {
       fos << "S:1";
-    } else if (ret.type() == typeid(Vector_t)) {
+    } else if (ret.type() == typeid(Vector_d)) {
       fos << "R:3";
     } else if (ret.type() == typeid(std::array<int, 3>)) {
       fos << "I:3";
@@ -699,8 +699,8 @@ void Config::WriteExtendedXyz(const std::string &filename,
         fos << std::any_cast<double>(ret) << ' ';
       } else if (ret.type() == typeid(std::string)) {
         fos << std::any_cast<std::string>(ret) << ' ';
-      } else if (ret.type() == typeid(Vector_t)) {
-        fos << std::any_cast<Vector_t>(ret) << ' ';
+      } else if (ret.type() == typeid(Vector_d)) {
+        fos << std::any_cast<Vector_d>(ret) << ' ';
       } else if (ret.type() == typeid(std::array<int, 3>)) {
         const auto &val = std::any_cast<std::array<int, 3>>(ret);
         fos << val[0] << ' ' << val[1] << ' ' << val[2] << ' ';
@@ -732,13 +732,13 @@ Config Config::ReadMap(const std::string &lattice_filename,
   ifs_lattice >> num_atoms;
   ifs_lattice.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
-  Matrix_t basis;
+  Matrix_d basis;
   ifs_lattice >> basis;
   config.basis_ = basis;
   config.InitializeNeighborsList(num_atoms);
 
   config.lattice_vector_.reserve(num_atoms);
-  Vector_t relative_position;
+  Vector_d relative_position;
   size_t neighbor_lattice_id;
   for (size_t lattice_id = 0; lattice_id < num_atoms; ++lattice_id) {
     ifs_lattice >> relative_position;
@@ -907,7 +907,7 @@ void Config::UpdateNeighbors() {
             continue;
           }
           // Calculate distance
-          Vector_t absolute_distance_vector =
+          Vector_d absolute_distance_vector =
               GetRelativeDistanceVectorLattice(lattice_vector_[lattice_id1], lattice_vector_[lattice_id2]) * basis_;
           if (std::abs(absolute_distance_vector[0]) > constants::kNearNeighborsCutoff) {
             continue;
@@ -945,8 +945,8 @@ void Config::UpdateNeighbors() {
   }
 }
 
-void RotateLatticeVector(std::vector<Lattice> &lattice_list, const Matrix_t &rotation_matrix) {
-  const auto move_distance_after_rotation = Vector_t{0.5, 0.5, 0.5} - (Vector_t{0.5, 0.5, 0.5} * rotation_matrix);
+void RotateLatticeVector(std::vector<Lattice> &lattice_list, const Matrix_d &rotation_matrix) {
+  const auto move_distance_after_rotation = Vector_d{0.5, 0.5, 0.5} - (Vector_d{0.5, 0.5, 0.5} * rotation_matrix);
   for (auto &lattice: lattice_list) {
     auto relative_position = lattice.GetRelativePosition();
     // rotate
@@ -959,7 +959,7 @@ void RotateLatticeVector(std::vector<Lattice> &lattice_list, const Matrix_t &rot
 }
 
 Config GenerateFCC(const Factor_t &factors, Element element) {
-  Matrix_t basis{{{constants::kLatticeConstant * static_cast<double>(factors[0]), 0, 0},
+  Matrix_d basis{{{constants::kLatticeConstant * static_cast<double>(factors[0]), 0, 0},
                   {0, constants::kLatticeConstant * static_cast<double>(factors[1]), 0},
                   {0, 0, constants::kLatticeConstant * static_cast<double>(factors[2])}}};
   const size_t num_atoms = 4 * factors[0] * factors[1] * factors[2];
@@ -977,7 +977,7 @@ Config GenerateFCC(const Factor_t &factors, Element element) {
         auto x_ref = static_cast<double>(i);
         auto y_ref = static_cast<double>(j);
         auto z_ref = static_cast<double>(k);
-        std::vector<Vector_t> relative_position_list = {
+        std::vector<Vector_d> relative_position_list = {
             {x_ref / x_length, y_ref / y_length, z_ref / z_length},
             {(x_ref + 0.5) / x_length, (y_ref + 0.5) / y_length, z_ref / z_length},
             {(x_ref + 0.5) / x_length, y_ref / y_length, (z_ref + 0.5) / z_length},

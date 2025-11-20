@@ -15,7 +15,7 @@ KineticMcFirstAbstract::KineticMcFirstAbstract(cfg::Config config,
                                                const std::string &json_coefficients_filename,
                                                const std::string &time_temperature_filename,
                                                const bool is_rate_corrector,
-                                               const Vector_t &vacancy_trajectory,
+                                               const Vector_d &vacancy_trajectory,
                                                bool is_early_stop,
                                                bool is_solute_disp)
     : McAbstract(std::move(config),
@@ -148,7 +148,7 @@ void KineticMcFirstAbstract::OneStepSimulation() {
 
   // Calculate vacancy displacement for this step
   const auto jump_lattice_id = event_k_i_.GetIdJumpPair().second;
-  Vector_t vacancy_disp = cfg::GetRelativeDistanceVectorLattice(
+  Vector_d vacancy_disp = cfg::GetRelativeDistanceVectorLattice(
       config_.GetLatticeVector()[vacancy_lattice_id_],
       config_.GetLatticeVector()[jump_lattice_id]) * config_.GetBasis();
   
@@ -224,7 +224,7 @@ KineticMcChainAbstract::KineticMcChainAbstract(cfg::Config config,
                                                const std::string &json_coefficients_filename,
                                                const std::string &time_temperature_filename,
                                                const bool is_rate_corrector,
-                                               const Vector_t &vacancy_trajectory,
+                                               const Vector_d &vacancy_trajectory,
                                                bool is_early_stop,
                                                bool is_solute_disp)
     : KineticMcFirstAbstract(std::move(config),

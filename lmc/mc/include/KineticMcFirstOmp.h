@@ -21,7 +21,7 @@ class KineticMcFirstOmp : public KineticMcFirstAbstract {
                       const std::string &json_coefficients_filename,
                       const std::string &time_temperature_filename,
                       bool is_rate_corrector,
-                      const Vector_t &vacancy_trajectory,
+                      const Vector_d &vacancy_trajectory,
                       bool is_early_stop,
                       bool is_solute_disp);
     ~KineticMcFirstOmp() override;

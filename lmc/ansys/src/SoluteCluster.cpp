@@ -181,7 +181,7 @@ void SoluteCluster::GetClustersInfo(nlohmann::json &frame_info,
                             "geometry_center",
                             cluster_atom_id_list,
                             geometry_center,
-                            std::vector<Vector_t>(config_.GetNumAtoms(), {nan(""), nan(""), nan("")}));
+                            std::vector<Vector_d>(config_.GetNumAtoms(), {nan(""), nan(""), nan("")}));
 
     const auto mass_center = GetMassCenter(cluster_atom_id_list);
     cluster_info["mass_center"] = mass_center;
@@ -189,7 +189,7 @@ void SoluteCluster::GetClustersInfo(nlohmann::json &frame_info,
                             "mass_center",
                             cluster_atom_id_list,
                             mass_center,
-                            std::vector<Vector_t>(config_.GetNumAtoms(), {nan(""), nan(""), nan("")}));
+                            std::vector<Vector_d>(config_.GetNumAtoms(), {nan(""), nan(""), nan("")}));
 
     const auto mass_gyration_tensor = GetMassGyrationTensor(cluster_atom_id_list, mass_center);
     cluster_info["mass_gyration_tensor"] = mass_gyration_tensor;
@@ -411,10 +411,10 @@ double SoluteCluster::GetFormationEnergy(const std::vector<size_t> &cluster_atom
   return energy_change_cluster_to_pure_solvent - energy_change_solution_to_pure_solvent;
 }
 
-Vector_t SoluteCluster::GetGeometryCenter(const std::vector<size_t> &cluster_atom_id_list) const {
-  Vector_t geometry_center{};
-  Vector_t sum_cos_theta{};
-  Vector_t sum_sin_theta{};
+Vector_d SoluteCluster::GetGeometryCenter(const std::vector<size_t> &cluster_atom_id_list) const {
+  Vector_d geometry_center{};
+  Vector_d sum_cos_theta{};
+  Vector_d sum_sin_theta{};
   for (size_t atom_id: cluster_atom_id_list) {
     const auto relative_position =
         config_.GetLatticeVector()[config_.GetLatticeIdFromAtomId(atom_id)].GetRelativePosition();
@@ -434,10 +434,10 @@ Vector_t SoluteCluster::GetGeometryCenter(const std::vector<size_t> &cluster_ato
   ;    // Cartesian position
 }
 
-Vector_t SoluteCluster::GetMassCenter(const std::vector<size_t> &cluster_atom_id_list) const {
-  Vector_t mass_center{};
-  Vector_t sum_cos_theta{};
-  Vector_t sum_sin_theta{};
+Vector_d SoluteCluster::GetMassCenter(const std::vector<size_t> &cluster_atom_id_list) const {
+  Vector_d mass_center{};
+  Vector_d sum_cos_theta{};
+  Vector_d sum_sin_theta{};
   double sum_mass = 0;
   for (size_t atom_id: cluster_atom_id_list) {
     auto relative_position = config_.GetLatticeVector()[config_.GetLatticeIdFromAtomId(atom_id)].GetRelativePosition();
@@ -458,10 +458,10 @@ Vector_t SoluteCluster::GetMassCenter(const std::vector<size_t> &cluster_atom_id
   return mass_center * config_.GetBasis();
 }
 
-Matrix_t SoluteCluster::GetMassGyrationTensor(const std::vector<size_t> &cluster_atom_id_list,
-                                              const Vector_t &mass_center) const {
+Matrix_d SoluteCluster::GetMassGyrationTensor(const std::vector<size_t> &cluster_atom_id_list,
+                                              const Vector_d &mass_center) const {
   const auto relative_mass_center = mass_center * InverseMatrix(config_.GetBasis());
-  Matrix_t gyration_tensor{};
+  Matrix_d gyration_tensor{};
   double sum_mass = 0;
   for (size_t atom_id: cluster_atom_id_list) {
     const auto relative_position =
@@ -494,10 +494,10 @@ Matrix_t SoluteCluster::GetMassGyrationTensor(const std::vector<size_t> &cluster
           gyration_tensor[2] * config_.GetBasis() * config_.GetBasis()};
 }
 
-Matrix_t SoluteCluster::GetMassInertiaTensor(const std::vector<size_t> &cluster_atom_id_list,
-                                             const Vector_t &mass_center) const {
+Matrix_d SoluteCluster::GetMassInertiaTensor(const std::vector<size_t> &cluster_atom_id_list,
+                                             const Vector_d &mass_center) const {
   const auto relative_mass_center = mass_center * InverseMatrix(config_.GetBasis());
-  Matrix_t inertia_tensor{};
+  Matrix_d inertia_tensor{};
   for (const size_t atom_id: cluster_atom_id_list) {
     const auto mass = config_.GetAtomVector()[atom_id].GetElement().GetMass();
     auto relative_distance = config_.GetLatticeVector()[config_.GetLatticeIdFromAtomId(atom_id)].GetRelativePosition() -

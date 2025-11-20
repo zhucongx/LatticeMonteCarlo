@@ -34,12 +34,12 @@ class SoluteCluster {
   [[nodiscard]] std::map<std::string, size_t> GetElementsNumber(const std::vector<size_t> &cluster_atom_id_list) const;
   [[nodiscard]] double GetMass(const std::vector<size_t> &cluster_atom_id_list) const;
   [[nodiscard]] double GetFormationEnergy(const std::vector<size_t> &cluster_atom_id_list) const;
-  [[nodiscard]] Vector_t GetGeometryCenter(const std::vector<size_t> &cluster_atom_id_list) const;
-  [[nodiscard]] Vector_t GetMassCenter(const std::vector<size_t> &cluster_atom_id_list) const;
-  [[nodiscard]] Matrix_t GetMassGyrationTensor(const std::vector<size_t> &cluster_atom_id_list,
-                                               const Vector_t &mass_center) const;
-  [[nodiscard]] Matrix_t GetMassInertiaTensor(const std::vector<size_t> &cluster_atom_id_list,
-                                              const Vector_t &mass_center) const;
+  [[nodiscard]] Vector_d GetGeometryCenter(const std::vector<size_t> &cluster_atom_id_list) const;
+  [[nodiscard]] Vector_d GetMassCenter(const std::vector<size_t> &cluster_atom_id_list) const;
+  [[nodiscard]] Matrix_d GetMassGyrationTensor(const std::vector<size_t> &cluster_atom_id_list,
+                                               const Vector_d &mass_center) const;
+  [[nodiscard]] Matrix_d GetMassInertiaTensor(const std::vector<size_t> &cluster_atom_id_list,
+                                              const Vector_d &mass_center) const;
   const cfg::Config &config_;
   cfg::Config solvent_config_;
   const Element solvent_element_;

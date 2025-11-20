@@ -44,7 +44,7 @@ std::vector<cfg::Lattice> GetSymmetricallySortedLatticeVectorMMM(
   constexpr size_t kNumOfSites = constants::kNumThirdNearestSetSizeOfPair;
   auto lattice_id_hashset =
       config.GetNeighborsLatticeIdSetOfPair(lattice_id_jump_pair);
-  const auto move_distance = Vector_t{0.5, 0.5, 0.5}
+  const auto move_distance = Vector_d{0.5, 0.5, 0.5}
       - config.GetLatticePairCenter(lattice_id_jump_pair);
   std::vector<cfg::Lattice> lattice_list;
   lattice_list.reserve(kNumOfSites);
@@ -74,7 +74,7 @@ std::vector<cfg::Lattice> GetSymmetricallySortedLatticeVectorMM2(
   constexpr size_t kNumOfSites = constants::kNumThirdNearestSetSizeOfPair;
   auto lattice_id_hashset =
       config.GetNeighborsLatticeIdSetOfPair(lattice_id_jump_pair);
-  const auto move_distance = Vector_t{0.5, 0.5, 0.5}
+  const auto move_distance = Vector_d{0.5, 0.5, 0.5}
       - config.GetLatticePairCenter(lattice_id_jump_pair);
   std::vector<cfg::Lattice> lattice_list;
   lattice_list.reserve(kNumOfSites);
@@ -258,7 +258,7 @@ std::vector<cfg::Lattice> GetSortedLatticeVectorStateOfPair(
   constexpr size_t kNumOfSites = constants::kNumThirdNearestSetSizeOfPair;
   auto lattice_id_hashset =
       config.GetNeighborsLatticeIdSetOfPair(lattice_id_pair);
-  const auto move_distance = Vector_t{0.5, 0.5, 0.5}
+  const auto move_distance = Vector_d{0.5, 0.5, 0.5}
       - config.GetLatticePairCenter(lattice_id_pair);
   std::vector<cfg::Lattice> lattice_list;
   lattice_list.reserve(kNumOfSites);
@@ -287,7 +287,7 @@ std::vector<cfg::Lattice> GetSortedLatticeVectorStateOfSite(
   constexpr size_t kNumOfSites = constants::kNumThirdNearestSetSizeOfSite;
   auto lattice_id_hashset = config.GetNeighborsLatticeIdSetOfSite(lattice_id);
   const auto move_distance =
-      Vector_t{0.5, 0.5, 0.5} - config.GetLatticeVector()[lattice_id].GetRelativePosition();
+      Vector_d{0.5, 0.5, 0.5} - config.GetLatticeVector()[lattice_id].GetRelativePosition();
   std::vector<cfg::Lattice> lattice_list;
   lattice_list.reserve(kNumOfSites);
   for (const auto id: lattice_id_hashset) {

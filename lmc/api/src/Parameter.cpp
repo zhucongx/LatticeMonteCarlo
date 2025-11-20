@@ -91,7 +91,7 @@ void Parameter::ReadParam(const std::string &param_filename) {
       if (segs.size() != 4) {
         throw std::runtime_error("vacancy_trajectory should have 3 elements");
       }
-      vacancy_trajectory_ = Vector_t{stod(segs[1]), stod(segs[2]), stod(segs[3])};
+      vacancy_trajectory_ = Vector_d{stod(segs[1]), stod(segs[2]), stod(segs[3])};
     } else if (segs[0] == "early_stop") {
       std::string bool_string = std::string(segs[1]);
       if (bool_string == "true") {

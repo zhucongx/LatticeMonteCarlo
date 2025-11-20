@@ -10,12 +10,12 @@ class Lattice {
   // Constructor
   Lattice() = default;
 
-  Lattice(size_t id, const Vector_t &position)
+  Lattice(size_t id, const Vector_d &position)
       : id_(id),
         cartesian_position_(position),
         relative_position_(position) {}
 
-  Lattice(size_t id, const Vector_t &cartesian_position, const Vector_t &relative_position)
+  Lattice(size_t id, const Vector_d &cartesian_position, const Vector_d &relative_position)
       : id_(id),
         cartesian_position_(cartesian_position),
         relative_position_(relative_position) {}
@@ -30,11 +30,11 @@ class Lattice {
     return id_;
   }
 
-  [[nodiscard]] const Vector_t &GetCartesianPosition() const {
+  [[nodiscard]] const Vector_d &GetCartesianPosition() const {
     return cartesian_position_;
   }
 
-  [[nodiscard]] const Vector_t &GetRelativePosition() const {
+  [[nodiscard]] const Vector_d &GetRelativePosition() const {
     return relative_position_;
   }
 
@@ -43,11 +43,11 @@ class Lattice {
     id_ = id;
   }
 
-  void SetCartesianPosition(const Vector_t &cartesian_position) {
+  void SetCartesianPosition(const Vector_d &cartesian_position) {
     cartesian_position_ = cartesian_position;
   }
 
-  void SetRelativePosition(const Vector_t &relative_position) {
+  void SetRelativePosition(const Vector_d &relative_position) {
     relative_position_ = relative_position;
   }
 
@@ -55,13 +55,13 @@ class Lattice {
   // lattice id
   size_t id_{};
   // absolute position
-  Vector_t cartesian_position_{};
+  Vector_d cartesian_position_{};
   // relative position in the box
-  Vector_t relative_position_{};
+  Vector_d relative_position_{};
 };
 
-inline Vector_t GetRelativeDistanceVectorLattice(const Lattice &first, const Lattice &second) {
-  Vector_t relative_distance_vector = second.GetRelativePosition() - first.GetRelativePosition();
+inline Vector_d GetRelativeDistanceVectorLattice(const Lattice &first, const Lattice &second) {
+  Vector_d relative_distance_vector = second.GetRelativePosition() - first.GetRelativePosition();
   // periodic boundary conditions
   for (const auto kDim: All_Dimensions) {
     while (relative_distance_vector[kDim] >= 0.5) {
