@@ -1,5 +1,6 @@
 #include "Home.h"
 #include <mpi.h>
+#include <iomanip>
 
 bool IsRoot() {
   int rank = 0;
@@ -34,9 +35,11 @@ void Print(const Parameter &parameter) {
     std::cout << "restart_energy: " << parameter.restart_energy_ << std::endl;
     std::cout << "restart_time: " << parameter.restart_time_ << std::endl;
     std::cout << "time_temperature_filename: " << parameter.time_temperature_filename_ << std::endl;
+    std::cout << std::boolalpha;
     std::cout << "rate_corrector: " << parameter.rate_corrector_ << std::endl;
     std::cout << "early_stop: " << parameter.early_stop_ << std::endl;
     std::cout << "solute_disp: " << parameter.solute_disp_ << std::endl;
+    std::cout << std::noboolalpha;
   } else if (parameter.method == "SimulatedAnnealing") {
     std::cout << "json_coefficients_filename: " << parameter.json_coefficients_filename_ << std::endl;
     std::cout << "factor: " << parameter.factor_ << std::endl;
