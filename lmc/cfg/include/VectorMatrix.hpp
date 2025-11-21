@@ -56,6 +56,12 @@ inline std::istream &operator>>(std::istream &is, Vector_d &vector)
   return is;
 }
 
+inline std::istream &operator>>(std::istream &is, Vector_i &vector)
+{
+  is >> vector[0] >> vector[1] >> vector[2];
+  return is;
+}
+
 constexpr double kEpsilon = 1e-4;
 
 inline bool operator==(const Vector_d &lhs, const Vector_d &rhs)
