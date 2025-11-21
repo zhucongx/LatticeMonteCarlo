@@ -18,13 +18,17 @@ int main(int argc, char *argv[]) {
   MpiSession mpi_session(&argc, &argv);
   int world_rank = 0;
   MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
-
+  
   if (world_rank == 0) {
     std::cout << "Compiled on " << __DATE__ << " at " << __TIME__ << std::endl;
-    if (argc == 1) {
+  }
+
+  if (argc <= 2) {
+    if (world_rank == 0) {
       std::cout << "No input parameter filename." << std::endl;
-      return 1;
     }
+    return 1;
+    // MPI_Abort(MPI_COMM_WORLD, 1);
   }
 
   api::Parameter parameter(argc, argv);
@@ -34,6 +38,7 @@ int main(int argc, char *argv[]) {
   api::Run(parameter);
   return 0;
 }
+
 // int main(int argc, char *argv[]) {
 //   std::set<Element> element_set{Element("Al"), Element("Mg"), Element("Zn"), Element("X")};
 //   const auto energy_estimator = pred::EnergyPredictor("quartic_coefficients.json", element_set);
