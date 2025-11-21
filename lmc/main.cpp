@@ -27,8 +27,8 @@ int main(int argc, char *argv[]) {
     if (world_rank == 0) {
       std::cout << "No input parameter filename." << std::endl;
     }
-    return 1;
-    // MPI_Abort(MPI_COMM_WORLD, 1);
+    // return 1;
+    MPI_Abort(MPI_COMM_WORLD, 1);
   }
 
   api::Parameter parameter(argc, argv);
