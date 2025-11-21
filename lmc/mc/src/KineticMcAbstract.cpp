@@ -67,8 +67,11 @@ void KineticMcFirstAbstract::Dump() const {
   if (steps_ == 0) {
     // config_.WriteLattice("lattice.txt");
     // config_.WriteElement("element.txt");
-    ofs_ << "steps\ttime\ttemperature\tenergy\tEa\tdE\tselected\tvac1\tvac2\tvac3\t"
-            "solute_com1\tsolute_com2\tsolute_com3" << std::endl;
+    ofs_ << "steps\ttime\ttemperature\tenergy\tEa\tdE\tselected\tvac1\tvac2\tvac3";
+    if (is_solute_disp_) {
+      ofs_ << "\tsolute_com1\tsolute_com2\tsolute_com3";
+    }
+    ofs_ << std::endl;
   }
   if (steps_ % config_dump_steps_ == 0) {
     // config_.WriteMap("map" + std::to_string(step_) + ".txt");
@@ -88,10 +91,13 @@ void KineticMcFirstAbstract::Dump() const {
   }
   if (steps_ % log_dump_steps == 0) {
     ofs_ << steps_ << '\t' << time_ << '\t' << temperature_ << '\t' << energy_ << '\t' << event_k_i_.GetForwardBarrier()
-         << '\t' << event_k_i_.GetEnergyChange() << '\t'
-         << config_.GetAtomIdFromLatticeId(event_k_i_.GetIdJumpPair().second) << '\t'
-         << config_.GetUnwrappedCartesianPositionOfLattice(vacancy_lattice_id_) << '\t' << solute_com_trajectory_
-         << std::endl;
+         << '\t' << event_k_i_.GetEnergyChange()
+         << '\t' << config_.GetAtomIdFromLatticeId(event_k_i_.GetIdJumpPair().second)
+         << '\t' << config_.GetUnwrappedCartesianPositionOfLattice(vacancy_lattice_id_);
+    if (is_solute_disp_) {
+      ofs_ << '\t' << solute_com_trajectory_;
+    }
+    ofs_ << std::endl;
   }
 }
 
