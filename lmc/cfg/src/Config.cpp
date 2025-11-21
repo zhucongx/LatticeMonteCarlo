@@ -406,7 +406,7 @@ Element Config::GetSolventElement() const {
    if (atom_id_vector.size() > max_count) {
      max_count = atom_id_vector.size();
      solvent_element = element;
-   }
+  }
  }
  return solvent_element;
 }
@@ -415,21 +415,7 @@ void Config::AtomJump(const std::pair<size_t, size_t> &atom_id_jump_pair) {
   const auto [atom_id_lhs, atom_id_rhs] = atom_id_jump_pair;
   const auto lattice_id_lhs = atom_to_lattice_hashmap_.at(atom_id_lhs);
   const auto lattice_id_rhs = atom_to_lattice_hashmap_.at(atom_id_rhs);
-
-  const Vector_d displacement =
-      lattice_vector_[lattice_id_rhs].GetRelativePosition() - lattice_vector_[lattice_id_lhs].GetRelativePosition();
-
-  const auto image_change = ElementFloor(displacement + 0.5);
-
-  for (const auto kDim : All_Dimensions) {
-    map_shift_list_[atom_id_lhs][kDim] -= static_cast<int>(image_change[kDim]);
-    map_shift_list_[atom_id_rhs][kDim] += static_cast<int>(image_change[kDim]);
-  }
-
-  atom_to_lattice_hashmap_.at(atom_id_lhs) = lattice_id_rhs;
-  atom_to_lattice_hashmap_.at(atom_id_rhs) = lattice_id_lhs;
-  lattice_to_atom_hashmap_.at(lattice_id_lhs) = atom_id_rhs;
-  lattice_to_atom_hashmap_.at(lattice_id_rhs) = atom_id_lhs;
+  LatticeJump({lattice_id_lhs, lattice_id_rhs});
 }
 
 void Config::LatticeJump(const std::pair<size_t, size_t> &lattice_id_jump_pair) {
@@ -440,11 +426,17 @@ void Config::LatticeJump(const std::pair<size_t, size_t> &lattice_id_jump_pair) 
   const Vector_d displacement =
       lattice_vector_[lattice_id_rhs].GetRelativePosition() - lattice_vector_[lattice_id_lhs].GetRelativePosition();
 
-  const auto image_change = ElementFloor(displacement + 0.5);
+  Vector_i image_change{0, 0, 0};
+  for (const auto kDim: All_Dimensions) {
+    const double shift = displacement[kDim];
+    if (std::abs(shift) > 0.5 + 1e-8) {
+      image_change[kDim] = static_cast<int>(std::floor(shift + 0.5));
+    }
+  }
 
   for (const auto kDim : All_Dimensions) {
-    map_shift_list_[atom_id_lhs][kDim] -= static_cast<int>(image_change[kDim]);
-    map_shift_list_[atom_id_rhs][kDim] += static_cast<int>(image_change[kDim]);
+    map_shift_list_[atom_id_lhs][kDim] -= image_change[kDim];
+    map_shift_list_[atom_id_rhs][kDim] += image_change[kDim];
   }
 
   atom_to_lattice_hashmap_.at(atom_id_lhs) = lattice_id_rhs;
