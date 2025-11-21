@@ -17,11 +17,12 @@ Config::Config() = default;
 Config::Config(const Matrix_d &basis,
                std::vector<Lattice> lattice_vector,
                std::vector<Atom> atom_vector,
-               bool update_neighbor)
+               std::vector<Vector_i>  map_shift_list,
+               const bool update_neighbor)
     : basis_(basis),
       lattice_vector_(std::move(lattice_vector)),
-      atom_vector_(std::move(atom_vector)) {
-  map_shift_list_.resize(atom_vector_.size(), {0, 0, 0});
+      atom_vector_(std::move(atom_vector)),
+      map_shift_list_(std::move(map_shift_list)){
   if (lattice_vector_.size() != atom_vector_.size()) {
     throw std::runtime_error("Lattice vector and atom vector size do not match");
   }
@@ -546,31 +547,45 @@ Config Config::ReadConfig(const std::string &filename) {
   if (fis.peek() == '.') {
     fis.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
   }
-  // "entry_count = 3"
+  // "entry_count = 3" or "entry_count = 6"
+  fis.ignore(std::numeric_limits<std::streamsize>::max(), '=');
+  size_t entry_count;
+  fis >> entry_count;
+
   fis.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+  size_t temp_entry_count = entry_count;
+  while (temp_entry_count > 3) {
+    fis.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    --temp_entry_count;
+  }
   auto basis =
       Matrix_d{{{basis_xx, basis_xy, basis_xz}, {basis_yx, basis_yy, basis_yz}, {basis_zx, basis_zy, basis_zz}}};
   std::vector<Atom> atom_vector;
   atom_vector.reserve(num_atoms);
   std::vector<Lattice> lattice_vector;
   lattice_vector.reserve(num_atoms);
+  std::vector<Vector_i> map_shift_list;
+  map_shift_list.reserve(num_atoms);
 
   double mass;
   std::string type;
   Vector_d relative_position;
-
-  std::vector<std::vector<size_t>> first_neighbors_adjacency_list, second_neighbors_adjacency_list,
-      third_neighbors_adjacency_list;
+  Vector_i map_shift;
 
   for (size_t lattice_id = 0; lattice_id < num_atoms; ++lattice_id) {
     fis >> mass >> type >> relative_position;
+    if (entry_count >= 6) {
+      fis >> map_shift;
+    } else {
+      map_shift = {0, 0, 0};
+    }
     atom_vector.emplace_back(lattice_id, type);
     lattice_vector.emplace_back(lattice_id, relative_position * basis, relative_position);
-
+    map_shift_list.push_back(map_shift);
     fis.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
   }
 
-  return Config{basis, lattice_vector, atom_vector, true};
+  return Config{basis, lattice_vector, atom_vector, map_shift_list, true};
 }
 
 void Config::WriteConfig(const std::string &filename) const {
@@ -995,7 +1010,8 @@ Config GenerateFCC(const Factor_t &factors, Element element) {
       }
     }
   }
-  return Config{basis, lattice_vector, atom_vector, true};
+  std::vector<Vector_i> map_shift_list(num_atoms, {0, 0, 0});
+  return Config{basis, lattice_vector, atom_vector, map_shift_list, true};
 }
 
 Config GenerateSoluteConfigFromExcitingPure(Config config, const std::map<Element, size_t> &solute_atom_count) {

@@ -18,6 +18,7 @@ class Config {
   Config(const Matrix_d &basis,
          std::vector<Lattice> lattice_vector,
          std::vector<Atom> atom_vector,
+         std::vector<Vector_i>  map_shift_list,
          bool update_neighbor);
   // Getter
   [[nodiscard]] size_t GetNumAtoms() const;
