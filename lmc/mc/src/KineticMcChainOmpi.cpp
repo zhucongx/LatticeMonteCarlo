@@ -17,9 +17,8 @@ KineticMcChainOmpi::KineticMcChainOmpi(cfg::Config config,
                                        const std::string &json_coefficients_filename,
                                        const std::string &time_temperature_filename,
                                        const bool is_rate_corrector,
-                                       const Vector_d &vacancy_trajectory,
-                                       bool is_early_stop,
-                                       bool is_solute_disp)
+                                       const bool is_early_stop,
+                                       const bool is_solute_disp)
     : KineticMcChainAbstract(std::move(config),
                              log_dump_steps,
                              config_dump_steps,
@@ -33,7 +32,6 @@ KineticMcChainOmpi::KineticMcChainOmpi(cfg::Config config,
                              json_coefficients_filename,
                              time_temperature_filename,
                              is_rate_corrector,
-                             vacancy_trajectory,
                              is_early_stop,
                              is_solute_disp) {
   if (world_size_ != kEventListSize) {

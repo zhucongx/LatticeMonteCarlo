@@ -27,7 +27,6 @@ class KineticMcFirstAbstract : public McAbstract {
                            const std::string &json_coefficients_filename,
                            const std::string &time_temperature_filename,
                            bool is_rate_corrector,
-                           const Vector_d &vacancy_trajectory,
                            bool is_early_stop,
                            bool is_solute_disp);
     ~KineticMcFirstAbstract() override;
@@ -54,7 +53,6 @@ class KineticMcFirstAbstract : public McAbstract {
     const pred::RateCorrector rate_corrector_;
     const bool is_rate_corrector_;
     size_t vacancy_lattice_id_;
-    Vector_d vacancy_trajectory_;
     Vector_d solute_com_trajectory_;
     const bool is_early_stop_;
     const bool is_solute_disp_;
@@ -79,7 +77,6 @@ class KineticMcChainAbstract : public KineticMcFirstAbstract {
                            const std::string &json_coefficients_filename,
                            const std::string &time_temperature_filename,
                            bool is_rate_corrector,
-                           const Vector_d &vacancy_trajectory,
                            bool is_early_stop,
                            bool is_solute_disp);
     ~KineticMcChainAbstract() override;

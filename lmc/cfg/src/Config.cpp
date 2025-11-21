@@ -253,7 +253,7 @@ Matrix_d Config::GetLatticePairRotationMatrix(const std::pair<size_t, size_t> &l
   return TransposeMatrix({pair_direction, vertical_vector, Cross(pair_direction, vertical_vector)});
 }
 
-Vector_d Config::GetUnwrappedCartesianPositionOfAtom(size_t atom_id) const {
+Vector_d Config::GetUnwrappedCartesianPositionOfAtom(const size_t atom_id) const {
   const auto lattice_id = GetLatticeIdFromAtomId(atom_id);
   const auto &relative_pos = lattice_vector_.at(lattice_id).GetRelativePosition();
   const auto &map_shift = map_shift_list_.at(atom_id);
@@ -263,6 +263,20 @@ Vector_d Config::GetUnwrappedCartesianPositionOfAtom(size_t atom_id) const {
       relative_pos[1] + static_cast<double>(map_shift[1]),
       relative_pos[2] + static_cast<double>(map_shift[2])
   };
+
+  return unwrapped_relative_pos * basis_;
+}
+
+Vector_d Config::GetUnwrappedCartesianPositionOfLattice(const size_t lattice_id) const {
+  const auto atom_id = GetAtomIdFromLatticeId(lattice_id);
+  const auto &relative_pos = lattice_vector_.at(lattice_id).GetRelativePosition();
+  const auto &map_shift = map_shift_list_.at(atom_id);
+
+  const Vector_d unwrapped_relative_pos = {
+    relative_pos[0] + static_cast<double>(map_shift[0]),
+    relative_pos[1] + static_cast<double>(map_shift[1]),
+    relative_pos[2] + static_cast<double>(map_shift[2])
+};
 
   return unwrapped_relative_pos * basis_;
 }

@@ -42,7 +42,6 @@ struct Parameter {
     bool rate_corrector_{};
     bool early_stop_{};
     bool solute_disp_{};
-    Vector_d vacancy_trajectory_{};
     unsigned long long int initial_steps_{};
     unsigned long long int increment_steps_{};
     size_t smallest_cluster_criteria_{};

@@ -43,6 +43,7 @@ class Config {
   [[nodiscard]] Vector_d GetLatticePairCenter(const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
   [[nodiscard]] Matrix_d GetLatticePairRotationMatrix(const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
   [[nodiscard]] Vector_d GetUnwrappedCartesianPositionOfAtom(size_t atom_id) const;
+  [[nodiscard]] Vector_d GetUnwrappedCartesianPositionOfLattice(size_t lattice_id) const;
   [[nodiscard]] size_t GetVacancyAtomId() const;
   [[nodiscard]] size_t GetVacancyLatticeId() const;
   [[nodiscard]] std::unordered_set<size_t>

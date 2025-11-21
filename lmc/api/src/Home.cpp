@@ -35,8 +35,6 @@ void Print(const Parameter &parameter) {
     std::cout << "restart_time: " << parameter.restart_time_ << std::endl;
     std::cout << "time_temperature_filename: " << parameter.time_temperature_filename_ << std::endl;
     std::cout << "rate_corrector: " << parameter.rate_corrector_ << std::endl;
-    std::cout << "vacancy_trajectory: " << parameter.vacancy_trajectory_
-              << std::endl;
     std::cout << "early_stop: " << parameter.early_stop_ << std::endl;
     std::cout << "solute_disp: " << parameter.solute_disp_ << std::endl;
   } else if (parameter.method == "SimulatedAnnealing") {
@@ -151,7 +149,6 @@ mc::KineticMcFirstMpi BuildKineticMcFirstMpiFromParameter(const Parameter &param
                                parameter.json_coefficients_filename_,
                                parameter.time_temperature_filename_,
                                parameter.rate_corrector_,
-                               parameter.vacancy_trajectory_,
                                parameter.early_stop_,
                                parameter.solute_disp_};
 }
@@ -184,7 +181,6 @@ mc::KineticMcFirstOmp BuildKineticMcFirstOmpFromParameter(const Parameter &param
                                parameter.json_coefficients_filename_,
                                parameter.time_temperature_filename_,
                                parameter.rate_corrector_,
-                               parameter.vacancy_trajectory_,
                                parameter.early_stop_,
                                parameter.solute_disp_};
 }
@@ -217,7 +213,6 @@ mc::KineticMcChainOmpi BuildKineticMcChainOmpiFromParameter(const Parameter &par
                                 parameter.json_coefficients_filename_,
                                 parameter.time_temperature_filename_,
                                 parameter.rate_corrector_,
-                                parameter.vacancy_trajectory_,
                                 parameter.early_stop_,
                                 parameter.solute_disp_};
 }

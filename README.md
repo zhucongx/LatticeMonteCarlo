@@ -100,7 +100,6 @@ KMC-specific:
 
 - `time_temperature_filename`: time-temperature table (optional)
 - `rate_corrector`: `true|false`
-- `vacancy_trajectory`: initial vacancy displacement (3 numbers)
 - `early_stop`: `true|false` (stop when vacancy neighborhood becomes pure solvent)
 - `solute_disp`: `true|false` (record solute center-of-mass displacement)
 
