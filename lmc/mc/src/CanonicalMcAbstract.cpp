@@ -13,6 +13,26 @@ namespace mc {
 //   }
 //   return element_set;
 // }
+static std::vector<size_t> GetSoluteLatticeIdVector(const cfg::Config &config) {
+  std::set<size_t> solute_lattice_id_set;
+  for (size_t lattice_id = 0; lattice_id < config.GetNumAtoms(); ++lattice_id) {
+    if (config.GetElementAtLatticeId(lattice_id) != Element("Al")) {
+      solute_lattice_id_set.emplace(lattice_id);
+    }
+  }
+  for (auto solute_lattice_id: solute_lattice_id_set) {
+    for (auto neighbor_lattice_id: config.GetFirstNeighborsAdjacencyList().at(solute_lattice_id)) {
+      solute_lattice_id_set.emplace(neighbor_lattice_id);
+    }
+    for (auto neighbor_lattice_id: config.GetSecondNeighborsAdjacencyList().at(solute_lattice_id)) {
+      solute_lattice_id_set.emplace(neighbor_lattice_id);
+    }
+    for (auto neighbor_lattice_id: config.GetThirdNeighborsAdjacencyList().at(solute_lattice_id)) {
+      solute_lattice_id_set.emplace(neighbor_lattice_id);
+    }
+  }
+  return {solute_lattice_id_set.begin(), solute_lattice_id_set.end()};
+}
 CanonicalMcAbstract::CanonicalMcAbstract(cfg::Config config,
                                          const unsigned long long int log_dump_steps,
                                          const unsigned long long int config_dump_steps,
@@ -38,13 +58,15 @@ CanonicalMcAbstract::CanonicalMcAbstract(cfg::Config config,
       energy_change_predictor_(json_coefficients_filename,
                                config_,
                                element_set),
-      atom_index_selector_(0, config_.GetNumAtoms() - 1) {
+      solute_lattice_id_vector_(GetSoluteLatticeIdVector(config_)),
+      atom_index_selector_(0, solute_lattice_id_vector_.size() - 1) {
 }
 std::pair<size_t, size_t> CanonicalMcAbstract::GenerateLatticeIdJumpPair() {
+
   size_t lattice_id1, lattice_id2;
   do {
-    lattice_id1 = atom_index_selector_(generator_);
-    lattice_id2 = atom_index_selector_(generator_);
+    lattice_id1 = solute_lattice_id_vector_.at(atom_index_selector_(generator_));
+    lattice_id2 = solute_lattice_id_vector_.at(atom_index_selector_(generator_));
   } while (config_.GetElementAtLatticeId(lattice_id1)
       == config_.GetElementAtLatticeId(lattice_id2));
   return {lattice_id1, lattice_id2};
