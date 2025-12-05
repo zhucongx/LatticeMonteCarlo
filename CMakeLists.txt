@@ -163,15 +163,15 @@ else ()
     endif ()
 endif ()
 
-find_package(Eigen3 3.4)
+find_package(Eigen3)
 # If a suitable system version wasn't found, download the exact version we need.
 if (NOT Eigen3_FOUND AND NOT EIGEN3_FOUND)
-    message(STATUS "System Eigen3 not found or version is < 3.4.")
+    message(STATUS "Eigen3 not found.")
     message(STATUS "Downloading Eigen3 from Githab")
     FetchContent_Declare(
             Eigen3
             GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
-            GIT_TAG 3.4.0
+            GIT_TAG 5.0.0
             # GIT_PROGRESS TRUE
             # GIT_SHALLOW TRUE
     )
