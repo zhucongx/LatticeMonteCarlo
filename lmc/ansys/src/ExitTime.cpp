@@ -255,7 +255,7 @@ std::tuple<
     std::vector<std::vector<double>>>
 ExitTime::GetJumpEnergetics(const std::unordered_set<size_t> &atom_id_set) const {
   std::vector<std::vector<size_t>> neighbor_atom_id_lists(
-      config_.GetNumAtoms(), std::vector<size_t>(constants::kNumFirstNearestNeighbors, nan("")));
+      config_.GetNumAtoms(), std::vector<size_t>(constants::kNumFirstNearestNeighbors, std::numeric_limits<std::size_t>::max()));
   std::vector<std::vector<double>> migration_barrier_lists(
       config_.GetNumAtoms(), std::vector<double>(constants::kNumFirstNearestNeighbors, nan("")));
   std::vector<std::vector<double>> driving_force_lists(
