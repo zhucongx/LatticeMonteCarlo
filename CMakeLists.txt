@@ -38,7 +38,7 @@ macro(add_cxx_compiler_flags FLAGS)
         endif ()
     endforeach ()
 endmacro()
-if (NOT ${ADDITIONAL_FLAGS} STREQUAL "")
+if (DEFINED ADDITIONAL_FLAGS AND NOT "${ADDITIONAL_FLAGS}" STREQUAL "")
     add_cxx_compiler_flags("${ADDITIONAL_FLAGS}")
 endif ()
 if (CMAKE_BUILD_TYPE MATCHES Debug)
@@ -87,13 +87,22 @@ set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "${PROJECT_NAME}.ex
 ###################################################### BUILD LIBS ######################################################
 if(POLICY CMP0135)
     cmake_policy(SET CMP0135 NEW) # Use modern timestamp behavior for FetchContent
+    set(CMAKE_POLICY_DEFAULT_CMP0135 NEW)
+endif()
+if(POLICY CMP0167)
+    cmake_policy(SET CMP0167 NEW) # Use modern FindBoost module
+    set(CMAKE_POLICY_DEFAULT_CMP0167 NEW)
+endif ()
+if (POLICY CMP0146)
+    cmake_policy(SET CMP0146 NEW) # Use modern FindCUDA module
+    set(CMAKE_POLICY_DEFAULT_CMP0146 NEW)
 endif()
 include(FetchContent)
 function(target_link_libraries_system target scope)
     set(libs ${ARGN})
     foreach (lib ${libs})
         get_target_property(lib_include_dirs ${lib} INTERFACE_INCLUDE_DIRECTORIES)
-        if (lib_include_dirs)
+        if (lib_include_dirs AND NOT lib_include_dirs STREQUAL "NOTFOUND")
             target_include_directories(${target} SYSTEM ${scope} ${lib_include_dirs})
         endif ()
         target_link_libraries(${target} ${scope} ${lib})
@@ -112,9 +121,6 @@ endfunction()
 ####################################################### PKGCONFIG ######################################################
 #find_package(PkgConfig)
 ######################################################## BOOST #########################################################
-if(POLICY CMP0167)
-    cmake_policy(SET CMP0167 NEW) # Use modern FindBoost module
-endif ()
 #set(Boost_USE_DEBUG_LIBS OFF) # ignore debug libs and
 #set(Boost_USE_RELEASE_LIBS ON) # only find release libs
 find_package(Boost REQUIRED COMPONENTS filesystem iostreams)
@@ -146,6 +152,7 @@ else ()
         set(BLA_VENDOR Generic)
         add_definitions(-DEIGEN_USE_LAPACK -DEIGEN_USE_BLAS)
     endif ()
+    set(BLA_VENDOR Generic)
     find_package(BLAS)
     find_package(LAPACK)
     if (BLAS_FOUND AND LAPACK_FOUND)
