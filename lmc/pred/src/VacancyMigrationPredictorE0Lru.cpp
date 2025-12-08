@@ -28,6 +28,7 @@ size_t VacancyMigrationPredictorE0Lru::GetHashFromConfigAndLatticeIdPair(
   // TODO(perf): Replace atom-id hashing with a compact encoding of element types
   // for the required local neighborhood. Consider also flattening pair->neighbor
   // maps into arrays to avoid unordered_map<pair> lookups and .at() bounds checks.
+  // Also consider flat_hash/F14 for lower hash constant factors on this hot path.
   const auto &lattice_id_list_state = site_bond_cluster_state_hashmap_.at(lattice_id_jump_pair);
   const auto &lattice_id_list_mmm = site_bond_cluster_mmm_hashmap_.at(lattice_id_jump_pair);
 

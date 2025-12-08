@@ -46,6 +46,8 @@ class VacancyMigrationPredictorQuartic {
     std::unordered_map<std::pair<size_t, size_t>,
                        std::vector<size_t>,
                        boost::hash<std::pair<size_t, size_t> > > site_bond_cluster_state_hashmap_{};
+    // TODO(perf): These hot unordered_maps could be moved to flat_hash/F14 or flattened
+    // contiguous arrays to reduce hash overhead on prediction hot paths.
 
     std::unordered_map<Element,
                        ParametersQuartic,

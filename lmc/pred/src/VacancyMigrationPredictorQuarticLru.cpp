@@ -25,9 +25,9 @@ std::pair<double, double> VacancyMigrationPredictorQuarticLru::GetBarrierAndDiff
 size_t VacancyMigrationPredictorQuarticLru::GetHashFromConfigAndLatticeIdPair(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
-  // TODO(arch): Consider flattening the pair->neighbor lookup tables into
-  // contiguous arrays (site*12 + nn_idx) to avoid unordered_map<pair> lookups
-  // and bounds-checked .at() on hot paths.
+  // TODO(arch/perf): Flatten pair->neighbor tables into contiguous arrays (site*12+nn_idx)
+  // and precompute element-type signatures so this hot path avoids unordered_map<pair>
+  // lookups, .at() bounds checks, and repeated hash_combine.
   const auto &lattice_id_list_state = site_bond_cluster_state_hashmap_.at(lattice_id_jump_pair);
   const auto &lattice_id_list_mmm = site_bond_cluster_mmm_hashmap_.at(lattice_id_jump_pair);
   const auto &lattice_id_list_mm2 = site_bond_cluster_mm2_hashmap_.at(lattice_id_jump_pair);

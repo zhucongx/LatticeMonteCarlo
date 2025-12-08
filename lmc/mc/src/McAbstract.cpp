@@ -33,6 +33,8 @@ McAbstract::McAbstract(cfg::Config config,
       unit_distribution_(0.0, 1.0),
       ofs_(log_filename, is_restarted_ ? std::ofstream::app : std::ofstream::out)
 {
+  // TODO(perf): RNG is on the hot path. Consider replacing mt19937_64 + uniform_real_distribution
+  // with a faster generator (pcg/xoshiro) and a lightweight uniform_01 helper to shave per-step cost.
   ofs_.precision(16);
 
   MPI_Comm_rank(MPI_COMM_WORLD, &world_rank_);

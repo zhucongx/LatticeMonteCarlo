@@ -11,6 +11,8 @@ JumpEvent::JumpEvent(std::pair<size_t, size_t> jump_pair,
       barrier_(barrier_and_diff.first),
       energy_change_(barrier_and_diff.second),
       forward_rate_(std::exp(-barrier_ * beta_)) {}
+// TODO(perf): If acceptable numerically, a fast exp (e.g., vdt) or relying on fast-math
+// could reduce cost. At minimum keep beta factored to avoid extra divides in rate math.
 const std::pair<size_t, size_t> &JumpEvent::GetIdJumpPair() const {
   return jump_pair_;
 }

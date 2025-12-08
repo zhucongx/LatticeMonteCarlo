@@ -99,6 +99,8 @@ void KineticMcFirstAbstract::Dump() const {
     }
     ofs_ << std::endl;
   }
+  // TODO(perf): For production runs, enlarge log/config dump intervals or disable gzip outputs
+  // to avoid I/O stalls impacting step throughput.
 }
 
 size_t KineticMcFirstAbstract::SelectEvent() const {
@@ -139,6 +141,9 @@ void KineticMcFirstAbstract::OneStepSimulation() {
   UpdateTemperature();
   thermodynamic_averaging_.AddEnergy(energy_);
   BuildEventList();
+  // TODO(perf): We rebuild all 12 neighbor events every step. Consider reusing the
+  // previous reverse jump and only refreshing events impacted by the vacancy move
+  // to reduce predictor calls and cache contention.
   double one_step_time = CalculateTime() * GetTimeCorrectionFactor();
   // Debug(one_step_time);
   event_k_i_ = event_k_i_list_[SelectEvent()];
@@ -180,6 +185,8 @@ void KineticMcFirstAbstract::Simulate() {
   while (steps_ <= maximum_steps_) {
     OneStepSimulation();
   }
+  // TODO(perf): For scaling across many cores, prefer running multiple independent trajectories
+  // over intra-trajectory OMP/MPI when lock contention dominates.
 }
 
 void KineticMcFirstAbstract::IsEscaped() {

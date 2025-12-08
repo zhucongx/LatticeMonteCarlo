@@ -102,6 +102,8 @@ double VacancyMigrationPredictorQuartic::GetDe(const cfg::Config &config,
   const auto &lattice_id_vector = site_bond_cluster_state_hashmap_.at(lattice_id_jump_pair);
   auto start_hashmap(initialized_cluster_hashmap_);
   auto end_hashmap(initialized_cluster_hashmap_);
+  // TODO(perf): These per-call maps/vectors allocate each time. Replace with
+  // preallocated thread_local fixed arrays to eliminate allocation/tree overhead.
 // #pragma omp parallel for default(none) shared(config, lattice_id_jump_pair, lattice_id_vector, migration_element, start_hashmap, end_hashmap)
   for (size_t label = 0; label < mapping_state_.size(); ++label) {
     const auto &cluster_vector = mapping_state_.at(label);
@@ -156,6 +158,8 @@ double VacancyMigrationPredictorQuartic::GetKs(const cfg::Config &config,
       site_bond_cluster_mm2_hashmap_.at(lattice_id_jump_pair);
   std::vector<Element> ele_vector_forward{};
   ele_vector_forward.reserve(lattice_id_vector_mm2_forward.size());
+  // TODO(perf): Convert these per-call vectors to preallocated thread_local arrays
+  // to avoid allocations inside the predictor hot path.
   for (auto index : lattice_id_vector_mm2_forward) {
     ele_vector_forward.push_back(config.GetElementAtLatticeId(index));
   }
@@ -197,6 +201,8 @@ double VacancyMigrationPredictorQuartic::GetD(const cfg::Config &config,
   auto lattice_id_vector_mmm = site_bond_cluster_mmm_hashmap_.at(lattice_id_jump_pair);
   std::vector<Element> ele_vector{};
   ele_vector.reserve(lattice_id_vector_mmm.size());
+  // TODO(perf): Replace per-call vector alloc with thread_local fixed storage
+  // to eliminate allocator overhead.
   for (auto index : lattice_id_vector_mmm) {
     ele_vector.push_back(config.GetElementAtLatticeId(index));
   }
@@ -237,6 +243,9 @@ std::pair<double, double> VacancyMigrationPredictorQuartic::GetBarrierAndDiffFro
       Ks = GetKs(config, lattice_id_jump_pair);
     }
   }
+  // TODO(perf): When already inside an outer OMP region (e.g., FirstOmp), gate this
+  // with omp_in_parallel() and run sequential to avoid nested-team overhead. Conversely,
+  // if outer loop is sequential, keep these sections to parallelize dE/D/Ks.
   // const auto dE = GetDe(config, lattice_id_jump_pair);
   // const auto D = GetD(config, lattice_id_jump_pair);
   // const auto Ks = GetKs(config, lattice_id_jump_pair);
