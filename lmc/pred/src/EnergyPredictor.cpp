@@ -22,12 +22,7 @@ EnergyPredictor::EnergyPredictor(const std::string &predictor_filename,
 
   for (const auto &[element, parameters] : all_parameters.items()) {
     if (element == "Base") {
-      auto base_theta_json = parameters.at("theta");
-      base_theta_ = {};
-      for (const auto &theta : base_theta_json) {
-        base_theta_.emplace_back(theta.get<double>());
-      }
-      // base_theta_ = std::vector<double>(parameters.at("theta"));
+      base_theta_ = JsonToEigenVector(parameters.at("theta"));
     }
   }
 }
@@ -232,23 +227,15 @@ std::vector<double> EnergyPredictor::GetEncodeOfCluster(
 }
 double EnergyPredictor::GetEnergy(const cfg::Config &config) const {
   auto encode = GetEncode(config);
-  double E = 0;
-  const size_t cluster_size = base_theta_.size();
-  for (size_t i = 0; i < cluster_size; ++i) {
-    E += base_theta_[i] * encode[i];
-  }
-  return E;
+  const Eigen::Map<const Eigen::VectorXd> encode_vec(encode.data(), static_cast<Eigen::Index>(encode.size()));
+  return base_theta_.dot(encode_vec);
 }
 double EnergyPredictor::GetEnergyOfCluster(
     const cfg::Config &config,
     const std::vector<size_t> &atom_id_list) const {
   auto encode = GetEncodeOfCluster(config, atom_id_list);
-  double E = 0;
-  const size_t cluster_size = base_theta_.size();
-  for (size_t i = 0; i < cluster_size; ++i) {
-    E += base_theta_[i] * encode[i];
-  }
-  return E;
+  const Eigen::Map<const Eigen::VectorXd> encode_vec(encode.data(), static_cast<Eigen::Index>(encode.size()));
+  return base_theta_.dot(encode_vec);
 }
 // Todo: add a function to get the chemical potential of a given composition
 // std::map<Element, double> EnergyPredictor::GetChemicalPotential() const {

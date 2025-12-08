@@ -1,5 +1,6 @@
 #include "EnergyChangePredictorPairSite.h"
 
+#include <Eigen/Dense>
 #include <nlohmann/json.hpp>
 #include <omp.h>
 
@@ -85,12 +86,9 @@ double EnergyChangePredictorPairSite::GetDeHelper(
     auto total_bond = cluster_counter[static_cast<size_t>(cluster.GetLabel())];
     de_encode.push_back(count_bond / total_bond);
   }
-  double dE = 0;
-  const size_t cluster_size = base_theta_.size();
-  for (size_t i = 0; i < cluster_size; ++i) {
-    dE += base_theta_[i] * de_encode[i];
-  }
-  return dE;
+  const Eigen::Map<const Eigen::VectorXd> theta_vec(base_theta_.data(), static_cast<Eigen::Index>(base_theta_.size()));
+  const Eigen::Map<const Eigen::VectorXd> encode_vec(de_encode.data(), static_cast<Eigen::Index>(de_encode.size()));
+  return theta_vec.dot(encode_vec);
 }
 
 double EnergyChangePredictorPairSite::GetDeFromLatticeIdPairWithCoupling(

@@ -7,9 +7,9 @@
 #include "LatticeCluster.hpp"
 #include "ElementCluster.hpp"
 #include "EnergyUtility.h"
+#include <Eigen/Dense> // Added for Eigen::VectorXd
 
 namespace pred {
-
 class VacancyMigrationPredictorQuartic {
   public:
     VacancyMigrationPredictorQuartic(const std::string &predictor_filename,
@@ -35,7 +35,7 @@ class VacancyMigrationPredictorQuartic {
     const std::vector<std::vector<std::vector<size_t> > > mapping_mm2_;
     const std::vector<std::vector<std::vector<size_t> > > mapping_state_;
 
-    std::vector<double> base_theta_{};
+    Eigen::VectorXd base_theta_{}; // Changed from std::vector<double>
 
     std::unordered_map<std::pair<size_t, size_t>,
                        std::vector<size_t>,
@@ -54,7 +54,6 @@ class VacancyMigrationPredictorQuartic {
     std::unordered_map<cfg::ElementCluster, size_t,
                        boost::hash<cfg::ElementCluster> > initialized_cluster_hashmap_{};
     std::map<cfg::ElementCluster, int> ordered_map_{};
-
 };
 } // pred
 #endif //LMC_LMC_PRED_INCLUDE_VACANCYMIGRATIONPREDICTORQUARTIC_H_

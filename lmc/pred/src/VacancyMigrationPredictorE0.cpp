@@ -27,20 +27,16 @@ VacancyMigrationPredictorE0::VacancyMigrationPredictorE0(const std::string &pred
   ifs >> all_parameters;
   for (const auto &[element, parameters]: all_parameters.items()) {
     if (element == "Base") {
-      auto base_theta_json = parameters.at("theta");
-      base_theta_ = {};
-      for (const auto &theta: base_theta_json) {
-        base_theta_.emplace_back(theta.get<double>());
-      }
-      // base_theta_ = std::vector<double>(parameters.at("theta"));
+      base_theta_ = JsonToEigenVector(parameters.at("theta"));
       continue;
     }
-    element_parameters_hashmap_[Element(element)] = ParametersE0{parameters.at("mu_x_mmm"),
-                                                                 parameters.at("sigma_x_mmm"),
-                                                                 parameters.at("U_mmm"),
-                                                                 parameters.at("theta_e0"),
-                                                                 parameters.at("mu_e0"),
-                                                                 parameters.at("sigma_e0")};
+    element_parameters_hashmap_[Element(element)] = ParametersE0{
+        JsonToEigenVector(parameters.at("mu_x_mmm")),
+        JsonToEigenVector(parameters.at("sigma_x_mmm")),
+        JsonToEigenMatrix(parameters.at("U_mmm")),
+        JsonToEigenVector(parameters.at("theta_e0")),
+        parameters.at("mu_e0"),
+        parameters.at("sigma_e0")};
   }
 #pragma omp parallel for default(none) shared(reference_config)
   for (size_t i = 0; i < reference_config.GetNumAtoms(); ++i) {
@@ -125,13 +121,8 @@ double VacancyMigrationPredictorE0::GetDe(const cfg::Config &config,
     de_encode.push_back((end - start) / total_bond);
   }
 
-  double dE = 0;
-  const size_t cluster_size = base_theta_.size();
-  // not necessary to parallelize this loop
-  for (size_t i = 0; i < cluster_size; ++i) {
-    dE += base_theta_[i] * de_encode[i];
-  }
-  return dE;
+  const Eigen::Map<const Eigen::VectorXd> encode_vec(de_encode.data(), static_cast<Eigen::Index>(de_encode.size()));
+  return base_theta_.dot(encode_vec);
 }
 
 double VacancyMigrationPredictorE0::GetE0(const cfg::Config &config,
@@ -144,35 +135,24 @@ double VacancyMigrationPredictorE0::GetE0(const cfg::Config &config,
     ele_vector.push_back(config.GetElementAtLatticeId(index));
   }
   auto encode_mmm = GetOneHotParametersFromMap(ele_vector, one_hot_encode_hash_map_, element_set_.size(), mapping_mmm_);
-  const auto &element_parameters = element_parameters_hashmap_.at(migration_element);
-  const size_t old_size = element_parameters.mu_x_mmm.size();
-  const size_t new_size = element_parameters.theta_e0.size();
-  // not necessary to parallelize this loop
-  for (size_t i = 0; i < old_size; ++i) {
-    encode_mmm.at(i) -= element_parameters.mu_x_mmm.at(i);
-    encode_mmm.at(i) /= element_parameters.sigma_x_mmm.at(i);
-  }
-  double logD = 0;
-  // #pragma omp parallel for default(none) shared(encode_mmm, new_size, old_size, element_parameters) reduction(+:logD)
-  // TODO(perf): Vectorize with Eigen or BLAS (gemv/noalias) to speed up PCA dot-products.
-  for (size_t j = 0; j < new_size; ++j) {
-    double pca_dot = 0;
-    for (size_t i = 0; i < old_size; ++i) {
-      pca_dot += encode_mmm.at(i) * element_parameters.U_mmm.at(j).at(i);
-    }
-    auto logD_it = pca_dot * element_parameters.theta_e0.at(j);
-    logD += logD_it;
-  }
-  logD *= element_parameters.sigma_y_e0;
-  logD += element_parameters.mu_y_e0;
+  const auto &[mu_x_mmm, sigma_x_mmm, U_mmm, theta_e0, mu_y_e0, sigma_y_e0] = element_parameters_hashmap_.at(migration_element);
+
+  // Vectorized normalization and matrix operation using Eigen.
+  Eigen::Map<Eigen::VectorXd> encode_vec(encode_mmm.data(), static_cast<Eigen::Index>(encode_mmm.size()));
+  encode_vec -= mu_x_mmm;
+  encode_vec = encode_vec.cwiseQuotient(sigma_x_mmm);
+
+  const auto &U_mat = U_mmm;
+  double logD = (U_mat * encode_vec).dot(theta_e0);
+  logD *= sigma_y_e0;
+  logD += mu_y_e0;
   return std::exp(logD);
 }
 
 std::pair<double, double> VacancyMigrationPredictorE0::GetBarrierAndDiffFromLatticeIdPair(
     const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
-  double dE, e0;
-  dE = GetDe(config, lattice_id_jump_pair);
-  e0 = GetE0(config, lattice_id_jump_pair);
+  double dE = GetDe(config, lattice_id_jump_pair);
+  double e0 = GetE0(config, lattice_id_jump_pair);
   const auto Ea = std::max(0.0, e0 + dE / 2);
   return {Ea, dE};
 }

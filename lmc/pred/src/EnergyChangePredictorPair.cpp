@@ -2,6 +2,7 @@
 
 #include <nlohmann/json.hpp>
 #include <omp.h>
+#include <Eigen/Dense>
 
 namespace pred {
 EnergyChangePredictorPair::EnergyChangePredictorPair(const std::string &predictor_filename,
@@ -109,12 +110,8 @@ double EnergyChangePredictorPair::GetDeFromLatticeIdPair(const cfg::Config &conf
     de_encode.push_back((end - start) / total_bond);
   }
 
-  double dE = 0;
-  const size_t cluster_size = base_theta_.size();
-  // not necessary to parallelize this loop
-  for (size_t i = 0; i < cluster_size; ++i) {
-    dE += base_theta_[i] * de_encode[i];
-  }
-  return dE;
+  const Eigen::Map<const Eigen::VectorXd> theta_vec(base_theta_.data(), static_cast<Eigen::Index>(base_theta_.size()));
+  const Eigen::Map<const Eigen::VectorXd> encode_vec(de_encode.data(), static_cast<Eigen::Index>(de_encode.size()));
+  return theta_vec.dot(encode_vec);
 }
 }    // namespace pred

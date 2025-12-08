@@ -5,11 +5,34 @@
 #include "ElementCluster.hpp"
 #include "LatticeCluster.hpp"
 
+#include <Eigen/Dense>
 #include <boost/functional/hash.hpp>
+#include <nlohmann/json.hpp>
 #include <set>
 #include <string>
 
 namespace pred {
+// clang-format off
+inline Eigen::VectorXd JsonToEigenVector(const nlohmann::json &j) {
+  const auto vec = j.get<std::vector<double>>();
+  return Eigen::Map<const Eigen::VectorXd>(vec.data(), static_cast<Eigen::Index>(vec.size()));
+}
+
+inline Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
+JsonToEigenMatrix(const nlohmann::json &j) {
+  const auto vv = j.get<std::vector<std::vector<double>>>();
+  if (vv.empty()) {
+    return Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>();
+  }
+  Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> mat(
+      static_cast<Eigen::Index>(vv.size()), static_cast<Eigen::Index>(vv[0].size()));
+  for (size_t row = 0; row < vv.size(); ++row) {
+    mat.row(static_cast<Eigen::Index>(row)) = Eigen::Map<const Eigen::VectorXd>(
+        vv[row].data(), static_cast<Eigen::Index>(vv[row].size()));
+  }
+  return mat;
+}
+// clang-format on
 using Singlet_MMM_t = cfg::LatticeClusterMMM<1>;
 using Pair_MMM_t = cfg::LatticeClusterMMM<2>;
 using Singlet_MM2_t = cfg::LatticeClusterMM2<1>;
@@ -48,14 +71,14 @@ GetOneHotParametersFromMap(const std::vector<Element> &encode,
                            const std::vector<std::vector<std::vector<size_t>>> &cluster_mapping);
 
 struct ParametersQuartic {
-  std::vector<double> mu_x_mmm{};
-  std::vector<double> mu_x_mm2{};
-  std::vector<double> sigma_x_mmm{};
-  std::vector<double> sigma_x_mm2{};
-  std::vector<std::vector<double>> U_mmm{};
-  std::vector<std::vector<double>> U_mm2{};
-  std::vector<double> theta_D{};
-  std::vector<double> theta_Ks{};
+  Eigen::VectorXd mu_x_mmm{};
+  Eigen::VectorXd mu_x_mm2{};
+  Eigen::VectorXd sigma_x_mmm{};
+  Eigen::VectorXd sigma_x_mm2{};
+  Eigen::MatrixXd U_mmm{};
+  Eigen::MatrixXd U_mm2{};
+  Eigen::VectorXd theta_D{};
+  Eigen::VectorXd theta_Ks{};
   double mu_y_D{};
   double mu_y_Ks{};
   double sigma_y_D{};
@@ -63,21 +86,20 @@ struct ParametersQuartic {
 };
 
 struct ParametersE0 {
-  std::vector<double> mu_x_mmm{};
-  std::vector<double> sigma_x_mmm{};
-  std::vector<std::vector<double>> U_mmm{};
-
-  std::vector<double> theta_e0{};
+  Eigen::VectorXd mu_x_mmm{};
+  Eigen::VectorXd sigma_x_mmm{};
+  Eigen::MatrixXd U_mmm{};
+  Eigen::VectorXd theta_e0{};
   double mu_y_e0{};
   double sigma_y_e0{};
 };
 
 struct ParametersDE {
-  std::vector<double> mu_x{};
-  std::vector<double> sigma_x{};
-  std::vector<std::vector<double>> U{};
+  Eigen::VectorXd mu_x{};
+  Eigen::VectorXd sigma_x{};
+   Eigen::MatrixXd U{};
 
-  std::vector<double> theta{};
+  Eigen::VectorXd theta{};
   double mu_y{};
   double sigma_y{};
 };

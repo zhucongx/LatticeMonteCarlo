@@ -1,4 +1,5 @@
 #include "VacancyMigrationPredictorQuartic.h"
+#include <Eigen/Dense>
 #include <utility>
 #include <boost/range/combine.hpp>
 #include <omp.h>
@@ -27,23 +28,18 @@ VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::st
   ifs >> all_parameters;
   for (const auto &[element, parameters] : all_parameters.items()) {
     if (element == "Base") {
-      auto base_theta_json = parameters.at("theta");
-      base_theta_ = {};
-      for (const auto &theta : base_theta_json) {
-        base_theta_.emplace_back(theta.get<double>());
-      }
-     // base_theta_ = std::vector<double>(parameters.at("theta"));
+      base_theta_ = JsonToEigenVector(parameters.at("theta"));
       continue;
     }
     element_parameters_hashmap_[Element(element)] = ParametersQuartic{
-        parameters.at("mu_x_mmm"),
-        parameters.at("mu_x_mm2"),
-        parameters.at("sigma_x_mmm"),
-        parameters.at("sigma_x_mm2"),
-        parameters.at("U_mmm"),
-        parameters.at("U_mm2"),
-        parameters.at("theta_D"),
-        parameters.at("theta_Ks"),
+        JsonToEigenVector(parameters.at("mu_x_mmm")),
+        JsonToEigenVector(parameters.at("mu_x_mm2")),
+        JsonToEigenVector(parameters.at("sigma_x_mmm")),
+        JsonToEigenVector(parameters.at("sigma_x_mm2")),
+        JsonToEigenMatrix(parameters.at("U_mmm")),
+        JsonToEigenMatrix(parameters.at("U_mm2")),
+        JsonToEigenVector(parameters.at("theta_D")),
+        JsonToEigenVector(parameters.at("theta_Ks")),
         parameters.at("mu_D"),
         parameters.at("mu_Ks"),
         parameters.at("sigma_D"),
@@ -148,13 +144,8 @@ double VacancyMigrationPredictorQuartic::GetDe(const cfg::Config &config,
     de_encode.push_back((end - start) / total_bond);
   }
 
-  double dE = 0;
-  const size_t cluster_size = base_theta_.size();
-  // not necessary to parallelize this loop
-  for (size_t i = 0; i < cluster_size; ++i) {
-    dE += base_theta_[i] * de_encode[i];
-  }
-  return dE;
+  const Eigen::Map<const Eigen::VectorXd> encode_vec(de_encode.data(), static_cast<Eigen::Index>(de_encode.size()));
+  return base_theta_.dot(encode_vec);
 }
 double VacancyMigrationPredictorQuartic::GetKs(const cfg::Config &config,
                                                const std::pair<size_t,
@@ -180,31 +171,21 @@ double VacancyMigrationPredictorQuartic::GetKs(const cfg::Config &config,
   for (auto index : lattice_id_vector_mm2_backward) {
     ele_vector_backward.push_back(config.GetElementAtLatticeId(index));
   }
-  auto encode_mm2_backward = GetOneHotParametersFromMap(ele_vector_backward,
+  const auto encode_mm2_backward = GetOneHotParametersFromMap(ele_vector_backward,
                                                         one_hot_encode_hash_map_,
                                                         element_set_.size(),
                                                         mapping_mm2_);
 
   const auto &element_parameters = element_parameters_hashmap_.at(migration_element);
-  const size_t old_size = element_parameters.mu_x_mm2.size();
-  const size_t new_size = element_parameters.theta_Ks.size();
-  // not necessary to parallelize this loop
-  for (size_t i = 0; i < old_size; ++i) {
-    encode_mm2_forward.at(i) += encode_mm2_backward.at(i);
-    encode_mm2_forward.at(i) -= element_parameters.mu_x_mm2.at(i);
-    encode_mm2_forward.at(i) /= element_parameters.sigma_x_mm2.at(i);
-  }
-  double logKs = 0;
-// #pragma omp parallel for default(none) shared(encode_mm2_forward, encode_mm2_backward, new_size, old_size, element_parameters) reduction(+:logKs)
-  // TODO(perf): Vectorize this dot-product using Eigen (gemv) or MKL for better CPU throughput.
-  for (size_t j = 0; j < new_size; ++j) {
-    double pca_dot = 0;
-    for (size_t i = 0; i < old_size; ++i) {
-      pca_dot += encode_mm2_forward.at(i) * element_parameters.U_mm2.at(j).at(i);
-    }
-    auto logKs_it = pca_dot * element_parameters.theta_Ks.at(j);
-    logKs += logKs_it;
-  }
+  // Vectorized normalization using Eigen.
+  Eigen::Map<Eigen::VectorXd> encode_vec(encode_mm2_forward.data(), static_cast<Eigen::Index>(encode_mm2_forward.size()));
+  const Eigen::Map<const Eigen::VectorXd> backward_vec(encode_mm2_backward.data(),  static_cast<Eigen::Index>(encode_mm2_backward.size()));
+  encode_vec += backward_vec;
+  encode_vec -= element_parameters.mu_x_mm2;
+  encode_vec = encode_vec.cwiseQuotient(element_parameters.sigma_x_mm2);
+
+  const auto &U_mat = element_parameters.U_mm2;
+  double logKs = (U_mat * encode_vec).dot(element_parameters.theta_Ks);
   logKs *= element_parameters.sigma_y_Ks;
   logKs += element_parameters.mu_y_Ks;
   return std::exp(logKs);
@@ -223,25 +204,16 @@ double VacancyMigrationPredictorQuartic::GetD(const cfg::Config &config,
                                                one_hot_encode_hash_map_,
                                                element_set_.size(),
                                                mapping_mmm_);
+
   const auto &element_parameters = element_parameters_hashmap_.at(migration_element);
-  const size_t old_size = element_parameters.mu_x_mmm.size();
-  const size_t new_size = element_parameters.theta_D.size();
-  // not necessary to parallelize this loop
-  for (size_t i = 0; i < old_size; ++i) {
-    encode_mmm.at(i) -= element_parameters.mu_x_mmm.at(i);
-    encode_mmm.at(i) /= element_parameters.sigma_x_mmm.at(i);
-  }
-  double logD = 0;
-// #pragma omp parallel for default(none) shared(encode_mmm, new_size, old_size, element_parameters) reduction(+:logD)
-  // TODO(perf): Vectorize dot-products with Eigen or BLAS (noalias gemv) to reduce loop overhead.
-  for (size_t j = 0; j < new_size; ++j) {
-    double pca_dot = 0;
-    for (size_t i = 0; i < old_size; ++i) {
-      pca_dot += encode_mmm.at(i) * element_parameters.U_mmm.at(j).at(i);
-    }
-    auto logD_it = pca_dot * element_parameters.theta_D.at(j);
-    logD += logD_it;
-  }
+
+  // Vectorized normalization using Eigen.
+  Eigen::Map<Eigen::VectorXd> encode_vec(encode_mmm.data(), static_cast<Eigen::Index>(encode_mmm.size()));
+  encode_vec -= element_parameters.mu_x_mmm;
+  encode_vec = encode_vec.cwiseQuotient(element_parameters.sigma_x_mmm);
+
+  const auto &U_mat = element_parameters.U_mmm;
+  double logD = (U_mat * encode_vec).dot(element_parameters.theta_D);
   logD *= element_parameters.sigma_y_D;
   logD += element_parameters.mu_y_D;
   return std::exp(logD);

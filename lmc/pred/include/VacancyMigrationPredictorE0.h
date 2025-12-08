@@ -7,6 +7,7 @@
 #include "LatticeCluster.hpp"
 #include "ElementCluster.hpp"
 #include "EnergyUtility.h"
+#include <Eigen/Dense>
 
 namespace pred {
 class VacancyMigrationPredictorE0 {
@@ -31,7 +32,7 @@ class VacancyMigrationPredictorE0 {
     const std::vector<std::vector<std::vector<size_t> > > mapping_mmm_;
     const std::vector<std::vector<std::vector<size_t> > > mapping_state_;
 
-    std::vector<double> base_theta_{};
+    Eigen::VectorXd base_theta_{};
 
     std::unordered_map<std::pair<size_t, size_t>,
                        std::vector<size_t>,
