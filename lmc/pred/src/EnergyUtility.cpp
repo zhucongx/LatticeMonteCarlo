@@ -190,6 +190,7 @@ std::vector<std::vector<std::vector<size_t> > > GetAverageClusterParametersMappi
           break;
         case 3: third_pair_set.emplace(std::array<cfg::Lattice, 2>{lattice1, lattice2});
           break;
+        default: break; // Added to resolve -Wswitch-default
       }
     }
   }
@@ -235,6 +236,7 @@ std::vector<std::vector<std::vector<size_t> > > GetAverageClusterParametersMappi
           break;
         case 3: third_pair_set.emplace(std::array<cfg::Lattice, 2>{lattice1, lattice2});
           break;
+        default: break; // Added to resolve -Wswitch-default
       }
     }
   }

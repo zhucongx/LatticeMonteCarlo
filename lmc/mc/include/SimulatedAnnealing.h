@@ -50,7 +50,7 @@ class SimulatedAnnealing : public McAbstract {
   // reheat thresholds (absolute steps)
   const unsigned long long int reheat_trigger_steps_;   // steps without improvement to trigger reheat
   const unsigned long long int reheat_cooldown_steps_;  // minimal interval between reheats
-  const unsigned int window_size_;                      // sliding window size for acceptance ratio
+  const unsigned long long int window_size_;            // sliding window size for acceptance ratio
 
   // (min, max) targets at early and late progress
   const double acc_max_{0.50};
