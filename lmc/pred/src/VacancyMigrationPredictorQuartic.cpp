@@ -227,28 +227,25 @@ double VacancyMigrationPredictorQuartic::GetD(const cfg::Config &config,
 std::pair<double, double> VacancyMigrationPredictorQuartic::GetBarrierAndDiffFromLatticeIdPair(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
-  double dE, D, Ks;
-#pragma omp parallel sections default(none) shared(config, lattice_id_jump_pair, dE, D, Ks)
-  {
-#pragma omp section
-    {
-      dE = GetDe(config, lattice_id_jump_pair);
-    }
-#pragma omp section
-    {
-      D = GetD(config, lattice_id_jump_pair);
-    }
-#pragma omp section
-    {
-      Ks = GetKs(config, lattice_id_jump_pair);
-    }
-  }
-  // TODO(perf): When already inside an outer OMP region (e.g., FirstOmp), gate this
-  // with omp_in_parallel() and run sequential to avoid nested-team overhead. Conversely,
-  // if outer loop is sequential, keep these sections to parallelize dE/D/Ks.
-  // const auto dE = GetDe(config, lattice_id_jump_pair);
-  // const auto D = GetD(config, lattice_id_jump_pair);
-  // const auto Ks = GetKs(config, lattice_id_jump_pair);
+//     double dE, D, Ks;
+// #pragma omp parallel sections default(none) shared(config, lattice_id_jump_pair, dE, D, Ks)
+//   {
+// #pragma omp section
+//     {
+//       dE = GetDe(config, lattice_id_jump_pair);
+//     }
+// #pragma omp section
+//     {
+//       D = GetD(config, lattice_id_jump_pair);
+//     }
+// #pragma omp section
+//     {
+//       Ks = GetKs(config, lattice_id_jump_pair);
+//     }
+//   }
+  const auto dE = GetDe(config, lattice_id_jump_pair);
+  const auto D = GetD(config, lattice_id_jump_pair);
+  const auto Ks = GetKs(config, lattice_id_jump_pair);
   const auto b = 4 * dE / (D * D * D);
   const auto a = Ks / (4 * D * D);
   const auto c = (9 * b * b - 16 * a * a * D * D) / (32 * a);
