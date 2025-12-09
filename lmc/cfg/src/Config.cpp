@@ -26,11 +26,14 @@ Config::Config(const Matrix_d &basis,
   if (lattice_vector_.size() != atom_vector_.size()) {
     throw std::runtime_error("Lattice vector and atom vector size do not match");
   }
-  for (size_t i = 0; i < lattice_vector_.size(); ++i) {
-    auto lattice_id = lattice_vector_.at(i).GetId();
-    auto atom_id = atom_vector_.at(i).GetId();
-    lattice_to_atom_hashmap_.emplace(lattice_id, atom_id);
-    atom_to_lattice_hashmap_.emplace(atom_id, lattice_id);
+  const auto num_sites = lattice_vector_.size();
+  lattice_to_atom_vector_.resize(num_sites);
+  atom_to_lattice_vector_.resize(num_sites);
+  for (size_t i = 0; i < num_sites; ++i) {
+    const auto lattice_id = lattice_vector_.at(i).GetId();
+    const auto atom_id = atom_vector_.at(i).GetId();
+    lattice_to_atom_vector_[lattice_id] = atom_id;
+    atom_to_lattice_vector_[atom_id] = lattice_id;
   }
   if (update_neighbor) {
     UpdateNeighbors();
@@ -45,12 +48,11 @@ const Matrix_d &Config::GetBasis() const {
   return basis_;
 }
 
-const std::unordered_map<size_t, size_t> &Config::GetLatticeToAtomHashmap() const {
-  return lattice_to_atom_hashmap_;
+const std::vector<size_t> &Config::GetLatticeToAtomVector() const {
+  return lattice_to_atom_vector_;
 }
-
-const std::unordered_map<size_t, size_t> &Config::GetAtomToLatticeHashmap() const {
-  return atom_to_lattice_hashmap_;
+const std::vector<size_t> &Config::GetAtomToLatticeVector() const {
+  return atom_to_lattice_vector_;
 }
 
 const std::vector<Lattice> &Config::GetLatticeVector() const {
@@ -77,50 +79,50 @@ const std::vector<std::vector<size_t>> &Config::GetThirdNeighborsAdjacencyList()
   return third_neighbors_adjacency_list_;
 }
 
-std::vector<size_t> Config::GetFirstNeighborsAtomIdVectorOfAtom(size_t atom_id) const {
-  auto lattice_id = atom_to_lattice_hashmap_.at(atom_id);
+std::vector<size_t> Config::GetFirstNeighborsAtomIdVectorOfAtom(const size_t atom_id) const {
+  const auto lattice_id = atom_to_lattice_vector_[atom_id];
   std::vector<size_t> first_neighbors_atom_id_vector;
   first_neighbors_atom_id_vector.reserve(constants::kNumFirstNearestNeighbors);
-  for (auto neighbor_lattice_id: first_neighbors_adjacency_list_[lattice_id]) {
-    first_neighbors_atom_id_vector.push_back(lattice_to_atom_hashmap_.at(neighbor_lattice_id));
+  for (const auto neighbor_lattice_id: first_neighbors_adjacency_list_[lattice_id]) {
+    first_neighbors_atom_id_vector.push_back(lattice_to_atom_vector_[neighbor_lattice_id]);
   }
   return first_neighbors_atom_id_vector;
 }
 
-std::vector<size_t> Config::GetSecondNeighborsAtomIdVectorOfAtom(size_t atom_id) const {
-  const auto lattice_id = atom_to_lattice_hashmap_.at(atom_id);
+std::vector<size_t> Config::GetSecondNeighborsAtomIdVectorOfAtom(const size_t atom_id) const {
+  const auto lattice_id = atom_to_lattice_vector_[atom_id];
   std::vector<size_t> second_neighbors_atom_id_vector;
   second_neighbors_atom_id_vector.reserve(constants::kNumSecondNearestNeighbors);
-  for (auto neighbor_lattice_id: second_neighbors_adjacency_list_[lattice_id]) {
-    second_neighbors_atom_id_vector.push_back(lattice_to_atom_hashmap_.at(neighbor_lattice_id));
+  for (const auto neighbor_lattice_id: second_neighbors_adjacency_list_[lattice_id]) {
+    second_neighbors_atom_id_vector.push_back(lattice_to_atom_vector_[neighbor_lattice_id]);
   }
   return second_neighbors_atom_id_vector;
 }
 
-std::vector<size_t> Config::GetThirdNeighborsAtomIdVectorOfAtom(size_t atom_id) const {
-  const auto lattice_id = atom_to_lattice_hashmap_.at(atom_id);
+std::vector<size_t> Config::GetThirdNeighborsAtomIdVectorOfAtom(const size_t atom_id) const {
+  const auto lattice_id = atom_to_lattice_vector_[atom_id];
   std::vector<size_t> third_neighbors_atom_id_vector;
   third_neighbors_atom_id_vector.reserve(constants::kNumThirdNearestNeighbors);
-  for (auto neighbor_lattice_id: third_neighbors_adjacency_list_[lattice_id]) {
-    third_neighbors_atom_id_vector.push_back(lattice_to_atom_hashmap_.at(neighbor_lattice_id));
+  for (const auto neighbor_lattice_id: third_neighbors_adjacency_list_[lattice_id]) {
+    third_neighbors_atom_id_vector.push_back(lattice_to_atom_vector_[neighbor_lattice_id]);
   }
   return third_neighbors_atom_id_vector;
 }
 
-size_t Config::GetAtomIdFromLatticeId(size_t lattice_id) const {
-  return lattice_to_atom_hashmap_.at(lattice_id);
+size_t Config::GetAtomIdFromLatticeId(const size_t lattice_id) const {
+  return lattice_to_atom_vector_[lattice_id];
 }
 
-size_t Config::GetLatticeIdFromAtomId(size_t atom_id) const {
-  return atom_to_lattice_hashmap_.at(atom_id);
+size_t Config::GetLatticeIdFromAtomId(const size_t atom_id) const {
+  return atom_to_lattice_vector_[atom_id];
 }
 
-Element Config::GetElementAtAtomId(size_t atom_id) const {
+Element Config::GetElementAtAtomId(const size_t atom_id) const {
   return atom_vector_[atom_id].GetElement();
 }
 
-Element Config::GetElementAtLatticeId(size_t lattice_id) const {
-  auto atom_id = lattice_to_atom_hashmap_.at(lattice_id);
+Element Config::GetElementAtLatticeId(const size_t lattice_id) const {
+  const auto atom_id = lattice_to_atom_vector_[lattice_id];
   return atom_vector_[atom_id].GetElement();
 }
 
@@ -162,7 +164,7 @@ Vector_d Config::GetSoluteCenterOfMass() const {
       continue;
     }
 
-    const auto& lattice_id = atom_to_lattice_hashmap_.at(atom.GetId());
+    const auto& lattice_id = atom_to_lattice_vector_[atom.GetId()];
     const auto& relative_position = lattice_vector_[lattice_id].GetRelativePosition();
     const double mass = atom.GetElement().GetMass();
 
@@ -210,7 +212,7 @@ std::map<Element, size_t> Config::GetElementCountMap() const {
 size_t Config::GetStateHash() const {
   size_t seed = 0;
   for (size_t i = 0; i < GetNumAtoms(); ++i) {
-    boost::hash_combine(seed, lattice_to_atom_hashmap_.at(i));
+    boost::hash_combine(seed, lattice_to_atom_vector_[i]);
   }
   return seed;
 }
@@ -316,10 +318,10 @@ std::unordered_set<size_t> Config::GetNeighborsLatticeIdSetOfSite(size_t lattice
 std::unordered_set<size_t> Config::GetNeighborsAtomIdSetOfAtom(size_t atom_id) const {
   std::unordered_set<size_t> near_neighbors_hashset;
   near_neighbors_hashset.insert(atom_id);
-  const auto lattice_id = atom_to_lattice_hashmap_.at(atom_id);
+  const auto lattice_id = atom_to_lattice_vector_[atom_id];
   const auto lattice_id_set = GetNeighborsLatticeIdSetOfSite(lattice_id);
   for (const auto neighbor_lattice_id: lattice_id_set) {
-    near_neighbors_hashset.insert(lattice_to_atom_hashmap_.at(neighbor_lattice_id));
+    near_neighbors_hashset.insert(lattice_to_atom_vector_[neighbor_lattice_id]);
   }
   return near_neighbors_hashset;
 }
@@ -328,32 +330,29 @@ Config::GetNeighborsLatticeIdSetOfPair(const std::pair<size_t, size_t> &lattice_
   std::unordered_set<size_t> near_neighbors_hashset;
   for (const auto lattice_id: {lattice_id_pair.first, lattice_id_pair.second}) {
     near_neighbors_hashset.insert(lattice_id);
-    std::copy(GetFirstNeighborsAdjacencyList().at(lattice_id).begin(),
-              GetFirstNeighborsAdjacencyList().at(lattice_id).end(),
+    std::ranges::copy(GetFirstNeighborsAdjacencyList().at(lattice_id),
               std::inserter(near_neighbors_hashset, near_neighbors_hashset.begin()));
-    std::copy(GetSecondNeighborsAdjacencyList().at(lattice_id).begin(),
-              GetSecondNeighborsAdjacencyList().at(lattice_id).end(),
+    std::ranges::copy(GetSecondNeighborsAdjacencyList().at(lattice_id),
               std::inserter(near_neighbors_hashset, near_neighbors_hashset.begin()));
-    std::copy(GetThirdNeighborsAdjacencyList().at(lattice_id).begin(),
-              GetThirdNeighborsAdjacencyList().at(lattice_id).end(),
+    std::ranges::copy(GetThirdNeighborsAdjacencyList().at(lattice_id),
               std::inserter(near_neighbors_hashset, near_neighbors_hashset.begin()));
   }
   return near_neighbors_hashset;
 }
 
-int Config::FindDistanceLabelBetweenLattice(size_t lattice_id1, size_t lattice_id2) const {
+int Config::FindDistanceLabelBetweenLattice(const size_t lattice_id1, const size_t lattice_id2) const {
   const auto &first_neighbors_adjacency_list = GetFirstNeighborsAdjacencyList()[lattice_id1];
   const auto &second_neighbors_adjacency_list = GetSecondNeighborsAdjacencyList()[lattice_id1];
   const auto &third_neighbors_adjacency_list = GetThirdNeighborsAdjacencyList()[lattice_id1];
-  if (std::find(first_neighbors_adjacency_list.begin(), first_neighbors_adjacency_list.end(), lattice_id2) !=
+  if (std::ranges::find(first_neighbors_adjacency_list, lattice_id2) !=
       first_neighbors_adjacency_list.end()) {
     return 1;
   }
-  if (std::find(second_neighbors_adjacency_list.begin(), second_neighbors_adjacency_list.end(), lattice_id2) !=
+  if (std::ranges::find(second_neighbors_adjacency_list, lattice_id2) !=
       second_neighbors_adjacency_list.end()) {
     return 2;
   }
-  if (std::find(third_neighbors_adjacency_list.begin(), third_neighbors_adjacency_list.end(), lattice_id2) !=
+  if (std::ranges::find(third_neighbors_adjacency_list, lattice_id2) !=
       third_neighbors_adjacency_list.end()) {
     return 3;
   }
@@ -413,15 +412,15 @@ Element Config::GetSolventElement() const {
 
 void Config::AtomJump(const std::pair<size_t, size_t> &atom_id_jump_pair) {
   const auto [atom_id_lhs, atom_id_rhs] = atom_id_jump_pair;
-  const auto lattice_id_lhs = atom_to_lattice_hashmap_.at(atom_id_lhs);
-  const auto lattice_id_rhs = atom_to_lattice_hashmap_.at(atom_id_rhs);
+  const auto lattice_id_lhs = atom_to_lattice_vector_[atom_id_lhs];
+  const auto lattice_id_rhs = atom_to_lattice_vector_[atom_id_rhs];
   LatticeJump({lattice_id_lhs, lattice_id_rhs});
 }
 
 void Config::LatticeJump(const std::pair<size_t, size_t> &lattice_id_jump_pair) {
   const auto [lattice_id_lhs, lattice_id_rhs] = lattice_id_jump_pair;
-  const auto atom_id_lhs = lattice_to_atom_hashmap_.at(lattice_id_lhs);
-  const auto atom_id_rhs = lattice_to_atom_hashmap_.at(lattice_id_rhs);
+  const auto atom_id_lhs = lattice_to_atom_vector_[lattice_id_lhs];
+  const auto atom_id_rhs = lattice_to_atom_vector_[lattice_id_rhs];
 
   const Vector_d displacement =
       lattice_vector_[lattice_id_rhs].GetRelativePosition() - lattice_vector_[lattice_id_lhs].GetRelativePosition();
@@ -439,36 +438,37 @@ void Config::LatticeJump(const std::pair<size_t, size_t> &lattice_id_jump_pair) 
     map_shift_list_[atom_id_rhs][kDim] += image_change[kDim];
   }
 
-  atom_to_lattice_hashmap_.at(atom_id_lhs) = lattice_id_rhs;
-  atom_to_lattice_hashmap_.at(atom_id_rhs) = lattice_id_lhs;
-  lattice_to_atom_hashmap_.at(lattice_id_lhs) = atom_id_rhs;
-  lattice_to_atom_hashmap_.at(lattice_id_rhs) = atom_id_lhs;
+  atom_to_lattice_vector_[atom_id_lhs] = lattice_id_rhs;
+  atom_to_lattice_vector_[atom_id_rhs] = lattice_id_lhs;
+  lattice_to_atom_vector_[lattice_id_lhs] = atom_id_rhs;
+  lattice_to_atom_vector_[lattice_id_rhs] = atom_id_lhs;
 }
 
-void Config::SetAtomElementTypeAtAtom(size_t atom_id, Element element) {
+void Config::SetAtomElementTypeAtAtom(const size_t atom_id, const Element element) {
   atom_vector_.at(atom_id).SetElement(element);
 }
 
-void Config::SetAtomElementTypeAtLattice(size_t lattice_id, Element element) {
-  atom_vector_.at(lattice_to_atom_hashmap_.at(lattice_id)).SetElement(element);
+void Config::SetAtomElementTypeAtLattice(const size_t lattice_id, const Element element) {
+  atom_vector_.at(lattice_to_atom_vector_[lattice_id]).SetElement(element);
 }
 
 void Config::ReassignLatticeVector() {
   auto new_lattice_vector(lattice_vector_);
-  std::sort(new_lattice_vector.begin(), new_lattice_vector.end(), [](const auto &lhs, const auto &rhs) -> bool {
+  std::ranges::sort(new_lattice_vector, [](const auto &lhs, const auto &rhs) -> bool {
     return lhs.GetRelativePosition() < rhs.GetRelativePosition();
   });
-  std::unordered_map<size_t, size_t> old_lattice_id_to_new;
+  std::vector<size_t> old_lattice_id_to_new(GetNumAtoms());
   for (size_t lattice_id = 0; lattice_id < GetNumAtoms(); ++lattice_id) {
-    old_lattice_id_to_new.emplace(new_lattice_vector.at(lattice_id).GetId(), lattice_id);
+    old_lattice_id_to_new[new_lattice_vector.at(lattice_id).GetId()] = lattice_id;
     new_lattice_vector.at(lattice_id).SetId(lattice_id);
   }
-  std::unordered_map<size_t, size_t> new_lattice_to_atom_hashmap, new_atom_to_lattice_hashmap;
+  std::vector<size_t> new_lattice_to_atom_vector(GetNumAtoms());
+  std::vector<size_t> new_atom_to_lattice_vector(GetNumAtoms());
   for (size_t atom_id = 0; atom_id < GetNumAtoms(); ++atom_id) {
-    auto old_lattice_id = atom_to_lattice_hashmap_.at(atom_id);
-    auto new_lattice_id = old_lattice_id_to_new.at(old_lattice_id);
-    new_lattice_to_atom_hashmap.emplace(new_lattice_id, atom_id);
-    new_atom_to_lattice_hashmap.emplace(atom_id, new_lattice_id);
+    const auto old_lattice_id = atom_to_lattice_vector_[atom_id];
+    const auto new_lattice_id = old_lattice_id_to_new[old_lattice_id];
+    new_lattice_to_atom_vector[new_lattice_id] = atom_id;
+    new_atom_to_lattice_vector[atom_id] = new_lattice_id;
   }
 
   std::vector<std::vector<size_t>> new_first_neighbors_adjacency_list, new_second_neighbors_adjacency_list,
@@ -491,37 +491,34 @@ void Config::ReassignLatticeVector() {
 
   for (size_t old_lattice_id = 0; old_lattice_id < GetNumAtoms(); ++old_lattice_id) {
     const auto &old_neighbor_id_vector = first_neighbors_adjacency_list_.at(old_lattice_id);
-    const auto new_lattice_id = old_lattice_id_to_new.at(old_lattice_id);
+    const auto new_lattice_id = old_lattice_id_to_new[old_lattice_id];
     for (const auto old_neighbor_id: old_neighbor_id_vector) {
-      new_first_neighbors_adjacency_list.at(new_lattice_id).push_back(old_lattice_id_to_new.at(old_neighbor_id));
+      new_first_neighbors_adjacency_list.at(new_lattice_id).push_back(old_lattice_id_to_new[old_neighbor_id]);
     }
   }
   for (size_t old_lattice_id = 0; old_lattice_id < GetNumAtoms(); ++old_lattice_id) {
     const auto &old_neighbor_id_vector = second_neighbors_adjacency_list_.at(old_lattice_id);
-    const auto new_lattice_id = old_lattice_id_to_new.at(old_lattice_id);
+    const auto new_lattice_id = old_lattice_id_to_new[old_lattice_id];
     for (const auto old_neighbor_id: old_neighbor_id_vector) {
-      new_second_neighbors_adjacency_list.at(new_lattice_id).push_back(old_lattice_id_to_new.at(old_neighbor_id));
+      new_second_neighbors_adjacency_list.at(new_lattice_id).push_back(old_lattice_id_to_new[old_neighbor_id]);
     }
   }
   for (size_t old_lattice_id = 0; old_lattice_id < GetNumAtoms(); ++old_lattice_id) {
     const auto &old_neighbor_id_vector = third_neighbors_adjacency_list_.at(old_lattice_id);
-    const auto new_lattice_id = old_lattice_id_to_new.at(old_lattice_id);
+    const auto new_lattice_id = old_lattice_id_to_new[old_lattice_id];
     for (const auto old_neighbor_id: old_neighbor_id_vector) {
-      new_third_neighbors_adjacency_list.at(new_lattice_id).push_back(old_lattice_id_to_new.at(old_neighbor_id));
+      new_third_neighbors_adjacency_list.at(new_lattice_id).push_back(old_lattice_id_to_new[old_neighbor_id]);
     }
   }
 
   for (size_t lattice_id = 0; lattice_id < GetNumAtoms(); ++lattice_id) {
-    std::sort(new_first_neighbors_adjacency_list.at(lattice_id).begin(),
-              new_first_neighbors_adjacency_list.at(lattice_id).end());
-    std::sort(new_second_neighbors_adjacency_list.at(lattice_id).begin(),
-              new_second_neighbors_adjacency_list.at(lattice_id).end());
-    std::sort(new_third_neighbors_adjacency_list.at(lattice_id).begin(),
-              new_third_neighbors_adjacency_list.at(lattice_id).end());
+    std::ranges::sort(new_first_neighbors_adjacency_list.at(lattice_id));
+    std::ranges::sort(new_second_neighbors_adjacency_list.at(lattice_id));
+    std::ranges::sort(new_third_neighbors_adjacency_list.at(lattice_id));
   }
   lattice_vector_ = new_lattice_vector;
-  lattice_to_atom_hashmap_ = new_lattice_to_atom_hashmap;
-  atom_to_lattice_hashmap_ = new_atom_to_lattice_hashmap;
+  lattice_to_atom_vector_ = std::move(new_lattice_to_atom_vector);
+  atom_to_lattice_vector_ = std::move(new_atom_to_lattice_vector);
   first_neighbors_adjacency_list_ = new_first_neighbors_adjacency_list;
   second_neighbors_adjacency_list_ = new_second_neighbors_adjacency_list;
   third_neighbors_adjacency_list_ = new_third_neighbors_adjacency_list;
@@ -658,7 +655,7 @@ void Config::WriteExtendedConfig(const std::string &filename,
     const auto &atom = atom_vector_[it];
     fos << atom.GetMass() << '\n'
         << atom.GetElementString() << '\n'
-        << lattice_vector_[atom_to_lattice_hashmap_.at(atom.GetId())].GetRelativePosition()
+        << lattice_vector_[atom_to_lattice_vector_[atom.GetId()]].GetRelativePosition()
         << ' ' << map_shift_list_[it];
     for (const auto &auxiliary_list: auxiliary_lists) {
       ofs << ' ' << auxiliary_list.second[it];
@@ -730,7 +727,7 @@ void Config::WriteExtendedXyz(const std::string &filename,
   fos << '\n';
 
   for (size_t it = 0; it < GetNumAtoms(); ++it) {
-    const auto &cartesian_position = lattice_vector_[atom_to_lattice_hashmap_.at(it)].GetCartesianPosition();
+    const auto &cartesian_position = lattice_vector_[atom_to_lattice_vector_[it]].GetCartesianPosition();
     const auto &map_shift = map_shift_list_[it];
     fos << atom_vector_[it].GetElementString() << ' ' << cartesian_position << ' ' << map_shift << ' ';
 
@@ -824,11 +821,13 @@ Config Config::ReadMap(const std::string &lattice_filename,
   if (!ifs_map.is_open()) {
     throw std::runtime_error("Cannot open " + map_filename);
   }
+  config.lattice_to_atom_vector_.resize(num_atoms);
+  config.atom_to_lattice_vector_.resize(num_atoms);
   size_t lattice_id;
   for (size_t atom_id = 0; atom_id < num_atoms; ++atom_id) {
     ifs_map >> lattice_id;
-    config.lattice_to_atom_hashmap_.emplace(lattice_id, atom_id);
-    config.atom_to_lattice_hashmap_.emplace(atom_id, lattice_id);
+    config.lattice_to_atom_vector_[lattice_id] = atom_id;
+    config.atom_to_lattice_vector_[atom_id] = lattice_id;
     ifs_map.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
   }
   return config;
@@ -867,7 +866,7 @@ void Config::WriteMap(const std::string &filename) const {
   std::ofstream ofs(filename, std::ofstream::out);
   ofs.precision(16);
   for (size_t atom_id = 0; atom_id < atom_vector_.size(); ++atom_id) {
-    ofs << atom_to_lattice_hashmap_.at(atom_id) << std::endl;
+    ofs << atom_to_lattice_vector_[atom_id] << std::endl;
   }
 }
 

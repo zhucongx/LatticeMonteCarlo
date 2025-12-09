@@ -88,8 +88,8 @@ class Config {
 
  private:
   // Private Getter
-  [[nodiscard]] const std::unordered_map<size_t, size_t> &GetLatticeToAtomHashmap() const;
-  [[nodiscard]] const std::unordered_map<size_t, size_t> &GetAtomToLatticeHashmap() const;
+  [[nodiscard]] const std::vector<size_t> &GetLatticeToAtomVector() const;
+  [[nodiscard]] const std::vector<size_t> &GetAtomToLatticeVector() const;
   // Modify config
   void ConvertRelativeToCartesian();
   void ConvertCartesianToRelative();
@@ -100,8 +100,8 @@ class Config {
   std::vector<Lattice> lattice_vector_{};
   std::vector<Atom> atom_vector_{};
   std::vector<Vector_i> map_shift_list_{};
-  std::unordered_map<size_t, size_t> lattice_to_atom_hashmap_{};
-  std::unordered_map<size_t, size_t> atom_to_lattice_hashmap_{};
+  std::vector<size_t> lattice_to_atom_vector_{};
+  std::vector<size_t> atom_to_lattice_vector_{};
   std::vector<std::vector<size_t>> first_neighbors_adjacency_list_{};
   std::vector<std::vector<size_t>> second_neighbors_adjacency_list_{};
   std::vector<std::vector<size_t>> third_neighbors_adjacency_list_{};
