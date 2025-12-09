@@ -90,7 +90,7 @@ void CanonicalMcAbstract::SelectEvent(const std::pair<size_t, size_t> &lattice_i
     energy_ += dE;
     absolute_energy_ += dE;
   } else {
-    double possibility = std::exp(-dE * beta_);
+    const double possibility = std::exp(-dE * beta_);
     double random_number = unit_distribution_(generator_);
     if (random_number < possibility) {
       config_.LatticeJump(lattice_id_jump_pair);

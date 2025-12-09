@@ -959,7 +959,7 @@ void Config::UpdateNeighbors() {
     }
     return offsets;
   }();
-  // Create neighbor list, iterate over each cell and find neighboring points
+  // Create a neighbor list, iterate over each cell and find neighboring points
   for (size_t cell_idx = 0; cell_idx < cells.size(); ++cell_idx) {
     auto &cell = cells.at(cell_idx);
     const size_t i = cell_idx / (num_cells[1] * num_cells[2]);
@@ -1012,12 +1012,9 @@ void Config::UpdateNeighbors() {
   }
 
   for (size_t lattice_id = 0; lattice_id < GetNumAtoms(); ++lattice_id) {
-    std::sort(first_neighbors_adjacency_list_.at(lattice_id).begin(),
-              first_neighbors_adjacency_list_.at(lattice_id).end());
-    std::sort(second_neighbors_adjacency_list_.at(lattice_id).begin(),
-              second_neighbors_adjacency_list_.at(lattice_id).end());
-    std::sort(third_neighbors_adjacency_list_.at(lattice_id).begin(),
-              third_neighbors_adjacency_list_.at(lattice_id).end());
+    std::ranges::sort(first_neighbors_adjacency_list_.at(lattice_id));
+    std::ranges::sort(second_neighbors_adjacency_list_.at(lattice_id));
+    std::ranges::sort(third_neighbors_adjacency_list_.at(lattice_id));
   }
 }
 
@@ -1039,9 +1036,9 @@ Config GenerateFCC(const Factor_t &factors, Element element) {
                   {0, constants::kLatticeConstant * static_cast<double>(factors[1]), 0},
                   {0, 0, constants::kLatticeConstant * static_cast<double>(factors[2])}}};
   const size_t num_atoms = 4 * factors[0] * factors[1] * factors[2];
-  auto x_length = static_cast<double>(factors[0]);
-  auto y_length = static_cast<double>(factors[1]);
-  auto z_length = static_cast<double>(factors[2]);
+  const auto x_length = static_cast<double>(factors[0]);
+  const auto y_length = static_cast<double>(factors[1]);
+  const auto z_length = static_cast<double>(factors[2]);
   std::vector<Lattice> lattice_vector;
   lattice_vector.reserve(num_atoms);
   std::vector<Atom> atom_vector;
