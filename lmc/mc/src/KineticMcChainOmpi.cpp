@@ -83,9 +83,6 @@ void KineticMcChainOmpi::BuildEventList() {
       total_rate_i_ += r_i_l;
     }
   }
-  // TODO(perf): Similar to First* OMP path, this parallel region may contend with
-  // LRU locks in the predictor. Consider sequential construction or thread-local
-  // caches to reduce lock contention.
   config_.LatticeJump({i_lattice_id, k_lattice_id});
 
   double rate_k_i = event_k_i_.GetForwardRate();

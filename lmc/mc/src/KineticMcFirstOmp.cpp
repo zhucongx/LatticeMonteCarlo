@@ -49,11 +49,6 @@ KineticMcFirstOmp::KineticMcFirstOmp(cfg::Config config,
   }
 }
 KineticMcFirstOmp::~KineticMcFirstOmp() = default;
-  // TODO(perf): This outer OMP over 12 neighbors often contends with the LRU cache
-  // locks inside the predictor. Prefer a sequential loop here and keep the predictor's
-  // internal parallel sections (dE/D/Ks) enabled, or use thread-local LRU caches.
-  // Also consider reusing the previous step's reverse event to avoid one prediction
-  // after each vacancy move; only rebuild events touched by the move instead of all 12.
 void KineticMcFirstOmp::BuildEventList() {
   total_rate_k_ = 0.0;
   const auto neighbor_lattice_id_vector = config_.GetFirstNeighborsAdjacencyList()[vacancy_lattice_id_];
