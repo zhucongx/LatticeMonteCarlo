@@ -23,12 +23,14 @@ public:
       cache_hashmap_.erase(last);
     }
   }
+  // Use shared locking for reads to reduce contention under OpenMP.
+  // Option A: shared_lock + no reordering on hit (or defer reordering).
+  // Option B: thread-local front cache and merge misses to the global LRU outside
+  // parallel regions to avoid lock contention entirely. Flat hash maps can also
+  // lower constant factors if K is small and dense.
+  // Note: Profiling shows LRU tweaks (shared lock / FIFO) only gave ~2.5% gain,
+  // so we keep the simple write-lock path unless cache contention grows.
   [[nodiscard]] bool Get(const K key, V &value) {
-    // TODO(perf): Use shared locking for reads to reduce contention under OpenMP.
-    // Option A: shared_lock + no reordering on hit (or defer reordering).
-    // Option B: thread-local front cache and merge misses to the global LRU outside
-    // parallel regions to avoid lock contention entirely. Flat hash maps can also
-    // lower constant factors if K is small and dense.
     std::unique_lock<std::shared_mutex> lock(mu_);
     auto it = cache_hashmap_.find(key);
     if (it == cache_hashmap_.end()) {
