@@ -55,10 +55,9 @@ if (CMAKE_BUILD_TYPE MATCHES Debug)
 elseif (CMAKE_BUILD_TYPE MATCHES Release)
     add_cxx_compiler_flags("-O3")
     add_cxx_compiler_flags("-DNDEBUG -DEIGEN_NO_DEBUG")
-#    add_cxx_compiler_flags("-ffast-math")
-#    add_cxx_compiler_flags("-march=native")
-    # NOTE: -march=native ties binaries to the compile-node architecture; on heterogeneous clusters
-    # prefer an explicit -march (e.g. -march=skylake-avx512 or -march=icelake-server) or build on target nodes.
+    add_cxx_compiler_flags("-fno-math-errno -fno-trapping-math -ffp-contract=fast")
+#    add_cxx_compiler_flags("-ffast-math") # NOTE: this flag may lead to precision loss
+#    add_cxx_compiler_flags("-march=native") # NOTE: this flag better to be added using ADDITIONAL_FLAGS
 endif ()
 if (DEFINED ADDITIONAL_FLAGS AND NOT "${ADDITIONAL_FLAGS}" STREQUAL "")
     add_cxx_compiler_flags("${ADDITIONAL_FLAGS}")
