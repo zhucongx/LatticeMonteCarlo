@@ -7,9 +7,11 @@
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
 #include <chrono>
+#include <limits>
 #include <omp.h>
 #include <random>
 #include <utility>
+#include <ranges>
 
 namespace cfg {
 Config::Config() = default;
@@ -27,11 +29,18 @@ Config::Config(const Matrix_d &basis,
     throw std::runtime_error("Lattice vector and atom vector size do not match");
   }
   const auto num_sites = lattice_vector_.size();
-  lattice_to_atom_vector_.resize(num_sites);
-  atom_to_lattice_vector_.resize(num_sites);
+  lattice_to_atom_vector_.assign(num_sites, std::numeric_limits<size_t>::max());
+  atom_to_lattice_vector_.assign(num_sites, std::numeric_limits<size_t>::max());
   for (size_t i = 0; i < num_sites; ++i) {
     const auto lattice_id = lattice_vector_.at(i).GetId();
     const auto atom_id = atom_vector_.at(i).GetId();
+    if (lattice_id >= num_sites || atom_id >= num_sites) {
+      throw std::runtime_error("Lattice/atom id out of bounds for dense mapping");
+    }
+    if (lattice_to_atom_vector_[lattice_id] != std::numeric_limits<size_t>::max() ||
+        atom_to_lattice_vector_[atom_id] != std::numeric_limits<size_t>::max()) {
+      throw std::runtime_error("Duplicate lattice/atom id encountered during mapping initialization");
+    }
     lattice_to_atom_vector_[lattice_id] = atom_id;
     atom_to_lattice_vector_[atom_id] = lattice_id;
   }
@@ -457,16 +466,29 @@ void Config::ReassignLatticeVector() {
   std::ranges::sort(new_lattice_vector, [](const auto &lhs, const auto &rhs) -> bool {
     return lhs.GetRelativePosition() < rhs.GetRelativePosition();
   });
-  std::vector<size_t> old_lattice_id_to_new(GetNumAtoms());
+  std::vector<size_t> old_lattice_id_to_new(GetNumAtoms(), std::numeric_limits<size_t>::max());
   for (size_t lattice_id = 0; lattice_id < GetNumAtoms(); ++lattice_id) {
-    old_lattice_id_to_new[new_lattice_vector.at(lattice_id).GetId()] = lattice_id;
+    const auto old_id = new_lattice_vector.at(lattice_id).GetId();
+    if (old_id >= GetNumAtoms()) {
+      throw std::runtime_error("Old lattice id out of bounds during reassignment");
+    }
+    if (old_lattice_id_to_new[old_id] != std::numeric_limits<size_t>::max()) {
+      throw std::runtime_error("Duplicate lattice id encountered during reassignment");
+    }
+    old_lattice_id_to_new[old_id] = lattice_id;
     new_lattice_vector.at(lattice_id).SetId(lattice_id);
   }
-  std::vector<size_t> new_lattice_to_atom_vector(GetNumAtoms());
-  std::vector<size_t> new_atom_to_lattice_vector(GetNumAtoms());
+  std::vector<size_t> new_lattice_to_atom_vector(GetNumAtoms(), std::numeric_limits<size_t>::max());
+  std::vector<size_t> new_atom_to_lattice_vector(GetNumAtoms(), std::numeric_limits<size_t>::max());
   for (size_t atom_id = 0; atom_id < GetNumAtoms(); ++atom_id) {
     const auto old_lattice_id = atom_to_lattice_vector_[atom_id];
+    if (old_lattice_id >= old_lattice_id_to_new.size()) {
+      throw std::runtime_error("Old lattice id out of bounds while remapping atoms");
+    }
     const auto new_lattice_id = old_lattice_id_to_new[old_lattice_id];
+    if (new_lattice_id == std::numeric_limits<size_t>::max()) {
+      throw std::runtime_error("Unmapped lattice id encountered while remapping atoms");
+    }
     new_lattice_to_atom_vector[new_lattice_id] = atom_id;
     new_atom_to_lattice_vector[atom_id] = new_lattice_id;
   }
@@ -821,11 +843,17 @@ Config Config::ReadMap(const std::string &lattice_filename,
   if (!ifs_map.is_open()) {
     throw std::runtime_error("Cannot open " + map_filename);
   }
-  config.lattice_to_atom_vector_.resize(num_atoms);
-  config.atom_to_lattice_vector_.resize(num_atoms);
+  config.lattice_to_atom_vector_.assign(num_atoms, std::numeric_limits<size_t>::max());
+  config.atom_to_lattice_vector_.assign(num_atoms, std::numeric_limits<size_t>::max());
   size_t lattice_id;
   for (size_t atom_id = 0; atom_id < num_atoms; ++atom_id) {
     ifs_map >> lattice_id;
+    if (lattice_id >= num_atoms) {
+      throw std::runtime_error("Lattice id out of bounds in map file: " + std::to_string(lattice_id));
+    }
+    if (config.lattice_to_atom_vector_[lattice_id] != std::numeric_limits<size_t>::max()) {
+      throw std::runtime_error("Duplicate lattice id in map file: " + std::to_string(lattice_id));
+    }
     config.lattice_to_atom_vector_[lattice_id] = atom_id;
     config.atom_to_lattice_vector_[atom_id] = lattice_id;
     ifs_map.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
@@ -883,7 +911,7 @@ void Config::ConvertCartesianToRelative() {
   }
 }
 
-void Config::InitializeNeighborsList(size_t num_atoms) {
+void Config::InitializeNeighborsList(const size_t num_atoms) {
   first_neighbors_adjacency_list_.resize(num_atoms);
   for (auto &neighbor_list: first_neighbors_adjacency_list_) {
     neighbor_list.clear();
