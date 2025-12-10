@@ -365,8 +365,7 @@ std::vector<std::vector<size_t>> SoluteCluster::FindAtomListOfClusters() const {
   }
 
   // sort by size
-  std::sort(cluster_atom_list.begin(),
-            cluster_atom_list.end(),
+  std::ranges::sort(cluster_atom_list,
             [](const std::vector<size_t> &a, const std::vector<size_t> &b) {
               return a.size() > b.size();
             });

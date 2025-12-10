@@ -15,7 +15,7 @@ std::unordered_map<std::string, std::vector<double> > GetOneHotEncodeHashmap(
     ++ct1;
   }
 
-  size_t num_pairs = type_size * type_size;
+  const size_t num_pairs = type_size * type_size;
   size_t ct2 = 0;
   for (const auto &element1: element_set) {
     for (const auto &element2: element_set) {
@@ -42,9 +42,9 @@ std::unordered_map<std::string, std::vector<double> > GetOneHotEncodeHashmap(
 
 std::vector<cfg::Lattice> GetSymmetricallySortedLatticeVectorMMM(
     const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) {
-  // The number of first-, second-, and third-nearest neighbors of the jump pairs
+  // The number of the first-nearest neighbors, second-nearest neighbors, and third-nearest neighbors of the jump pairs
   constexpr size_t kNumOfSites = constants::kNumThirdNearestSetSizeOfPair;
-  auto lattice_id_hashset =
+  const auto lattice_id_hashset =
       config.GetNeighborsLatticeIdSetOfPair(lattice_id_jump_pair);
   const auto move_distance = Vector_d{0.5, 0.5, 0.5}
       - config.GetLatticePairCenter(lattice_id_jump_pair);
@@ -64,7 +64,7 @@ std::vector<cfg::Lattice> GetSymmetricallySortedLatticeVectorMMM(
   }
   RotateLatticeVector(lattice_list,
                       config.GetLatticePairRotationMatrix(lattice_id_jump_pair));
-  std::sort(lattice_list.begin(), lattice_list.end(),
+  std::ranges::sort(lattice_list,
             [](const cfg::Lattice &lhs, const cfg::Lattice &rhs) -> bool {
               return PositionCompareMMM(lhs, rhs);
             });
@@ -74,7 +74,7 @@ std::vector<cfg::Lattice> GetSymmetricallySortedLatticeVectorMM2(
     const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) {
   // The number of first-, second-, and third-nearest neighbors of the jump pairs
   constexpr size_t kNumOfSites = constants::kNumThirdNearestSetSizeOfPair;
-  auto lattice_id_hashset =
+  const auto lattice_id_hashset =
       config.GetNeighborsLatticeIdSetOfPair(lattice_id_jump_pair);
   const auto move_distance = Vector_d{0.5, 0.5, 0.5}
       - config.GetLatticePairCenter(lattice_id_jump_pair);
@@ -94,7 +94,7 @@ std::vector<cfg::Lattice> GetSymmetricallySortedLatticeVectorMM2(
   }
   RotateLatticeVector(lattice_list,
                       config.GetLatticePairRotationMatrix(lattice_id_jump_pair));
-  std::sort(lattice_list.begin(), lattice_list.end(),
+  std::ranges::sort(lattice_list,
             [](const cfg::Lattice &lhs, const cfg::Lattice &rhs) -> bool {
               return PositionCompareMM2(lhs, rhs);
             });
@@ -285,9 +285,9 @@ std::vector<cfg::Lattice> GetSortedLatticeVectorStateOfPair(
 }
 std::vector<cfg::Lattice> GetSortedLatticeVectorStateOfSite(
     const cfg::Config &config, const size_t lattice_id) {
-  // The number of first-, second-, and third-nearest neighbors of the lattice sites
+  // The number of the first-nearest neighbors, second-nearest neighbors, and third-nearest neighbors of the lattice sites
   constexpr size_t kNumOfSites = constants::kNumThirdNearestSetSizeOfSite;
-  auto lattice_id_hashset = config.GetNeighborsLatticeIdSetOfSite(lattice_id);
+  const auto lattice_id_hashset = config.GetNeighborsLatticeIdSetOfSite(lattice_id);
   const auto move_distance =
       Vector_d{0.5, 0.5, 0.5} - config.GetLatticeVector()[lattice_id].GetRelativePosition();
   std::vector<cfg::Lattice> lattice_list;
@@ -356,7 +356,7 @@ int GetLabel(const std::vector<size_t> &lattice_index_list, const cfg::Config &c
                                                                lattice_index_list[2]),
                         config.FindDistanceLabelBetweenLattice(lattice_index_list[2],
                                                                lattice_index_list[0])};
-    std::sort(bond_label_list.begin(), bond_label_list.end());
+    std::ranges::sort(bond_label_list);
     if (bond_label_list[0] == 1 && bond_label_list[1] == 1 && bond_label_list[2] == 1) {
       return 4;
     } else if (bond_label_list[0] == 1 && bond_label_list[1] == 1 && bond_label_list[2] == 2) {
@@ -741,7 +741,7 @@ std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState
 std::vector<double> GetOneHotParametersFromMap(
     const std::vector<Element> &encode,
     const std::unordered_map<std::string, std::vector<double> > &one_hot_encode_hashmap,
-    size_t num_of_elements,
+    const size_t num_of_elements,
     const std::vector<std::vector<std::vector<size_t> > > &cluster_mapping) {
 
   std::vector<double> res_encode;
@@ -762,7 +762,7 @@ std::vector<double> GetOneHotParametersFromMap(
         std::transform(std::next(cluster.begin()), cluster.end(),
                        std::back_inserter(string_vector),
                        [&encode](const auto &index) { return encode[index].GetString(); });
-        std::sort(string_vector.begin(), string_vector.end());
+        std::ranges::sort(string_vector);
         cluster_type = string_vector.empty() ? "" :
                        std::accumulate(
                            std::next(string_vector.begin()), string_vector.end(),
@@ -773,7 +773,7 @@ std::vector<double> GetOneHotParametersFromMap(
                              return a;
                            });
       } else {
-        for (auto index: cluster) {
+        for (const auto index: cluster) {
           cluster_type += encode[index].GetString();
         }
       }
@@ -784,11 +784,10 @@ std::vector<double> GetOneHotParametersFromMap(
                      std::plus<>());
     }
     auto cluster_vector_size = static_cast<double>( cluster_vector.size());
-    std::for_each(sum_of_list.begin(),
-                  sum_of_list.end(),
+    std::ranges::for_each(sum_of_list,
                   [cluster_vector_size](auto &n) { n /= cluster_vector_size; });
 
-    std::move(sum_of_list.begin(), sum_of_list.end(), std::back_inserter(res_encode));
+    std::ranges::move(sum_of_list, std::back_inserter(res_encode));
   }
   return res_encode;
 }

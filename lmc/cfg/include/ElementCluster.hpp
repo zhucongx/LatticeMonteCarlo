@@ -17,12 +17,12 @@ class ElementCluster {
   public:
     // Constructor
     ElementCluster() = default;
-    ElementCluster(int label, std::vector<Element> element_vector)
+    ElementCluster(const int label, std::vector<Element> element_vector)
         : label_(label), element_vector_(std::move(element_vector)) {
       std::sort(element_vector_.begin(), element_vector_.end());
     }
     template<typename ... Ts>
-    explicit ElementCluster(int label, Ts &&... ts)
+    explicit ElementCluster(const int label, Ts &&... ts)
         : label_(label), element_vector_{std::forward<Ts>(ts)...} {
       std::sort(element_vector_.begin(), element_vector_.end());
     }

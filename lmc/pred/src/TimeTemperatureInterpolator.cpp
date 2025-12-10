@@ -32,7 +32,7 @@ TimeTemperatureInterpolator::TimeTemperatureInterpolator(const std::vector<std::
 void TimeTemperatureInterpolator::SortPoints()
 {
   //Defensive programming. Assume the caller has not sorted the table ascending order
-  std::sort(points_.begin(), points_.end());
+  std::ranges::sort(points_);
   //Ensure that no 2 adjacent x values are equal, lest we try to divide by zero when we interpolate.
   constexpr double EPSILON{1.0e-12};
   for (std::size_t i = 1; i < points_.size(); ++i) {
