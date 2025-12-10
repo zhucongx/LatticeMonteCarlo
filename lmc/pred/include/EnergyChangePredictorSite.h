@@ -8,6 +8,7 @@
 #include "Config.h"
 #include "ElementCluster.hpp"
 #include "EnergyUtility.h"
+#include <Eigen/Dense>
 
 namespace pred {
 class EnergyChangePredictorSite {
@@ -23,7 +24,7 @@ class EnergyChangePredictorSite {
 
   private:
     const std::set<Element> element_set_;
-    std::vector<double> base_theta_{};
+    Eigen::VectorXd base_theta_{};
     ClusterIndexer cluster_indexer_{};
 
     std::unordered_map<size_t, std::vector<std::vector<std::vector<size_t>>>> site_neighbors_hashmap_{};

@@ -8,6 +8,7 @@
 #include "LatticeCluster.hpp"
 #include "ElementCluster.hpp"
 #include "EnergyUtility.h"
+#include <Eigen/Dense>
 
 namespace pred {
 class EnergyChangePredictorPairSite {
@@ -32,7 +33,7 @@ class EnergyChangePredictorPairSite {
     const std::set<Element> element_set_;
     const std::vector<std::vector<std::vector<size_t> > > site_mapping_state_;
 
-    std::vector<double> base_theta_{};
+    Eigen::VectorXd base_theta_{};
     ClusterIndexer cluster_indexer_{};
 
     std::unordered_map<size_t, std::vector<size_t> > site_state_hashmap_{};

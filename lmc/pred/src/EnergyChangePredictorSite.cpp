@@ -33,11 +33,7 @@ EnergyChangePredictorSite::EnergyChangePredictorSite(const std::string &predicto
 
   for (const auto &[element, parameters]: all_parameters.items()) {
     if (element == "Base") {
-      auto base_theta_json = parameters.at("theta");
-      base_theta_ = {};
-      for (const auto &theta : base_theta_json) {
-        base_theta_.emplace_back(theta.get<double>());
-      }
+      base_theta_ = JsonToEigenVector(parameters.at("theta"));
     }
   }
 #pragma omp parallel for default(none) shared(reference_config)
@@ -97,8 +93,7 @@ double EnergyChangePredictorSite::GetDeFromLatticeIdSite(
     de_encode[idx] = (static_cast<double>(end_counts[idx]) - static_cast<double>(start_counts[idx]))
         / total_bonds[idx];
   }
-  const Eigen::Map<const Eigen::VectorXd> theta_vec(base_theta_.data(), static_cast<Eigen::Index>(base_theta_.size()));
   const Eigen::Map<const Eigen::VectorXd> encode_vec(de_encode.data(), static_cast<Eigen::Index>(de_encode.size()));
-  return theta_vec.dot(encode_vec);
+  return base_theta_.dot(encode_vec);
 }
 } // pred

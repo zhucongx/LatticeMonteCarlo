@@ -6,6 +6,7 @@
 #include <boost/functional/hash.hpp>
 #include "Config.h"
 #include "EnergyUtility.h"
+#include <Eigen/Dense>
 
 namespace pred {
 class EnergyChangePredictorPair {
@@ -22,7 +23,7 @@ class EnergyChangePredictorPair {
     const std::set<Element> element_set_;
     const std::vector<std::vector<std::vector<size_t>>> bond_mapping_state_;
 
-    std::vector<double> base_theta_{};
+    Eigen::VectorXd base_theta_{};
     ClusterIndexer cluster_indexer_{};
 
     std::unordered_map<std::pair<size_t, size_t>, std::vector<size_t>, boost::hash<std::pair<size_t, size_t>>>
