@@ -1,11 +1,13 @@
 #include "VacancyMigrationPredictorQuartic.h"
 #include <Eigen/Dense>
 #include <utility>
+#include <algorithm>
 #include <boost/range/combine.hpp>
 #include <omp.h>
 #include <nlohmann/json.hpp>
 #include "Constants.hpp"
 #include <stdexcept>
+#include <ranges>
 
 namespace pred {
 VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::string &predictor_filename,
