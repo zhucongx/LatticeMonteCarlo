@@ -23,7 +23,7 @@ class EnergyChangePredictorSite {
  private:
   const std::set<Element> element_set_;
   std::vector<double> base_theta_{};
-  std::unordered_map<cfg::ElementCluster, size_t, boost::hash<cfg::ElementCluster>> initialized_cluster_hashmap_{};
+  ClusterIndexer cluster_indexer_{};
 
   std::unordered_map<size_t, std::vector<std::vector<std::vector<size_t>>>> site_neighbors_hashmap_{};
 };

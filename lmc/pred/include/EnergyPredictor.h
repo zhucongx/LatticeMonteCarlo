@@ -26,8 +26,7 @@ std::set<Element> element_set);
                                                        const std::vector<size_t> &atom_id_list) const;
   const std::set<Element> element_set_;
   Eigen::VectorXd base_theta_{};
-  std::unordered_map<cfg::ElementCluster, size_t,
-                     boost::hash<cfg::ElementCluster>> initialized_cluster_hashmap_{};
+  ClusterIndexer cluster_indexer_{};
 };
 }
     // namespace pred

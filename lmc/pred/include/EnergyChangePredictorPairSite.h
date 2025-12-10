@@ -38,8 +38,7 @@ class EnergyChangePredictorPairSite {
     const std::vector<std::vector<std::vector<size_t> > > site_mapping_state_;
 
     std::vector<double> base_theta_{};
-    std::unordered_map<cfg::ElementCluster, size_t,
-                       boost::hash<cfg::ElementCluster> > initialized_cluster_hashmap_{};
+    ClusterIndexer cluster_indexer_{};
 
     std::unordered_map<size_t, std::vector<size_t> > site_state_hashmap_{};
     std::unordered_map<size_t, std::unordered_set<size_t> > neighboring_sites_hashmap_{};

@@ -7,9 +7,12 @@
 #include "Constants.hpp"
 #include <stdexcept>
 #include <algorithm>
-#include <ranges>
 
 namespace pred {
+namespace {
+const std::vector<double>
+    kDeClusterCounter{256, 1536, 768, 3072, 2048, 3072, 6144, 6144, 6144, 6144, 2048};
+}
 VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::string &predictor_filename,
                                                                    const cfg::Config &reference_config,
                                                                    std::set<Element> element_set)
@@ -25,6 +28,12 @@ VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::st
   initialized_cluster_hashmap_ = InitializeClusterHashMap(element_set_copy);
   ordered_map_ = std::map<cfg::ElementCluster, int>(initialized_cluster_hashmap_.begin(),
                                                     initialized_cluster_hashmap_.end());
+  std::vector<double> cluster_total_bonds;
+  cluster_total_bonds.reserve(ordered_map_.size());
+  for (const auto &entry : ordered_map_) {
+    cluster_total_bonds.push_back(kDeClusterCounter.at(static_cast<size_t>(entry.first.GetLabel())));
+  }
+  state_cluster_indexer_ = ClusterIndexer(ordered_map_, std::move(cluster_total_bonds));
 
   std::ifstream ifs(predictor_filename, std::ifstream::in);
   if (!ifs) {
@@ -103,23 +112,30 @@ std::pair<double, double> VacancyMigrationPredictorQuartic::GetBarrierAndDiffFro
 double VacancyMigrationPredictorQuartic::GetDe(const cfg::Config &config,
                                                const std::pair<size_t,
                                                                size_t> &lattice_id_jump_pair) const {
-  auto migration_element = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
+  const auto migration_element = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
   const auto flat_idx = GetPairFlatIndex(lattice_id_jump_pair);
   const auto &lattice_id_vector = site_bond_cluster_state_flat_.at(flat_idx);
-  auto start_hashmap(initialized_cluster_hashmap_);
-  auto end_hashmap(initialized_cluster_hashmap_);
-  // TODO(perf): These per-call maps/vectors allocate each time. Replace with
-  // preallocated thread_local fixed arrays to eliminate allocation/tree overhead.
-// #pragma omp parallel for default(none) shared(config, lattice_id_jump_pair, lattice_id_vector, migration_element, start_hashmap, end_hashmap)
+
+  // Reuse thread-local buffers to avoid allocations and map copies.
+  auto &start_counts = GetThreadLocalIntPrimaryBuffer();
+  auto &end_counts = GetThreadLocalIntSecondaryBuffer();
+  start_counts.assign(state_cluster_indexer_.Size(), 0);
+  end_counts.assign(state_cluster_indexer_.Size(), 0);
+
+  auto &element_vector_start = GetThreadLocalElementPrimaryBuffer();
+  auto &element_vector_end = GetThreadLocalElementSecondaryBuffer();
+
   for (size_t label = 0; label < mapping_state_.size(); ++label) {
     const auto &cluster_vector = mapping_state_.at(label);
     for (const auto &cluster : cluster_vector) {
-      std::vector<Element> element_vector_start, element_vector_end;
+      element_vector_start.clear();
+      element_vector_end.clear();
       element_vector_start.reserve(cluster.size());
       element_vector_end.reserve(cluster.size());
       for (auto index : cluster) {
-        size_t lattice_id = lattice_id_vector[index];
-        element_vector_start.push_back(config.GetElementAtLatticeId(lattice_id));
+        const size_t lattice_id = lattice_id_vector[index];
+        const auto element_at_site = config.GetElementAtLatticeId(lattice_id);
+        element_vector_start.push_back(element_at_site);
         if (lattice_id == lattice_id_jump_pair.first) {
           element_vector_end.push_back(migration_element);
           continue;
@@ -128,28 +144,22 @@ double VacancyMigrationPredictorQuartic::GetDe(const cfg::Config &config,
           element_vector_end.emplace_back(ElementName::X);
           continue;
         }
-        element_vector_end.push_back(config.GetElementAtLatticeId(lattice_id));
+        element_vector_end.push_back(element_at_site);
       }
-      auto cluster_start = cfg::ElementCluster(static_cast<int>(label), element_vector_start);
-      auto cluster_end = cfg::ElementCluster(static_cast<int>(label), element_vector_end);
-// #pragma omp critical
-      // {
-        start_hashmap[cluster_start]++;
-        end_hashmap[cluster_end]++;
-      // }
+      const auto cluster_start = cfg::ElementCluster(static_cast<int>(label), element_vector_start);
+      const auto cluster_end = cfg::ElementCluster(static_cast<int>(label), element_vector_end);
+
+      start_counts[state_cluster_indexer_.GetIndex(cluster_start)]++;
+      end_counts[state_cluster_indexer_.GetIndex(cluster_end)]++;
     }
   }
-  std::map<cfg::ElementCluster, int> ordered(ordered_map_);
-  std::vector<double> de_encode;
-  de_encode.reserve(ordered.size());
-  static const std::vector<double>
-      cluster_counter{256, 1536, 768, 3072, 2048, 3072, 6144, 6144, 6144, 6144, 2048};
-  // not necessary to parallelize this loop
-  for (const auto &cluster: ordered | std::views::keys) {
-    auto start = static_cast<double>(start_hashmap.at(cluster));
-    auto end = static_cast<double>(end_hashmap.at(cluster));
-    auto total_bond = cluster_counter[static_cast<size_t>(cluster.GetLabel())];
-    de_encode.push_back((end - start) / total_bond);
+
+  auto &de_encode = GetThreadLocalDoubleBuffer();
+  de_encode.resize(state_cluster_indexer_.Size());
+  const auto &total_bonds = state_cluster_indexer_.GetTotalBonds();
+  for (size_t idx = 0; idx < state_cluster_indexer_.Size(); ++idx) {
+    de_encode[idx] = (static_cast<double>(end_counts[idx]) - static_cast<double>(start_counts[idx]))
+        / total_bonds[idx];
   }
 
   const Eigen::Map<const Eigen::VectorXd> encode_vec(de_encode.data(), static_cast<Eigen::Index>(de_encode.size()));
@@ -162,10 +172,9 @@ double VacancyMigrationPredictorQuartic::GetKs(const cfg::Config &config,
 
   const auto &lattice_id_vector_mm2_forward =
       site_bond_cluster_mm2_flat_.at(GetPairFlatIndex(lattice_id_jump_pair));
-  std::vector<Element> ele_vector_forward{};
+  auto &ele_vector_forward = GetThreadLocalElementPrimaryBuffer();
+  ele_vector_forward.clear();
   ele_vector_forward.reserve(lattice_id_vector_mm2_forward.size());
-  // TODO(perf): Convert these per-call vectors to preallocated thread_local arrays
-  // to avoid allocations inside the predictor hot path.
   for (const auto index : lattice_id_vector_mm2_forward) {
     ele_vector_forward.push_back(config.GetElementAtLatticeId(index));
   }
@@ -176,7 +185,8 @@ double VacancyMigrationPredictorQuartic::GetKs(const cfg::Config &config,
 
   const auto &lattice_id_vector_mm2_backward =
       site_bond_cluster_mm2_flat_.at(GetPairFlatIndex({lattice_id_jump_pair.second, lattice_id_jump_pair.first}));
-  std::vector<Element> ele_vector_backward{};
+  auto &ele_vector_backward = GetThreadLocalElementSecondaryBuffer();
+  ele_vector_backward.clear();
   ele_vector_backward.reserve(lattice_id_vector_mm2_backward.size());
   for (const auto index : lattice_id_vector_mm2_backward) {
     ele_vector_backward.push_back(config.GetElementAtLatticeId(index));
@@ -205,10 +215,9 @@ double VacancyMigrationPredictorQuartic::GetD(const cfg::Config &config,
                                                               size_t> &lattice_id_jump_pair) const {
   const auto migration_element = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
   const auto &lattice_id_vector_mmm = site_bond_cluster_mmm_flat_.at(GetPairFlatIndex(lattice_id_jump_pair));
-  std::vector<Element> ele_vector{};
+  auto &ele_vector = GetThreadLocalElementPrimaryBuffer();
+  ele_vector.clear();
   ele_vector.reserve(lattice_id_vector_mmm.size());
-  // TODO(perf): Replace per-call vector alloc with thread_local fixed storage
-  // to eliminate allocator overhead.
   for (const auto index : lattice_id_vector_mmm) {
     ele_vector.push_back(config.GetElementAtLatticeId(index));
   }

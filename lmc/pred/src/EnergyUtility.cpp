@@ -1,5 +1,6 @@
 #include "EnergyUtility.h"
 #include <algorithm>
+#include <stdexcept>
 
 namespace pred {
 std::unordered_map<std::string, std::vector<double> > GetOneHotEncodeHashmap(
@@ -72,7 +73,7 @@ std::vector<cfg::Lattice> GetSymmetricallySortedLatticeVectorMMM(
 }
 std::vector<cfg::Lattice> GetSymmetricallySortedLatticeVectorMM2(
     const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) {
-  // The number of first-, second-, and third-nearest neighbors of the jump pairs
+  // The number of first-nearest neighbors, second-nearest neighbors, and third-nearest neighbors of the jump pairs
   constexpr size_t kNumOfSites = constants::kNumThirdNearestSetSizeOfPair;
   const auto lattice_id_hashset =
       config.GetNeighborsLatticeIdSetOfPair(lattice_id_jump_pair);
@@ -258,7 +259,7 @@ std::vector<std::vector<std::vector<size_t> > > GetAverageClusterParametersMappi
 
 std::vector<cfg::Lattice> GetSortedLatticeVectorStateOfPair(
     const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_pair) {
-  // The number of first-, second-, and third-nearest neighbors of the jump pairs
+  // The number of first-nearest neighbors, second-nearest neighbors, and third-nearest neighbors of the jump pairs
   constexpr size_t kNumOfSites = constants::kNumThirdNearestSetSizeOfPair;
   const auto lattice_id_hashset = config.GetNeighborsLatticeIdSetOfPair(lattice_id_pair);
   const auto move_distance = Vector_d{0.5, 0.5, 0.5} - config.GetLatticePairCenter(lattice_id_pair);
@@ -745,7 +746,8 @@ std::vector<double> GetOneHotParametersFromMap(
     const std::vector<std::vector<std::vector<size_t> > > &cluster_mapping) {
 
   std::vector<double> res_encode;
-  res_encode.reserve(1401); // Todo 711 for mmm and 1401 for mmm2
+  res_encode.reserve(2452);
+  // Todo 711 for mmm ternary, 1401 for mmm2 ternary, 1240 for mmm quaternary, 2452 for mmm2 quaternary
   for (const auto &cluster_vector: cluster_mapping) {
     size_t list_length;
     if (cluster_vector[0][0] == SIZE_MAX) {
@@ -790,5 +792,28 @@ std::vector<double> GetOneHotParametersFromMap(
     std::ranges::move(sum_of_list, std::back_inserter(res_encode));
   }
   return res_encode;
+}
+
+ClusterIndexer::ClusterIndexer(const std::map<cfg::ElementCluster, int> &ordered_clusters,
+                               std::vector<double> cluster_total_bonds)
+    : cluster_total_bonds_(std::move(cluster_total_bonds)) {
+  cluster_index_to_cluster_.reserve(ordered_clusters.size());
+  for (const auto &entry : ordered_clusters) {
+    const auto &cluster = entry.first;
+    const size_t idx = cluster_index_to_cluster_.size();
+    cluster_index_to_cluster_.push_back(cluster);
+    cluster_to_index_[cluster] = idx;
+  }
+  if (cluster_index_to_cluster_.size() != cluster_total_bonds_.size()) {
+    throw std::invalid_argument("cluster_total_bonds size mismatch in ClusterIndexer");
+  }
+}
+
+size_t ClusterIndexer::GetIndex(const cfg::ElementCluster &cluster) const {
+  const auto it = cluster_to_index_.find(cluster);
+  if (it == cluster_to_index_.end()) {
+    throw std::out_of_range("Cluster not found in ClusterIndexer");
+  }
+  return it->second;
 }
 } // pred

@@ -56,6 +56,7 @@ class VacancyMigrationPredictorQuartic {
     std::unordered_map<cfg::ElementCluster, size_t,
                        boost::hash<cfg::ElementCluster> > initialized_cluster_hashmap_{};
     std::map<cfg::ElementCluster, int> ordered_map_{};
+    ClusterIndexer state_cluster_indexer_{};
 };
 } // pred
 #endif //LMC_LMC_PRED_INCLUDE_VACANCYMIGRATIONPREDICTORQUARTIC_H_

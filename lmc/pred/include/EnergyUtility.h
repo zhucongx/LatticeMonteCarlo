@@ -103,6 +103,49 @@ struct ParametersDE {
   double mu_y{};
   double sigma_y{};
 };
+
+// Helper to map clusters to contiguous indices and store per-cluster total bond counts.
+class ClusterIndexer {
+ public:
+  ClusterIndexer() = default;
+  ClusterIndexer(const std::map<cfg::ElementCluster, int> &ordered_clusters,
+                 std::vector<double> cluster_total_bonds);
+  [[nodiscard]] size_t Size() const { return cluster_index_to_cluster_.size(); }
+  [[nodiscard]] size_t GetIndex(const cfg::ElementCluster &cluster) const;
+  [[nodiscard]] const std::vector<cfg::ElementCluster> &GetClusters() const { return cluster_index_to_cluster_; }
+  [[nodiscard]] const std::vector<double> &GetTotalBonds() const { return cluster_total_bonds_; }
+ private:
+  std::vector<cfg::ElementCluster> cluster_index_to_cluster_{};
+  std::vector<double> cluster_total_bonds_{};
+  std::unordered_map<cfg::ElementCluster, size_t, boost::hash<cfg::ElementCluster>> cluster_to_index_{};
+};
+
+// Reusable thread-local buffers to avoid hot-path allocations.
+// Provides a thread-local primary buffer for integer vectors.
+inline std::vector<int> &GetThreadLocalIntPrimaryBuffer() {
+  thread_local std::vector<int> buffer;
+  return buffer;
+}
+// Provides a thread-local secondary buffer for integer vectors (distinct from primary).
+inline std::vector<int> &GetThreadLocalIntSecondaryBuffer() {
+  thread_local std::vector<int> buffer;
+  return buffer;
+}
+// Provides a thread-local buffer for double vectors.
+inline std::vector<double> &GetThreadLocalDoubleBuffer() {
+  thread_local std::vector<double> buffer;
+  return buffer;
+}
+// Provides a thread-local primary buffer for Element vectors.
+inline std::vector<Element> &GetThreadLocalElementPrimaryBuffer() {
+  thread_local std::vector<Element> buffer;
+  return buffer;
+}
+// Provides a thread-local secondary buffer for Element vectors (distinct from primary).
+inline std::vector<Element> &GetThreadLocalElementSecondaryBuffer() {
+  thread_local std::vector<Element> buffer;
+  return buffer;
+}
 }    // namespace pred
 
 #endif    //LMC_LMC_PRED_INCLUDE_ENERGYUTILITY_H_

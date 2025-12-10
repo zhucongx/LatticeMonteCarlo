@@ -5,15 +5,24 @@
 #include <ranges>
 
 namespace pred {
+namespace {
+const std::vector<double> kClusterCounter{256, 3072, 1536, 6144, 12288, 6144, 12288, 6144, 12288, 12288, 12288};
+} // namespace
+
 EnergyPredictor::EnergyPredictor(const std::string &predictor_filename,
                                  std::set<Element> element_set)
     : element_set_(std::move(element_set)) {
   auto element_set_copy(element_set_);
   element_set_copy.emplace(ElementName::X);
-  initialized_cluster_hashmap_ = InitializeClusterHashMap(element_set_copy);
-
-  const std::map<cfg::ElementCluster, int>
-      ordered(initialized_cluster_hashmap_.begin(), initialized_cluster_hashmap_.end());
+  const auto initialized_cluster_hashmap = InitializeClusterHashMap(element_set_copy);
+  const std::map<cfg::ElementCluster, int> ordered(initialized_cluster_hashmap.begin(),
+                                                   initialized_cluster_hashmap.end());
+  std::vector<double> cluster_total_bonds;
+  cluster_total_bonds.reserve(ordered.size());
+  for (const auto &cluster_count : ordered) {
+    cluster_total_bonds.push_back(kClusterCounter.at(static_cast<size_t>(cluster_count.first.GetLabel())));
+  }
+  cluster_indexer_ = ClusterIndexer(ordered, std::move(cluster_total_bonds));
 
   std::ifstream ifs(predictor_filename, std::ifstream::in);
   if (!ifs) {
@@ -30,92 +39,62 @@ EnergyPredictor::EnergyPredictor(const std::string &predictor_filename,
 }
 EnergyPredictor::~EnergyPredictor() = default;
 std::vector<double> EnergyPredictor::GetEncode(const cfg::Config &config) const {
-  auto cluster_hashmap(initialized_cluster_hashmap_);
-  static const std::vector<size_t>
-      cluster_counter{256, 3072, 1536, 6144, 12288, 6144, 12288, 6144, 12288, 12288, 12288};
+  auto &cluster_counts = GetThreadLocalIntPrimaryBuffer();
+  cluster_counts.assign(cluster_indexer_.Size(), 0);
   for (size_t atom_id1 = 0; atom_id1 < config.GetNumAtoms(); ++atom_id1) {
     const size_t lattice_id1 = config.GetLatticeIdFromAtomId(atom_id1);
-    Element element1 = config.GetAtomVector()[atom_id1].GetElement();
-    cluster_hashmap[cfg::ElementCluster(0, element1)]++;
+    const Element element1 = config.GetAtomVector()[atom_id1].GetElement();
+    cluster_counts[cluster_indexer_.GetIndex(cfg::ElementCluster(0, element1))]++;
     for (size_t lattice_id2 : config.GetFirstNeighborsAdjacencyList()[lattice_id1]) {
-      Element element2 = config.GetElementAtLatticeId(lattice_id2);
-      cluster_hashmap[cfg::ElementCluster(1, element1, element2)]++;
+      const Element element2 = config.GetElementAtLatticeId(lattice_id2);
+      cluster_counts[cluster_indexer_.GetIndex(cfg::ElementCluster(1, element1, element2))]++;
       for (size_t lattice_id3 : config.GetFirstNeighborsAdjacencyList()[lattice_id2]) {
-        Element element3 = config.GetElementAtLatticeId(lattice_id3);
+        const Element element3 = config.GetElementAtLatticeId(lattice_id3);
         if (std::ranges::find(config.GetFirstNeighborsAdjacencyList()[lattice_id1],
                       lattice_id3)
             != config.GetFirstNeighborsAdjacencyList()[lattice_id1].end()) {
-          cluster_hashmap[cfg::ElementCluster(4, element1, element2, element3)]++;
+          cluster_counts[cluster_indexer_.GetIndex(cfg::ElementCluster(4, element1, element2, element3))]++;
         } else if (std::ranges::find(config.GetSecondNeighborsAdjacencyList()[lattice_id1],
                              lattice_id3)
             != config.GetSecondNeighborsAdjacencyList()[lattice_id1].end()) {
-          cluster_hashmap[cfg::ElementCluster(5, element1, element2, element3)]++;
+          cluster_counts[cluster_indexer_.GetIndex(cfg::ElementCluster(5, element1, element2, element3))]++;
         } else if (std::ranges::find(config.GetThirdNeighborsAdjacencyList()[lattice_id1],
                              lattice_id3)
             != config.GetThirdNeighborsAdjacencyList()[lattice_id1].end()) {
-          cluster_hashmap[cfg::ElementCluster(6, element1, element2, element3)]++;
+          cluster_counts[cluster_indexer_.GetIndex(cfg::ElementCluster(6, element1, element2, element3))]++;
         }
       }
       for (size_t lattice_id3 : config.GetSecondNeighborsAdjacencyList()[lattice_id2]) {
-        Element element3 = config.GetElementAtLatticeId(lattice_id3);
+        const Element element3 = config.GetElementAtLatticeId(lattice_id3);
         if (std::ranges::find(config.GetThirdNeighborsAdjacencyList()[lattice_id1],
                       lattice_id3)
             != config.GetThirdNeighborsAdjacencyList()[lattice_id1].end()) {
-          cluster_hashmap[cfg::ElementCluster(7, element1, element2, element3)]++;
+          cluster_counts[cluster_indexer_.GetIndex(cfg::ElementCluster(7, element1, element2, element3))]++;
         }
       }
-      // for (size_t lattice_id3: config.GetThirdNeighborsAdjacencyList()[lattice_id2]) {
-      //   Element element3 = config.GetElementAtLatticeId(lattice_id3);
-      //   if (std::find(config.GetThirdNeighborsAdjacencyList()[lattice_id1].begin(),
-      //                 config.GetThirdNeighborsAdjacencyList()[lattice_id1].end(),
-      //                 lattice_id3)
-      //       != config.GetThirdNeighborsAdjacencyList()[lattice_id1].end()) {
-      //     cluster_hashmap[cfg::ElementCluster(8, element1, element2, element3)]++;
-      //   }
-      // }
     }
     for (size_t lattice_id2 : config.GetSecondNeighborsAdjacencyList()[lattice_id1]) {
-      Element element2 = config.GetElementAtLatticeId(lattice_id2);
-      cluster_hashmap[cfg::ElementCluster(2, element1, element2)]++;
-      // for (size_t lattice_id3: config.GetThirdNeighborsAdjacencyList()[lattice_id2]) {
-      //   Element element3 = config.GetElementAtLatticeId(lattice_id3);
-      //   if (std::find(config.GetThirdNeighborsAdjacencyList()[lattice_id1].begin(),
-      //                 config.GetThirdNeighborsAdjacencyList()[lattice_id1].end(),
-      //                 lattice_id3)
-      //       != config.GetThirdNeighborsAdjacencyList()[lattice_id1].end()) {
-      //     cluster_hashmap[cfg::ElementCluster(9, element1, element2, element3)]++;
-      //   }
-      // }
+      const Element element2 = config.GetElementAtLatticeId(lattice_id2);
+      cluster_counts[cluster_indexer_.GetIndex(cfg::ElementCluster(2, element1, element2))]++;
     }
     for (size_t lattice_id2 : config.GetThirdNeighborsAdjacencyList()[lattice_id1]) {
-      Element element2 = config.GetElementAtLatticeId(lattice_id2);
-      cluster_hashmap[cfg::ElementCluster(3, element1, element2)]++;
-      // for (size_t lattice_id3: config.GetThirdNeighborsAdjacencyList()[lattice_id2]) {
-      //   Element element3 = config.GetElementAtLatticeId(lattice_id3);
-      //   if (std::find(config.GetThirdNeighborsAdjacencyList()[lattice_id1].begin(),
-      //                 config.GetThirdNeighborsAdjacencyList()[lattice_id1].end(),
-      //                 lattice_id3)
-      //       != config.GetThirdNeighborsAdjacencyList()[lattice_id1].end()) {
-      //     cluster_hashmap[cfg::ElementCluster(10, element1, element2, element3)]++;
-      //   }
-      // }
+      const Element element2 = config.GetElementAtLatticeId(lattice_id2);
+      cluster_counts[cluster_indexer_.GetIndex(cfg::ElementCluster(3, element1, element2))]++;
     }
   }
 
-  const std::map<cfg::ElementCluster, int>
-      ordered(initialized_cluster_hashmap_.begin(), initialized_cluster_hashmap_.end());
   std::vector<double> energy_encode;
-  for (const auto &cluster_count : ordered) {
-    const auto &cluster = cluster_count.first;
-    auto count_bond = static_cast<double>(cluster_hashmap.at(cluster));
-    auto total_bond = static_cast<double>(cluster_counter[static_cast<size_t>(cluster.GetLabel())]);
-    energy_encode.push_back(count_bond / total_bond);
+  energy_encode.reserve(cluster_indexer_.Size());
+  const auto &total_bonds = cluster_indexer_.GetTotalBonds();
+  for (size_t idx = 0; idx < cluster_indexer_.Size(); ++idx) {
+    energy_encode.push_back(static_cast<double>(cluster_counts[idx]) / total_bonds[idx]);
   }
   return energy_encode;
 }
 std::vector<double> EnergyPredictor::GetEncodeOfCluster(
     const cfg::Config &config, const std::vector<size_t> &atom_id_list) const {
-  auto cluster_hashmap(initialized_cluster_hashmap_);
+  auto &cluster_counts = GetThreadLocalIntPrimaryBuffer();
+  cluster_counts.assign(cluster_indexer_.Size(), 0);
   std::unordered_set<size_t> lattice_id_hashset;
   for (auto atom_id : atom_id_list) {
     auto lattice_id = config.GetLatticeIdFromAtomId(atom_id);
@@ -130,91 +109,57 @@ std::vector<double> EnergyPredictor::GetEncodeOfCluster(
       lattice_id_hashset.insert(neighbor_lattice_id);
     }
   }
-  const std::vector<size_t>
-      cluster_counter{256, 3072, 1536, 6144, 12288, 6144, 12288, 6144, 12288, 12288, 12288};
   for (size_t lattice_id1 : lattice_id_hashset) {
-    Element element1 = config.GetElementAtLatticeId(lattice_id1);
-    cluster_hashmap[cfg::ElementCluster(0, element1)]++;
+    const Element element1 = config.GetElementAtLatticeId(lattice_id1);
+    cluster_counts[cluster_indexer_.GetIndex(cfg::ElementCluster(0, element1))]++;
     for (size_t lattice_id2 : config.GetFirstNeighborsAdjacencyList()[lattice_id1]) {
       if (lattice_id_hashset.find(lattice_id2) == lattice_id_hashset.end()) { continue; }
-      Element element2 = config.GetElementAtLatticeId(lattice_id2);
-      cluster_hashmap[cfg::ElementCluster(1, element1, element2)]++;
+      const Element element2 = config.GetElementAtLatticeId(lattice_id2);
+      cluster_counts[cluster_indexer_.GetIndex(cfg::ElementCluster(1, element1, element2))]++;
       for (size_t lattice_id3 : config.GetFirstNeighborsAdjacencyList()[lattice_id2]) {
         if (!lattice_id_hashset.contains(lattice_id3)) { continue; }
-        Element element3 = config.GetElementAtLatticeId(lattice_id3);
+        const Element element3 = config.GetElementAtLatticeId(lattice_id3);
         if (std::ranges::find(config.GetFirstNeighborsAdjacencyList()[lattice_id1],
                       lattice_id3)
             != config.GetFirstNeighborsAdjacencyList()[lattice_id1].end()) {
-          cluster_hashmap[cfg::ElementCluster(4, element1, element2, element3)]++;
+          cluster_counts[cluster_indexer_.GetIndex(cfg::ElementCluster(4, element1, element2, element3))]++;
         } else if (std::ranges::find(config.GetSecondNeighborsAdjacencyList()[lattice_id1],
                              lattice_id3)
             != config.GetSecondNeighborsAdjacencyList()[lattice_id1].end()) {
-          cluster_hashmap[cfg::ElementCluster(5, element1, element2, element3)]++;
+          cluster_counts[cluster_indexer_.GetIndex(cfg::ElementCluster(5, element1, element2, element3))]++;
         } else if (std::ranges::find(config.GetThirdNeighborsAdjacencyList()[lattice_id1],
                              lattice_id3)
             != config.GetThirdNeighborsAdjacencyList()[lattice_id1].end()) {
-          cluster_hashmap[cfg::ElementCluster(6, element1, element2, element3)]++;
+          cluster_counts[cluster_indexer_.GetIndex(cfg::ElementCluster(6, element1, element2, element3))]++;
         }
       }
       for (size_t lattice_id3 : config.GetSecondNeighborsAdjacencyList()[lattice_id2]) {
         if (!lattice_id_hashset.contains(lattice_id3)) { continue; }
-        Element element3 = config.GetElementAtLatticeId(lattice_id3);
+        const Element element3 = config.GetElementAtLatticeId(lattice_id3);
         if (std::ranges::find(config.GetThirdNeighborsAdjacencyList()[lattice_id1],
                       lattice_id3)
             != config.GetThirdNeighborsAdjacencyList()[lattice_id1].end()) {
-          cluster_hashmap[cfg::ElementCluster(7, element1, element2, element3)]++;
+          cluster_counts[cluster_indexer_.GetIndex(cfg::ElementCluster(7, element1, element2, element3))]++;
         }
       }
-      // for (size_t lattice_id3: config.GetThirdNeighborsAdjacencyList()[lattice_id2]) {
-      //   if (lattice_id_set.find(lattice_id3) == lattice_id_set.end()) { continue; }
-      //   Element element3 = config.GetElementAtLatticeId(lattice_id3);
-      //   if (std::find(config.GetThirdNeighborsAdjacencyList()[lattice_id1].begin(),
-      //                 config.GetThirdNeighborsAdjacencyList()[lattice_id1].end(),
-      //                 lattice_id3)
-      //       != config.GetThirdNeighborsAdjacencyList()[lattice_id1].end()) {
-      //     cluster_hashmap[cfg::ElementCluster(8, element1, element2, element3)]++;
-      //   }
-      // }
     }
     for (size_t lattice_id2 : config.GetSecondNeighborsAdjacencyList()[lattice_id1]) {
       if (!lattice_id_hashset.contains(lattice_id2)) { continue; }
-      Element element2 = config.GetElementAtLatticeId(lattice_id2);
-      cluster_hashmap[cfg::ElementCluster(2, element1, element2)]++;
-      // for (size_t lattice_id3: config.GetThirdNeighborsAdjacencyList()[lattice_id2]) {
-      //   if (lattice_id_set.find(lattice_id3) == lattice_id_set.end()) { continue; }
-      //   Element element3 = config.GetElementAtLatticeId(lattice_id3);
-      //   if (std::find(config.GetThirdNeighborsAdjacencyList()[lattice_id1].begin(),
-      //                 config.GetThirdNeighborsAdjacencyList()[lattice_id1].end(),
-      //                 lattice_id3)
-      //       != config.GetThirdNeighborsAdjacencyList()[lattice_id1].end()) {
-      //     cluster_hashmap[cfg::ElementCluster(9, element1, element2, element3)]++;
-      //   }
-      // }
+      const Element element2 = config.GetElementAtLatticeId(lattice_id2);
+      cluster_counts[cluster_indexer_.GetIndex(cfg::ElementCluster(2, element1, element2))]++;
     }
     for (size_t lattice_id2 : config.GetThirdNeighborsAdjacencyList()[lattice_id1]) {
       if (!lattice_id_hashset.contains(lattice_id2)) { continue; }
-      Element element2 = config.GetElementAtLatticeId(lattice_id2);
-      cluster_hashmap[cfg::ElementCluster(3, element1, element2)]++;
-      // for (size_t lattice_id3: config.GetThirdNeighborsAdjacencyList()[lattice_id2]) {
-      //   if (lattice_id_set.find(lattice_id3) == lattice_id_set.end()) { continue; }
-      //   Element element3 = config.GetElementAtLatticeId(lattice_id3);
-      //   if (std::find(config.GetThirdNeighborsAdjacencyList()[lattice_id1].begin(),
-      //                 config.GetThirdNeighborsAdjacencyList()[lattice_id1].end(),
-      //                 lattice_id3)
-      //       != config.GetThirdNeighborsAdjacencyList()[lattice_id1].end()) {
-      //     cluster_hashmap[cfg::ElementCluster(10, element1, element2, element3)]++;
-      //   }
-      // }
+      const Element element2 = config.GetElementAtLatticeId(lattice_id2);
+      cluster_counts[cluster_indexer_.GetIndex(cfg::ElementCluster(3, element1, element2))]++;
     }
   }
 
-  const std::map<cfg::ElementCluster, int>
-      ordered(initialized_cluster_hashmap_.begin(), initialized_cluster_hashmap_.end());
   std::vector<double> energy_encode;
-  for (const auto &cluster: ordered | std::views::keys) {
-    auto count_bond = static_cast<double>(cluster_hashmap.at(cluster));
-    auto total_bond = static_cast<double>(cluster_counter[static_cast<size_t>(cluster.GetLabel())]);
-    energy_encode.push_back(count_bond / total_bond);
+  energy_encode.reserve(cluster_indexer_.Size());
+  const auto &total_bonds = cluster_indexer_.GetTotalBonds();
+  for (size_t idx = 0; idx < cluster_indexer_.Size(); ++idx) {
+    energy_encode.push_back(static_cast<double>(cluster_counts[idx]) / total_bonds[idx]);
   }
   return energy_encode;
 }

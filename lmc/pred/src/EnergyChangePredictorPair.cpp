@@ -3,8 +3,14 @@
 #include <nlohmann/json.hpp>
 #include <omp.h>
 #include <Eigen/Dense>
+#include <ranges>
+#include <algorithm>
+#include <stdexcept>
 
 namespace pred {
+namespace {
+const std::vector<double> kClusterCounter{256, 1536, 768, 3072, 2048, 3072, 6144, 6144, 6144, 6144, 2048};
+}
 EnergyChangePredictorPair::EnergyChangePredictorPair(const std::string &predictor_filename,
                                                      const cfg::Config &reference_config,
                                                      std::set<Element> element_set)
@@ -12,7 +18,14 @@ EnergyChangePredictorPair::EnergyChangePredictorPair(const std::string &predicto
       bond_mapping_state_(GetClusterParametersMappingStatePair(reference_config)) {
   auto element_set_copy(element_set_);
   element_set_copy.emplace(ElementName::X);
-  initialized_cluster_hashmap_ = InitializeClusterHashMap(element_set_copy);
+  const auto init_cluster_hashmap = InitializeClusterHashMap(element_set_copy);
+  const std::map<cfg::ElementCluster, int> ordered(init_cluster_hashmap.begin(), init_cluster_hashmap.end());
+  std::vector<double> cluster_total_bonds;
+  cluster_total_bonds.reserve(ordered.size());
+  for (const auto &entry : ordered) {
+    cluster_total_bonds.push_back(kClusterCounter.at(static_cast<size_t>(entry.first.GetLabel())));
+  }
+  cluster_indexer_ = ClusterIndexer(ordered, std::move(cluster_total_bonds));
 
   std::ifstream ifs(predictor_filename, std::ifstream::in);
   if (!ifs) {
@@ -64,16 +77,19 @@ double EnergyChangePredictorPair::GetDeFromLatticeIdPair(const cfg::Config &conf
   if (element_first == element_second) {
     return 0.0;
   }
-  auto start_hashmap(initialized_cluster_hashmap_);
-  auto end_hashmap(initialized_cluster_hashmap_);
+  auto &start_counts = GetThreadLocalIntPrimaryBuffer();
+  auto &end_counts = GetThreadLocalIntSecondaryBuffer();
+  start_counts.assign(cluster_indexer_.Size(), 0);
+  end_counts.assign(cluster_indexer_.Size(), 0);
   const auto &lattice_id_vector = bond_state_hashmap_.at(lattice_id_jump_pair);
+  auto &element_vector_start = GetThreadLocalElementPrimaryBuffer();
+  auto &element_vector_end = GetThreadLocalElementSecondaryBuffer();
 
-#pragma omp parallel for default(none) \
-    shared(config, lattice_id_jump_pair, lattice_id_vector, element_first, element_second, start_hashmap, end_hashmap)
   for (size_t label = 0; label < bond_mapping_state_.size(); ++label) {
     const auto &cluster_vector = bond_mapping_state_.at(label);
     for (const auto &cluster: cluster_vector) {
-      std::vector<Element> element_vector_start, element_vector_end;
+      element_vector_start.clear();
+      element_vector_end.clear();
       element_vector_start.reserve(cluster.size());
       element_vector_end.reserve(cluster.size());
       for (auto index: cluster) {
@@ -88,26 +104,19 @@ double EnergyChangePredictorPair::GetDeFromLatticeIdPair(const cfg::Config &conf
         }
         element_vector_end.push_back(config.GetElementAtLatticeId(lattice_id));
       }
-      auto cluster_start = cfg::ElementCluster(static_cast<int>(label), element_vector_start);
-      auto cluster_end = cfg::ElementCluster(static_cast<int>(label), element_vector_end);
-#pragma omp critical
-      {
-        start_hashmap[cluster_start]++;
-        end_hashmap[cluster_end]++;
-      }
+      const auto cluster_start = cfg::ElementCluster(static_cast<int>(label), element_vector_start);
+      const auto cluster_end = cfg::ElementCluster(static_cast<int>(label), element_vector_end);
+      start_counts[cluster_indexer_.GetIndex(cluster_start)]++;
+      end_counts[cluster_indexer_.GetIndex(cluster_end)]++;
     }
   }
 
-  std::map<cfg::ElementCluster, int> ordered(initialized_cluster_hashmap_.begin(), initialized_cluster_hashmap_.end());
-  std::vector<double> de_encode;
-  de_encode.reserve(ordered.size());
-  static const std::vector<double> cluster_counter{256, 1536, 768, 3072, 2048, 3072, 6144, 6144, 6144, 6144, 2048};
-  for (const auto &cluster_count: ordered) {
-    const auto &cluster = cluster_count.first;
-    auto start = static_cast<double>(start_hashmap.at(cluster));
-    auto end = static_cast<double>(end_hashmap.at(cluster));
-    auto total_bond = cluster_counter[static_cast<size_t>(cluster.GetLabel())];
-    de_encode.push_back((end - start) / total_bond);
+  auto &de_encode = GetThreadLocalDoubleBuffer();
+  de_encode.resize(cluster_indexer_.Size());
+  const auto &total_bonds = cluster_indexer_.GetTotalBonds();
+  for (size_t idx = 0; idx < cluster_indexer_.Size(); ++idx) {
+    de_encode[idx] = (static_cast<double>(end_counts[idx]) - static_cast<double>(start_counts[idx]))
+        / total_bonds[idx];
   }
 
   const Eigen::Map<const Eigen::VectorXd> theta_vec(base_theta_.data(), static_cast<Eigen::Index>(base_theta_.size()));
