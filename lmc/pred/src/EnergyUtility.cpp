@@ -1,6 +1,8 @@
 #include "EnergyUtility.h"
 #include <algorithm>
 #include <stdexcept>
+#include <ranges>
+#include <numeric>
 
 namespace pred {
 std::unordered_map<std::string, std::vector<double> > GetOneHotEncodeHashmap(

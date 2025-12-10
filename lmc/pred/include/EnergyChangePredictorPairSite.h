@@ -27,12 +27,7 @@ class EnergyChangePredictorPairSite {
         const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
     [[nodiscard]] double GetDeFromLatticeIdPairWithoutCoupling(
         const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
-    [[nodiscard]] double GetDeHelper(
-        const std::unordered_map<cfg::ElementCluster, size_t,
-                                 boost::hash<cfg::ElementCluster> > &start_hashmap,
-        const std::unordered_map<cfg::ElementCluster, size_t,
-                                 boost::hash<cfg::ElementCluster> > &end_hashmap,
-        const std::map<cfg::ElementCluster, int> &ordered) const;
+    [[nodiscard]] double GetDeHelper(const std::vector<int> &start_counts, const std::vector<int> &end_counts) const;
 
     const std::set<Element> element_set_;
     const std::vector<std::vector<std::vector<size_t> > > site_mapping_state_;

@@ -85,9 +85,8 @@ EnergyChangePredictorPairSite::GetDeFromLatticeIdPair(const cfg::Config &config,
   return GetDeFromLatticeIdPairWithCoupling(config, lattice_id_jump_pair);
 }
 
-double EnergyChangePredictorPairSite::GetDeHelper(
-    std::vector<int> &start_counts,
-    std::vector<int> &end_counts) const {
+double EnergyChangePredictorPairSite::GetDeHelper(const std::vector<int> &start_counts,
+                                                  const std::vector<int> &end_counts) const {
   auto &de_encode = GetThreadLocalDoubleBuffer();
   de_encode.resize(cluster_indexer_.Size());
   const auto &total_bonds = cluster_indexer_.GetTotalBonds();
