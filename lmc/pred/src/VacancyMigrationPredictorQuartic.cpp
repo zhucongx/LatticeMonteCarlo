@@ -112,7 +112,8 @@ double VacancyMigrationPredictorQuartic::GetDe(const cfg::Config &config,
   // preallocated thread_local fixed arrays to eliminate allocation/tree overhead.
 // #pragma omp parallel for default(none) shared(config, lattice_id_jump_pair, lattice_id_vector, migration_element, start_hashmap, end_hashmap)
   for (size_t label = 0; label < mapping_state_.size(); ++label) {
-    for (const auto &cluster_vector = mapping_state_.at(label); const auto &cluster : cluster_vector) {
+    const auto &cluster_vector = mapping_state_.at(label);
+    for (const auto &cluster : cluster_vector) {
       std::vector<Element> element_vector_start, element_vector_end;
       element_vector_start.reserve(cluster.size());
       element_vector_end.reserve(cluster.size());
