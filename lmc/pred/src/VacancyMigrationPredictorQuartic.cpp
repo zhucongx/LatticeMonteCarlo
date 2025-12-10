@@ -4,6 +4,8 @@
 #include <boost/range/combine.hpp>
 #include <omp.h>
 #include <nlohmann/json.hpp>
+#include "Constants.hpp"
+#include <stdexcept>
 
 namespace pred {
 VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::string &predictor_filename,
@@ -13,7 +15,9 @@ VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::st
       one_hot_encode_hash_map_(GetOneHotEncodeHashmap(element_set_)),
       mapping_mmm_(GetAverageClusterParametersMappingMMM(reference_config)),
       mapping_mm2_(GetAverageClusterParametersMappingMM2(reference_config)),
-      mapping_state_(GetClusterParametersMappingStatePair(reference_config)) {
+      mapping_state_(GetClusterParametersMappingStatePair(reference_config)),
+      num_pair_slots_(reference_config.GetNumAtoms() * constants::kNumFirstNearestNeighbors),
+      neighbor_slot_lookup_(reference_config.GetNumAtoms()) {
   auto element_set_copy(element_set_);
   element_set_copy.emplace(ElementName::X);
   initialized_cluster_hashmap_ = InitializeClusterHashMap(element_set_copy);
@@ -46,42 +50,38 @@ VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::st
         parameters.at("sigma_Ks")
     };
   }
+  site_bond_cluster_state_flat_.resize(num_pair_slots_);
+  site_bond_cluster_mmm_flat_.resize(num_pair_slots_);
+  site_bond_cluster_mm2_flat_.resize(num_pair_slots_);
 #pragma omp parallel for default(none) shared(reference_config)
   for (size_t i = 0; i < reference_config.GetNumAtoms(); ++i) {
-    for (auto j : reference_config.GetFirstNeighborsAdjacencyList()[i]) {
+    const auto &neighbor_list = reference_config.GetFirstNeighborsAdjacencyList()[i];
+    for (size_t neighbor_slot = 0; neighbor_slot < neighbor_list.size(); ++neighbor_slot) {
+      const auto j = neighbor_list[neighbor_slot];
+      neighbor_slot_lookup_[i][j] = neighbor_slot;
+      const auto flat_idx = i * constants::kNumFirstNearestNeighbors + neighbor_slot;
       auto sorted_lattice_vector =
           GetSortedLatticeVectorStateOfPair(reference_config, {i, j});
       std::vector<size_t> lattice_id_vector_state;
-      std::transform(sorted_lattice_vector.begin(), sorted_lattice_vector.end(),
-                     std::back_inserter(lattice_id_vector_state),
-                     [](const auto &lattice) { return lattice.GetId(); });
-#pragma omp critical
-      {
-        site_bond_cluster_state_hashmap_[{i, j}] = lattice_id_vector_state;
-      }
-      auto sorted_lattice_vector_mmm =
-          GetSymmetricallySortedLatticeVectorMMM(reference_config, {i, j});
+      std::ranges::transform(
+          sorted_lattice_vector, std::back_inserter(lattice_id_vector_state), [](const auto &lattice) {
+            return lattice.GetId();
+          });
+      site_bond_cluster_state_flat_[flat_idx] = lattice_id_vector_state;
+      auto sorted_lattice_vector_mmm = GetSymmetricallySortedLatticeVectorMMM(reference_config, {i, j});
       std::vector<size_t> lattice_id_vector_mmm;
-      std::transform(sorted_lattice_vector_mmm.begin(), sorted_lattice_vector_mmm.end(),
-                     std::back_inserter(lattice_id_vector_mmm),
-                     [](const auto &lattice) { return lattice.GetId(); });
-#pragma omp critical
-      {
-        site_bond_cluster_mmm_hashmap_[{i, j}] = lattice_id_vector_mmm;
-      }
-      auto sorted_lattice_vector_mm2 =
-          GetSymmetricallySortedLatticeVectorMM2(reference_config, {i, j});
+      std::ranges::transform(
+          sorted_lattice_vector_mmm, std::back_inserter(lattice_id_vector_mmm), [](const auto &lattice) {
+            return lattice.GetId();
+          });
+      site_bond_cluster_mmm_flat_[flat_idx] = lattice_id_vector_mmm;
+      auto sorted_lattice_vector_mm2 = GetSymmetricallySortedLatticeVectorMM2(reference_config, {i, j});
       std::vector<size_t> lattice_id_vector_mm2;
-      std::transform(sorted_lattice_vector_mm2.begin(), sorted_lattice_vector_mm2.end(),
-                     std::back_inserter(lattice_id_vector_mm2),
-                     [](const auto &lattice) { return lattice.GetId(); });
-#pragma omp critical
-      {
-        site_bond_cluster_mm2_hashmap_[{i, j}] = lattice_id_vector_mm2;
-      }
-      // TODO(arch): Consider storing these neighbor lists in contiguous arrays with
-      // deterministic indices (site*12 + nn_idx). This avoids unordered_map<pair>
-      // lookups on hot paths and reduces bounds-checked .at() overhead.
+      std::ranges::transform(
+          sorted_lattice_vector_mm2, std::back_inserter(lattice_id_vector_mm2), [](const auto &lattice) {
+            return lattice.GetId();
+          });
+      site_bond_cluster_mm2_flat_[flat_idx] = lattice_id_vector_mm2;
     }
   }
 }
@@ -99,15 +99,15 @@ double VacancyMigrationPredictorQuartic::GetDe(const cfg::Config &config,
                                                const std::pair<size_t,
                                                                size_t> &lattice_id_jump_pair) const {
   auto migration_element = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
-  const auto &lattice_id_vector = site_bond_cluster_state_hashmap_.at(lattice_id_jump_pair);
+  const auto flat_idx = GetPairFlatIndex(lattice_id_jump_pair);
+  const auto &lattice_id_vector = site_bond_cluster_state_flat_.at(flat_idx);
   auto start_hashmap(initialized_cluster_hashmap_);
   auto end_hashmap(initialized_cluster_hashmap_);
   // TODO(perf): These per-call maps/vectors allocate each time. Replace with
   // preallocated thread_local fixed arrays to eliminate allocation/tree overhead.
 // #pragma omp parallel for default(none) shared(config, lattice_id_jump_pair, lattice_id_vector, migration_element, start_hashmap, end_hashmap)
   for (size_t label = 0; label < mapping_state_.size(); ++label) {
-    const auto &cluster_vector = mapping_state_.at(label);
-    for (const auto &cluster : cluster_vector) {
+    for (const auto &cluster_vector = mapping_state_.at(label); const auto &cluster : cluster_vector) {
       std::vector<Element> element_vector_start, element_vector_end;
       element_vector_start.reserve(cluster.size());
       element_vector_end.reserve(cluster.size());
@@ -126,10 +126,10 @@ double VacancyMigrationPredictorQuartic::GetDe(const cfg::Config &config,
       auto cluster_start = cfg::ElementCluster(static_cast<int>(label), element_vector_start);
       auto cluster_end = cfg::ElementCluster(static_cast<int>(label), element_vector_end);
 // #pragma omp critical
-      {
+      // {
         start_hashmap[cluster_start]++;
         end_hashmap[cluster_end]++;
-      }
+      // }
     }
   }
   std::map<cfg::ElementCluster, int> ordered(ordered_map_);
@@ -154,25 +154,25 @@ double VacancyMigrationPredictorQuartic::GetKs(const cfg::Config &config,
                                                                size_t> &lattice_id_jump_pair) const {
   auto migration_element = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
 
-  auto lattice_id_vector_mm2_forward =
-      site_bond_cluster_mm2_hashmap_.at(lattice_id_jump_pair);
+  const auto &lattice_id_vector_mm2_forward =
+      site_bond_cluster_mm2_flat_.at(GetPairFlatIndex(lattice_id_jump_pair));
   std::vector<Element> ele_vector_forward{};
   ele_vector_forward.reserve(lattice_id_vector_mm2_forward.size());
   // TODO(perf): Convert these per-call vectors to preallocated thread_local arrays
   // to avoid allocations inside the predictor hot path.
-  for (auto index : lattice_id_vector_mm2_forward) {
+  for (const auto index : lattice_id_vector_mm2_forward) {
     ele_vector_forward.push_back(config.GetElementAtLatticeId(index));
   }
   auto encode_mm2_forward = GetOneHotParametersFromMap(ele_vector_forward,
                                                        one_hot_encode_hash_map_,
                                                        element_set_.size(),
-                                                       mapping_mm2_);
+                                                        mapping_mm2_);
 
-  auto lattice_id_vector_mm2_backward =
-      site_bond_cluster_mm2_hashmap_.at({lattice_id_jump_pair.second, lattice_id_jump_pair.first});
+  const auto &lattice_id_vector_mm2_backward =
+      site_bond_cluster_mm2_flat_.at(GetPairFlatIndex({lattice_id_jump_pair.second, lattice_id_jump_pair.first}));
   std::vector<Element> ele_vector_backward{};
   ele_vector_backward.reserve(lattice_id_vector_mm2_backward.size());
-  for (auto index : lattice_id_vector_mm2_backward) {
+  for (const auto index : lattice_id_vector_mm2_backward) {
     ele_vector_backward.push_back(config.GetElementAtLatticeId(index));
   }
   const auto encode_mm2_backward = GetOneHotParametersFromMap(ele_vector_backward,
@@ -197,13 +197,13 @@ double VacancyMigrationPredictorQuartic::GetKs(const cfg::Config &config,
 double VacancyMigrationPredictorQuartic::GetD(const cfg::Config &config,
                                               const std::pair<size_t,
                                                               size_t> &lattice_id_jump_pair) const {
-  auto migration_element = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
-  auto lattice_id_vector_mmm = site_bond_cluster_mmm_hashmap_.at(lattice_id_jump_pair);
+  const auto migration_element = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
+  const auto &lattice_id_vector_mmm = site_bond_cluster_mmm_flat_.at(GetPairFlatIndex(lattice_id_jump_pair));
   std::vector<Element> ele_vector{};
   ele_vector.reserve(lattice_id_vector_mmm.size());
   // TODO(perf): Replace per-call vector alloc with thread_local fixed storage
   // to eliminate allocator overhead.
-  for (auto index : lattice_id_vector_mmm) {
+  for (const auto index : lattice_id_vector_mmm) {
     ele_vector.push_back(config.GetElementAtLatticeId(index));
   }
   auto encode_mmm = GetOneHotParametersFromMap(ele_vector,
@@ -253,5 +253,14 @@ std::pair<double, double> VacancyMigrationPredictorQuartic::GetBarrierAndDiffFro
   const auto Ea = (3 * b + delta) * (3 * b + delta) * (3 * b * b - 16 * a * c + b * delta)
       / std::pow(a, 3) / 2048;
   return {Ea, dE};
+}
+
+size_t VacancyMigrationPredictorQuartic::GetPairFlatIndex(const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
+  const auto &slot_map = neighbor_slot_lookup_.at(lattice_id_jump_pair.first);
+  const auto it = slot_map.find(lattice_id_jump_pair.second);
+  if (it == slot_map.end()) {
+    throw std::out_of_range("Neighbor not found for lattice pair in GetPairFlatIndex");
+  }
+  return lattice_id_jump_pair.first * constants::kNumFirstNearestNeighbors + it->second;
 }
 } // pred
