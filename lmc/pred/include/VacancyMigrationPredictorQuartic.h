@@ -29,25 +29,25 @@ class VacancyMigrationPredictorQuartic {
                                const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
     [[nodiscard]] double GetD(const cfg::Config &config,
                               const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
+    [[nodiscard]] size_t GetPairFlatIndex(const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
     const std::set<Element> element_set_;
     const std::unordered_map<std::string, std::vector<double> > one_hot_encode_hash_map_;
     const std::vector<std::vector<std::vector<size_t> > > mapping_mmm_;
     const std::vector<std::vector<std::vector<size_t> > > mapping_mm2_;
     const std::vector<std::vector<std::vector<size_t> > > mapping_state_;
+    // Total slots in flattened neighbor storage: num_sites * NN per site.
+    const size_t num_pair_slots_;
+    // Per-site map: neighbor lattice id -> neighbor slot index (0..11).
+    // Built once from the reference config to avoid per-call linear scans.
+    std::vector<std::unordered_map<size_t, size_t> > neighbor_slot_lookup_;
 
     Eigen::VectorXd base_theta_{}; // Changed from std::vector<double>
 
-    std::unordered_map<std::pair<size_t, size_t>,
-                       std::vector<size_t>,
-                       boost::hash<std::pair<size_t, size_t> > > site_bond_cluster_mmm_hashmap_{};
-    std::unordered_map<std::pair<size_t, size_t>,
-                       std::vector<size_t>,
-                       boost::hash<std::pair<size_t, size_t> > > site_bond_cluster_mm2_hashmap_{};
-    std::unordered_map<std::pair<size_t, size_t>,
-                       std::vector<size_t>,
-                       boost::hash<std::pair<size_t, size_t> > > site_bond_cluster_state_hashmap_{};
-    // TODO(perf): These hot unordered_maps could be moved to flat_hash/F14 or flattened
-    // contiguous arrays to reduce hash overhead on prediction hot paths.
+    // Flattened storage of site-bond clusters to remove hot-path unordered_map lookups.
+    // Indexing: flat_idx = site * constants::kNumFirstNearestNeighbors + neighbor_slot.
+    std::vector<std::vector<size_t> > site_bond_cluster_mmm_flat_{};
+    std::vector<std::vector<size_t> > site_bond_cluster_mm2_flat_{};
+    std::vector<std::vector<size_t> > site_bond_cluster_state_flat_{};
 
     std::unordered_map<Element,
                        ParametersQuartic,
