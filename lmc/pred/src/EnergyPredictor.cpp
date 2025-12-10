@@ -39,7 +39,7 @@ EnergyPredictor::EnergyPredictor(const std::string &predictor_filename,
 }
 EnergyPredictor::~EnergyPredictor() = default;
 std::vector<double> EnergyPredictor::GetEncode(const cfg::Config &config) const {
-  auto &cluster_counts = GetThreadLocalIntPrimaryBuffer();
+  auto &cluster_counts = GetThreadLocalStartCountsBuffer();
   cluster_counts.assign(cluster_indexer_.Size(), 0);
   for (size_t atom_id1 = 0; atom_id1 < config.GetNumAtoms(); ++atom_id1) {
     const size_t lattice_id1 = config.GetLatticeIdFromAtomId(atom_id1);
@@ -83,17 +83,17 @@ std::vector<double> EnergyPredictor::GetEncode(const cfg::Config &config) const 
     }
   }
 
-  std::vector<double> energy_encode;
-  energy_encode.reserve(cluster_indexer_.Size());
+  auto &energy_encode = GetThreadLocalDeEncodeBuffer();
+  energy_encode.resize(cluster_indexer_.Size());
   const auto &total_bonds = cluster_indexer_.GetTotalBonds();
   for (size_t idx = 0; idx < cluster_indexer_.Size(); ++idx) {
-    energy_encode.push_back(static_cast<double>(cluster_counts[idx]) / total_bonds[idx]);
+    energy_encode[idx] = static_cast<double>(cluster_counts[idx]) / total_bonds[idx];
   }
   return energy_encode;
 }
 std::vector<double> EnergyPredictor::GetEncodeOfCluster(
     const cfg::Config &config, const std::vector<size_t> &atom_id_list) const {
-  auto &cluster_counts = GetThreadLocalIntPrimaryBuffer();
+  auto &cluster_counts = GetThreadLocalStartCountsBuffer();
   cluster_counts.assign(cluster_indexer_.Size(), 0);
   std::unordered_set<size_t> lattice_id_hashset;
   for (auto atom_id : atom_id_list) {
@@ -155,11 +155,11 @@ std::vector<double> EnergyPredictor::GetEncodeOfCluster(
     }
   }
 
-  std::vector<double> energy_encode;
-  energy_encode.reserve(cluster_indexer_.Size());
+  auto &energy_encode = GetThreadLocalDeEncodeBuffer();
+  energy_encode.resize(cluster_indexer_.Size());
   const auto &total_bonds = cluster_indexer_.GetTotalBonds();
   for (size_t idx = 0; idx < cluster_indexer_.Size(); ++idx) {
-    energy_encode.push_back(static_cast<double>(cluster_counts[idx]) / total_bonds[idx]);
+    energy_encode[idx] = static_cast<double>(cluster_counts[idx]) / total_bonds[idx];
   }
   return energy_encode;
 }

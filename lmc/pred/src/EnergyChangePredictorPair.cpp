@@ -41,7 +41,6 @@ EnergyChangePredictorPair::EnergyChangePredictorPair(const std::string &predicto
       for (const auto &theta: base_theta_json) {
         base_theta_.emplace_back(theta.get<double>());
       }
-      // base_theta_ = std::vector<double>(parameters.at("theta"));
     }
   }
 #pragma omp parallel for default(none) shared(reference_config)
@@ -77,13 +76,17 @@ double EnergyChangePredictorPair::GetDeFromLatticeIdPair(const cfg::Config &conf
   if (element_first == element_second) {
     return 0.0;
   }
-  auto &start_counts = GetThreadLocalIntPrimaryBuffer();
-  auto &end_counts = GetThreadLocalIntSecondaryBuffer();
+  auto &start_counts = GetThreadLocalStartCountsBuffer();
+  auto &end_counts = GetThreadLocalEndCountsBuffer();
   start_counts.assign(cluster_indexer_.Size(), 0);
   end_counts.assign(cluster_indexer_.Size(), 0);
-  const auto &lattice_id_vector = bond_state_hashmap_.at(lattice_id_jump_pair);
-  auto &element_vector_start = GetThreadLocalElementPrimaryBuffer();
-  auto &element_vector_end = GetThreadLocalElementSecondaryBuffer();
+
+  const auto& id_jump_pair_sorted = (lattice_id_jump_pair.first > lattice_id_jump_pair.second) ?
+    std::make_pair(lattice_id_jump_pair.second, lattice_id_jump_pair.first) : lattice_id_jump_pair;
+  const auto &lattice_id_vector = bond_state_hashmap_.at(id_jump_pair_sorted);
+  
+  auto &element_vector_start = GetThreadLocalElementStartBuffer();
+  auto &element_vector_end = GetThreadLocalElementEndBuffer();
 
   for (size_t label = 0; label < bond_mapping_state_.size(); ++label) {
     const auto &cluster_vector = bond_mapping_state_.at(label);
@@ -111,7 +114,7 @@ double EnergyChangePredictorPair::GetDeFromLatticeIdPair(const cfg::Config &conf
     }
   }
 
-  auto &de_encode = GetThreadLocalDoubleBuffer();
+  auto &de_encode = GetThreadLocalDeEncodeBuffer();
   de_encode.resize(cluster_indexer_.Size());
   const auto &total_bonds = cluster_indexer_.GetTotalBonds();
   for (size_t idx = 0; idx < cluster_indexer_.Size(); ++idx) {

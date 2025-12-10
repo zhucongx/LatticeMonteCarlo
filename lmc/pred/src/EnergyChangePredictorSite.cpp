@@ -38,7 +38,6 @@ EnergyChangePredictorSite::EnergyChangePredictorSite(const std::string &predicto
       for (const auto &theta : base_theta_json) {
         base_theta_.emplace_back(theta.get<double>());
       }
-      // base_theta_ = std::vector<double>(parameters.at("theta"));
     }
   }
 #pragma omp parallel for default(none) shared(reference_config)
@@ -62,15 +61,19 @@ double EnergyChangePredictorSite::GetDeFromLatticeIdSite(
     return 0.0;
   }
   const auto mapping = site_neighbors_hashmap_.at(lattice_id);
-  auto &start_counts = GetThreadLocalIntPrimaryBuffer();
-  auto &end_counts = GetThreadLocalIntSecondaryBuffer();
+  auto &start_counts = GetThreadLocalStartCountsBuffer();
+  auto &end_counts = GetThreadLocalEndCountsBuffer();
   start_counts.assign(cluster_indexer_.Size(), 0);
   end_counts.assign(cluster_indexer_.Size(), 0);
+
+  auto &element_vector_start = GetThreadLocalElementStartBuffer();
+  auto &element_vector_end = GetThreadLocalElementEndBuffer();
 
   int label = 0;
   for (const auto &cluster_vector: mapping) {
     for (const auto &cluster: cluster_vector) {
-      std::vector<Element> element_vector_start, element_vector_end;
+      element_vector_start.clear();
+      element_vector_end.clear();
       element_vector_start.reserve(cluster.size());
       element_vector_end.reserve(cluster.size());
       for (auto lattice_id_in_cluster: cluster) {
@@ -87,7 +90,7 @@ double EnergyChangePredictorSite::GetDeFromLatticeIdSite(
     label++;
   }
 
-  auto &de_encode = GetThreadLocalDoubleBuffer();
+  auto &de_encode = GetThreadLocalDeEncodeBuffer();
   de_encode.resize(cluster_indexer_.Size());
   const auto &total_bonds = cluster_indexer_.GetTotalBonds();
   for (size_t idx = 0; idx < cluster_indexer_.Size(); ++idx) {

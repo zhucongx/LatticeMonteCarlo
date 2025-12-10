@@ -134,7 +134,8 @@ double VacancyMigrationPredictorE0::GetE0(const cfg::Config &config,
   for (auto index: lattice_id_vector_mmm) {
     ele_vector.push_back(config.GetElementAtLatticeId(index));
   }
-  auto encode_mmm = GetOneHotParametersFromMap(ele_vector, one_hot_encode_hash_map_, element_set_.size(), mapping_mmm_);
+  auto &encode_mmm = GetThreadLocalEncodeMMMBuffer();
+  GetOneHotParametersFromMap(ele_vector, one_hot_encode_hash_map_, element_set_.size(), mapping_mmm_, encode_mmm);
   const auto &[mu_x_mmm, sigma_x_mmm, U_mmm, theta_e0, mu_y_e0, sigma_y_e0] = element_parameters_hashmap_.at(migration_element);
 
   // Vectorized normalization and matrix operation using Eigen.

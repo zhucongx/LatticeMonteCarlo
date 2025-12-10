@@ -116,14 +116,13 @@ double VacancyMigrationPredictorQuartic::GetDe(const cfg::Config &config,
   const auto flat_idx = GetPairFlatIndex(lattice_id_jump_pair);
   const auto &lattice_id_vector = site_bond_cluster_state_flat_.at(flat_idx);
 
-  // Reuse thread-local buffers to avoid allocations and map copies.
-  auto &start_counts = GetThreadLocalIntPrimaryBuffer();
-  auto &end_counts = GetThreadLocalIntSecondaryBuffer();
+  auto &start_counts = GetThreadLocalStartCountsBuffer();
+  auto &end_counts = GetThreadLocalEndCountsBuffer();
   start_counts.assign(state_cluster_indexer_.Size(), 0);
   end_counts.assign(state_cluster_indexer_.Size(), 0);
 
-  auto &element_vector_start = GetThreadLocalElementPrimaryBuffer();
-  auto &element_vector_end = GetThreadLocalElementSecondaryBuffer();
+  auto &element_vector_start = GetThreadLocalElementStartBuffer();
+  auto &element_vector_end = GetThreadLocalElementEndBuffer();
 
   for (size_t label = 0; label < mapping_state_.size(); ++label) {
     const auto &cluster_vector = mapping_state_.at(label);
@@ -154,7 +153,7 @@ double VacancyMigrationPredictorQuartic::GetDe(const cfg::Config &config,
     }
   }
 
-  auto &de_encode = GetThreadLocalDoubleBuffer();
+  auto &de_encode = GetThreadLocalDeEncodeBuffer();
   de_encode.resize(state_cluster_indexer_.Size());
   const auto &total_bonds = state_cluster_indexer_.GetTotalBonds();
   for (size_t idx = 0; idx < state_cluster_indexer_.Size(); ++idx) {
@@ -172,29 +171,33 @@ double VacancyMigrationPredictorQuartic::GetKs(const cfg::Config &config,
 
   const auto &lattice_id_vector_mm2_forward =
       site_bond_cluster_mm2_flat_.at(GetPairFlatIndex(lattice_id_jump_pair));
-  auto &ele_vector_forward = GetThreadLocalElementPrimaryBuffer();
+  auto &ele_vector_forward = GetThreadLocalElementStartBuffer();
   ele_vector_forward.clear();
   ele_vector_forward.reserve(lattice_id_vector_mm2_forward.size());
   for (const auto index : lattice_id_vector_mm2_forward) {
     ele_vector_forward.push_back(config.GetElementAtLatticeId(index));
   }
-  auto encode_mm2_forward = GetOneHotParametersFromMap(ele_vector_forward,
-                                                       one_hot_encode_hash_map_,
-                                                       element_set_.size(),
-                                                        mapping_mm2_);
+  auto &encode_mm2_forward = GetThreadLocalEncodeMM2ForwardBuffer();
+  GetOneHotParametersFromMap(ele_vector_forward,
+                             one_hot_encode_hash_map_,
+                             element_set_.size(),
+                             mapping_mm2_,
+                             encode_mm2_forward);
 
   const auto &lattice_id_vector_mm2_backward =
       site_bond_cluster_mm2_flat_.at(GetPairFlatIndex({lattice_id_jump_pair.second, lattice_id_jump_pair.first}));
-  auto &ele_vector_backward = GetThreadLocalElementSecondaryBuffer();
+  auto &ele_vector_backward = GetThreadLocalElementEndBuffer();
   ele_vector_backward.clear();
   ele_vector_backward.reserve(lattice_id_vector_mm2_backward.size());
   for (const auto index : lattice_id_vector_mm2_backward) {
     ele_vector_backward.push_back(config.GetElementAtLatticeId(index));
   }
-  const auto encode_mm2_backward = GetOneHotParametersFromMap(ele_vector_backward,
-                                                        one_hot_encode_hash_map_,
-                                                        element_set_.size(),
-                                                        mapping_mm2_);
+  auto &encode_mm2_backward = GetThreadLocalEncodeMM2BackwardBuffer();
+  GetOneHotParametersFromMap(ele_vector_backward,
+                             one_hot_encode_hash_map_,
+                             element_set_.size(),
+                             mapping_mm2_,
+                             encode_mm2_backward);
 
   const auto &element_parameters = element_parameters_hashmap_.at(migration_element);
   // Vectorized normalization using Eigen.
@@ -215,16 +218,18 @@ double VacancyMigrationPredictorQuartic::GetD(const cfg::Config &config,
                                                               size_t> &lattice_id_jump_pair) const {
   const auto migration_element = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
   const auto &lattice_id_vector_mmm = site_bond_cluster_mmm_flat_.at(GetPairFlatIndex(lattice_id_jump_pair));
-  auto &ele_vector = GetThreadLocalElementPrimaryBuffer();
+  auto &ele_vector = GetThreadLocalElementStartBuffer();
   ele_vector.clear();
   ele_vector.reserve(lattice_id_vector_mmm.size());
   for (const auto index : lattice_id_vector_mmm) {
     ele_vector.push_back(config.GetElementAtLatticeId(index));
   }
-  auto encode_mmm = GetOneHotParametersFromMap(ele_vector,
-                                               one_hot_encode_hash_map_,
-                                               element_set_.size(),
-                                               mapping_mmm_);
+  auto &encode_mmm = GetThreadLocalEncodeMMMBuffer();
+  GetOneHotParametersFromMap(ele_vector,
+                             one_hot_encode_hash_map_,
+                             element_set_.size(),
+                             mapping_mmm_,
+                             encode_mmm);
 
   const auto &element_parameters = element_parameters_hashmap_.at(migration_element);
 

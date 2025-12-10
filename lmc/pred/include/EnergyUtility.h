@@ -1,4 +1,3 @@
-
 #ifndef LMC_LMC_PRED_INCLUDE_ENERGYUTILITY_H_
 #define LMC_LMC_PRED_INCLUDE_ENERGYUTILITY_H_
 #include "Config.h"
@@ -64,11 +63,12 @@ std::vector<std::vector<std::vector<size_t>>>
 GetClusterParametersMappingStatePairOf(const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_pair);
 std::vector<std::vector<std::vector<size_t>>> GetClusterParametersMappingStateSiteOf(const cfg::Config &config,
                                                                                      size_t lattice_id);
-std::vector<double>
-GetOneHotParametersFromMap(const std::vector<Element> &encode,
-                           const std::unordered_map<std::string, std::vector<double>> &one_hot_encode_hashmap,
-                           size_t num_of_elements,
-                           const std::vector<std::vector<std::vector<size_t>>> &cluster_mapping);
+
+void GetOneHotParametersFromMap(const std::vector<Element> &encode,
+                                const std::unordered_map<std::string, std::vector<double>> &one_hot_encode_hashmap,
+                                size_t num_of_elements,
+                                const std::vector<std::vector<std::vector<size_t>>> &cluster_mapping,
+                                std::vector<double> &out_encode);
 
 struct ParametersQuartic {
   Eigen::VectorXd mu_x_mmm{};
@@ -97,7 +97,7 @@ struct ParametersE0 {
 struct ParametersDE {
   Eigen::VectorXd mu_x{};
   Eigen::VectorXd sigma_x{};
-   Eigen::MatrixXd U{};
+  Eigen::MatrixXd U{};
 
   Eigen::VectorXd theta{};
   double mu_y{};
@@ -121,31 +121,50 @@ class ClusterIndexer {
 };
 
 // Reusable thread-local buffers to avoid hot-path allocations.
-// Provides a thread-local primary buffer for integer vectors.
-inline std::vector<int> &GetThreadLocalIntPrimaryBuffer() {
+// Each function provides a unique buffer for a specific purpose to prevent aliasing.
+
+// Integer buffers for start/end state counting.
+inline std::vector<int> &GetThreadLocalStartCountsBuffer() {
   thread_local std::vector<int> buffer;
   return buffer;
 }
-// Provides a thread-local secondary buffer for integer vectors (distinct from primary).
-inline std::vector<int> &GetThreadLocalIntSecondaryBuffer() {
+inline std::vector<int> &GetThreadLocalEndCountsBuffer() {
   thread_local std::vector<int> buffer;
   return buffer;
 }
-// Provides a thread-local buffer for double vectors.
-inline std::vector<double> &GetThreadLocalDoubleBuffer() {
+
+// Element buffers for start/end state cluster construction.
+inline std::vector<Element> &GetThreadLocalElementStartBuffer() {
+  thread_local std::vector<Element> buffer;
+  return buffer;
+}
+inline std::vector<Element> &GetThreadLocalElementEndBuffer() {
+  thread_local std::vector<Element> buffer;
+  return buffer;
+}
+
+// Double-precision buffers for various encoding vectors.
+inline std::vector<double> &GetThreadLocalDeEncodeBuffer() {
   thread_local std::vector<double> buffer;
   return buffer;
 }
-// Provides a thread-local primary buffer for Element vectors.
-inline std::vector<Element> &GetThreadLocalElementPrimaryBuffer() {
-  thread_local std::vector<Element> buffer;
+inline std::vector<double> &GetThreadLocalEncodeMMMBuffer() {
+  thread_local std::vector<double> buffer;
   return buffer;
 }
-// Provides a thread-local secondary buffer for Element vectors (distinct from primary).
-inline std::vector<Element> &GetThreadLocalElementSecondaryBuffer() {
-  thread_local std::vector<Element> buffer;
+inline std::vector<double> &GetThreadLocalEncodeMM2ForwardBuffer() {
+  thread_local std::vector<double> buffer;
   return buffer;
 }
+inline std::vector<double> &GetThreadLocalEncodeMM2BackwardBuffer() {
+  thread_local std::vector<double> buffer;
+  return buffer;
+}
+inline std::vector<double> &GetThreadLocalSumOfListBuffer() {
+  thread_local std::vector<double> buffer;
+  return buffer;
+}
+
 }    // namespace pred
 
 #endif    //LMC_LMC_PRED_INCLUDE_ENERGYUTILITY_H_

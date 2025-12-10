@@ -741,15 +741,16 @@ std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState
       std::move(first_second_third_triplets_vector), cluster_mapping);
   return cluster_mapping;
 }
-std::vector<double> GetOneHotParametersFromMap(
+void GetOneHotParametersFromMap(
     const std::vector<Element> &encode,
-    const std::unordered_map<std::string, std::vector<double> > &one_hot_encode_hashmap,
+    const std::unordered_map<std::string, std::vector<double>> &one_hot_encode_hashmap,
     const size_t num_of_elements,
-    const std::vector<std::vector<std::vector<size_t> > > &cluster_mapping) {
-
-  std::vector<double> res_encode;
-  res_encode.reserve(2452);
+    const std::vector<std::vector<std::vector<size_t>>> &cluster_mapping,
+    std::vector<double> &out_encode) {
+  out_encode.clear();
+  // out_encode.reserve(2452);
   // Todo 711 for mmm ternary, 1401 for mmm2 ternary, 1240 for mmm quaternary, 2452 for mmm2 quaternary
+  auto &sum_of_list = GetThreadLocalSumOfListBuffer();
   for (const auto &cluster_vector: cluster_mapping) {
     size_t list_length;
     if (cluster_vector[0][0] == SIZE_MAX) {
@@ -757,7 +758,7 @@ std::vector<double> GetOneHotParametersFromMap(
     } else {
       list_length = static_cast<size_t>(std::pow(num_of_elements, cluster_vector[0].size()));
     }
-    std::vector<double> sum_of_list(list_length, 0);
+    sum_of_list.assign(list_length, 0.0);
 
     for (const auto &cluster: cluster_vector) {
       std::string cluster_type;
@@ -791,9 +792,8 @@ std::vector<double> GetOneHotParametersFromMap(
     std::ranges::for_each(sum_of_list,
                   [cluster_vector_size](auto &n) { n /= cluster_vector_size; });
 
-    std::ranges::move(sum_of_list, std::back_inserter(res_encode));
+    std::ranges::move(sum_of_list, std::back_inserter(out_encode));
   }
-  return res_encode;
 }
 
 ClusterIndexer::ClusterIndexer(const std::map<cfg::ElementCluster, int> &ordered_clusters,

@@ -40,7 +40,6 @@ EnergyChangePredictorPairSite::EnergyChangePredictorPairSite(const std::string &
       for (const auto &theta: base_theta_json) {
         base_theta_.emplace_back(theta.get<double>());
       }
-      // base_theta_ = std::vector<double>(parameters.at("theta"));
     }
   }
 #pragma omp parallel for default(none) shared(reference_config)
@@ -87,7 +86,7 @@ EnergyChangePredictorPairSite::GetDeFromLatticeIdPair(const cfg::Config &config,
 
 double EnergyChangePredictorPairSite::GetDeHelper(const std::vector<int> &start_counts,
                                                   const std::vector<int> &end_counts) const {
-  auto &de_encode = GetThreadLocalDoubleBuffer();
+  auto &de_encode = GetThreadLocalDeEncodeBuffer();
   de_encode.resize(cluster_indexer_.Size());
   const auto &total_bonds = cluster_indexer_.GetTotalBonds();
   for (size_t idx = 0; idx < cluster_indexer_.Size(); ++idx) {
@@ -107,12 +106,12 @@ double EnergyChangePredictorPairSite::GetDeFromLatticeIdPairWithCoupling(
     return 0.0;
   }
   const auto mapping = GetClusterParametersMappingStatePairOf(config, lattice_id_jump_pair);
-  auto &start_counts = GetThreadLocalIntPrimaryBuffer();
-  auto &end_counts = GetThreadLocalIntSecondaryBuffer();
+  auto &start_counts = GetThreadLocalStartCountsBuffer();
+  auto &end_counts = GetThreadLocalEndCountsBuffer();
   start_counts.assign(cluster_indexer_.Size(), 0);
   end_counts.assign(cluster_indexer_.Size(), 0);
-  auto &element_vector_start = GetThreadLocalElementPrimaryBuffer();
-  auto &element_vector_end = GetThreadLocalElementSecondaryBuffer();
+  auto &element_vector_start = GetThreadLocalElementStartBuffer();
+  auto &element_vector_end = GetThreadLocalElementEndBuffer();
   int label = 0;
   for (const auto &cluster_vector: mapping) {
     for (const auto &cluster: cluster_vector) {
@@ -165,13 +164,13 @@ double EnergyChangePredictorPairSite::GetDeFromLatticeIdSite(const cfg::Config &
     return 0.0;
   }
 
-  auto &start_counts = GetThreadLocalIntPrimaryBuffer();
-  auto &end_counts = GetThreadLocalIntSecondaryBuffer();
+  auto &start_counts = GetThreadLocalStartCountsBuffer();
+  auto &end_counts = GetThreadLocalEndCountsBuffer();
   start_counts.assign(cluster_indexer_.Size(), 0);
   end_counts.assign(cluster_indexer_.Size(), 0);
   const auto &lattice_id_vector = site_state_hashmap_.at(lattice_id);
-  auto &element_vector_start = GetThreadLocalElementPrimaryBuffer();
-  auto &element_vector_end = GetThreadLocalElementSecondaryBuffer();
+  auto &element_vector_start = GetThreadLocalElementStartBuffer();
+  auto &element_vector_end = GetThreadLocalElementEndBuffer();
 
   int label = 0;
   for (const auto &cluster_vector: site_mapping_state_) {
