@@ -1,8 +1,10 @@
 #include "EnergyUtility.h"
+#include <algorithm>
+
 namespace pred {
 std::unordered_map<std::string, std::vector<double> > GetOneHotEncodeHashmap(
     const std::set<Element> &element_set) {
-  size_t type_size = element_set.size();
+  const size_t type_size = element_set.size();
   std::unordered_map<std::string, std::vector<double> > encode_dict;
 
   size_t ct1 = 0;
@@ -258,10 +260,8 @@ std::vector<cfg::Lattice> GetSortedLatticeVectorStateOfPair(
     const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_pair) {
   // The number of first-, second-, and third-nearest neighbors of the jump pairs
   constexpr size_t kNumOfSites = constants::kNumThirdNearestSetSizeOfPair;
-  auto lattice_id_hashset =
-      config.GetNeighborsLatticeIdSetOfPair(lattice_id_pair);
-  const auto move_distance = Vector_d{0.5, 0.5, 0.5}
-      - config.GetLatticePairCenter(lattice_id_pair);
+  const auto lattice_id_hashset = config.GetNeighborsLatticeIdSetOfPair(lattice_id_pair);
+  const auto move_distance = Vector_d{0.5, 0.5, 0.5} - config.GetLatticePairCenter(lattice_id_pair);
   std::vector<cfg::Lattice> lattice_list;
   lattice_list.reserve(kNumOfSites);
   for (const auto id: lattice_id_hashset) {
@@ -276,7 +276,7 @@ std::vector<cfg::Lattice> GetSortedLatticeVectorStateOfPair(
 
   RotateLatticeVector(lattice_list,
                       config.GetLatticePairRotationMatrix(lattice_id_pair));
-  std::sort(lattice_list.begin(), lattice_list.end(),
+  std::ranges::sort(lattice_list,
             [](const cfg::Lattice &lhs, const cfg::Lattice &rhs) -> bool {
               return PositionCompareState(lhs, rhs);
             });

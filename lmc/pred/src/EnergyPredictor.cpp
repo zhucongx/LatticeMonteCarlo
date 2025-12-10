@@ -1,6 +1,8 @@
 #include "EnergyPredictor.h"
 #include <omp.h>
 #include <nlohmann/json.hpp>
+#include <algorithm>
+#include <ranges>
 
 namespace pred {
 EnergyPredictor::EnergyPredictor(const std::string &predictor_filename,
@@ -40,18 +42,15 @@ std::vector<double> EnergyPredictor::GetEncode(const cfg::Config &config) const 
       cluster_hashmap[cfg::ElementCluster(1, element1, element2)]++;
       for (size_t lattice_id3 : config.GetFirstNeighborsAdjacencyList()[lattice_id2]) {
         Element element3 = config.GetElementAtLatticeId(lattice_id3);
-        if (std::find(config.GetFirstNeighborsAdjacencyList()[lattice_id1].begin(),
-                      config.GetFirstNeighborsAdjacencyList()[lattice_id1].end(),
+        if (std::ranges::find(config.GetFirstNeighborsAdjacencyList()[lattice_id1],
                       lattice_id3)
             != config.GetFirstNeighborsAdjacencyList()[lattice_id1].end()) {
           cluster_hashmap[cfg::ElementCluster(4, element1, element2, element3)]++;
-        } else if (std::find(config.GetSecondNeighborsAdjacencyList()[lattice_id1].begin(),
-                             config.GetSecondNeighborsAdjacencyList()[lattice_id1].end(),
+        } else if (std::ranges::find(config.GetSecondNeighborsAdjacencyList()[lattice_id1],
                              lattice_id3)
             != config.GetSecondNeighborsAdjacencyList()[lattice_id1].end()) {
           cluster_hashmap[cfg::ElementCluster(5, element1, element2, element3)]++;
-        } else if (std::find(config.GetThirdNeighborsAdjacencyList()[lattice_id1].begin(),
-                             config.GetThirdNeighborsAdjacencyList()[lattice_id1].end(),
+        } else if (std::ranges::find(config.GetThirdNeighborsAdjacencyList()[lattice_id1],
                              lattice_id3)
             != config.GetThirdNeighborsAdjacencyList()[lattice_id1].end()) {
           cluster_hashmap[cfg::ElementCluster(6, element1, element2, element3)]++;
@@ -59,8 +58,7 @@ std::vector<double> EnergyPredictor::GetEncode(const cfg::Config &config) const 
       }
       for (size_t lattice_id3 : config.GetSecondNeighborsAdjacencyList()[lattice_id2]) {
         Element element3 = config.GetElementAtLatticeId(lattice_id3);
-        if (std::find(config.GetThirdNeighborsAdjacencyList()[lattice_id1].begin(),
-                      config.GetThirdNeighborsAdjacencyList()[lattice_id1].end(),
+        if (std::ranges::find(config.GetThirdNeighborsAdjacencyList()[lattice_id1],
                       lattice_id3)
             != config.GetThirdNeighborsAdjacencyList()[lattice_id1].end()) {
           cluster_hashmap[cfg::ElementCluster(7, element1, element2, element3)]++;
@@ -142,30 +140,26 @@ std::vector<double> EnergyPredictor::GetEncodeOfCluster(
       Element element2 = config.GetElementAtLatticeId(lattice_id2);
       cluster_hashmap[cfg::ElementCluster(1, element1, element2)]++;
       for (size_t lattice_id3 : config.GetFirstNeighborsAdjacencyList()[lattice_id2]) {
-        if (lattice_id_hashset.find(lattice_id3) == lattice_id_hashset.end()) { continue; }
+        if (!lattice_id_hashset.contains(lattice_id3)) { continue; }
         Element element3 = config.GetElementAtLatticeId(lattice_id3);
-        if (std::find(config.GetFirstNeighborsAdjacencyList()[lattice_id1].begin(),
-                      config.GetFirstNeighborsAdjacencyList()[lattice_id1].end(),
+        if (std::ranges::find(config.GetFirstNeighborsAdjacencyList()[lattice_id1],
                       lattice_id3)
             != config.GetFirstNeighborsAdjacencyList()[lattice_id1].end()) {
           cluster_hashmap[cfg::ElementCluster(4, element1, element2, element3)]++;
-        } else if (std::find(config.GetSecondNeighborsAdjacencyList()[lattice_id1].begin(),
-                             config.GetSecondNeighborsAdjacencyList()[lattice_id1].end(),
+        } else if (std::ranges::find(config.GetSecondNeighborsAdjacencyList()[lattice_id1],
                              lattice_id3)
             != config.GetSecondNeighborsAdjacencyList()[lattice_id1].end()) {
           cluster_hashmap[cfg::ElementCluster(5, element1, element2, element3)]++;
-        } else if (std::find(config.GetThirdNeighborsAdjacencyList()[lattice_id1].begin(),
-                             config.GetThirdNeighborsAdjacencyList()[lattice_id1].end(),
+        } else if (std::ranges::find(config.GetThirdNeighborsAdjacencyList()[lattice_id1],
                              lattice_id3)
             != config.GetThirdNeighborsAdjacencyList()[lattice_id1].end()) {
           cluster_hashmap[cfg::ElementCluster(6, element1, element2, element3)]++;
         }
       }
       for (size_t lattice_id3 : config.GetSecondNeighborsAdjacencyList()[lattice_id2]) {
-        if (lattice_id_hashset.find(lattice_id3) == lattice_id_hashset.end()) { continue; }
+        if (!lattice_id_hashset.contains(lattice_id3)) { continue; }
         Element element3 = config.GetElementAtLatticeId(lattice_id3);
-        if (std::find(config.GetThirdNeighborsAdjacencyList()[lattice_id1].begin(),
-                      config.GetThirdNeighborsAdjacencyList()[lattice_id1].end(),
+        if (std::ranges::find(config.GetThirdNeighborsAdjacencyList()[lattice_id1],
                       lattice_id3)
             != config.GetThirdNeighborsAdjacencyList()[lattice_id1].end()) {
           cluster_hashmap[cfg::ElementCluster(7, element1, element2, element3)]++;
@@ -183,7 +177,7 @@ std::vector<double> EnergyPredictor::GetEncodeOfCluster(
       // }
     }
     for (size_t lattice_id2 : config.GetSecondNeighborsAdjacencyList()[lattice_id1]) {
-      if (lattice_id_hashset.find(lattice_id2) == lattice_id_hashset.end()) { continue; }
+      if (!lattice_id_hashset.contains(lattice_id2)) { continue; }
       Element element2 = config.GetElementAtLatticeId(lattice_id2);
       cluster_hashmap[cfg::ElementCluster(2, element1, element2)]++;
       // for (size_t lattice_id3: config.GetThirdNeighborsAdjacencyList()[lattice_id2]) {
@@ -198,7 +192,7 @@ std::vector<double> EnergyPredictor::GetEncodeOfCluster(
       // }
     }
     for (size_t lattice_id2 : config.GetThirdNeighborsAdjacencyList()[lattice_id1]) {
-      if (lattice_id_hashset.find(lattice_id2) == lattice_id_hashset.end()) { continue; }
+      if (!lattice_id_hashset.contains(lattice_id2)) { continue; }
       Element element2 = config.GetElementAtLatticeId(lattice_id2);
       cluster_hashmap[cfg::ElementCluster(3, element1, element2)]++;
       // for (size_t lattice_id3: config.GetThirdNeighborsAdjacencyList()[lattice_id2]) {
@@ -217,8 +211,7 @@ std::vector<double> EnergyPredictor::GetEncodeOfCluster(
   const std::map<cfg::ElementCluster, int>
       ordered(initialized_cluster_hashmap_.begin(), initialized_cluster_hashmap_.end());
   std::vector<double> energy_encode;
-  for (const auto &cluster_count : ordered) {
-    const auto &cluster = cluster_count.first;
+  for (const auto &cluster: ordered | std::views::keys) {
     auto count_bond = static_cast<double>(cluster_hashmap.at(cluster));
     auto total_bond = static_cast<double>(cluster_counter[static_cast<size_t>(cluster.GetLabel())]);
     energy_encode.push_back(count_bond / total_bond);
@@ -226,14 +219,14 @@ std::vector<double> EnergyPredictor::GetEncodeOfCluster(
   return energy_encode;
 }
 double EnergyPredictor::GetEnergy(const cfg::Config &config) const {
-  auto encode = GetEncode(config);
+  const auto encode = GetEncode(config);
   const Eigen::Map<const Eigen::VectorXd> encode_vec(encode.data(), static_cast<Eigen::Index>(encode.size()));
   return base_theta_.dot(encode_vec);
 }
 double EnergyPredictor::GetEnergyOfCluster(
     const cfg::Config &config,
     const std::vector<size_t> &atom_id_list) const {
-  auto encode = GetEncodeOfCluster(config, atom_id_list);
+  const auto encode = GetEncodeOfCluster(config, atom_id_list);
   const Eigen::Map<const Eigen::VectorXd> encode_vec(encode.data(), static_cast<Eigen::Index>(encode.size()));
   return base_theta_.dot(encode_vec);
 }

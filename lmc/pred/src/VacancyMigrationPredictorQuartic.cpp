@@ -6,6 +6,8 @@
 #include <nlohmann/json.hpp>
 #include "Constants.hpp"
 #include <stdexcept>
+#include <algorithm>
+#include <ranges>
 
 namespace pred {
 VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::string &predictor_filename,
@@ -63,24 +65,27 @@ VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::st
       auto sorted_lattice_vector =
           GetSortedLatticeVectorStateOfPair(reference_config, {i, j});
       std::vector<size_t> lattice_id_vector_state;
-      std::ranges::transform(
-          sorted_lattice_vector, std::back_inserter(lattice_id_vector_state), [](const auto &lattice) {
-            return lattice.GetId();
-          });
+      std::transform(
+          sorted_lattice_vector.begin(),
+          sorted_lattice_vector.end(),
+          std::back_inserter(lattice_id_vector_state),
+          [](const auto &lattice) { return lattice.GetId(); });
       site_bond_cluster_state_flat_[flat_idx] = lattice_id_vector_state;
       auto sorted_lattice_vector_mmm = GetSymmetricallySortedLatticeVectorMMM(reference_config, {i, j});
       std::vector<size_t> lattice_id_vector_mmm;
-      std::ranges::transform(
-          sorted_lattice_vector_mmm, std::back_inserter(lattice_id_vector_mmm), [](const auto &lattice) {
-            return lattice.GetId();
-          });
+      std::transform(
+          sorted_lattice_vector_mmm.begin(),
+          sorted_lattice_vector_mmm.end(),
+          std::back_inserter(lattice_id_vector_mmm),
+          [](const auto &lattice) { return lattice.GetId(); });
       site_bond_cluster_mmm_flat_[flat_idx] = lattice_id_vector_mmm;
       auto sorted_lattice_vector_mm2 = GetSymmetricallySortedLatticeVectorMM2(reference_config, {i, j});
       std::vector<size_t> lattice_id_vector_mm2;
-      std::ranges::transform(
-          sorted_lattice_vector_mm2, std::back_inserter(lattice_id_vector_mm2), [](const auto &lattice) {
-            return lattice.GetId();
-          });
+      std::transform(
+          sorted_lattice_vector_mm2.begin(),
+          sorted_lattice_vector_mm2.end(),
+          std::back_inserter(lattice_id_vector_mm2),
+          [](const auto &lattice) { return lattice.GetId(); });
       site_bond_cluster_mm2_flat_[flat_idx] = lattice_id_vector_mm2;
     }
   }
@@ -117,7 +122,8 @@ double VacancyMigrationPredictorQuartic::GetDe(const cfg::Config &config,
         if (lattice_id == lattice_id_jump_pair.first) {
           element_vector_end.push_back(migration_element);
           continue;
-        } else if (lattice_id == lattice_id_jump_pair.second) {
+        }
+        if (lattice_id == lattice_id_jump_pair.second) {
           element_vector_end.emplace_back(ElementName::X);
           continue;
         }
@@ -138,8 +144,7 @@ double VacancyMigrationPredictorQuartic::GetDe(const cfg::Config &config,
   static const std::vector<double>
       cluster_counter{256, 1536, 768, 3072, 2048, 3072, 6144, 6144, 6144, 6144, 2048};
   // not necessary to parallelize this loop
-  for (const auto &cluster_count : ordered) {
-    const auto &cluster = cluster_count.first;
+  for (const auto &cluster: ordered | std::views::keys) {
     auto start = static_cast<double>(start_hashmap.at(cluster));
     auto end = static_cast<double>(end_hashmap.at(cluster));
     auto total_bond = cluster_counter[static_cast<size_t>(cluster.GetLabel())];
@@ -152,7 +157,7 @@ double VacancyMigrationPredictorQuartic::GetDe(const cfg::Config &config,
 double VacancyMigrationPredictorQuartic::GetKs(const cfg::Config &config,
                                                const std::pair<size_t,
                                                                size_t> &lattice_id_jump_pair) const {
-  auto migration_element = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
+  const auto migration_element = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
 
   const auto &lattice_id_vector_mm2_forward =
       site_bond_cluster_mm2_flat_.at(GetPairFlatIndex(lattice_id_jump_pair));
