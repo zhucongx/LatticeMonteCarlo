@@ -1,5 +1,5 @@
-#ifndef LMC_LMC_ANSYS_INCLUDE_ENERGYESTIMATOR_H_
-#define LMC_LMC_ANSYS_INCLUDE_ENERGYESTIMATOR_H_
+#ifndef LMC_LMC_PRED_INCLUDE_ENERGYPREDICTOR_H_
+#define LMC_LMC_PRED_INCLUDE_ENERGYPREDICTOR_H_
 #include <string>
 #include <set>
 #include <boost/functional/hash.hpp>
@@ -30,4 +30,4 @@ std::set<Element> element_set);
 };
 }
     // namespace pred
-#endif    //LMC_LMC_PRED_INCLUDE_ENERGYPREDICTOR_H_
+#endif //LMC_LMC_PRED_INCLUDE_ENERGYPREDICTOR_H_
