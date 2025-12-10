@@ -302,7 +302,7 @@ std::vector<cfg::Lattice> GetSortedLatticeVectorStateOfSite(
     lattice_list.push_back(lattice);
   }
 
-  std::sort(lattice_list.begin(), lattice_list.end(),
+  std::ranges::sort(lattice_list,
             [](const cfg::Lattice &lhs, const cfg::Lattice &rhs) -> bool {
               return PositionCompareState(lhs, rhs);
             });
