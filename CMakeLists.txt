@@ -122,20 +122,20 @@ endfunction()
 #                          $<TARGET_PROPERTY:${target},INTERFACE_INCLUDE_DIRECTORIES>)
 #endfunction()
 ####################################################### PKGCONFIG ######################################################
-#find_package(PkgConfig QUIET)
+#find_package(PkgConfig)
 ######################################################## BOOST #########################################################
 #set(Boost_USE_DEBUG_LIBS OFF) # ignore debug libs and
 #set(Boost_USE_RELEASE_LIBS ON) # only find release libs
-find_package(Boost REQUIRED COMPONENTS filesystem iostreams QUIET)
+find_package(Boost REQUIRED COMPONENTS filesystem iostreams)
 target_link_libraries_system(${PROJECT_NAME} PRIVATE Boost::boost Boost::filesystem Boost::iostreams)
 ######################################################### MPI ##########################################################
-find_package(MPI REQUIRED QUIET)
+find_package(MPI REQUIRED)
 target_link_libraries_system(${PROJECT_NAME} PRIVATE MPI::MPI_CXX)
 ######################################################## OPENMP ########################################################
-find_package(OpenMP REQUIRED QUIET)
+find_package(OpenMP REQUIRED)
 target_link_libraries_system(${PROJECT_NAME} PRIVATE OpenMP::OpenMP_CXX)
 ######################################################## EIGEN #########################################################
-find_package(MKL QUIET)
+find_package(MKL)
 if (MKL_FOUND)
     message(STATUS "MKL found. Using MKL BLAS/LAPACK")
     add_definitions(-DEIGEN_USE_MKL_ALL)
@@ -144,8 +144,8 @@ if (MKL_FOUND)
 else ()
     message(STATUS "MKL not found.")
     set(BLA_VENDOR Generic)
-    find_package(BLAS QUIET)
-    find_package(LAPACK QUIET)
+    find_package(BLAS)
+    find_package(LAPACK)
     if (BLAS_FOUND AND LAPACK_FOUND)
         message(STATUS "BLAS/LAPACK found. Using generic BLAS/LAPACK")
         add_definitions(-DEIGEN_USE_LAPACK -DEIGEN_USE_BLAS)
@@ -156,7 +156,7 @@ else ()
     endif ()
 endif ()
 
-find_package(Eigen3 QUIET)
+find_package(Eigen3)
 # If a suitable system version wasn't found, download the exact version we need.
 if (NOT Eigen3_FOUND AND NOT EIGEN3_FOUND)
     message(STATUS "Eigen3 not found")
@@ -178,13 +178,13 @@ endif ()
 # Link to the Eigen3::Eigen target, which is now available either from the system or FetchContent.
 target_link_libraries_system(${PROJECT_NAME} PRIVATE Eigen3::Eigen)
 ###################################################### ARMADILLO #######################################################
-#find_package(ARMADILLO REQUIRED QUIET)
+#find_package(ARMADILLO REQUIRED)
 #target_include_directories(${PROJECT_NAME} PRIVATE
 #        ${ARMADILLO_INCLUDE_DIRS})
 #target_link_libraries_system(${PROJECT_NAME} PRIVATE
 #        ${ARMADILLO_LIBRARIES})
 ###################################################### TENSORFLOW ######################################################
-#find_package(TensorFlow REQUIRED QUIET)
+#find_package(TensorFlow REQUIRED)
 #target_include_directories(${PROJECT_NAME} PRIVATE
 #        ${TensorFlow_INCLUDE_DIRS})
 #target_link_libraries_system(${PROJECT_NAME} PRIVATE
