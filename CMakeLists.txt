@@ -203,6 +203,8 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(json)
 target_link_libraries_system(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
+# Work around libstdc++/libc++ variants that lack std::u8string_view in C++20 mode.
+target_compile_definitions(${PROJECT_NAME} PRIVATE JSON_HAS_CPP_20=0)
 ######################################################## SPGLIB ########################################################
 # message(STATUS "Downloading spglib from Github")
 # FetchContent_Declare(
