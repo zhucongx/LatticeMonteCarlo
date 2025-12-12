@@ -117,7 +117,7 @@ std::vector<double> EnergyPredictor::GetEncodeOfCluster(
       const Element element2 = config.GetElementAtLatticeId(lattice_id2);
       cluster_counts[cluster_indexer_.GetIndex(cfg::ElementCluster(1, element1, element2))]++;
       for (size_t lattice_id3 : config.GetFirstNeighborsAdjacencyList()[lattice_id2]) {
-        if (!lattice_id_hashset.contains(lattice_id3)) { continue; }
+        if (lattice_id_hashset.find(lattice_id3) == lattice_id_hashset.end()) { continue; }
         const Element element3 = config.GetElementAtLatticeId(lattice_id3);
         if (std::ranges::find(config.GetFirstNeighborsAdjacencyList()[lattice_id1],
                       lattice_id3)
@@ -134,7 +134,7 @@ std::vector<double> EnergyPredictor::GetEncodeOfCluster(
         }
       }
       for (size_t lattice_id3 : config.GetSecondNeighborsAdjacencyList()[lattice_id2]) {
-        if (!lattice_id_hashset.contains(lattice_id3)) { continue; }
+        if (lattice_id_hashset.find(lattice_id3) == lattice_id_hashset.end()) { continue; }
         const Element element3 = config.GetElementAtLatticeId(lattice_id3);
         if (std::ranges::find(config.GetThirdNeighborsAdjacencyList()[lattice_id1],
                       lattice_id3)
@@ -144,12 +144,12 @@ std::vector<double> EnergyPredictor::GetEncodeOfCluster(
       }
     }
     for (size_t lattice_id2 : config.GetSecondNeighborsAdjacencyList()[lattice_id1]) {
-      if (!lattice_id_hashset.contains(lattice_id2)) { continue; }
+      if (lattice_id_hashset.find(lattice_id2) == lattice_id_hashset.end()) { continue; }
       const Element element2 = config.GetElementAtLatticeId(lattice_id2);
       cluster_counts[cluster_indexer_.GetIndex(cfg::ElementCluster(2, element1, element2))]++;
     }
     for (size_t lattice_id2 : config.GetThirdNeighborsAdjacencyList()[lattice_id1]) {
-      if (!lattice_id_hashset.contains(lattice_id2)) { continue; }
+      if (lattice_id_hashset.find(lattice_id2) == lattice_id_hashset.end()) { continue; }
       const Element element2 = config.GetElementAtLatticeId(lattice_id2);
       cluster_counts[cluster_indexer_.GetIndex(cfg::ElementCluster(3, element1, element2))]++;
     }
