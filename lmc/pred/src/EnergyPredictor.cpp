@@ -2,7 +2,6 @@
 #include <omp.h>
 #include <nlohmann/json.hpp>
 #include <algorithm>
-#include <ranges>
 
 namespace pred {
 namespace {

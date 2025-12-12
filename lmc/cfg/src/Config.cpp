@@ -11,7 +11,6 @@
 #include <omp.h>
 #include <random>
 #include <utility>
-#include <ranges>
 
 namespace cfg {
 Config::Config() = default;

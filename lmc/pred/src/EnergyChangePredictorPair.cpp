@@ -3,7 +3,6 @@
 #include <nlohmann/json.hpp>
 #include <omp.h>
 #include <Eigen/Dense>
-#include <ranges>
 #include <algorithm>
 #include <stdexcept>
 

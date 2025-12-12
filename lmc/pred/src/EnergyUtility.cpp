@@ -1,7 +1,6 @@
 #include "EnergyUtility.h"
 #include <algorithm>
 #include <stdexcept>
-#include <ranges>
 #include <numeric>
 
 namespace pred {
