@@ -3,6 +3,7 @@
 #include "ShortRangeOrder.h"
 
 #include <Eigen/Dense>
+#include <algorithm>
 #include <cmath>
 #include <filesystem>
 #include <omp.h>
@@ -365,7 +366,7 @@ std::vector<std::vector<size_t>> SoluteCluster::FindAtomListOfClusters() const {
   }
 
   // sort by size
-  std::ranges::sort(cluster_atom_list,
+  std::sort(cluster_atom_list.begin(), cluster_atom_list.end(),
             [](const std::vector<size_t> &a, const std::vector<size_t> &b) {
               return a.size() > b.size();
             });
