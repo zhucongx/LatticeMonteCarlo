@@ -165,8 +165,8 @@ if (NOT Eigen3_FOUND AND NOT EIGEN3_FOUND)
             Eigen3
             GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
             GIT_TAG 5.0.0
-            # GIT_PROGRESS TRUE
-            # GIT_SHALLOW TRUE
+            GIT_PROGRESS TRUE
+            GIT_SHALLOW TRUE
     )
 #    set(FETCHCONTENT_QUIET ON CACHE BOOL "" FORCE)
     FetchContent_MakeAvailable(Eigen3)
