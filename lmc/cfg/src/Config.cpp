@@ -338,11 +338,14 @@ Config::GetNeighborsLatticeIdSetOfPair(const std::pair<size_t, size_t> &lattice_
   std::unordered_set<size_t> near_neighbors_hashset;
   for (const auto lattice_id: {lattice_id_pair.first, lattice_id_pair.second}) {
     near_neighbors_hashset.insert(lattice_id);
-    std::ranges::copy(GetFirstNeighborsAdjacencyList().at(lattice_id),
+    std::copy(GetFirstNeighborsAdjacencyList().at(lattice_id).begin(),
+              GetFirstNeighborsAdjacencyList().at(lattice_id).end(),
               std::inserter(near_neighbors_hashset, near_neighbors_hashset.begin()));
-    std::ranges::copy(GetSecondNeighborsAdjacencyList().at(lattice_id),
+    std::copy(GetSecondNeighborsAdjacencyList().at(lattice_id).begin(),
+              GetSecondNeighborsAdjacencyList().at(lattice_id).end(),
               std::inserter(near_neighbors_hashset, near_neighbors_hashset.begin()));
-    std::ranges::copy(GetThirdNeighborsAdjacencyList().at(lattice_id),
+    std::copy(GetThirdNeighborsAdjacencyList().at(lattice_id).begin(),
+              GetThirdNeighborsAdjacencyList().at(lattice_id).end(),
               std::inserter(near_neighbors_hashset, near_neighbors_hashset.begin()));
   }
   return near_neighbors_hashset;
@@ -352,15 +355,15 @@ int Config::FindDistanceLabelBetweenLattice(const size_t lattice_id1, const size
   const auto &first_neighbors_adjacency_list = GetFirstNeighborsAdjacencyList()[lattice_id1];
   const auto &second_neighbors_adjacency_list = GetSecondNeighborsAdjacencyList()[lattice_id1];
   const auto &third_neighbors_adjacency_list = GetThirdNeighborsAdjacencyList()[lattice_id1];
-  if (std::ranges::find(first_neighbors_adjacency_list, lattice_id2) !=
+  if (std::find(first_neighbors_adjacency_list.begin(), first_neighbors_adjacency_list.end(), lattice_id2) !=
       first_neighbors_adjacency_list.end()) {
     return 1;
   }
-  if (std::ranges::find(second_neighbors_adjacency_list, lattice_id2) !=
+  if (std::find(second_neighbors_adjacency_list.begin(), second_neighbors_adjacency_list.end(), lattice_id2) !=
       second_neighbors_adjacency_list.end()) {
     return 2;
   }
-  if (std::ranges::find(third_neighbors_adjacency_list, lattice_id2) !=
+  if (std::find(third_neighbors_adjacency_list.begin(), third_neighbors_adjacency_list.end(), lattice_id2) !=
       third_neighbors_adjacency_list.end()) {
     return 3;
   }
@@ -462,7 +465,7 @@ void Config::SetAtomElementTypeAtLattice(const size_t lattice_id, const Element 
 
 void Config::ReassignLatticeVector() {
   auto new_lattice_vector(lattice_vector_);
-  std::ranges::sort(new_lattice_vector, [](const auto &lhs, const auto &rhs) -> bool {
+  std::sort(new_lattice_vector.begin(), new_lattice_vector.end(), [](const auto &lhs, const auto &rhs) -> bool {
     return lhs.GetRelativePosition() < rhs.GetRelativePosition();
   });
   std::vector<size_t> old_lattice_id_to_new(GetNumAtoms(), std::numeric_limits<size_t>::max());
@@ -533,9 +536,12 @@ void Config::ReassignLatticeVector() {
   }
 
   for (size_t lattice_id = 0; lattice_id < GetNumAtoms(); ++lattice_id) {
-    std::ranges::sort(new_first_neighbors_adjacency_list.at(lattice_id));
-    std::ranges::sort(new_second_neighbors_adjacency_list.at(lattice_id));
-    std::ranges::sort(new_third_neighbors_adjacency_list.at(lattice_id));
+    std::sort(new_first_neighbors_adjacency_list.at(lattice_id).begin(),
+              new_first_neighbors_adjacency_list.at(lattice_id).end());
+    std::sort(new_second_neighbors_adjacency_list.at(lattice_id).begin(),
+              new_second_neighbors_adjacency_list.at(lattice_id).end());
+    std::sort(new_third_neighbors_adjacency_list.at(lattice_id).begin(),
+              new_third_neighbors_adjacency_list.at(lattice_id).end());
   }
   lattice_vector_ = new_lattice_vector;
   lattice_to_atom_vector_ = std::move(new_lattice_to_atom_vector);
@@ -1011,9 +1017,12 @@ void Config::UpdateNeighbors() {
   }
 
   for (size_t lattice_id = 0; lattice_id < GetNumAtoms(); ++lattice_id) {
-    std::ranges::sort(first_neighbors_adjacency_list_.at(lattice_id));
-    std::ranges::sort(second_neighbors_adjacency_list_.at(lattice_id));
-    std::ranges::sort(third_neighbors_adjacency_list_.at(lattice_id));
+    std::sort(first_neighbors_adjacency_list_.at(lattice_id).begin(),
+              first_neighbors_adjacency_list_.at(lattice_id).end());
+    std::sort(second_neighbors_adjacency_list_.at(lattice_id).begin(),
+              second_neighbors_adjacency_list_.at(lattice_id).end());
+    std::sort(third_neighbors_adjacency_list_.at(lattice_id).begin(),
+              third_neighbors_adjacency_list_.at(lattice_id).end());
   }
 }
 

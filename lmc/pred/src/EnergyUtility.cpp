@@ -66,7 +66,7 @@ std::vector<cfg::Lattice> GetSymmetricallySortedLatticeVectorMMM(
   }
   RotateLatticeVector(lattice_list,
                       config.GetLatticePairRotationMatrix(lattice_id_jump_pair));
-  std::ranges::sort(lattice_list,
+  std::sort(lattice_list.begin(), lattice_list.end(),
             [](const cfg::Lattice &lhs, const cfg::Lattice &rhs) -> bool {
               return PositionCompareMMM(lhs, rhs);
             });
@@ -96,7 +96,7 @@ std::vector<cfg::Lattice> GetSymmetricallySortedLatticeVectorMM2(
   }
   RotateLatticeVector(lattice_list,
                       config.GetLatticePairRotationMatrix(lattice_id_jump_pair));
-  std::ranges::sort(lattice_list,
+  std::sort(lattice_list.begin(), lattice_list.end(),
             [](const cfg::Lattice &lhs, const cfg::Lattice &rhs) -> bool {
               return PositionCompareMM2(lhs, rhs);
             });
@@ -278,7 +278,7 @@ std::vector<cfg::Lattice> GetSortedLatticeVectorStateOfPair(
 
   RotateLatticeVector(lattice_list,
                       config.GetLatticePairRotationMatrix(lattice_id_pair));
-  std::ranges::sort(lattice_list,
+  std::sort(lattice_list.begin(), lattice_list.end(),
             [](const cfg::Lattice &lhs, const cfg::Lattice &rhs) -> bool {
               return PositionCompareState(lhs, rhs);
             });
@@ -304,7 +304,7 @@ std::vector<cfg::Lattice> GetSortedLatticeVectorStateOfSite(
     lattice_list.push_back(lattice);
   }
 
-  std::ranges::sort(lattice_list,
+  std::sort(lattice_list.begin(), lattice_list.end(),
             [](const cfg::Lattice &lhs, const cfg::Lattice &rhs) -> bool {
               return PositionCompareState(lhs, rhs);
             });
@@ -358,7 +358,7 @@ int GetLabel(const std::vector<size_t> &lattice_index_list, const cfg::Config &c
                                                                lattice_index_list[2]),
                         config.FindDistanceLabelBetweenLattice(lattice_index_list[2],
                                                                lattice_index_list[0])};
-    std::ranges::sort(bond_label_list);
+    std::sort(bond_label_list.begin(), bond_label_list.end());
     if (bond_label_list[0] == 1 && bond_label_list[1] == 1 && bond_label_list[2] == 1) {
       return 4;
     } else if (bond_label_list[0] == 1 && bond_label_list[1] == 1 && bond_label_list[2] == 2) {
@@ -766,7 +766,7 @@ void GetOneHotParametersFromMap(
         std::transform(std::next(cluster.begin()), cluster.end(),
                        std::back_inserter(string_vector),
                        [&encode](const auto &index) { return encode[index].GetString(); });
-        std::ranges::sort(string_vector);
+        std::sort(string_vector.begin(), string_vector.end());
         cluster_type = string_vector.empty() ? "" :
                        std::accumulate(
                            std::next(string_vector.begin()), string_vector.end(),
@@ -788,10 +788,10 @@ void GetOneHotParametersFromMap(
                      std::plus<>());
     }
     auto cluster_vector_size = static_cast<double>( cluster_vector.size());
-    std::ranges::for_each(sum_of_list,
+    std::for_each(sum_of_list.begin(), sum_of_list.end(),
                   [cluster_vector_size](auto &n) { n /= cluster_vector_size; });
 
-    std::ranges::move(sum_of_list, std::back_inserter(out_encode));
+    std::move(sum_of_list.begin(), sum_of_list.end(), std::back_inserter(out_encode));
   }
 }
 
