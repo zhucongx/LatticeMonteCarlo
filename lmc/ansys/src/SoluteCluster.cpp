@@ -247,7 +247,6 @@ void SoluteCluster::GetClustersInfo(nlohmann::json &frame_info,
   }
   frame_info["clusters"] = clusters_info_array;
 
-  constexpr size_t kCriticalSize = 0;
   size_t num_cluster = 0;
   size_t num_atom = 0;
   std::vector<std::string> cluster_size_list;
@@ -256,6 +255,7 @@ void SoluteCluster::GetClustersInfo(nlohmann::json &frame_info,
     element_number_map[element] = 0;
   }
 
+  constexpr size_t kCriticalSize = 0;
   for (const auto &cluster: clusters_info_array) {
     if (cluster["cluster_size"] >= kCriticalSize) {
       num_cluster++;
@@ -289,18 +289,16 @@ std::vector<std::vector<size_t>>
 SoluteCluster::FindAtomListOfClustersBFSHelper(std::unordered_set<size_t> unvisited_atoms_id_set) const {
   std::vector<std::vector<size_t>> cluster_atom_list;
   std::queue<size_t> visit_id_queue;
-  size_t atom_id;
 
-  std::unordered_set<size_t>::iterator it;
   while (!unvisited_atoms_id_set.empty()) {
     // Find next element
-    it = unvisited_atoms_id_set.begin();
+    auto it = unvisited_atoms_id_set.begin();
     visit_id_queue.push(*it);
     unvisited_atoms_id_set.erase(it);
 
     std::vector<size_t> atom_list_of_one_cluster;
     while (!visit_id_queue.empty()) {
-      atom_id = visit_id_queue.front();
+      size_t atom_id = visit_id_queue.front();
       visit_id_queue.pop();
 
       atom_list_of_one_cluster.push_back(atom_id);
@@ -439,20 +437,20 @@ Vector_d SoluteCluster::GetMassCenter(const std::vector<size_t> &cluster_atom_id
   Vector_d sum_cos_theta{};
   Vector_d sum_sin_theta{};
   double sum_mass = 0;
-  for (size_t atom_id: cluster_atom_id_list) {
+  for (const size_t atom_id: cluster_atom_id_list) {
     auto relative_position = config_.GetLatticeVector()[config_.GetLatticeIdFromAtomId(atom_id)].GetRelativePosition();
-    auto mass = config_.GetAtomVector()[atom_id].GetElement().GetMass();
+    const auto mass = config_.GetAtomVector()[atom_id].GetElement().GetMass();
     sum_mass += mass;
     for (const auto kDim: All_Dimensions) {
-      auto theta = relative_position[kDim] * 2 * M_PI;
+      const auto theta = relative_position[kDim] * 2 * M_PI;
       sum_cos_theta[kDim] += std::cos(theta) * mass;
       sum_sin_theta[kDim] += std::sin(theta) * mass;
     }
   }
-  auto cos_theta_bar = sum_cos_theta / sum_mass;
-  auto sin_theta_bar = sum_sin_theta / sum_mass;
+  const auto cos_theta_bar = sum_cos_theta / sum_mass;
+  const auto sin_theta_bar = sum_sin_theta / sum_mass;
   for (const auto kDim: All_Dimensions) {
-    double theta_bar = std::atan2(-sin_theta_bar[kDim], -cos_theta_bar[kDim]) + M_PI;
+    const double theta_bar = std::atan2(-sin_theta_bar[kDim], -cos_theta_bar[kDim]) + M_PI;
     mass_center[kDim] = theta_bar / (2 * M_PI);
   }
   return mass_center * config_.GetBasis();
@@ -463,10 +461,10 @@ Matrix_d SoluteCluster::GetMassGyrationTensor(const std::vector<size_t> &cluster
   const auto relative_mass_center = mass_center * InverseMatrix(config_.GetBasis());
   Matrix_d gyration_tensor{};
   double sum_mass = 0;
-  for (size_t atom_id: cluster_atom_id_list) {
+  for (const size_t atom_id: cluster_atom_id_list) {
     const auto relative_position =
         config_.GetLatticeVector()[config_.GetLatticeIdFromAtomId(atom_id)].GetRelativePosition();
-    auto mass = config_.GetAtomVector()[atom_id].GetElement().GetMass();
+    const auto mass = config_.GetAtomVector()[atom_id].GetElement().GetMass();
     sum_mass += mass;
     for (const auto kDim1: All_Dimensions) {
       auto r1 = relative_position[kDim1] - relative_mass_center[kDim1];
