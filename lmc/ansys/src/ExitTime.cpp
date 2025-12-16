@@ -60,9 +60,9 @@ void ExitTime::GetExitTimeInfo(nlohmann::json &frame_info,
   }
   const auto [pair_energy_map, neighbor_atom_id_lists, migration_barrier_lists, driving_force_lists] =
       GetJumpEnergetics(all_atom_id_set);
-  // auxiliary_lists["neighbor_atom_id_lists"] = neighbor_atom_id_lists;
-  // auxiliary_lists["migration_barrier_lists"] = migration_barrier_lists;
-  // auxiliary_lists["driving_force_lists"] = driving_force_lists;
+  auxiliary_lists["neighbor_atom_id_lists"] = neighbor_atom_id_lists;
+  auxiliary_lists["migration_barrier_lists"] = migration_barrier_lists;
+  auxiliary_lists["driving_force_lists"] = driving_force_lists;
 
   std::vector<double> profile_energy_simp_list(config_.GetNumAtoms(), 0),
       binding_energy_simp_list(config_.GetNumAtoms(), 0), effective_binding_simp_list(config_.GetNumAtoms(), 0);
@@ -111,6 +111,7 @@ void ExitTime::GetExitTimeInfo(nlohmann::json &frame_info,
         atom_id_set_plus_nn.insert(neighbor_atom_id);
       }
     }
+    cluster_info["neighbor_size"] = atom_id_set_plus_nn.size() - atom_id_set.size();
     const double markov_escape_time = BuildMarkovChain(
         atom_id_set_plus_nn, neighbor_atom_id_lists, migration_barrier_lists, profile_energy_list, beta_escape_);
     // const double markov_current_time = BuildMarkovChain(

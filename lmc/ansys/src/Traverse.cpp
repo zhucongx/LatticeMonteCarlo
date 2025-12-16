@@ -248,7 +248,8 @@ void Traverse::RunAnsys() const {
 }
 
 std::string Traverse::GetHeaderClusterString() const {
-  std::string header_frame = "steps\ttime\ttemperature\tenergy\tcluster_id\tcluster_energy\tcluster_size\t";
+  std::string header_frame =
+      "steps\ttime\ttemperature\tenergy\tcluster_id\tcluster_energy\tcluster_size\tneighbor_size\t";
   for (const auto &element: element_set_) {
     header_frame += "cluster_";
     header_frame += element.GetString();
@@ -279,7 +280,7 @@ std::string Traverse::GetClusterString(const nlohmann::json &frame) const {
   for (const auto &cluster: frame["clusters"]) {
     cluster_stream << frame["steps"] << "\t" << frame["time"] << "\t" << frame["temperature"] << "\t" << frame["energy"]
                    << "\t" << cluster["cluster_id"] << "\t" << cluster["cluster_energy"] << "\t"
-                   << cluster["cluster_size"] << "\t";
+                   << cluster["cluster_size"] << "\t" << cluster["neighbor_size"] << "\t";
     for (const auto &element: element_set_) {
       cluster_stream << cluster["elements_number"][element.GetString()] << "\t";
     }
