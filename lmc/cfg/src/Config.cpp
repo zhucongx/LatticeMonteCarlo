@@ -597,8 +597,10 @@ Config Config::ReadConfig(const std::string &filename) {
   fis >> basis_zz;
   // finish this line
   fis.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+  bool has_no_velocity = false;
   // .NO_VELOCITY.
   if (fis.peek() == '.') {
+    has_no_velocity = true;
     fis.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
   }
   // "entry_count = 3" or "entry_count = 6"
@@ -620,7 +622,7 @@ Config Config::ReadConfig(const std::string &filename) {
     // The first column of the data section is 'Mass', which must start with
     // a digit (0-9) or a decimal point (e.g., .5 or 0.5).
     // If we detect a number, we have reached the data section -> Break loop to start reading.
-    if (std::isdigit(next_char) || next_char == '.') {
+    if (std::isdigit(next_char) || next_char == '.' || next_char == '-') {
       break;
     }
     // Otherwise (e.g., lines starting with 'a' for 'auxiliary', or other text headers),
@@ -644,7 +646,7 @@ Config Config::ReadConfig(const std::string &filename) {
 
   for (size_t lattice_id = 0; lattice_id < num_atoms; ++lattice_id) {
     fis >> mass >> type >> relative_position;
-    if (entry_count >= 6) {
+    if (entry_count >= 6 && has_no_velocity) {
       fis >> map_shift;
     } else {
       map_shift = {0, 0, 0};
