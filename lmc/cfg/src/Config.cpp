@@ -605,13 +605,29 @@ Config Config::ReadConfig(const std::string &filename) {
   fis.ignore(std::numeric_limits<std::streamsize>::max(), '=');
   size_t entry_count;
   fis >> entry_count;
-
   fis.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-  size_t temp_entry_count = entry_count;
-  while (temp_entry_count > 3) {
+
+  while (fis.good()) {
+    // Skip leading whitespace (tabs or spaces) but stop at newline
+    // to ensure we are inspecting the first significant character of the line.
+    while (std::isspace(fis.peek()) && fis.peek() != '\n') {
+      fis.get();
+    }
+    char next_char = static_cast<char>(fis.peek());
+    // Check for EOF to prevent infinite loops or errors
+    if (fis.eof()) break;
+    // Detection Logic:
+    // The first column of the data section is 'Mass', which must start with
+    // a digit (0-9) or a decimal point (e.g., .5 or 0.5).
+    // If we detect a number, we have reached the data section -> Break loop to start reading.
+    if (std::isdigit(next_char) || next_char == '.') {
+      break;
+    }
+    // Otherwise (e.g., lines starting with 'a' for 'auxiliary', or other text headers),
+    // treat this line as a header and ignore the entire line.
     fis.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-    --temp_entry_count;
   }
+
   auto basis =
       Matrix_d{{{basis_xx, basis_xy, basis_xz}, {basis_yx, basis_yy, basis_yz}, {basis_zx, basis_zy, basis_zz}}};
   std::vector<Atom> atom_vector;
