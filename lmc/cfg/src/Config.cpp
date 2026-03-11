@@ -880,6 +880,7 @@ Config Config::ReadMap(const std::string &lattice_filename,
     config.atom_vector_.emplace_back(atom_id, type);
     ifs_element.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
   }
+  config.map_shift_list_.assign(num_atoms, {0, 0, 0});
 
   std::ifstream ifs_map(map_filename, std::ifstream::in);
   if (!ifs_map.is_open()) {
