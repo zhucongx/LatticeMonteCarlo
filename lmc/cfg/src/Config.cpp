@@ -981,6 +981,9 @@ void Config::UpdateNeighbors() {
   const Factor_t num_cells{static_cast<size_t>(std::floor(ScalarLength(basis_[0]) / constants::kNearNeighborsCutoff)),
                            static_cast<size_t>(std::floor(ScalarLength(basis_[1]) / constants::kNearNeighborsCutoff)),
                            static_cast<size_t>(std::floor(ScalarLength(basis_[2]) / constants::kNearNeighborsCutoff))};
+  if (num_cells[0] == 0 || num_cells[1] == 0 || num_cells[2] == 0) {
+    throw std::runtime_error("Simulation box is smaller than neighbor cutoff");
+  }
 
   std::vector<std::vector<size_t>> cells{num_cells[0] * num_cells[1] * num_cells[2]};
 
