@@ -28,6 +28,9 @@ Config::Config(const Matrix_d &basis,
     throw std::runtime_error("Lattice vector and atom vector size do not match");
   }
   const auto num_sites = lattice_vector_.size();
+  if (map_shift_list_.size() != num_sites) {
+    throw std::runtime_error("Map shift list size does not match lattice/atom count");
+  }
   lattice_to_atom_vector_.assign(num_sites, std::numeric_limits<size_t>::max());
   atom_to_lattice_vector_.assign(num_sites, std::numeric_limits<size_t>::max());
   for (size_t i = 0; i < num_sites; ++i) {
@@ -42,6 +45,22 @@ Config::Config(const Matrix_d &basis,
     }
     lattice_to_atom_vector_[lattice_id] = atom_id;
     atom_to_lattice_vector_[atom_id] = lattice_id;
+  }
+  for (auto &lattice: lattice_vector_) {
+    const auto lattice_id = lattice.GetId();
+    const auto atom_id = lattice_to_atom_vector_.at(lattice_id);
+    auto relative_position = lattice.GetRelativePosition();
+    for (const auto dim: All_Dimensions) {
+      int image_shift = static_cast<int>(std::floor(relative_position[dim]));
+      relative_position[dim] -= std::floor(relative_position[dim]);
+      if (relative_position[dim] >= 1.0 - 1e-8) {
+        relative_position[dim] = 0.0;
+        ++image_shift;
+      }
+      map_shift_list_.at(atom_id)[dim] += image_shift;
+    }
+    lattice.SetRelativePosition(relative_position);
+    lattice.SetCartesianPosition(relative_position * basis_);
   }
   if (update_neighbor) {
     UpdateNeighbors();
