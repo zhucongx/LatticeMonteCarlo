@@ -1,6 +1,19 @@
 #include "KineticMcAbstract.h"
 
 namespace mc {
+namespace {
+// The event list follows a single vacancy, and the barrier model has no terms for a second vacancy near a jump.
+cfg::Config RequireSingleVacancy(cfg::Config config) {
+  const auto element_count_map = config.GetElementCountMap();
+  const auto it = element_count_map.find(Element(ElementName::X));
+  const size_t num_vacancies = it == element_count_map.end() ? 0 : it->second;
+  if (num_vacancies != 1) {
+    throw std::runtime_error("Kinetic Monte Carlo needs exactly one vacancy (element X) in the configuration, but " +
+                             std::to_string(num_vacancies) + " were found");
+  }
+  return config;
+}
+}    // namespace
 
 KineticMcFirstAbstract::KineticMcFirstAbstract(cfg::Config config,
                                                const unsigned long long int log_dump_steps,
@@ -18,7 +31,7 @@ KineticMcFirstAbstract::KineticMcFirstAbstract(cfg::Config config,
                                                bool is_early_stop,
                                                bool is_solute_disp,
                                                const unsigned long long int seed)
-    : McAbstract(std::move(config),
+    : McAbstract(RequireSingleVacancy(std::move(config)),
                  log_dump_steps,
                  config_dump_steps,
                  maximum_steps,
