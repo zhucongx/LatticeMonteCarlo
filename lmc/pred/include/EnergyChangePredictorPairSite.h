@@ -28,10 +28,10 @@ class EnergyChangePredictorPairSite {
         const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
     [[nodiscard]] double GetDeFromLatticeIdPairWithoutCoupling(
         const cfg::Config &config, const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
-    [[nodiscard]] double GetDeHelper(const std::vector<int> &start_counts, const std::vector<int> &end_counts) const;
+    [[nodiscard]] double GetDeHelper(const std::vector<int> &count_changes) const;
 
     const std::set<Element> element_set_;
-    const std::vector<std::vector<std::vector<size_t> > > site_mapping_state_;
+    const FlatClusterMapping site_mapping_state_;
 
     Eigen::VectorXd base_theta_{};
     ClusterIndexer cluster_indexer_{};
