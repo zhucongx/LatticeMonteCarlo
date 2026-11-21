@@ -81,7 +81,15 @@ Parameter::Parameter(const std::string &param_filename)
 
 void Parameter::ParseArgs(int argc, char *argv[]) {
   for (int i = 0; i < argc; i++) {
-    if (!std::strcmp(argv[i], "--p") || !std::strcmp(argv[i], "-p")) parameters_filename = std::string(argv[++i]);
+    if (!std::strcmp(argv[i], "--p") || !std::strcmp(argv[i], "-p")) {
+      if (i + 1 >= argc) {
+        throw std::invalid_argument("option -p needs the name of a parameter file");
+      }
+      parameters_filename = std::string(argv[++i]);
+    }
+  }
+  if (parameters_filename.empty()) {
+    throw std::invalid_argument("no parameter file given, usage: lmc.exe -p <parameter file>");
   }
 }
 

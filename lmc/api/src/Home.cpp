@@ -126,7 +126,7 @@ void Run(const Parameter &parameter) {
     auto canonical_mc_omp = api::BuildCanonicalMcOmpFromParameter(parameter);
     canonical_mc_omp.Simulate();
   } else {
-    std::cout << "No such method: " << parameter.method << std::endl;
+    throw std::invalid_argument("No such method: " + parameter.method);
   }
 }
 
