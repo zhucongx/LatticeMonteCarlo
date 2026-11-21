@@ -13,6 +13,9 @@ void Print(const Parameter &parameter) {
   if (!IsRoot()) {
     return;
   }
+  for (const auto &warning: parameter.warnings_) {
+    std::cerr << "Warning: " << warning << std::endl;
+  }
   std::cout << "Parameters" << std::endl;
   std::cout << "simulation_method: " << parameter.method << std::endl;
   if (parameter.method == "KineticMcFirstMpi" || parameter.method == "KineticMcFirstOmp" ||
