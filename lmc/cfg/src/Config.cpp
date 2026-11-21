@@ -693,6 +693,9 @@ void Config::WriteConfig(const std::string &filename) const {
 void Config::WriteExtendedConfig(const std::string &filename,
                                  const std::map<std::string, std::vector<double>> &auxiliary_lists) const {
   std::ofstream ofs(filename, std::ios_base::out | std::ios_base::binary);
+  if (!ofs) {
+    throw std::runtime_error("Cannot open " + filename);
+  }
   boost::iostreams::filtering_ostream fos;
   if (boost::filesystem::path(filename).extension() == ".gz") {
     fos.push(boost::iostreams::gzip_compressor());
@@ -739,6 +742,9 @@ void Config::WriteExtendedXyz(const std::string &filename,
                               const std::map<std::string, VectorVariant> &auxiliary_lists,
                               const std::map<std::string, ValueVariant> &global_list) const {
   std::ofstream ofs(filename, std::ios_base::out | std::ios_base::binary);
+  if (!ofs) {
+    throw std::runtime_error("Cannot open " + filename);
+  }
   boost::iostreams::filtering_ostream fos;
   if (boost::filesystem::path(filename).extension() == ".gz") {
     fos.push(boost::iostreams::gzip_compressor());
@@ -913,6 +919,9 @@ Config Config::ReadMap(const std::string &lattice_filename,
 
 void Config::WriteLattice(const std::string &filename) const {
   std::ofstream ofs(filename, std::ofstream::out);
+  if (!ofs) {
+    throw std::runtime_error("Cannot open " + filename);
+  }
   ofs.precision(16);
   ofs << GetNumAtoms() << " positions in total" << '\n';
   ofs << basis_ << std::endl;
@@ -934,6 +943,9 @@ void Config::WriteLattice(const std::string &filename) const {
 
 void Config::WriteElement(const std::string &filename) const {
   std::ofstream ofs(filename, std::ofstream::out);
+  if (!ofs) {
+    throw std::runtime_error("Cannot open " + filename);
+  }
   ofs.precision(16);
   for (const auto &atom: atom_vector_) {
     ofs << atom.GetElementString() << std::endl;
@@ -942,6 +954,9 @@ void Config::WriteElement(const std::string &filename) const {
 
 void Config::WriteMap(const std::string &filename) const {
   std::ofstream ofs(filename, std::ofstream::out);
+  if (!ofs) {
+    throw std::runtime_error("Cannot open " + filename);
+  }
   ofs.precision(16);
   for (size_t atom_id = 0; atom_id < atom_vector_.size(); ++atom_id) {
     ofs << atom_to_lattice_vector_[atom_id] << std::endl;
