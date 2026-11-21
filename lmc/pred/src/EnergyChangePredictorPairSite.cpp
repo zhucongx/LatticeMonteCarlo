@@ -4,11 +4,14 @@
 #include <nlohmann/json.hpp>
 #include <omp.h>
 #include <algorithm>
+#include <limits>
 #include <stdexcept>
 
 namespace pred {
 namespace {
 const std::vector<double> kClusterCounter{256, 1536, 768, 3072, 2048, 3072, 6144, 6144, 6144, 6144, 2048};
+// Stands for "no site" where a lattice id is expected.
+constexpr size_t kNoLatticeId = std::numeric_limits<size_t>::max();
 }
 EnergyChangePredictorPairSite::EnergyChangePredictorPairSite(const std::string &predictor_filename,
                                                              const cfg::Config &reference_config,
@@ -99,35 +102,13 @@ double EnergyChangePredictorPairSite::GetDeFromLatticeIdPairWithCoupling(
   if (element_first == element_second) {
     return 0.0;
   }
-  const auto mapping = GetClusterParametersMappingStatePairOf(config, lattice_id_jump_pair);
-  // Number of clusters of every kind after the swap minus their number before it. The counts are small integers, so
-  // the difference is exact.
+  // A cluster that holds both sites consists of the same elements before and after the swap, so it does not change
+  // the counts. What changes are the clusters around the first site without the second one and the clusters around
+  // the second site without the first one, and every site has the list of its clusters.
   auto &count_changes = GetThreadLocalStartCountsBuffer();
   count_changes.assign(cluster_indexer_.Size(), 0);
-  const auto code_first = cluster_indexer_.GetElementCode(element_first);
-  const auto code_second = cluster_indexer_.GetElementCode(element_second);
-  std::array<uint8_t, FlatClusterMapping::kMaxClusterSize> cluster_start{};
-  std::array<uint8_t, FlatClusterMapping::kMaxClusterSize> cluster_end{};
-  size_t label = 0;
-  for (const auto &cluster_vector: mapping) {
-    for (const auto &cluster: cluster_vector) {
-      for (size_t i = 0; i < cluster.size(); ++i) {
-        const auto lattice_id = cluster[i];
-        const auto code = cluster_indexer_.GetElementCode(config.GetElementAtLatticeId(lattice_id));
-        cluster_start[i] = code;
-        if (lattice_id == lattice_id_jump_pair.first) {
-          cluster_end[i] = code_second;
-        } else if (lattice_id == lattice_id_jump_pair.second) {
-          cluster_end[i] = code_first;
-        } else {
-          cluster_end[i] = code;
-        }
-      }
-      --count_changes[cluster_indexer_.GetIndex(label, cluster_start.data(), cluster.size())];
-      ++count_changes[cluster_indexer_.GetIndex(label, cluster_end.data(), cluster.size())];
-    }
-    label++;
-  }
+  AddCountChangesOfSite(config, lattice_id_jump_pair.first, element_second, lattice_id_jump_pair.second, count_changes);
+  AddCountChangesOfSite(config, lattice_id_jump_pair.second, element_first, lattice_id_jump_pair.first, count_changes);
   return GetDeHelper(count_changes);
 }
 
@@ -157,6 +138,17 @@ double EnergyChangePredictorPairSite::GetDeFromLatticeIdSite(const cfg::Config &
     return 0.0;
   }
 
+  auto &count_changes = GetThreadLocalStartCountsBuffer();
+  count_changes.assign(cluster_indexer_.Size(), 0);
+  AddCountChangesOfSite(config, lattice_id, new_element, kNoLatticeId, count_changes);
+  return GetDeHelper(count_changes);
+}
+
+void EnergyChangePredictorPairSite::AddCountChangesOfSite(const cfg::Config &config,
+                                                          const size_t lattice_id,
+                                                          const Element new_element,
+                                                          const size_t excluded_lattice_id,
+                                                          std::vector<int> &count_changes) const {
   // Element codes of the neighbourhood before and after the site has changed its element.
   const auto &lattice_id_vector = site_state_hashmap_.at(lattice_id);
   const auto new_code = cluster_indexer_.GetElementCode(new_element);
@@ -164,16 +156,17 @@ double EnergyChangePredictorPairSite::GetDeFromLatticeIdSite(const cfg::Config &
   auto &end_codes = GetThreadLocalEndCodesBuffer();
   start_codes.resize(lattice_id_vector.size());
   end_codes.resize(lattice_id_vector.size());
+  size_t excluded_site_index = kNoSiteIndex;
   for (size_t i = 0; i < lattice_id_vector.size(); ++i) {
-    const size_t lattice_id_in_cluster = lattice_id_vector[i];
-    const auto code = cluster_indexer_.GetElementCode(config.GetElementAtLatticeId(lattice_id_in_cluster));
+    const size_t neighbor_lattice_id = lattice_id_vector[i];
+    const auto code = cluster_indexer_.GetElementCode(config.GetElementAtLatticeId(neighbor_lattice_id));
     start_codes[i] = code;
-    end_codes[i] = lattice_id_in_cluster == lattice_id ? new_code : code;
+    end_codes[i] = neighbor_lattice_id == lattice_id ? new_code : code;
+    if (neighbor_lattice_id == excluded_lattice_id) {
+      excluded_site_index = i;
+    }
   }
-
-  auto &count_changes = GetThreadLocalStartCountsBuffer();
-  count_changes.assign(cluster_indexer_.Size(), 0);
-  AddClusterCountChanges(site_mapping_state_, cluster_indexer_, start_codes, end_codes, count_changes);
-  return GetDeHelper(count_changes);
+  AddClusterCountChanges(site_mapping_state_, cluster_indexer_, start_codes, end_codes, count_changes,
+                         excluded_site_index);
 }
 }    // namespace pred

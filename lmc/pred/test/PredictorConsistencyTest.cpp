@@ -69,6 +69,30 @@ TEST_F(PredictorConsistency, SwapEnergyChangeEqualsTotalEnergyDifference) {
   EXPECT_GE(num_distant, 10u);
 }
 
+// The model has no terms for two vacancies in one cluster. Whichever of the two sites is named first, a swap of the
+// vacancy with a neighbour must not be evaluated through a state in which both sites are vacant.
+TEST_F(PredictorConsistency, SwapOfTheVacancyWithANeighbourWorksInBothOrders) {
+  const EnergyPredictor total_energy_predictor(model_filename_, TestElementSet());
+  const EnergyChangePredictorPairSite energy_change_predictor(model_filename_, config_, TestElementSet());
+  const size_t vacancy = config_.GetVacancyLatticeId();
+  const double energy = total_energy_predictor.GetEnergy(config_);
+  size_t num_neighbors = 0;
+  for (const auto *adjacency_list: {&config_.GetFirstNeighborsAdjacencyList(),
+                                    &config_.GetSecondNeighborsAdjacencyList(),
+                                    &config_.GetThirdNeighborsAdjacencyList()}) {
+    for (const auto neighbor: (*adjacency_list)[vacancy]) {
+      auto swapped_config = config_;
+      swapped_config.LatticeJump({vacancy, neighbor});
+      const double expected_change = total_energy_predictor.GetEnergy(swapped_config) - energy;
+      EXPECT_NEAR(energy_change_predictor.GetDeFromLatticeIdPair(config_, {vacancy, neighbor}), expected_change, 1e-9);
+      EXPECT_NEAR(energy_change_predictor.GetDeFromLatticeIdPair(config_, {neighbor, vacancy}), expected_change, 1e-9);
+      ++num_neighbors;
+    }
+  }
+  EXPECT_EQ(num_neighbors, constants::kNumFirstNearestNeighbors + constants::kNumSecondNearestNeighbors +
+      constants::kNumThirdNearestNeighbors);
+}
+
 TEST_F(PredictorConsistency, JumpEnergyChangeEqualsTotalEnergyDifferenceAndReverseJumpIsConsistent) {
   const EnergyPredictor total_energy_predictor(model_filename_, TestElementSet());
   const VacancyMigrationPredictorQuartic barrier_predictor(model_filename_, config_, TestElementSet());

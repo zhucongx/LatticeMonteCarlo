@@ -179,20 +179,28 @@ class ClusterIndexer {
 
 // For every cluster of the mapping, takes one from the count of the cluster its sites form with the start codes and
 // adds one to the count of the cluster they form with the end codes. The codes are ClusterIndexer::GetElementCode() of
-// the elements on the sites the mapping refers to, and `count_changes` has an entry per cluster index.
+// the elements on the sites the mapping refers to, and `count_changes` has an entry per cluster index. Clusters that
+// contain the site with index `excluded_site_index` are left out.
+inline constexpr size_t kNoSiteIndex = std::numeric_limits<size_t>::max();
 inline void AddClusterCountChanges(const FlatClusterMapping &mapping,
                                    const ClusterIndexer &indexer,
                                    const std::vector<uint8_t> &start_codes,
                                    const std::vector<uint8_t> &end_codes,
-                                   std::vector<int> &count_changes) {
+                                   std::vector<int> &count_changes,
+                                   const size_t excluded_site_index = kNoSiteIndex) {
   std::array<uint8_t, FlatClusterMapping::kMaxClusterSize> cluster_start{};
   std::array<uint8_t, FlatClusterMapping::kMaxClusterSize> cluster_end{};
   for (const auto &group: mapping.groups) {
     const uint8_t *site_indices = mapping.site_indices.data() + group.offset;
     for (size_t n = 0; n < group.num_clusters; ++n, site_indices += group.cluster_size) {
+      bool is_excluded = false;
       for (size_t i = 0; i < group.cluster_size; ++i) {
+        is_excluded = is_excluded || site_indices[i] == excluded_site_index;
         cluster_start[i] = start_codes[site_indices[i]];
         cluster_end[i] = end_codes[site_indices[i]];
+      }
+      if (is_excluded) {
+        continue;
       }
       --count_changes[indexer.GetIndex(group.label, cluster_start.data(), group.cluster_size)];
       ++count_changes[indexer.GetIndex(group.label, cluster_end.data(), group.cluster_size)];
