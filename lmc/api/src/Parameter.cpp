@@ -1,9 +1,10 @@
 #include "Parameter.h"
 
-#include "Utility.h"
-
 #include <algorithm>
 #include <chrono>
+#include <cstring>
+#include <sstream>
+#include <stdexcept>
 
 namespace api {
 namespace {
@@ -38,14 +39,26 @@ void Parameter::ReadParam(const std::string &param_filename) {
     throw std::runtime_error("Cannot open " + param_filename);
   }
   std::string buffer;
+  size_t line_number = 0;
   while (std::getline(ifs, buffer)) {
-    if (buffer.empty()) {
+    ++line_number;
+    // Split on any whitespace (blanks, tabs and the carriage return of a Windows line ending) and stop at a
+    // comment. A blank line or a comment line leaves no token.
+    std::istringstream line_stream(buffer);
+    std::vector<std::string> segs;
+    for (std::string token; line_stream >> token;) {
+      if (token[0] == '#') {
+        break;
+      }
+      segs.push_back(token);
+    }
+    if (segs.empty()) {
       continue;
     }
-    if (buffer[0] == '#') {
-      continue;
+    if (segs.size() < 2) {
+      throw std::invalid_argument(param_filename + ":" + std::to_string(line_number) + ": parameter " + segs[0] +
+                                  " has no value");
     }
-    std::vector<std::string> segs(split(buffer, " "));
     if (segs[0] == "simulation_method") {
       method = std::string(segs[1]);
     } else if (segs[0] == "config_filename") {
