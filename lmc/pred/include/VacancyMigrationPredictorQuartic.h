@@ -41,7 +41,7 @@ class VacancyMigrationPredictorQuartic {
     const std::unordered_map<std::string, std::vector<double>> one_hot_encode_hash_map_;
     const std::vector<std::vector<std::vector<size_t>>> mapping_mmm_;
     const std::vector<std::vector<std::vector<size_t>>> mapping_mm2_;
-    const std::vector<std::vector<std::vector<size_t>>> mapping_state_;
+    const FlatClusterMapping mapping_state_;
     const size_t num_pair_slots_{};
 
     std::vector<std::vector<size_t>> site_bond_cluster_state_flat_{};

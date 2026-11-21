@@ -20,7 +20,7 @@ VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::st
       one_hot_encode_hash_map_(GetOneHotEncodeHashmap(element_set_)),
       mapping_mmm_(GetAverageClusterParametersMappingMMM(reference_config)),
       mapping_mm2_(GetAverageClusterParametersMappingMM2(reference_config)),
-      mapping_state_(GetClusterParametersMappingStatePair(reference_config)),
+      mapping_state_(FlattenClusterMapping(GetClusterParametersMappingStatePair(reference_config))),
       num_pair_slots_(reference_config.GetNumAtoms() * constants::kNumFirstNearestNeighbors),
       neighbor_slot_lookup_(reference_config.GetNumAtoms()) {
   auto element_set_copy(element_set_);
@@ -145,49 +145,38 @@ double VacancyMigrationPredictorQuartic::GetDe(const cfg::Config &config,
   const auto flat_idx = GetPairFlatIndex(lattice_id_jump_pair);
   const auto &lattice_id_vector = site_bond_cluster_state_flat_.at(flat_idx);
 
-  auto &start_counts = GetThreadLocalStartCountsBuffer();
-  auto &end_counts = GetThreadLocalEndCountsBuffer();
-  start_counts.assign(state_cluster_indexer_.Size(), 0);
-  end_counts.assign(state_cluster_indexer_.Size(), 0);
-
-  auto &element_vector_start = GetThreadLocalElementStartBuffer();
-  auto &element_vector_end = GetThreadLocalElementEndBuffer();
-
-  for (size_t label = 0; label < mapping_state_.size(); ++label) {
-    const auto &cluster_vector = mapping_state_.at(label);
-    for (const auto &cluster : cluster_vector) {
-      element_vector_start.clear();
-      element_vector_end.clear();
-      element_vector_start.reserve(cluster.size());
-      element_vector_end.reserve(cluster.size());
-      for (auto index : cluster) {
-        const size_t lattice_id = lattice_id_vector[index];
-        const auto element_at_site = config.GetElementAtLatticeId(lattice_id);
-        element_vector_start.push_back(element_at_site);
-        if (lattice_id == lattice_id_jump_pair.first) {
-          element_vector_end.push_back(migration_element);
-          continue;
-        }
-        if (lattice_id == lattice_id_jump_pair.second) {
-          element_vector_end.emplace_back(ElementName::X);
-          continue;
-        }
-        element_vector_end.push_back(element_at_site);
-      }
-      const auto cluster_start = cfg::ElementCluster(static_cast<int>(label), element_vector_start);
-      const auto cluster_end = cfg::ElementCluster(static_cast<int>(label), element_vector_end);
-
-      start_counts[state_cluster_indexer_.GetIndex(cluster_start)]++;
-      end_counts[state_cluster_indexer_.GetIndex(cluster_end)]++;
+  // Element codes of the neighbourhood before the jump and after it, when the migrating atom sits on the first site
+  // and has left the vacancy on the second one.
+  const auto migration_code = state_cluster_indexer_.GetElementCode(migration_element);
+  const auto vacancy_code = state_cluster_indexer_.GetElementCode(Element(ElementName::X));
+  auto &start_codes = GetThreadLocalStartCodesBuffer();
+  auto &end_codes = GetThreadLocalEndCodesBuffer();
+  start_codes.resize(lattice_id_vector.size());
+  end_codes.resize(lattice_id_vector.size());
+  for (size_t i = 0; i < lattice_id_vector.size(); ++i) {
+    const size_t lattice_id = lattice_id_vector[i];
+    const auto code = state_cluster_indexer_.GetElementCode(config.GetElementAtLatticeId(lattice_id));
+    start_codes[i] = code;
+    if (lattice_id == lattice_id_jump_pair.first) {
+      end_codes[i] = migration_code;
+    } else if (lattice_id == lattice_id_jump_pair.second) {
+      end_codes[i] = vacancy_code;
+    } else {
+      end_codes[i] = code;
     }
   }
+
+  // Number of clusters of every kind after the jump minus their number before it. The counts are small integers, so
+  // the difference is exact.
+  auto &count_changes = GetThreadLocalStartCountsBuffer();
+  count_changes.assign(state_cluster_indexer_.Size(), 0);
+  AddClusterCountChanges(mapping_state_, state_cluster_indexer_, start_codes, end_codes, count_changes);
 
   auto &de_encode = GetThreadLocalDeEncodeBuffer();
   de_encode.resize(state_cluster_indexer_.Size());
   const auto &total_bonds = state_cluster_indexer_.GetTotalBonds();
   for (size_t idx = 0; idx < state_cluster_indexer_.Size(); ++idx) {
-    de_encode[idx] = (static_cast<double>(end_counts[idx]) - static_cast<double>(start_counts[idx]))
-        / total_bonds[idx];
+    de_encode[idx] = static_cast<double>(count_changes[idx]) / total_bonds[idx];
   }
 
   const Eigen::Map<const Eigen::VectorXd> encode_vec(de_encode.data(), static_cast<Eigen::Index>(de_encode.size()));

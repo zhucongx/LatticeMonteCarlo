@@ -823,6 +823,33 @@ void GetOneHotParametersFromMap(
   }
 }
 
+FlatClusterMapping FlattenClusterMapping(const std::vector<std::vector<std::vector<size_t>>> &cluster_mapping) {
+  FlatClusterMapping flat_mapping;
+  for (size_t label = 0; label < cluster_mapping.size(); ++label) {
+    const auto &cluster_vector = cluster_mapping[label];
+    if (cluster_vector.empty()) {
+      continue;
+    }
+    const size_t cluster_size = cluster_vector.front().size();
+    if (cluster_size == 0 || cluster_size > FlatClusterMapping::kMaxClusterSize) {
+      throw std::invalid_argument("A cluster must have between 1 and 3 sites");
+    }
+    flat_mapping.groups.push_back({label, cluster_size, cluster_vector.size(), flat_mapping.site_indices.size()});
+    for (const auto &cluster: cluster_vector) {
+      if (cluster.size() != cluster_size) {
+        throw std::invalid_argument("Clusters with the same label must have the same number of sites");
+      }
+      for (const auto site_index: cluster) {
+        if (site_index > std::numeric_limits<uint8_t>::max()) {
+          throw std::invalid_argument("Site index of a cluster is too large for the flat cluster mapping");
+        }
+        flat_mapping.site_indices.push_back(static_cast<uint8_t>(site_index));
+      }
+    }
+  }
+  return flat_mapping;
+}
+
 ClusterIndexer::ClusterIndexer(const std::map<cfg::ElementCluster, int> &ordered_clusters,
                                std::vector<double> cluster_total_bonds)
     : cluster_total_bonds_(std::move(cluster_total_bonds)) {
@@ -836,12 +863,70 @@ ClusterIndexer::ClusterIndexer(const std::map<cfg::ElementCluster, int> &ordered
   if (cluster_index_to_cluster_.size() != cluster_total_bonds_.size()) {
     throw std::invalid_argument("cluster_total_bonds size mismatch in ClusterIndexer");
   }
+  BuildLookup();
+}
+
+void ClusterIndexer::BuildLookup() {
+  // Every element that is part of a cluster gets a code of its own, all other elements share the code after them.
+  constexpr uint8_t kNoCode = std::numeric_limits<uint8_t>::max();
+  element_codes_.fill(kNoCode);
+  num_codes_ = 0;
+  size_t num_labels = 0;
+  for (const auto &cluster: cluster_index_to_cluster_) {
+    if (cluster.GetLabel() < 0 || cluster.GetSize() == 0 || cluster.GetSize() > FlatClusterMapping::kMaxClusterSize) {
+      throw std::invalid_argument("A cluster needs a non-negative label and between 1 and 3 elements");
+    }
+    num_labels = std::max(num_labels, static_cast<size_t>(cluster.GetLabel()) + 1);
+    for (const auto element: cluster.GetElementVector()) {
+      auto &code = element_codes_[static_cast<uint8_t>(hash_value(element))];
+      if (code == kNoCode) {
+        code = static_cast<uint8_t>(num_codes_++);
+      }
+    }
+  }
+  for (auto &code: element_codes_) {
+    if (code == kNoCode) {
+      code = static_cast<uint8_t>(num_codes_);
+    }
+  }
+  ++num_codes_;
+  codes_per_label_ = num_codes_ * num_codes_ * num_codes_;
+
+  // Enter every cluster under each order of its elements, so that a lookup does not have to sort them.
+  label_sizes_.assign(num_labels, std::numeric_limits<size_t>::max());
+  lookup_.assign(num_labels * codes_per_label_, kNotFound);
+  for (size_t index = 0; index < cluster_index_to_cluster_.size(); ++index) {
+    const auto &cluster = cluster_index_to_cluster_[index];
+    const auto label = static_cast<size_t>(cluster.GetLabel());
+    const auto size = cluster.GetSize();
+    if (label_sizes_[label] != std::numeric_limits<size_t>::max() && label_sizes_[label] != size) {
+      throw std::invalid_argument("Clusters with the same label must have the same number of elements");
+    }
+    label_sizes_[label] = size;
+    std::array<uint8_t, FlatClusterMapping::kMaxClusterSize> codes{};
+    for (size_t i = 0; i < size; ++i) {
+      codes[i] = GetElementCode(cluster.GetElementVector()[i]);
+    }
+    const auto codes_end = codes.begin() + static_cast<std::ptrdiff_t>(size);
+    std::sort(codes.begin(), codes_end);
+    do {
+      size_t combined_code = 0;
+      for (size_t i = 0; i < size; ++i) {
+        combined_code = combined_code * num_codes_ + codes[i];
+      }
+      lookup_[label * codes_per_label_ + combined_code] = static_cast<uint32_t>(index);
+    } while (std::next_permutation(codes.begin(), codes_end));
+  }
+}
+
+void ClusterIndexer::ThrowClusterNotFound() {
+  throw std::out_of_range("Cluster not found in ClusterIndexer");
 }
 
 size_t ClusterIndexer::GetIndex(const cfg::ElementCluster &cluster) const {
   const auto it = cluster_to_index_.find(cluster);
   if (it == cluster_to_index_.end()) {
-    throw std::out_of_range("Cluster not found in ClusterIndexer");
+    ThrowClusterNotFound();
   }
   return it->second;
 }
