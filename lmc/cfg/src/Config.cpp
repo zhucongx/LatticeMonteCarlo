@@ -625,6 +625,9 @@ Config Config::ReadConfig(const std::string &filename) {
   fis.ignore(std::numeric_limits<std::streamsize>::max(), '=');
   size_t entry_count;
   fis >> entry_count;
+  if (!fis) {
+    throw std::runtime_error("Cannot read the header of " + filename);
+  }
   fis.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
   while (fis.good()) {
@@ -668,6 +671,11 @@ Config Config::ReadConfig(const std::string &filename) {
       fis >> map_shift;
     } else {
       map_shift = {0, 0, 0};
+    }
+    // Without this check a truncated file would silently repeat the last atom that could be read.
+    if (!fis) {
+      throw std::runtime_error(filename + " ends or is malformed at atom " + std::to_string(lattice_id + 1) + " of " +
+                               std::to_string(num_atoms));
     }
     atom_vector.emplace_back(lattice_id, type);
     lattice_vector.emplace_back(lattice_id, relative_position * basis, relative_position);
