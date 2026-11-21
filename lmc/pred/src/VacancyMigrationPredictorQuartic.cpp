@@ -92,7 +92,39 @@ VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::st
   site_bond_cluster_state_flat_.resize(num_pair_slots_);
   site_bond_cluster_mmm_flat_.resize(num_pair_slots_);
   site_bond_cluster_mm2_flat_.resize(num_pair_slots_);
-#pragma omp parallel for default(none) shared(reference_config)
+  // The three lists of a pair hold the same sites, sorted by three different rules in the frame of the jump. Which
+  // entry of the state list an entry of the mmm or mm2 list is, must then not depend on the pair. The cluster mappings
+  // assume it, and so does the cache, whose key is the elements in the order of the state list.
+  const std::pair<size_t, size_t> first_pair{0, reference_config.GetFirstNeighborsAdjacencyList()[0][0]};
+  const auto positions_in_state_list = [&reference_config, &first_pair](const std::vector<cfg::Lattice> &lattice_list) {
+    const auto state_list = GetSortedLatticeVectorStateOfPair(reference_config, first_pair);
+    std::vector<size_t> positions;
+    for (const auto &lattice: lattice_list) {
+      const auto it = std::find_if(state_list.begin(), state_list.end(), [&lattice](const cfg::Lattice &state_lattice) {
+        return state_lattice.GetId() == lattice.GetId();
+      });
+      positions.push_back(static_cast<size_t>(it - state_list.begin()));
+    }
+    return positions;
+  };
+  const auto mmm_positions = positions_in_state_list(GetSymmetricallySortedLatticeVectorMMM(reference_config, first_pair));
+  const auto mm2_positions = positions_in_state_list(GetSymmetricallySortedLatticeVectorMM2(reference_config, first_pair));
+  const auto is_arranged_like_first_pair = [](const std::vector<size_t> &lattice_id_vector,
+                                              const std::vector<size_t> &lattice_id_vector_state,
+                                              const std::vector<size_t> &positions) {
+    if (lattice_id_vector.size() != positions.size()) {
+      return false;
+    }
+    for (size_t index = 0; index < positions.size(); ++index) {
+      if (positions[index] >= lattice_id_vector_state.size() ||
+          lattice_id_vector[index] != lattice_id_vector_state[positions[index]]) {
+        return false;
+      }
+    }
+    return true;
+  };
+  bool is_consistent = true;
+#pragma omp parallel for default(none) shared(reference_config, mmm_positions, mm2_positions, is_arranged_like_first_pair) reduction(&&: is_consistent)
   for (size_t i = 0; i < reference_config.GetNumAtoms(); ++i) {
     const auto &neighbor_list = reference_config.GetFirstNeighborsAdjacencyList()[i];
     for (size_t neighbor_slot = 0; neighbor_slot < neighbor_list.size(); ++neighbor_slot) {
@@ -123,8 +155,16 @@ VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::st
           sorted_lattice_vector_mm2.end(),
           std::back_inserter(lattice_id_vector_mm2),
           [](const auto &lattice) { return lattice.GetId(); });
+      is_consistent = is_consistent &&
+          is_arranged_like_first_pair(lattice_id_vector_mmm, lattice_id_vector_state, mmm_positions) &&
+          is_arranged_like_first_pair(lattice_id_vector_mm2, lattice_id_vector_state, mm2_positions);
       site_bond_cluster_mm2_flat_[flat_idx] = lattice_id_vector_mm2;
     }
+  }
+  if (!is_consistent) {
+    throw std::runtime_error("The neighbourhoods of the jumps are not arranged alike in this configuration. The "
+                             "barrier model needs a complete FCC lattice in a box of at least four unit cells along "
+                             "every direction.");
   }
 }
 VacancyMigrationPredictorQuartic::~VacancyMigrationPredictorQuartic() = default;

@@ -5,11 +5,11 @@
 #include <shared_mutex>
 #include <list>
 #include <unordered_map>
-template<typename K, class V>
+template<typename K, class V, class Hash = std::hash<K>>
 class LruCache {
 public:
   explicit LruCache(size_t capacity) : capacity_(capacity) {}
-  void Add(const K key, const V &value) {
+  void Add(const K &key, const V &value) {
     std::unique_lock<std::shared_mutex> lock(mu_);
     auto it = cache_hashmap_.find(key);
     if (it != cache_hashmap_.end()) {
@@ -30,7 +30,7 @@ public:
   // lower constant factors if K is small and dense.
   // Note: Profiling shows LRU tweaks (shared lock / FIFO) only gave ~2.5% gain,
   // so we keep the simple write-lock path unless cache contention grows.
-  [[nodiscard]] bool Get(const K key, V &value) {
+  [[nodiscard]] bool Get(const K &key, V &value) {
     std::unique_lock<std::shared_mutex> lock(mu_);
     auto it = cache_hashmap_.find(key);
     if (it == cache_hashmap_.end()) {
@@ -45,7 +45,7 @@ private:
   // cache list of key and value
   std::list<std::pair<K, V> > cache_list_{};
   // hashmap of key and iterator of cache list
-  std::unordered_map<K, decltype(cache_list_.begin())> cache_hashmap_{};
+  std::unordered_map<K, decltype(cache_list_.begin()), Hash> cache_hashmap_{};
   std::shared_mutex mu_{};
 };
 #endif //LMC_LMC_PRED_INCLUDE_LRUCACHE_HPP
