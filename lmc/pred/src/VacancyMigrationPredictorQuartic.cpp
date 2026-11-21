@@ -61,6 +61,35 @@ VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::st
         parameters.at("sigma_Ks")
     };
   }
+  CheckModelSize(predictor_filename, "Base.theta", static_cast<size_t>(base_theta_.size()),
+                 state_cluster_indexer_.Size());
+  const size_t encode_size_mmm = GetOneHotEncodeSize(element_set_.size(), mapping_mmm_);
+  const size_t encode_size_mm2 = GetOneHotEncodeSize(element_set_.size(), mapping_mm2_);
+  for (const auto &element : element_set_) {
+    const auto it = element_parameters_hashmap_.find(element);
+    if (it == element_parameters_hashmap_.end()) {
+      throw std::runtime_error(predictor_filename + ": no coefficients for element " + element.GetString() +
+                               " of element_set");
+    }
+    const auto &name = element.GetString();
+    const auto &parameters = it->second;
+    CheckModelSize(predictor_filename, name + ".mu_x_mmm", static_cast<size_t>(parameters.mu_x_mmm.size()),
+                   encode_size_mmm);
+    CheckModelSize(predictor_filename, name + ".sigma_x_mmm", static_cast<size_t>(parameters.sigma_x_mmm.size()),
+                   encode_size_mmm);
+    CheckModelSize(predictor_filename, name + ".U_mmm (columns)", static_cast<size_t>(parameters.U_mmm.cols()),
+                   encode_size_mmm);
+    CheckModelSize(predictor_filename, name + ".theta_D", static_cast<size_t>(parameters.theta_D.size()),
+                   static_cast<size_t>(parameters.U_mmm.rows()));
+    CheckModelSize(predictor_filename, name + ".mu_x_mm2", static_cast<size_t>(parameters.mu_x_mm2.size()),
+                   encode_size_mm2);
+    CheckModelSize(predictor_filename, name + ".sigma_x_mm2", static_cast<size_t>(parameters.sigma_x_mm2.size()),
+                   encode_size_mm2);
+    CheckModelSize(predictor_filename, name + ".U_mm2 (columns)", static_cast<size_t>(parameters.U_mm2.cols()),
+                   encode_size_mm2);
+    CheckModelSize(predictor_filename, name + ".theta_Ks", static_cast<size_t>(parameters.theta_Ks.size()),
+                   static_cast<size_t>(parameters.U_mm2.rows()));
+  }
   site_bond_cluster_state_flat_.resize(num_pair_slots_);
   site_bond_cluster_mmm_flat_.resize(num_pair_slots_);
   site_bond_cluster_mm2_flat_.resize(num_pair_slots_);
