@@ -15,6 +15,17 @@ std::mt19937_64 MakeGenerator(const unsigned long long int seed, const unsigned 
                          static_cast<std::uint32_t>(restart_steps >> 32)};
   return std::mt19937_64(sequence);
 }
+
+// The energy model only has terms for the vacancy and the species of element_set.
+cfg::Config RequireElementsOfModel(cfg::Config config, const std::set<Element> &element_set) {
+  for (const auto &element: config.GetElementSetWithoutVacancy()) {
+    if (element_set.find(element) == element_set.end()) {
+      throw std::runtime_error("The configuration contains " + element.GetString() +
+                               ", which is not in element_set");
+    }
+  }
+  return config;
+}
 }    // namespace
 
 unsigned long long int GetLogDumpInterval(const unsigned long long int steps,
@@ -43,7 +54,7 @@ McAbstract::McAbstract(cfg::Config config,
                        const std::string &json_coefficients_filename,
                        const std::string &log_filename,
                        const unsigned long long int seed)
-    : config_(std::move(config)),
+    : config_(RequireElementsOfModel(std::move(config), element_set)),
       log_dump_steps_(log_dump_steps),
       config_dump_steps_(config_dump_steps),
       maximum_steps_(maximum_steps),
