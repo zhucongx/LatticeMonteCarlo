@@ -71,7 +71,7 @@ void CanonicalMcAbstract::Dump() const {
   }
   if (steps_ % GetLogDumpInterval(steps_, log_dump_steps_) == 0) {
     ofs_ << steps_ << '\t' << temperature_ << '\t' << energy_ << '\t'
-         << thermodynamic_averaging_.GetThermodynamicAverage(beta_) << '\t'
+         << thermodynamic_averaging_.GetThermodynamicAverage() << '\t'
          << absolute_energy_ << std::endl;
   }
 }
