@@ -1,5 +1,6 @@
 #include "McAbstract.h"
 #include "EnergyPredictor.h"
+#include <algorithm>
 #include <cstdint>
 #include <mpi.h>
 #include <utility>
@@ -15,6 +16,19 @@ std::mt19937_64 MakeGenerator(const unsigned long long int seed, const unsigned 
   return std::mt19937_64(sequence);
 }
 }    // namespace
+
+unsigned long long int GetLogDumpInterval(const unsigned long long int steps,
+                                          const unsigned long long int log_dump_steps) {
+  if (steps > 10 * log_dump_steps) {
+    return log_dump_steps;
+  }
+  // 10^(number of decimal digits of (steps + 1) - 2), i.e. 1 below 99 steps, 10 below 999 steps, and so on.
+  unsigned long long int interval = 1;
+  for (auto remaining = (steps + 1) / 100; remaining > 0; remaining /= 10) {
+    interval *= 10;
+  }
+  return std::min(interval, log_dump_steps);
+}
 
 McAbstract::McAbstract(cfg::Config config,
                        const unsigned long long int log_dump_steps,

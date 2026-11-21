@@ -82,16 +82,7 @@ void KineticMcFirstAbstract::Dump() const {
   if (steps_ == maximum_steps_) {
     config_.WriteConfig("end.cfg.gz");
   }
-  unsigned long long int log_dump_steps;
-  if (steps_ > 10 * log_dump_steps_) {
-    log_dump_steps = log_dump_steps_;
-  } else {
-    log_dump_steps = static_cast<unsigned long long int>(
-        std::pow(10, static_cast<unsigned long long int>(std::log10(steps_ + 1) - 1)));
-    log_dump_steps = std::max(log_dump_steps, static_cast<unsigned long long int>(1));
-    log_dump_steps = std::min(log_dump_steps, log_dump_steps_);
-  }
-  if (steps_ % log_dump_steps == 0) {
+  if (steps_ % GetLogDumpInterval(steps_, log_dump_steps_) == 0) {
     ofs_ << steps_ << '\t' << time_ << '\t' << temperature_ << '\t' << energy_ << '\t' << event_k_i_.GetForwardBarrier()
          << '\t' << event_k_i_.GetEnergyChange()
          << '\t' << config_.GetAtomIdFromLatticeId(event_k_i_.GetIdJumpPair().second)
