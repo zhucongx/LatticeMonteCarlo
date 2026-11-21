@@ -7,6 +7,7 @@
 #include "Constants.hpp"
 #include <stdexcept>
 #include <algorithm>
+#include <cmath>
 
 namespace pred {
 namespace {
@@ -71,7 +72,7 @@ VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::st
                                " of element_set");
     }
     const auto &name = element.GetString();
-    const auto &parameters = it->second;
+    auto &parameters = it->second;
     CheckModelSize(predictor_filename, name + ".mu_x_mmm", static_cast<size_t>(parameters.mu_x_mmm.size()),
                    encode_size_mmm);
     CheckModelSize(predictor_filename, name + ".sigma_x_mmm", static_cast<size_t>(parameters.sigma_x_mmm.size()),
@@ -88,6 +89,17 @@ VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::st
                    encode_size_mm2);
     CheckModelSize(predictor_filename, name + ".theta_Ks", static_cast<size_t>(parameters.theta_Ks.size()),
                    static_cast<size_t>(parameters.U_mm2.rows()));
+    // The sizes are known to fit now. Fold the projection U, the coefficients theta, the scale of the encoding and
+    // the averaging over the clusters of a group into one weight per cluster kind, so that an evaluation is a sum
+    // over the clusters instead of an encoding and a product with a matrix of 150 rows.
+    const Eigen::VectorXd weight_D =
+        (parameters.U_mmm.transpose() * parameters.theta_D).cwiseQuotient(parameters.sigma_x_mmm);
+    const Eigen::VectorXd weight_Ks =
+        (parameters.U_mm2.transpose() * parameters.theta_Ks).cwiseQuotient(parameters.sigma_x_mm2);
+    parameters.cluster_weight_D = encoder_mmm_.ScaleWeights(weight_D);
+    parameters.cluster_weight_Ks = encoder_mm2_.ScaleWeights(weight_Ks);
+    parameters.weight_dot_mu_D = weight_D.dot(parameters.mu_x_mmm);
+    parameters.weight_dot_mu_Ks = weight_Ks.dot(parameters.mu_x_mm2);
   }
   site_bond_cluster_state_flat_.resize(num_pair_slots_);
   site_bond_cluster_mmm_flat_.resize(num_pair_slots_);
@@ -96,19 +108,45 @@ VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::st
   // entry of the state list an entry of the mmm or mm2 list is, must then not depend on the pair. The cluster mappings
   // assume it, and so does the cache, whose key is the elements in the order of the state list.
   const std::pair<size_t, size_t> first_pair{0, reference_config.GetFirstNeighborsAdjacencyList()[0][0]};
-  const auto positions_in_state_list = [&reference_config, &first_pair](const std::vector<cfg::Lattice> &lattice_list) {
-    const auto state_list = GetSortedLatticeVectorStateOfPair(reference_config, first_pair);
+  const auto first_state_list = GetSortedLatticeVectorStateOfPair(reference_config, first_pair);
+  const auto positions_in_state_list = [&first_state_list](const std::vector<cfg::Lattice> &lattice_list) {
     std::vector<size_t> positions;
     for (const auto &lattice: lattice_list) {
-      const auto it = std::find_if(state_list.begin(), state_list.end(), [&lattice](const cfg::Lattice &state_lattice) {
-        return state_lattice.GetId() == lattice.GetId();
-      });
-      positions.push_back(static_cast<size_t>(it - state_list.begin()));
+      const auto it = std::find_if(first_state_list.begin(), first_state_list.end(),
+                                   [&lattice](const cfg::Lattice &state_lattice) {
+                                     return state_lattice.GetId() == lattice.GetId();
+                                   });
+      positions.push_back(static_cast<size_t>(it - first_state_list.begin()));
     }
     return positions;
   };
-  const auto mmm_positions = positions_in_state_list(GetSymmetricallySortedLatticeVectorMMM(reference_config, first_pair));
-  const auto mm2_positions = positions_in_state_list(GetSymmetricallySortedLatticeVectorMM2(reference_config, first_pair));
+  mmm_positions_ = positions_in_state_list(GetSymmetricallySortedLatticeVectorMMM(reference_config, first_pair));
+  mm2_positions_ = positions_in_state_list(GetSymmetricallySortedLatticeVectorMM2(reference_config, first_pair));
+  // The frame of a jump is fixed up to a half turn about the jump direction: which of the two neighbours across the
+  // jump direction becomes the second axis depends on the order of the neighbour list. The frame of the reversed
+  // pair can therefore be turned by half a turn against the frame of the pair, and its mm2 list then names the same
+  // sites in another order. The mm2 encoding does not tell the two apart, because it only uses the distance of a site
+  // from the centre and its coordinate along the jump. One of the two orders is used for every pair, so that the
+  // model is a function of the elements in the order of the state list alone, to the last bit.
+  mm2_backward_positions_ = positions_in_state_list(
+      GetSymmetricallySortedLatticeVectorMM2(reference_config, {first_pair.second, first_pair.first}));
+  // Entry k of the state list after half a turn about the jump direction, the x axis of the frame.
+  std::vector<size_t> half_turn(first_state_list.size(), first_state_list.size());
+  for (size_t k = 0; k < first_state_list.size(); ++k) {
+    const auto &position = first_state_list[k].GetRelativePosition();
+    for (size_t l = 0; l < first_state_list.size(); ++l) {
+      const auto &image = first_state_list[l].GetRelativePosition();
+      if (std::abs(image[0] - position[0]) < kEpsilon && std::abs(image[1] - (1 - position[1])) < kEpsilon &&
+          std::abs(image[2] - (1 - position[2])) < kEpsilon) {
+        half_turn[k] = l;
+        break;
+      }
+    }
+  }
+  std::vector<size_t> mm2_backward_positions_turned;
+  for (const auto position: mm2_backward_positions_) {
+    mm2_backward_positions_turned.push_back(position < half_turn.size() ? half_turn[position] : half_turn.size());
+  }
   const auto is_arranged_like_first_pair = [](const std::vector<size_t> &lattice_id_vector,
                                               const std::vector<size_t> &lattice_id_vector_state,
                                               const std::vector<size_t> &positions) {
@@ -124,7 +162,7 @@ VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::st
     return true;
   };
   bool is_consistent = true;
-#pragma omp parallel for default(none) shared(reference_config, mmm_positions, mm2_positions, is_arranged_like_first_pair) reduction(&&: is_consistent)
+#pragma omp parallel for default(none) shared(reference_config, is_arranged_like_first_pair) reduction(&&: is_consistent)
   for (size_t i = 0; i < reference_config.GetNumAtoms(); ++i) {
     const auto &neighbor_list = reference_config.GetFirstNeighborsAdjacencyList()[i];
     for (size_t neighbor_slot = 0; neighbor_slot < neighbor_list.size(); ++neighbor_slot) {
@@ -156,9 +194,30 @@ VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::st
           std::back_inserter(lattice_id_vector_mm2),
           [](const auto &lattice) { return lattice.GetId(); });
       is_consistent = is_consistent &&
-          is_arranged_like_first_pair(lattice_id_vector_mmm, lattice_id_vector_state, mmm_positions) &&
-          is_arranged_like_first_pair(lattice_id_vector_mm2, lattice_id_vector_state, mm2_positions);
+          is_arranged_like_first_pair(lattice_id_vector_mmm, lattice_id_vector_state, mmm_positions_) &&
+          is_arranged_like_first_pair(lattice_id_vector_mm2, lattice_id_vector_state, mm2_positions_);
       site_bond_cluster_mm2_flat_[flat_idx] = lattice_id_vector_mm2;
+    }
+  }
+  // The mm2 list of the reversed pair has to be one of the two orders described above.
+#pragma omp parallel for default(none) shared(reference_config, is_arranged_like_first_pair, mm2_backward_positions_turned) reduction(&&: is_consistent)
+  for (size_t i = 0; i < reference_config.GetNumAtoms(); ++i) {
+    const auto &neighbor_list = reference_config.GetFirstNeighborsAdjacencyList()[i];
+    for (size_t neighbor_slot = 0; neighbor_slot < neighbor_list.size(); ++neighbor_slot) {
+      const auto j = neighbor_list[neighbor_slot];
+      const auto reversed_slot = neighbor_slot_lookup_[j].find(i);
+      if (reversed_slot == neighbor_slot_lookup_[j].end()) {
+        is_consistent = false;
+        continue;
+      }
+      const auto &lattice_id_vector_state =
+          site_bond_cluster_state_flat_[i * constants::kNumFirstNearestNeighbors + neighbor_slot];
+      const auto &lattice_id_vector_backward =
+          site_bond_cluster_mm2_flat_[j * constants::kNumFirstNearestNeighbors + reversed_slot->second];
+      is_consistent = is_consistent &&
+          (is_arranged_like_first_pair(lattice_id_vector_backward, lattice_id_vector_state, mm2_backward_positions_) ||
+           is_arranged_like_first_pair(lattice_id_vector_backward, lattice_id_vector_state,
+                                       mm2_backward_positions_turned));
     }
   }
   if (!is_consistent) {
@@ -222,18 +281,19 @@ double VacancyMigrationPredictorQuartic::GetDe(const cfg::Config &config,
   return base_theta_.dot(encode_vec);
 }
 namespace {
-// Writes the one-hot encoding of the elements on the given sites to `out_encode`.
-void EncodeNeighbourhood(const OneHotEncoder &encoder,
-                         const cfg::Config &config,
-                         const std::vector<size_t> &lattice_id_vector,
-                         std::vector<double> &out_encode) {
+// The dot product of the weights with the one-hot encoding of a neighbourhood. Its sites are those of the state list
+// of the pair, taken in the order `positions` gives.
+double DotWithEncoding(const OneHotEncoder &encoder,
+                       const cfg::Config &config,
+                       const std::vector<size_t> &lattice_id_vector_state,
+                       const std::vector<size_t> &positions,
+                       const std::vector<double> &cluster_weights) {
   auto &element_indices = GetThreadLocalStartCodesBuffer();
-  element_indices.resize(lattice_id_vector.size());
-  for (size_t i = 0; i < lattice_id_vector.size(); ++i) {
-    element_indices[i] = encoder.GetElementIndex(config.GetElementAtLatticeId(lattice_id_vector[i]));
+  element_indices.resize(positions.size());
+  for (size_t i = 0; i < positions.size(); ++i) {
+    element_indices[i] = encoder.GetElementIndex(config.GetElementAtLatticeId(lattice_id_vector_state[positions[i]]));
   }
-  out_encode.resize(encoder.Size());
-  encoder.Encode(element_indices.data(), out_encode.data());
+  return encoder.Dot(element_indices.data(), cluster_weights.data());
 }
 }    // namespace
 
@@ -241,26 +301,14 @@ double VacancyMigrationPredictorQuartic::GetKs(const cfg::Config &config,
                                                const std::pair<size_t,
                                                                size_t> &lattice_id_jump_pair) const {
   const auto migration_element = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
-
-  auto &encode_mm2_forward = GetThreadLocalEncodeMM2ForwardBuffer();
-  EncodeNeighbourhood(encoder_mm2_, config, site_bond_cluster_mm2_flat_.at(GetPairFlatIndex(lattice_id_jump_pair)),
-                      encode_mm2_forward);
-  auto &encode_mm2_backward = GetThreadLocalEncodeMM2BackwardBuffer();
-  EncodeNeighbourhood(
-      encoder_mm2_, config,
-      site_bond_cluster_mm2_flat_.at(GetPairFlatIndex({lattice_id_jump_pair.second, lattice_id_jump_pair.first})),
-      encode_mm2_backward);
-
   const auto &element_parameters = element_parameters_hashmap_.at(migration_element);
-  // Vectorized normalization using Eigen.
-  Eigen::Map<Eigen::VectorXd> encode_vec(encode_mm2_forward.data(), static_cast<Eigen::Index>(encode_mm2_forward.size()));
-  const Eigen::Map<const Eigen::VectorXd> backward_vec(encode_mm2_backward.data(),  static_cast<Eigen::Index>(encode_mm2_backward.size()));
-  encode_vec += backward_vec;
-  encode_vec -= element_parameters.mu_x_mm2;
-  encode_vec = encode_vec.cwiseQuotient(element_parameters.sigma_x_mm2);
-
-  const auto &U_mat = element_parameters.U_mm2;
-  double logKs = (U_mat * encode_vec).dot(element_parameters.theta_Ks);
+  const auto &lattice_id_vector_state = site_bond_cluster_state_flat_.at(GetPairFlatIndex(lattice_id_jump_pair));
+  // The encoding of the mm2 model is the sum of the encodings seen along the jump and against it.
+  const double forward = DotWithEncoding(encoder_mm2_, config, lattice_id_vector_state, mm2_positions_,
+                                         element_parameters.cluster_weight_Ks);
+  const double backward = DotWithEncoding(encoder_mm2_, config, lattice_id_vector_state, mm2_backward_positions_,
+                                          element_parameters.cluster_weight_Ks);
+  double logKs = forward + backward - element_parameters.weight_dot_mu_Ks;
   logKs *= element_parameters.sigma_y_Ks;
   logKs += element_parameters.mu_y_Ks;
   return std::exp(logKs);
@@ -269,19 +317,10 @@ double VacancyMigrationPredictorQuartic::GetD(const cfg::Config &config,
                                               const std::pair<size_t,
                                                               size_t> &lattice_id_jump_pair) const {
   const auto migration_element = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
-  auto &encode_mmm = GetThreadLocalEncodeMMMBuffer();
-  EncodeNeighbourhood(encoder_mmm_, config, site_bond_cluster_mmm_flat_.at(GetPairFlatIndex(lattice_id_jump_pair)),
-                      encode_mmm);
-
   const auto &element_parameters = element_parameters_hashmap_.at(migration_element);
-
-  // Vectorized normalization using Eigen.
-  Eigen::Map<Eigen::VectorXd> encode_vec(encode_mmm.data(), static_cast<Eigen::Index>(encode_mmm.size()));
-  encode_vec -= element_parameters.mu_x_mmm;
-  encode_vec = encode_vec.cwiseQuotient(element_parameters.sigma_x_mmm);
-
-  const auto &U_mat = element_parameters.U_mmm;
-  double logD = (U_mat * encode_vec).dot(element_parameters.theta_D);
+  const auto &lattice_id_vector_state = site_bond_cluster_state_flat_.at(GetPairFlatIndex(lattice_id_jump_pair));
+  double logD = DotWithEncoding(encoder_mmm_, config, lattice_id_vector_state, mmm_positions_,
+                                element_parameters.cluster_weight_D) - element_parameters.weight_dot_mu_D;
   logD *= element_parameters.sigma_y_D;
   logD += element_parameters.mu_y_D;
   return std::exp(logD);
