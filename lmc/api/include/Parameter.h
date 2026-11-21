@@ -4,6 +4,7 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <set>
 #include <vector>
 #include <iterator>
 #include "VectorMatrix.hpp"
@@ -18,6 +19,9 @@ struct Parameter {
 
     // read parameter file
     void ReadParam(const std::string &param_filename);
+
+    // Throws if a parameter the chosen simulation_method cannot run without is missing or out of range.
+    void Validate(const std::string &param_filename) const;
 
     std::string parameters_filename{};
     std::string method{};
@@ -57,6 +61,8 @@ struct Parameter {
     unsigned long long int seed_{};
     // Remarks about the parameter file that do not stop the run. Print() shows them.
     std::vector<std::string> warnings_{};
+    // Names of the parameters found in the file, to tell a missing parameter from one set to its default value.
+    std::set<std::string> provided_keys_{};
 };
 } // api
 #endif //LMC_LMC_API_INCLUDE_PARAMETER_H_

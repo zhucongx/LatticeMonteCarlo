@@ -114,6 +114,9 @@ void Parameter::ReadParam(const std::string &param_filename) {
     if (segs.size() < 2) {
       throw std::invalid_argument(location + "parameter " + segs[0] + " has no value");
     }
+    if (!provided_keys_.insert(segs[0]).second) {
+      warnings_.push_back(location + "parameter " + segs[0] + " is given more than once, the last value is used");
+    }
     if (segs[0] == "simulation_method") {
       method = std::string(segs[1]);
     } else if (segs[0] == "config_filename") {
@@ -198,5 +201,90 @@ void Parameter::ReadParam(const std::string &param_filename) {
     }
   }
   ifs.close();
+  Validate(param_filename);
+}
+
+void Parameter::Validate(const std::string &param_filename) const {
+  const auto fail = [&param_filename](const std::string &message) {
+    throw std::invalid_argument(param_filename + ": " + message);
+  };
+  const auto is_provided = [this](const std::string &key) {
+    return provided_keys_.find(key) != provided_keys_.end();
+  };
+  const auto require = [&](const std::string &key) {
+    if (!is_provided(key)) {
+      fail("parameter " + key + " is required by simulation_method " + method);
+    }
+  };
+  const auto require_positive = [&](const std::string &key, const double value) {
+    require(key);
+    if (!(value > 0)) {
+      fail("parameter " + key + " must be positive");
+    }
+  };
+  const auto require_one_of = [&](const std::string &key, const std::string &value,
+                                  const std::vector<std::string> &choices) {
+    require(key);
+    if (std::find(choices.begin(), choices.end(), value) == choices.end()) {
+      std::string message = "parameter " + key + " is '" + value + "' but must be one of:";
+      for (const auto &choice: choices) {
+        message += " " + choice;
+      }
+      fail(message);
+    }
+  };
+
+  if (!is_provided("simulation_method")) {
+    fail("parameter simulation_method is missing");
+  }
+  const bool is_kinetic = method == "KineticMcFirstMpi" || method == "KineticMcFirstOmp" ||
+      method == "KineticMcChainOmpi";
+  const bool is_canonical = method == "CanonicalMcSerial" || method == "CanonicalMcOmp";
+  const bool is_annealing = method == "SimulatedAnnealing";
+  const bool is_analysis = method == "Ansys";
+  const bool is_reformat = method == "Reformat";
+  if (!is_kinetic && !is_canonical && !is_annealing && !is_analysis && !is_reformat) {
+    fail("unknown simulation_method " + method + ", expected KineticMcFirstMpi, KineticMcFirstOmp, " +
+         "KineticMcChainOmpi, CanonicalMcSerial, CanonicalMcOmp, SimulatedAnnealing, Ansys or Reformat");
+  }
+
+  require("json_coefficients_filename");
+  if (is_kinetic || is_canonical) {
+    if (!is_provided("config_filename") && !is_provided("map_filename")) {
+      fail("config_filename or map_filename is required by simulation_method " + method);
+    }
+    require("element_set");
+    require_positive("log_dump_steps", static_cast<double>(log_dump_steps_));
+    require_positive("config_dump_steps", static_cast<double>(config_dump_steps_));
+    require("maximum_steps");
+    // With a time-temperature table the temperature is taken from the table from the first step on.
+    if (is_canonical || !is_provided("time_temperature_filename") || is_provided("temperature")) {
+      require_positive("temperature", temperature_);
+    }
+  }
+  if (is_annealing) {
+    require_positive("factor", static_cast<double>(factor_));
+    require("solvent_element");
+    require("solute_element_set");
+    require("solute_number_set");
+    if (solute_element_set_.size() != solute_number_set_.size()) {
+      fail("solute_element_set and solute_number_set must have the same number of entries");
+    }
+    require_positive("log_dump_steps", static_cast<double>(log_dump_steps_));
+    require("maximum_steps");
+    require_positive("initial_temperature", initial_temperature_);
+  }
+  if (is_analysis || is_reformat) {
+    require_one_of("log_type", log_type_, {"kinetic_mc", "canonical_mc", "simulated_annealing"});
+    require_one_of("config_type", config_type_, {"config", "map"});
+    require("solvent_element");
+    require("element_set");
+    require_positive("increment_steps", static_cast<double>(increment_steps_));
+  }
+  if (is_analysis) {
+    require("smallest_cluster_criteria");
+    require("solvent_bond_criteria");
+    require_positive("escape_temperature", escape_temperature_);
+  }
 }
 }    // namespace api
