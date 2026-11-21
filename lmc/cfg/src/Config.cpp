@@ -729,7 +729,7 @@ void Config::WriteExtendedConfig(const std::string &filename,
         << lattice_vector_[atom_to_lattice_vector_[atom.GetId()]].GetRelativePosition()
         << ' ' << map_shift_list_[it];
     for (const auto &auxiliary_list: auxiliary_lists) {
-      ofs << ' ' << auxiliary_list.second[it];
+      fos << ' ' << auxiliary_list.second[it];
     }
     fos << std::endl;
   }
