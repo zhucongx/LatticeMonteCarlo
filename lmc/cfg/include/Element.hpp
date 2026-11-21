@@ -3,6 +3,7 @@
 #include <cmath>
 #include <iostream>
 #include <map>
+#include <stdexcept>
 #include <string>
 enum class ElementName { X, Al, Mg, Zn, Cu, Sn, pAl, pMg, pZn, pCu, pSn };
 class Element {
@@ -22,8 +23,12 @@ class Element {
                                                             {"pZn", ElementName::pZn},
                                                             {"pCu", ElementName::pCu},
                                                             {"pSn", ElementName::pSn}};
-    auto it = ElementStrings.find(element_string);
-    element_name_ = it == ElementStrings.end() ? ElementName::X : it->second;
+    const auto it = ElementStrings.find(element_string);
+    if (it == ElementStrings.end()) {
+      // Mapping an unknown name to the vacancy "X" would silently turn a typo into extra vacancies.
+      throw std::invalid_argument("Unknown element: " + element_string);
+    }
+    element_name_ = it->second;
   }
   constexpr explicit operator ElementName() const {
     return element_name_;
