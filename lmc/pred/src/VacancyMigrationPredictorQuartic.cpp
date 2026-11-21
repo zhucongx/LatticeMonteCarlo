@@ -102,12 +102,13 @@ VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::st
     parameters.weight_dot_mu_Ks = weight_Ks.dot(parameters.mu_x_mm2);
   }
   site_bond_cluster_state_flat_.resize(num_pair_slots_);
-  site_bond_cluster_mmm_flat_.resize(num_pair_slots_);
-  site_bond_cluster_mm2_flat_.resize(num_pair_slots_);
-  // The three lists of a pair hold the same sites, sorted by three different rules in the frame of the jump. Which
-  // entry of the state list an entry of the mmm or mm2 list is, must then not depend on the pair. The cluster mappings
-  // assume it, and so does the cache, whose key is the elements in the order of the state list.
+  // The state, mmm and mm2 lists of a pair hold the same sites, sorted by three different rules in the frame of the
+  // jump. If the sites of every pair lie in its frame where the sites of the first pair lie in its own, an entry of
+  // the mmm or mm2 list is the same entry of the state list for every pair. The cluster mappings assume it, and so
+  // does the cache, whose key is the elements in the order of the state list. Only the state list is built for every
+  // pair, the other two orders are taken from the first pair.
   const std::pair<size_t, size_t> first_pair{0, reference_config.GetFirstNeighborsAdjacencyList()[0][0]};
+  const std::pair<size_t, size_t> reversed_first_pair{first_pair.second, first_pair.first};
   const auto first_state_list = GetSortedLatticeVectorStateOfPair(reference_config, first_pair);
   const auto positions_in_state_list = [&first_state_list](const std::vector<cfg::Lattice> &lattice_list) {
     std::vector<size_t> positions;
@@ -128,8 +129,8 @@ VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::st
   // sites in another order. The mm2 encoding does not tell the two apart, because it only uses the distance of a site
   // from the centre and its coordinate along the jump. One of the two orders is used for every pair, so that the
   // model is a function of the elements in the order of the state list alone, to the last bit.
-  mm2_backward_positions_ = positions_in_state_list(
-      GetSymmetricallySortedLatticeVectorMM2(reference_config, {first_pair.second, first_pair.first}));
+  mm2_backward_positions_ =
+      positions_in_state_list(GetSymmetricallySortedLatticeVectorMM2(reference_config, reversed_first_pair));
   // Entry k of the state list after half a turn about the jump direction, the x axis of the frame.
   std::vector<size_t> half_turn(first_state_list.size(), first_state_list.size());
   for (size_t k = 0; k < first_state_list.size(); ++k) {
@@ -143,9 +144,13 @@ VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::st
       }
     }
   }
-  std::vector<size_t> mm2_backward_positions_turned;
-  for (const auto position: mm2_backward_positions_) {
-    mm2_backward_positions_turned.push_back(position < half_turn.size() ? half_turn[position] : half_turn.size());
+  // Entry n of the state list of the reversed pair is entry reversed_positions[n] of the state list of the pair, or
+  // the half turn of that entry.
+  const auto reversed_positions =
+      positions_in_state_list(GetSortedLatticeVectorStateOfPair(reference_config, reversed_first_pair));
+  std::vector<size_t> reversed_positions_turned;
+  for (const auto position: reversed_positions) {
+    reversed_positions_turned.push_back(position < half_turn.size() ? half_turn[position] : half_turn.size());
   }
   const auto is_arranged_like_first_pair = [](const std::vector<size_t> &lattice_id_vector,
                                               const std::vector<size_t> &lattice_id_vector_state,
@@ -162,45 +167,42 @@ VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::st
     return true;
   };
   bool is_consistent = true;
-#pragma omp parallel for default(none) shared(reference_config, is_arranged_like_first_pair) reduction(&&: is_consistent)
+  // Every site of the three orders has to be a site of the state list: the model reads the state list through them.
+  for (const auto *positions: {&mmm_positions_, &mm2_positions_, &mm2_backward_positions_}) {
+    for (const auto position: *positions) {
+      is_consistent = is_consistent && position < first_state_list.size();
+    }
+  }
+#pragma omp parallel for default(none) shared(reference_config, first_state_list) reduction(&&: is_consistent)
   for (size_t i = 0; i < reference_config.GetNumAtoms(); ++i) {
     const auto &neighbor_list = reference_config.GetFirstNeighborsAdjacencyList()[i];
     for (size_t neighbor_slot = 0; neighbor_slot < neighbor_list.size(); ++neighbor_slot) {
       const auto j = neighbor_list[neighbor_slot];
       neighbor_slot_lookup_[i][j] = neighbor_slot;
       const auto flat_idx = i * constants::kNumFirstNearestNeighbors + neighbor_slot;
-      auto sorted_lattice_vector =
-          GetSortedLatticeVectorStateOfPair(reference_config, {i, j});
+      const auto sorted_lattice_vector = GetSortedLatticeVectorStateOfPair(reference_config, {i, j});
+      // The sites have to lie where those of the first pair lie.
+      bool is_like_first_pair = sorted_lattice_vector.size() == first_state_list.size();
+      for (size_t k = 0; is_like_first_pair && k < sorted_lattice_vector.size(); ++k) {
+        const auto &position = sorted_lattice_vector[k].GetRelativePosition();
+        const auto &first_position = first_state_list[k].GetRelativePosition();
+        is_like_first_pair = std::abs(position[0] - first_position[0]) < kEpsilon &&
+            std::abs(position[1] - first_position[1]) < kEpsilon &&
+            std::abs(position[2] - first_position[2]) < kEpsilon;
+      }
+      is_consistent = is_consistent && is_like_first_pair;
       std::vector<size_t> lattice_id_vector_state;
+      lattice_id_vector_state.reserve(sorted_lattice_vector.size());
       std::transform(
           sorted_lattice_vector.begin(),
           sorted_lattice_vector.end(),
           std::back_inserter(lattice_id_vector_state),
           [](const auto &lattice) { return lattice.GetId(); });
-      site_bond_cluster_state_flat_[flat_idx] = lattice_id_vector_state;
-      auto sorted_lattice_vector_mmm = GetSymmetricallySortedLatticeVectorMMM(reference_config, {i, j});
-      std::vector<size_t> lattice_id_vector_mmm;
-      std::transform(
-          sorted_lattice_vector_mmm.begin(),
-          sorted_lattice_vector_mmm.end(),
-          std::back_inserter(lattice_id_vector_mmm),
-          [](const auto &lattice) { return lattice.GetId(); });
-      site_bond_cluster_mmm_flat_[flat_idx] = lattice_id_vector_mmm;
-      auto sorted_lattice_vector_mm2 = GetSymmetricallySortedLatticeVectorMM2(reference_config, {i, j});
-      std::vector<size_t> lattice_id_vector_mm2;
-      std::transform(
-          sorted_lattice_vector_mm2.begin(),
-          sorted_lattice_vector_mm2.end(),
-          std::back_inserter(lattice_id_vector_mm2),
-          [](const auto &lattice) { return lattice.GetId(); });
-      is_consistent = is_consistent &&
-          is_arranged_like_first_pair(lattice_id_vector_mmm, lattice_id_vector_state, mmm_positions_) &&
-          is_arranged_like_first_pair(lattice_id_vector_mm2, lattice_id_vector_state, mm2_positions_);
-      site_bond_cluster_mm2_flat_[flat_idx] = lattice_id_vector_mm2;
+      site_bond_cluster_state_flat_[flat_idx] = std::move(lattice_id_vector_state);
     }
   }
-  // The mm2 list of the reversed pair has to be one of the two orders described above.
-#pragma omp parallel for default(none) shared(reference_config, is_arranged_like_first_pair, mm2_backward_positions_turned) reduction(&&: is_consistent)
+  // The frame of the reversed pair has to be one of the two described above.
+#pragma omp parallel for default(none) shared(reference_config, is_arranged_like_first_pair, reversed_positions, reversed_positions_turned) reduction(&&: is_consistent)
   for (size_t i = 0; i < reference_config.GetNumAtoms(); ++i) {
     const auto &neighbor_list = reference_config.GetFirstNeighborsAdjacencyList()[i];
     for (size_t neighbor_slot = 0; neighbor_slot < neighbor_list.size(); ++neighbor_slot) {
@@ -212,12 +214,12 @@ VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::st
       }
       const auto &lattice_id_vector_state =
           site_bond_cluster_state_flat_[i * constants::kNumFirstNearestNeighbors + neighbor_slot];
-      const auto &lattice_id_vector_backward =
-          site_bond_cluster_mm2_flat_[j * constants::kNumFirstNearestNeighbors + reversed_slot->second];
+      const auto &lattice_id_vector_reversed =
+          site_bond_cluster_state_flat_[j * constants::kNumFirstNearestNeighbors + reversed_slot->second];
       is_consistent = is_consistent &&
-          (is_arranged_like_first_pair(lattice_id_vector_backward, lattice_id_vector_state, mm2_backward_positions_) ||
-           is_arranged_like_first_pair(lattice_id_vector_backward, lattice_id_vector_state,
-                                       mm2_backward_positions_turned));
+          (is_arranged_like_first_pair(lattice_id_vector_reversed, lattice_id_vector_state, reversed_positions) ||
+           is_arranged_like_first_pair(lattice_id_vector_reversed, lattice_id_vector_state,
+                                       reversed_positions_turned));
     }
   }
   if (!is_consistent) {
