@@ -159,11 +159,6 @@ void Parameter::ReadParam(const std::string &param_filename) {
       restart_steps_ = ParseUnsigned(location, segs[0], segs[1]);
     } else if (segs[0] == "rate_corrector") {
       rate_corrector_ = ParseBool(location, segs[0], segs[1]);
-    // } else if (segs[0] == "vacancy_trajectory") {
-    //   if (segs.size() != 4) {
-    //     throw std::runtime_error("vacancy_trajectory should have 3 elements");
-    //   }
-    //   vacancy_trajectory_ = Vector_d{stod(segs[1]), stod(segs[2]), stod(segs[3])};
     } else if (segs[0] == "early_stop") {
       early_stop_ = ParseBool(location, segs[0], segs[1]);
     } else if (segs[0] == "solute_disp") {
@@ -188,6 +183,18 @@ void Parameter::ReadParam(const std::string &param_filename) {
       early_stop_steps_ = ParseUnsigned(location, segs[0], segs[1]);
     } else if (segs[0] == "seed") {
       seed_ = ParseUnsigned(location, segs[0], segs[1]);
+    } else if (segs[0] == "vacancy_trajectory") {
+      // Read by earlier versions. Accepted so that their parameter files still load.
+      warnings_.push_back(location + "parameter vacancy_trajectory is no longer used and is ignored");
+    } else {
+      // A misspelled key must not fall back to the default value of the parameter it was meant to set.
+      throw std::invalid_argument(location + "unknown parameter " + segs[0]);
+    }
+    const bool is_list = segs[0] == "element_set" || segs[0] == "solute_element_set" ||
+        segs[0] == "solute_number_set" || segs[0] == "vacancy_trajectory";
+    if (!is_list && segs.size() != 2) {
+      throw std::invalid_argument(location + "parameter " + segs[0] + " takes one value but " +
+                                  std::to_string(segs.size() - 1) + " were given");
     }
   }
   ifs.close();

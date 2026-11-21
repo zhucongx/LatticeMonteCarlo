@@ -55,6 +55,8 @@ struct Parameter {
     unsigned long long int early_stop_steps_{};
     // Seed of the random number generator. Defaults to a time-based value when the key is absent.
     unsigned long long int seed_{};
+    // Remarks about the parameter file that do not stop the run. Print() shows them.
+    std::vector<std::string> warnings_{};
 };
 } // api
 #endif //LMC_LMC_API_INCLUDE_PARAMETER_H_
