@@ -933,6 +933,46 @@ void OneHotEncoder::Encode(const uint8_t *element_indices, double *out_encode) c
   }
 }
 
+std::vector<double> OneHotEncoder::ScaleWeights(const Eigen::VectorXd &weights) const {
+  if (static_cast<size_t>(weights.size()) != encode_size_) {
+    throw std::invalid_argument("The weights do not have the size of the one-hot encoding");
+  }
+  std::vector<double> scaled_weights(encode_size_);
+  for (const auto &group: groups_) {
+    const auto num_clusters = static_cast<double>(group.num_clusters);
+    for (size_t i = group.encode_offset; i < group.encode_offset + group.encode_length; ++i) {
+      scaled_weights[i] = weights[static_cast<Eigen::Index>(i)] / num_clusters;
+    }
+  }
+  return scaled_weights;
+}
+
+double OneHotEncoder::Dot(const uint8_t *element_indices, const double *scaled_weights) const {
+  double sum = 0.0;
+  for (const auto &group: groups_) {
+    const double *block = scaled_weights + group.encode_offset;
+    const uint8_t *sites = site_indices_.data() + group.site_offset;
+    double group_sum = 0.0;
+    if (group.cluster_size == 1) {
+      for (size_t n = 0; n < group.num_clusters; ++n) {
+        group_sum += block[element_indices[sites[n]]];
+      }
+    } else if (group.is_symmetric) {
+      for (size_t n = 0; n < group.num_clusters; ++n, sites += 2) {
+        const size_t lower = std::min(element_indices[sites[0]], element_indices[sites[1]]);
+        const size_t upper = std::max(element_indices[sites[0]], element_indices[sites[1]]);
+        group_sum += block[symmetric_row_offsets_[lower] + upper];
+      }
+    } else {
+      for (size_t n = 0; n < group.num_clusters; ++n, sites += 2) {
+        group_sum += block[element_indices[sites[0]] * num_elements_ + element_indices[sites[1]]];
+      }
+    }
+    sum += group_sum;
+  }
+  return sum;
+}
+
 ClusterIndexer::ClusterIndexer(const std::map<cfg::ElementCluster, int> &ordered_clusters,
                                std::vector<double> cluster_total_bonds)
     : cluster_total_bonds_(std::move(cluster_total_bonds)) {

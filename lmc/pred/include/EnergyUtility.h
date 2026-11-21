@@ -98,6 +98,11 @@ class OneHotEncoder {
   }
   // `element_indices` holds GetElementIndex() of the element on each site the cluster mapping refers to.
   void Encode(const uint8_t *element_indices, double *out_encode) const;
+  // The dot product of `weights` with the encoding, without building the encoding: every cluster adds the weight of
+  // its entry divided by the number of clusters of its group. ScaleWeights() does that division once, and Dot() takes
+  // its result.
+  [[nodiscard]] std::vector<double> ScaleWeights(const Eigen::VectorXd &weights) const;
+  [[nodiscard]] double Dot(const uint8_t *element_indices, const double *scaled_weights) const;
 
  private:
   struct Group {
@@ -140,6 +145,13 @@ struct ParametersQuartic {
   double mu_y_Ks{};
   double sigma_y_D{};
   double sigma_y_Ks{};
+  // The model is linear in the encoding x: theta . (U ((x - mu_x) / sigma_x)) = weight . x - weight . mu_x with
+  // weight = (U^T theta) / sigma_x. Stored are the weights as OneHotEncoder::ScaleWeights() returns them and the
+  // constant weight . mu_x. Both are computed once, when the coefficients are loaded.
+  std::vector<double> cluster_weight_D{};
+  std::vector<double> cluster_weight_Ks{};
+  double weight_dot_mu_D{};
+  double weight_dot_mu_Ks{};
 };
 
 struct ParametersE0 {
