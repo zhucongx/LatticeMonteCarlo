@@ -38,9 +38,8 @@ class VacancyMigrationPredictorQuartic {
     [[nodiscard]] size_t GetPairFlatIndex(const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
 
     const std::set<Element> element_set_;
-    const std::unordered_map<std::string, std::vector<double>> one_hot_encode_hash_map_;
-    const std::vector<std::vector<std::vector<size_t>>> mapping_mmm_;
-    const std::vector<std::vector<std::vector<size_t>>> mapping_mm2_;
+    const OneHotEncoder encoder_mmm_;
+    const OneHotEncoder encoder_mm2_;
     const FlatClusterMapping mapping_state_;
     const size_t num_pair_slots_{};
 

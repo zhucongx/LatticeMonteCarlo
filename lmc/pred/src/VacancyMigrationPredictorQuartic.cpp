@@ -17,9 +17,8 @@ VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::st
                                                                    const cfg::Config &reference_config,
                                                                    std::set<Element> element_set)
     : element_set_(std::move(element_set)),
-      one_hot_encode_hash_map_(GetOneHotEncodeHashmap(element_set_)),
-      mapping_mmm_(GetAverageClusterParametersMappingMMM(reference_config)),
-      mapping_mm2_(GetAverageClusterParametersMappingMM2(reference_config)),
+      encoder_mmm_(element_set_, GetAverageClusterParametersMappingMMM(reference_config)),
+      encoder_mm2_(element_set_, GetAverageClusterParametersMappingMM2(reference_config)),
       mapping_state_(FlattenClusterMapping(GetClusterParametersMappingStatePair(reference_config))),
       num_pair_slots_(reference_config.GetNumAtoms() * constants::kNumFirstNearestNeighbors),
       neighbor_slot_lookup_(reference_config.GetNumAtoms()) {
@@ -63,8 +62,8 @@ VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::st
   }
   CheckModelSize(predictor_filename, "Base.theta", static_cast<size_t>(base_theta_.size()),
                  state_cluster_indexer_.Size());
-  const size_t encode_size_mmm = GetOneHotEncodeSize(element_set_.size(), mapping_mmm_);
-  const size_t encode_size_mm2 = GetOneHotEncodeSize(element_set_.size(), mapping_mm2_);
+  const size_t encode_size_mmm = encoder_mmm_.Size();
+  const size_t encode_size_mm2 = encoder_mm2_.Size();
   for (const auto &element : element_set_) {
     const auto it = element_parameters_hashmap_.find(element);
     if (it == element_parameters_hashmap_.end()) {
@@ -182,40 +181,35 @@ double VacancyMigrationPredictorQuartic::GetDe(const cfg::Config &config,
   const Eigen::Map<const Eigen::VectorXd> encode_vec(de_encode.data(), static_cast<Eigen::Index>(de_encode.size()));
   return base_theta_.dot(encode_vec);
 }
+namespace {
+// Writes the one-hot encoding of the elements on the given sites to `out_encode`.
+void EncodeNeighbourhood(const OneHotEncoder &encoder,
+                         const cfg::Config &config,
+                         const std::vector<size_t> &lattice_id_vector,
+                         std::vector<double> &out_encode) {
+  auto &element_indices = GetThreadLocalStartCodesBuffer();
+  element_indices.resize(lattice_id_vector.size());
+  for (size_t i = 0; i < lattice_id_vector.size(); ++i) {
+    element_indices[i] = encoder.GetElementIndex(config.GetElementAtLatticeId(lattice_id_vector[i]));
+  }
+  out_encode.resize(encoder.Size());
+  encoder.Encode(element_indices.data(), out_encode.data());
+}
+}    // namespace
+
 double VacancyMigrationPredictorQuartic::GetKs(const cfg::Config &config,
                                                const std::pair<size_t,
                                                                size_t> &lattice_id_jump_pair) const {
   const auto migration_element = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
 
-  const auto &lattice_id_vector_mm2_forward =
-      site_bond_cluster_mm2_flat_.at(GetPairFlatIndex(lattice_id_jump_pair));
-  auto &ele_vector_forward = GetThreadLocalElementStartBuffer();
-  ele_vector_forward.clear();
-  ele_vector_forward.reserve(lattice_id_vector_mm2_forward.size());
-  for (const auto index : lattice_id_vector_mm2_forward) {
-    ele_vector_forward.push_back(config.GetElementAtLatticeId(index));
-  }
   auto &encode_mm2_forward = GetThreadLocalEncodeMM2ForwardBuffer();
-  GetOneHotParametersFromMap(ele_vector_forward,
-                             one_hot_encode_hash_map_,
-                             element_set_.size(),
-                             mapping_mm2_,
-                             encode_mm2_forward);
-
-  const auto &lattice_id_vector_mm2_backward =
-      site_bond_cluster_mm2_flat_.at(GetPairFlatIndex({lattice_id_jump_pair.second, lattice_id_jump_pair.first}));
-  auto &ele_vector_backward = GetThreadLocalElementEndBuffer();
-  ele_vector_backward.clear();
-  ele_vector_backward.reserve(lattice_id_vector_mm2_backward.size());
-  for (const auto index : lattice_id_vector_mm2_backward) {
-    ele_vector_backward.push_back(config.GetElementAtLatticeId(index));
-  }
+  EncodeNeighbourhood(encoder_mm2_, config, site_bond_cluster_mm2_flat_.at(GetPairFlatIndex(lattice_id_jump_pair)),
+                      encode_mm2_forward);
   auto &encode_mm2_backward = GetThreadLocalEncodeMM2BackwardBuffer();
-  GetOneHotParametersFromMap(ele_vector_backward,
-                             one_hot_encode_hash_map_,
-                             element_set_.size(),
-                             mapping_mm2_,
-                             encode_mm2_backward);
+  EncodeNeighbourhood(
+      encoder_mm2_, config,
+      site_bond_cluster_mm2_flat_.at(GetPairFlatIndex({lattice_id_jump_pair.second, lattice_id_jump_pair.first})),
+      encode_mm2_backward);
 
   const auto &element_parameters = element_parameters_hashmap_.at(migration_element);
   // Vectorized normalization using Eigen.
@@ -235,19 +229,9 @@ double VacancyMigrationPredictorQuartic::GetD(const cfg::Config &config,
                                               const std::pair<size_t,
                                                               size_t> &lattice_id_jump_pair) const {
   const auto migration_element = config.GetElementAtLatticeId(lattice_id_jump_pair.second);
-  const auto &lattice_id_vector_mmm = site_bond_cluster_mmm_flat_.at(GetPairFlatIndex(lattice_id_jump_pair));
-  auto &ele_vector = GetThreadLocalElementStartBuffer();
-  ele_vector.clear();
-  ele_vector.reserve(lattice_id_vector_mmm.size());
-  for (const auto index : lattice_id_vector_mmm) {
-    ele_vector.push_back(config.GetElementAtLatticeId(index));
-  }
   auto &encode_mmm = GetThreadLocalEncodeMMMBuffer();
-  GetOneHotParametersFromMap(ele_vector,
-                             one_hot_encode_hash_map_,
-                             element_set_.size(),
-                             mapping_mmm_,
-                             encode_mmm);
+  EncodeNeighbourhood(encoder_mmm_, config, site_bond_cluster_mmm_flat_.at(GetPairFlatIndex(lattice_id_jump_pair)),
+                      encode_mmm);
 
   const auto &element_parameters = element_parameters_hashmap_.at(migration_element);
 

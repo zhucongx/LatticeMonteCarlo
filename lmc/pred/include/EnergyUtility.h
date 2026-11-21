@@ -75,6 +75,51 @@ void GetOneHotParametersFromMap(const std::vector<Element> &encode,
 // Length of the vector GetOneHotParametersFromMap produces for this cluster mapping.
 size_t GetOneHotEncodeSize(size_t num_of_elements,
                            const std::vector<std::vector<std::vector<size_t>>> &cluster_mapping);
+// The encoding GetOneHotParametersFromMap() produces, computed from element positions instead of element names.
+//
+// Every group of symmetry-equivalent clusters of the mapping contributes one block. A block has an entry for every
+// combination of elements a cluster of the group can hold, and the entry is the fraction of the clusters of the group
+// that hold this combination. The cluster mapping is that of GetAverageClusterParametersMappingMMM() or MM2().
+class OneHotEncoder {
+ public:
+  OneHotEncoder() = default;
+  OneHotEncoder(const std::set<Element> &element_set,
+                const std::vector<std::vector<std::vector<size_t>>> &cluster_mapping);
+  // Number of values Encode() writes.
+  [[nodiscard]] size_t Size() const { return encode_size_; }
+  // Position of the element in the element set, which is what Encode() expects for every site. Throws
+  // std::out_of_range for an element that is not in the set, for which the encoding has no entry.
+  [[nodiscard]] uint8_t GetElementIndex(const Element element) const {
+    const auto index = element_indices_[static_cast<uint8_t>(hash_value(element))];
+    if (index == kNoElement) {
+      ThrowElementNotFound(element);
+    }
+    return index;
+  }
+  // `element_indices` holds GetElementIndex() of the element on each site the cluster mapping refers to.
+  void Encode(const uint8_t *element_indices, double *out_encode) const;
+
+ private:
+  struct Group {
+    size_t cluster_size{};
+    bool is_symmetric{};    // the two sites of its clusters are equivalent, so their order carries no information
+    size_t num_clusters{};
+    size_t site_offset{};      // of its first site index in site_indices_
+    size_t encode_offset{};    // of its block in the encoding
+    size_t encode_length{};
+  };
+  static constexpr uint8_t kNoElement = std::numeric_limits<uint8_t>::max();
+  [[noreturn]] static void ThrowElementNotFound(Element element);
+
+  size_t num_elements_{};
+  size_t encode_size_{};
+  std::vector<Group> groups_{};
+  std::vector<uint8_t> site_indices_{};
+  // Entry of the pair of elements (i, j) with i <= j in the block of a symmetric group is symmetric_row_offsets_[i] + j.
+  std::vector<size_t> symmetric_row_offsets_{};
+  std::array<uint8_t, 256> element_indices_{};
+};
+
 // Throws if an array read from the coefficient file does not have the size the model requires. Eigen checks no
 // dimensions in release builds, so a mismatch would otherwise go on to produce meaningless energies.
 void CheckModelSize(const std::string &predictor_filename,
