@@ -850,6 +850,89 @@ FlatClusterMapping FlattenClusterMapping(const std::vector<std::vector<std::vect
   return flat_mapping;
 }
 
+OneHotEncoder::OneHotEncoder(const std::set<Element> &element_set,
+                             const std::vector<std::vector<std::vector<size_t>>> &cluster_mapping)
+    : num_elements_(element_set.size()) {
+  // The position of an element in the set is its position in every block, as in GetOneHotEncodeHashmap().
+  element_indices_.fill(kNoElement);
+  uint8_t element_index = 0;
+  for (const auto element: element_set) {
+    element_indices_[static_cast<uint8_t>(hash_value(element))] = element_index++;
+  }
+  // Pairs of equivalent sites are listed as (0, 0), (0, 1), ..., (1, 1), (1, 2), ...
+  symmetric_row_offsets_.resize(num_elements_);
+  size_t num_symmetric_pairs = 0;
+  for (size_t i = 0; i < num_elements_; ++i) {
+    symmetric_row_offsets_[i] = num_symmetric_pairs - i;
+    num_symmetric_pairs += num_elements_ - i;
+  }
+
+  for (const auto &cluster_vector: cluster_mapping) {
+    if (cluster_vector.empty()) {
+      throw std::invalid_argument("A group of the one-hot cluster mapping has no cluster");
+    }
+    // A cluster of equivalent sites starts with SIZE_MAX, see GetAverageClusterParametersMappingMMM().
+    const bool is_symmetric = cluster_vector.front().front() == SIZE_MAX;
+    const size_t cluster_size = cluster_vector.front().size() - (is_symmetric ? 1 : 0);
+    if (cluster_size == 0 || cluster_size > 2 || (is_symmetric && cluster_size != 2)) {
+      throw std::invalid_argument("The one-hot encoding is defined for single sites and pairs of sites only");
+    }
+    Group group;
+    group.cluster_size = cluster_size;
+    group.is_symmetric = is_symmetric;
+    group.num_clusters = cluster_vector.size();
+    group.site_offset = site_indices_.size();
+    group.encode_offset = encode_size_;
+    group.encode_length = is_symmetric ? num_symmetric_pairs : (cluster_size == 1 ? num_elements_
+                                                                                  : num_elements_ * num_elements_);
+    for (const auto &cluster: cluster_vector) {
+      const bool is_cluster_symmetric = cluster.front() == SIZE_MAX;
+      if (is_cluster_symmetric != is_symmetric || cluster.size() != cluster_size + (is_symmetric ? 1 : 0)) {
+        throw std::invalid_argument("The clusters of a group of the one-hot cluster mapping differ in kind");
+      }
+      for (size_t i = is_symmetric ? 1 : 0; i < cluster.size(); ++i) {
+        if (cluster[i] > std::numeric_limits<uint8_t>::max()) {
+          throw std::invalid_argument("Site index of a cluster is too large for the one-hot encoding");
+        }
+        site_indices_.push_back(static_cast<uint8_t>(cluster[i]));
+      }
+    }
+    encode_size_ += group.encode_length;
+    groups_.push_back(group);
+  }
+}
+
+void OneHotEncoder::ThrowElementNotFound(const Element element) {
+  throw std::out_of_range("Element " + element.GetString() + " is not part of the one-hot encoding");
+}
+
+void OneHotEncoder::Encode(const uint8_t *element_indices, double *out_encode) const {
+  for (const auto &group: groups_) {
+    double *block = out_encode + group.encode_offset;
+    std::fill_n(block, group.encode_length, 0.0);
+    const uint8_t *sites = site_indices_.data() + group.site_offset;
+    if (group.cluster_size == 1) {
+      for (size_t n = 0; n < group.num_clusters; ++n) {
+        block[element_indices[sites[n]]] += 1.0;
+      }
+    } else if (group.is_symmetric) {
+      for (size_t n = 0; n < group.num_clusters; ++n, sites += 2) {
+        const size_t lower = std::min(element_indices[sites[0]], element_indices[sites[1]]);
+        const size_t upper = std::max(element_indices[sites[0]], element_indices[sites[1]]);
+        block[symmetric_row_offsets_[lower] + upper] += 1.0;
+      }
+    } else {
+      for (size_t n = 0; n < group.num_clusters; ++n, sites += 2) {
+        block[element_indices[sites[0]] * num_elements_ + element_indices[sites[1]]] += 1.0;
+      }
+    }
+    const auto num_clusters = static_cast<double>(group.num_clusters);
+    for (size_t i = 0; i < group.encode_length; ++i) {
+      block[i] /= num_clusters;
+    }
+  }
+}
+
 ClusterIndexer::ClusterIndexer(const std::map<cfg::ElementCluster, int> &ordered_clusters,
                                std::vector<double> cluster_total_bonds)
     : cluster_total_bonds_(std::move(cluster_total_bonds)) {
