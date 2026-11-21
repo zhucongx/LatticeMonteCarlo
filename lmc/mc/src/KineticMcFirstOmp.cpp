@@ -53,20 +53,20 @@ KineticMcFirstOmp::KineticMcFirstOmp(cfg::Config config,
 KineticMcFirstOmp::~KineticMcFirstOmp() = default;
 void KineticMcFirstOmp::BuildEventList() {
   total_rate_k_ = 0.0;
-  const auto neighbor_lattice_id_vector = config_.GetFirstNeighborsAdjacencyList()[vacancy_lattice_id_];
-#pragma omp parallel default(none) shared(neighbor_lattice_id_vector) reduction(+: total_rate_k_)
-  {
-#pragma omp for
-    for (size_t i = 0; i < kEventListSize; ++i) {
-      const auto neighbor_lattice_id = neighbor_lattice_id_vector[i];
-      JumpEvent lattice_jump_event(
-          {vacancy_lattice_id_, neighbor_lattice_id},
-          vacancy_migration_predictor_lru_.GetBarrierAndDiffFromLatticeIdPair(
-              config_, {vacancy_lattice_id_, neighbor_lattice_id}),
-          beta_);
-      total_rate_k_ += lattice_jump_event.GetForwardRate();
-      event_k_i_list_[i] = std::move(lattice_jump_event);
-    }
+  const auto &neighbor_lattice_id_vector = config_.GetFirstNeighborsAdjacencyList()[vacancy_lattice_id_];
+  // The twelve events are evaluated one after the other. Most barriers are read from the cache of the model and the
+  // rest take a few microseconds each, which is less than it costs to start a parallel region: with this loop in
+  // parallel a step took 4 microseconds on one thread, 33 on four and 155 on twelve (Apple M3 Max, 10976 sites).
+  // The threads are still used to build the tables of the models at the start.
+  for (size_t i = 0; i < kEventListSize; ++i) {
+    const auto neighbor_lattice_id = neighbor_lattice_id_vector[i];
+    JumpEvent lattice_jump_event(
+        {vacancy_lattice_id_, neighbor_lattice_id},
+        vacancy_migration_predictor_lru_.GetBarrierAndDiffFromLatticeIdPair(
+            config_, {vacancy_lattice_id_, neighbor_lattice_id}),
+        beta_);
+    total_rate_k_ += lattice_jump_event.GetForwardRate();
+    event_k_i_list_[i] = std::move(lattice_jump_event);
   }
   double cumulative_probability = 0.0;
   for (auto &event_it : event_k_i_list_) {
