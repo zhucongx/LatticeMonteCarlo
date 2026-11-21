@@ -38,7 +38,7 @@ KineticMcChainOmpi::KineticMcChainOmpi(cfg::Config config,
                              seed) {
   if (world_size_ != kEventListSize) {
     if (world_rank_ == 0) {
-      std::cout << "Must use " << kEventListSize << " precesses. Terminating...\n" << std::endl;
+      std::cout << "Must use " << kEventListSize << " processes. Terminating...\n" << std::endl;
     }
     MPI_Abort(MPI_COMM_WORLD, 1);
   }

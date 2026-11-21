@@ -9,6 +9,18 @@ bool IsRoot() {
 }
 
 namespace api {
+namespace {
+// Stops before anything expensive is built when a method is started with a number of MPI processes it cannot use.
+void RequireNumProcesses(const std::string &method, const int required_size) {
+  int world_size = 1;
+  MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+  if (world_size != required_size) {
+    throw std::invalid_argument("simulation_method " + method + " must be run with " + std::to_string(required_size) +
+                                " MPI process(es), but " + std::to_string(world_size) + " started");
+  }
+}
+}    // namespace
+
 void Print(const Parameter &parameter) {
   if (!IsRoot()) {
     return;
@@ -101,6 +113,13 @@ void Print(const Parameter &parameter) {
 }
 
 void Run(const Parameter &parameter) {
+  // The two MPI variants evaluate one of the twelve jumps of the vacancy on each rank. Everything else runs one
+  // trajectory, or one analysis, in a single process.
+  if (parameter.method == "KineticMcFirstMpi" || parameter.method == "KineticMcChainOmpi") {
+    RequireNumProcesses(parameter.method, static_cast<int>(constants::kNumFirstNearestNeighbors));
+  } else {
+    RequireNumProcesses(parameter.method, 1);
+  }
   if (parameter.method == "KineticMcFirstMpi") {
     auto kinetic_mc_first_mpi = api::BuildKineticMcFirstMpiFromParameter(parameter);
     kinetic_mc_first_mpi.Simulate();
