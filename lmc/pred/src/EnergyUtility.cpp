@@ -740,6 +740,39 @@ std::vector<std::vector<std::vector<size_t> > > GetClusterParametersMappingState
       std::move(first_second_third_triplets_vector), cluster_mapping);
   return cluster_mapping;
 }
+// Number of one-hot slots taken by one group of symmetry-equivalent clusters.
+static size_t GetOneHotListLength(const size_t num_of_elements,
+                                  const std::vector<std::vector<size_t>> &cluster_vector) {
+  if (cluster_vector[0][0] == SIZE_MAX) {
+    return num_of_elements * (num_of_elements + 1) / 2;
+  }
+  size_t list_length = 1;
+  for (size_t i = 0; i < cluster_vector[0].size(); ++i) {
+    list_length *= num_of_elements;
+  }
+  return list_length;
+}
+
+size_t GetOneHotEncodeSize(const size_t num_of_elements,
+                           const std::vector<std::vector<std::vector<size_t>>> &cluster_mapping) {
+  size_t encode_size = 0;
+  for (const auto &cluster_vector: cluster_mapping) {
+    encode_size += GetOneHotListLength(num_of_elements, cluster_vector);
+  }
+  return encode_size;
+}
+
+void CheckModelSize(const std::string &predictor_filename,
+                    const std::string &name,
+                    const size_t actual_size,
+                    const size_t expected_size) {
+  if (actual_size != expected_size) {
+    throw std::runtime_error(predictor_filename + ": " + name + " has " + std::to_string(actual_size) +
+                             " entries but " + std::to_string(expected_size) + " are expected. " +
+                             "The coefficient file does not match element_set or is inconsistent.");
+  }
+}
+
 void GetOneHotParametersFromMap(
     const std::vector<Element> &encode,
     const std::unordered_map<std::string, std::vector<double>> &one_hot_encode_hashmap,
@@ -751,12 +784,7 @@ void GetOneHotParametersFromMap(
   // Todo 711 for mmm ternary, 1401 for mmm2 ternary, 1240 for mmm quaternary, 2452 for mmm2 quaternary
   auto &sum_of_list = GetThreadLocalSumOfListBuffer();
   for (const auto &cluster_vector: cluster_mapping) {
-    size_t list_length;
-    if (cluster_vector[0][0] == SIZE_MAX) {
-      list_length = static_cast<size_t>(num_of_elements * (num_of_elements + 1) / 2);
-    } else {
-      list_length = static_cast<size_t>(std::pow(num_of_elements, cluster_vector[0].size()));
-    }
+    const size_t list_length = GetOneHotListLength(num_of_elements, cluster_vector);
     sum_of_list.assign(list_length, 0.0);
 
     for (const auto &cluster: cluster_vector) {

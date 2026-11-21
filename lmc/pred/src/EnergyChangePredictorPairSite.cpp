@@ -38,6 +38,7 @@ EnergyChangePredictorPairSite::EnergyChangePredictorPairSite(const std::string &
       base_theta_ = JsonToEigenVector(parameters.at("theta"));
     }
   }
+  CheckModelSize(predictor_filename, "Base.theta", static_cast<size_t>(base_theta_.size()), cluster_indexer_.Size());
 #pragma omp parallel for default(none) shared(reference_config)
   for (size_t i = 0; i < reference_config.GetNumAtoms(); ++i) {
     auto neighboring_hashset = reference_config.GetNeighborsLatticeIdSetOfSite(i);
