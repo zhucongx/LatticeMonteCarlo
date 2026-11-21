@@ -78,7 +78,7 @@ The number of MPI processes is fixed by the method, and the program stops with a
 
 | `simulation_method` | MPI processes | OpenMP threads |
 |---|---|---|
-| `KineticMcFirstOmp` | 1 | yes |
+| `KineticMcFirstOmp` | 1 | at start-up only |
 | `KineticMcFirstMpi` | 12 (one per jump of the vacancy) | no |
 | `KineticMcChainOmpi` | 12 (one per jump of the vacancy) | yes |
 | `CanonicalMcSerial`, `SimulatedAnnealing` | 1 | no |
