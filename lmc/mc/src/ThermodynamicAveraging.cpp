@@ -1,6 +1,4 @@
 #include "ThermodynamicAveraging.h"
-#include "Constants.hpp"
-#include <cmath>
 namespace mc {
 mc::ThermodynamicAveraging::ThermodynamicAveraging(size_t size) : size_(size) {}
 void ThermodynamicAveraging::AddEnergy(const double value)
@@ -22,20 +20,11 @@ double ThermodynamicAveraging::GetAverage() const
   }
   return sum_ / static_cast<double>(energy_list_.size());
 }
-double ThermodynamicAveraging::GetThermodynamicAverage(const double beta) const
+double ThermodynamicAveraging::GetThermodynamicAverage() const
 {
-  if (size_ == 0) {
-    return 0;
-  }
-  const auto average = GetAverage();
-  double partition = 0.0;
-  double thermodynamic_average_energy = 0.0;
-  for (auto energy: energy_list_) {
-    energy -= average;
-    const double exp_value = std::exp(-energy * beta);
-    thermodynamic_average_energy += energy * exp_value;
-    partition += exp_value;
-  }
-  return thermodynamic_average_energy / partition + average;
+  // The window holds energies of states that the Monte Carlo trajectory already visits with their Boltzmann
+  // weight, so the canonical average is their plain mean. Weighting the samples by exp(-beta * E) once more would
+  // count that weight twice and return, in practice, the lowest energy of the window.
+  return GetAverage();
 }
 }    // namespace mc
