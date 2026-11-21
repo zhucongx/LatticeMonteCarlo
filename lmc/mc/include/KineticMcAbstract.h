@@ -54,7 +54,7 @@ class KineticMcFirstAbstract : public McAbstract {
     const pred::RateCorrector rate_corrector_;
     const bool is_rate_corrector_;
     size_t vacancy_lattice_id_;
-    Vector_d solute_com_trajectory_;
+    Vector_d solute_com_trajectory_{};
     const bool is_early_stop_;
     const bool is_solute_disp_;
     std::array<JumpEvent, kEventListSize> event_k_i_list_{};
