@@ -95,6 +95,7 @@ Common keys (only relevant ones are read by each method):
 - `temperature` / `initial_temperature`: in Kelvin
 - `log_dump_steps` / `config_dump_steps` / `maximum_steps` / `thermodynamic_averaging_steps`
 - `restart_steps` / `restart_energy` / `restart_time`
+- `seed`: seed of the random number generator (optional). Two runs with the same seed, executable and thread/process count follow the same trajectory. If the key is omitted a time-based seed is used and printed at startup, so any run can be repeated by adding `seed <value>`. A restarted run continues with a fresh random stream derived from `seed` and `restart_steps`.
 
 KMC-specific:
 

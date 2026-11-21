@@ -40,6 +40,7 @@ void Print(const Parameter &parameter) {
     std::cout << "early_stop: " << parameter.early_stop_ << std::endl;
     std::cout << "solute_disp: " << parameter.solute_disp_ << std::endl;
     std::cout << std::noboolalpha;
+    std::cout << "seed: " << parameter.seed_ << std::endl;
   } else if (parameter.method == "SimulatedAnnealing") {
     std::cout << "json_coefficients_filename: " << parameter.json_coefficients_filename_ << std::endl;
     std::cout << "factor: " << parameter.factor_ << std::endl;
@@ -61,6 +62,7 @@ void Print(const Parameter &parameter) {
     std::cout << "config_dump_steps: " << parameter.config_dump_steps_ << std::endl;
     std::cout << "maximum_steps: " << parameter.maximum_steps_ << std::endl;
     std::cout << "initial_temperature: " << parameter.initial_temperature_ << std::endl;
+    std::cout << "seed: " << parameter.seed_ << std::endl;
   } else if (parameter.method == "CanonicalMcSerial" || parameter.method == "CanonicalMcOmp") {
     std::cout << "json_coefficients_filename: " << parameter.json_coefficients_filename_ << std::endl;
     std::cout << "config_filename: " << parameter.config_filename_ << std::endl;
@@ -77,6 +79,7 @@ void Print(const Parameter &parameter) {
     std::cout << "temperature: " << parameter.temperature_ << std::endl;
     std::cout << "restart_steps: " << parameter.restart_steps_ << std::endl;
     std::cout << "restart_energy: " << parameter.restart_energy_ << std::endl;
+    std::cout << "seed: " << parameter.seed_ << std::endl;
   } else if (parameter.method == "Ansys" || parameter.method == "Reformat") {
     std::cout << "json_coefficients_filename: " << parameter.json_coefficients_filename_ << std::endl;
     std::cout << "solvent_element: " << parameter.solvent_element_ << std::endl;
@@ -153,7 +156,8 @@ mc::KineticMcFirstMpi BuildKineticMcFirstMpiFromParameter(const Parameter &param
                                parameter.time_temperature_filename_,
                                parameter.rate_corrector_,
                                parameter.early_stop_,
-                               parameter.solute_disp_};
+                               parameter.solute_disp_,
+                               parameter.seed_};
 }
 
 mc::KineticMcFirstOmp BuildKineticMcFirstOmpFromParameter(const Parameter &parameter) {
@@ -185,7 +189,8 @@ mc::KineticMcFirstOmp BuildKineticMcFirstOmpFromParameter(const Parameter &param
                                parameter.time_temperature_filename_,
                                parameter.rate_corrector_,
                                parameter.early_stop_,
-                               parameter.solute_disp_};
+                               parameter.solute_disp_,
+                               parameter.seed_};
 }
 
 mc::KineticMcChainOmpi BuildKineticMcChainOmpiFromParameter(const Parameter &parameter) {
@@ -217,7 +222,8 @@ mc::KineticMcChainOmpi BuildKineticMcChainOmpiFromParameter(const Parameter &par
                                 parameter.time_temperature_filename_,
                                 parameter.rate_corrector_,
                                 parameter.early_stop_,
-                                parameter.solute_disp_};
+                                parameter.solute_disp_,
+                                parameter.seed_};
 }
 
 mc::SimulatedAnnealing BuildSimulatedAnnealingFromParameter(const Parameter &parameter) {
@@ -234,7 +240,8 @@ mc::SimulatedAnnealing BuildSimulatedAnnealingFromParameter(const Parameter &par
                                 parameter.config_dump_steps_,
                                 parameter.maximum_steps_,
                                 parameter.initial_temperature_,
-                                parameter.json_coefficients_filename_};
+                                parameter.json_coefficients_filename_,
+                                parameter.seed_};
 }
 
 mc::CanonicalMcSerial BuildCanonicalMcSerialFromParameter(const Parameter &parameter) {
@@ -261,7 +268,8 @@ mc::CanonicalMcSerial BuildCanonicalMcSerialFromParameter(const Parameter &param
                                parameter.restart_energy_,
                                parameter.temperature_,
                                element_set,
-                               parameter.json_coefficients_filename_};
+                               parameter.json_coefficients_filename_,
+                               parameter.seed_};
 }
 
 mc::CanonicalMcOmp BuildCanonicalMcOmpFromParameter(const Parameter &parameter) {
@@ -288,7 +296,8 @@ mc::CanonicalMcOmp BuildCanonicalMcOmpFromParameter(const Parameter &parameter) 
                             parameter.restart_energy_,
                             parameter.temperature_,
                             element_set,
-                            parameter.json_coefficients_filename_};
+                            parameter.json_coefficients_filename_,
+                            parameter.seed_};
 }
 
 ansys::Traverse BuildIteratorFromParameter(const Parameter &parameter) {

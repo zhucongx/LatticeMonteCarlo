@@ -28,7 +28,8 @@ class KineticMcFirstAbstract : public McAbstract {
                            const std::string &time_temperature_filename,
                            bool is_rate_corrector,
                            bool is_early_stop,
-                           bool is_solute_disp);
+                           bool is_solute_disp,
+                           unsigned long long int seed);
     ~KineticMcFirstAbstract() override;
     KineticMcFirstAbstract(const KineticMcFirstAbstract &) = delete;
     void operator=(const mc::KineticMcFirstAbstract &) = delete;
@@ -78,7 +79,8 @@ class KineticMcChainAbstract : public KineticMcFirstAbstract {
                            const std::string &time_temperature_filename,
                            bool is_rate_corrector,
                            bool is_early_stop,
-                           bool is_solute_disp);
+                           bool is_solute_disp,
+                           unsigned long long int seed);
     ~KineticMcChainAbstract() override;
     KineticMcChainAbstract(const KineticMcChainAbstract &) = delete;
     void operator=(const mc::KineticMcChainAbstract &) = delete;

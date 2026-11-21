@@ -101,5 +101,8 @@ if __name__ == '__main__':
         # Add solute_disp parameter if it exists in old parameters
         if "solute_disp" in old_param.keys():
             f4.write(f"solute_disp {old_param['solute_disp']}\n")
+        # Keep the seed so that the restarted segment stays reproducible
+        if "seed" in old_param.keys():
+            f4.write(f"seed {old_param['seed']}\n")
         f4.flush()
     print(f"Done...")
