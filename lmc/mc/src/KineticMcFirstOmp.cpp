@@ -18,7 +18,8 @@ KineticMcFirstOmp::KineticMcFirstOmp(cfg::Config config,
                                      const std::string &time_temperature_filename,
                                      const bool is_rate_corrector,
                                      const bool is_early_stop,
-                                     const bool is_solute_disp)
+                                     const bool is_solute_disp,
+                                     const unsigned long long int seed)
     : KineticMcFirstAbstract(std::move(config),
                              log_dump_steps,
                              config_dump_steps,
@@ -33,7 +34,8 @@ KineticMcFirstOmp::KineticMcFirstOmp(cfg::Config config,
                              time_temperature_filename,
                              is_rate_corrector,
                              is_early_stop,
-                             is_solute_disp) {
+                             is_solute_disp,
+                             seed) {
   if (world_size_ != 1) {
     if (world_rank_ == 0) {
       std::cout << "Must use 1 process for KineticMcFirstOmp. Terminating...\n" << std::endl;

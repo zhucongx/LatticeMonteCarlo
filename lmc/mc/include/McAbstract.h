@@ -20,7 +20,8 @@ class McAbstract {
              double temperature,
              const std::set<Element> &element_set,
              const std::string &json_coefficients_filename,
-             const std::string &log_filename);
+             const std::string &log_filename,
+             unsigned long long int seed);
   virtual ~McAbstract();
   McAbstract(const McAbstract &) = delete;
   void operator=(const mc::McAbstract &) = delete;

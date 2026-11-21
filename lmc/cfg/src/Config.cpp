@@ -6,7 +6,6 @@
 #include <boost/functional/hash.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
-#include <chrono>
 #include <limits>
 #include <omp.h>
 #include <random>
@@ -1117,15 +1116,16 @@ Config GenerateFCC(const Factor_t &factors, Element element) {
   return Config{basis, lattice_vector, atom_vector, map_shift_list, true};
 }
 
-Config GenerateSoluteConfigFromExcitingPure(Config config, const std::map<Element, size_t> &solute_atom_count) {
+Config GenerateSoluteConfigFromExcitingPure(Config config,
+                                            const std::map<Element, size_t> &solute_atom_count,
+                                            const unsigned long long int seed) {
   std::unordered_set<size_t> unavailable_position{};
   std::unordered_set<size_t> available_position {};
   for (size_t i = 0; i < config.GetNumAtoms(); ++i) {
     available_position.emplace(i);
   }
 
-  static std::mt19937_64 generator(
-      static_cast<unsigned long long int>(std::chrono::system_clock::now().time_since_epoch().count()));
+  std::mt19937_64 generator(seed);
 
   size_t selected_lattice_index{};
   for (const auto &[solute_atom, count]: solute_atom_count) {
@@ -1161,8 +1161,9 @@ Config GenerateSoluteConfigFromExcitingPure(Config config, const std::map<Elemen
 
 Config GenerateSoluteConfig(const Factor_t &factors,
                             const Element solvent_element,
-                            const std::map<Element, size_t> &solute_atom_count) {
-  return GenerateSoluteConfigFromExcitingPure(GenerateFCC(factors, solvent_element), solute_atom_count);
+                            const std::map<Element, size_t> &solute_atom_count,
+                            const unsigned long long int seed) {
+  return GenerateSoluteConfigFromExcitingPure(GenerateFCC(factors, solvent_element), solute_atom_count, seed);
 }
 
 // Config GenerateClusteredConfigFromExcitingPure(Config config,

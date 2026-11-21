@@ -113,10 +113,13 @@ class Config {
 
 void RotateLatticeVector(std::vector<Lattice> &lattice_list, const Matrix_d &rotation_matrix);
 Config GenerateFCC(const Factor_t &factors, Element element);
-Config GenerateSoluteConfigFromExcitingPure(Config config, const std::map<Element, size_t> &solute_atom_count);
+Config GenerateSoluteConfigFromExcitingPure(Config config,
+                                            const std::map<Element, size_t> &solute_atom_count,
+                                            unsigned long long int seed);
 Config GenerateSoluteConfig(const Factor_t &factors,
                             Element solvent_element,
-                            const std::map<Element, size_t> &solute_atom_count);
+                            const std::map<Element, size_t> &solute_atom_count,
+                            unsigned long long int seed);
 // Config GenerateClusteredConfigFromExcitingPure(Config config,
 //                                             const std::map<Element, size_t> &solute_atom_count);
 // Config GenerateClusteredConfig(const Factor_t &factors,

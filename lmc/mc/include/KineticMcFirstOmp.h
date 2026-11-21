@@ -22,7 +22,8 @@ class KineticMcFirstOmp : public KineticMcFirstAbstract {
                       const std::string &time_temperature_filename,
                       bool is_rate_corrector,
                       bool is_early_stop,
-                      bool is_solute_disp);
+                      bool is_solute_disp,
+                      unsigned long long int seed);
     ~KineticMcFirstOmp() override;
   protected:
     void BuildEventList() override;

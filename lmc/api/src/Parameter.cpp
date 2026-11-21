@@ -3,14 +3,23 @@
 #include "Utility.h"
 
 #include <algorithm>
+#include <chrono>
 
 namespace api {
-Parameter::Parameter(int argc, char *argv[]) {
+namespace {
+unsigned long long int GetTimeBasedSeed() {
+  return static_cast<unsigned long long int>(std::chrono::system_clock::now().time_since_epoch().count());
+}
+}    // namespace
+
+Parameter::Parameter(int argc, char *argv[])
+    : seed_(GetTimeBasedSeed()) {
   ParseArgs(argc, argv);
   ReadParam(parameters_filename);
 }
 
-Parameter::Parameter(const std::string &param_filename) {
+Parameter::Parameter(const std::string &param_filename)
+    : seed_(GetTimeBasedSeed()) {
   ReadParam(param_filename);
 }
 
@@ -124,6 +133,8 @@ void Parameter::ReadParam(const std::string &param_filename) {
       });
     } else if (segs[0] == "early_stop_steps") {
       early_stop_steps_ = stoull(segs[1]);
+    } else if (segs[0] == "seed") {
+      seed_ = stoull(segs[1]);
     }
   }
   ifs.close();

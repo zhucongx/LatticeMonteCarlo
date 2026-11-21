@@ -18,7 +18,8 @@ class CanonicalMcOmp : public CanonicalMcAbstract {
                    double restart_energy,
                    double temperature,
                    const std::set<Element> &element_set,
-                   const std::string &json_coefficients_filename);
+                   const std::string &json_coefficients_filename,
+                   unsigned long long int seed);
     void Simulate() override;
   private:
     void BuildEventVector();
