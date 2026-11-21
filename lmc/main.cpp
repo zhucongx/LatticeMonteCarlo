@@ -1,4 +1,7 @@
 #include "Home.h"
+#include <cstdlib>
+#include <exception>
+#include <iostream>
 #include <mpi.h>
 
 class MpiSession {
@@ -17,26 +20,32 @@ public:
 int main(int argc, char *argv[]) {
   MpiSession mpi_session(&argc, &argv);
   int world_rank = 0;
+  int world_size = 1;
   MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
-  
+  MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+
   if (world_rank == 0) {
     std::cout << "Compiled on " << __DATE__ << " at " << __TIME__ << std::endl;
   }
 
-  if (argc <= 2) {
+  try {
+    api::Parameter parameter(argc, argv);
     if (world_rank == 0) {
-      std::cout << "No input parameter filename." << std::endl;
+      api::Print(parameter);
     }
-    // return 1;
-    MPI_Abort(MPI_COMM_WORLD, 1);
+    api::Run(parameter);
+  } catch (const std::exception &error) {
+    // Report the problem and make sure the exit status tells a batch script that the run failed.
+    if (world_size > 1) {
+      std::cerr << "[rank " << world_rank << "] ";
+    }
+    std::cerr << "Error: " << error.what() << std::endl;
+    if (world_size > 1) {
+      MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+    }
+    return EXIT_FAILURE;
   }
-
-  api::Parameter parameter(argc, argv);
-  if (world_rank == 0) {
-    api::Print(parameter);
-  }
-  api::Run(parameter);
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 // int main(int argc, char *argv[]) {
