@@ -1003,8 +1003,11 @@ void Config::UpdateNeighbors() {
   const Factor_t num_cells{static_cast<size_t>(std::floor(ScalarLength(basis_[0]) / constants::kNearNeighborsCutoff)),
                            static_cast<size_t>(std::floor(ScalarLength(basis_[1]) / constants::kNearNeighborsCutoff)),
                            static_cast<size_t>(std::floor(ScalarLength(basis_[2]) / constants::kNearNeighborsCutoff))};
-  if (num_cells[0] == 0 || num_cells[1] == 0 || num_cells[2] == 0) {
-    throw std::runtime_error("Simulation box is smaller than neighbor cutoff");
+  // The minimum image convention used below is only valid if no site can see two periodic images of another
+  // site, i.e. if every cell vector is at least twice the cutoff.
+  if (num_cells[0] < 2 || num_cells[1] < 2 || num_cells[2] < 2) {
+    throw std::runtime_error("Simulation box is too small: every cell vector must be at least twice the neighbor "
+                             "cutoff of " + std::to_string(constants::kNearNeighborsCutoff) + " Angstrom");
   }
 
   std::vector<std::vector<size_t>> cells{num_cells[0] * num_cells[1] * num_cells[2]};
@@ -1033,7 +1036,10 @@ void Config::UpdateNeighbors() {
     const size_t i = cell_idx / (num_cells[1] * num_cells[2]);
     const size_t j = (cell_idx % (num_cells[1] * num_cells[2])) / num_cells[2];
     const size_t k = cell_idx % num_cells[2];
-    // Check neighboring cells, taking into account periodic boundaries
+    // Check neighboring cells, taking into account periodic boundaries. With only two cells along a direction
+    // the offsets -1 and +1 wrap onto the same cell, so the indices are made unique to visit every cell once.
+    std::vector<size_t> neighbor_cell_indices;
+    neighbor_cell_indices.reserve(OFFSET_LIST.size());
     for (auto [di, dj, dk]: OFFSET_LIST) {
       const size_t ni =
           (num_cells[0] + i + (di >= 0 ? static_cast<size_t>(di) : -static_cast<size_t>(-di))) % num_cells[0];
@@ -1041,7 +1047,12 @@ void Config::UpdateNeighbors() {
           (num_cells[1] + j + (dj >= 0 ? static_cast<size_t>(dj) : -static_cast<size_t>(-dj))) % num_cells[1];
       const size_t nk =
           (num_cells[2] + k + (dk >= 0 ? static_cast<size_t>(dk) : -static_cast<size_t>(-dk))) % num_cells[2];
-      const size_t neighbor_cell_idx = (ni * num_cells[1] + nj) * num_cells[2] + nk;
+      neighbor_cell_indices.push_back((ni * num_cells[1] + nj) * num_cells[2] + nk);
+    }
+    std::sort(neighbor_cell_indices.begin(), neighbor_cell_indices.end());
+    neighbor_cell_indices.erase(std::unique(neighbor_cell_indices.begin(), neighbor_cell_indices.end()),
+                                neighbor_cell_indices.end());
+    for (const size_t neighbor_cell_idx: neighbor_cell_indices) {
       auto &neighbor_cell = cells.at(neighbor_cell_idx);
       // For each point in the cell, check if it's close to any point in the neighboring cell
       for (size_t lattice_id1: cell) {
