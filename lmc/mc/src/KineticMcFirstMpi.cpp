@@ -74,6 +74,10 @@ void KineticMcFirstMpi::BuildEventList() {
 }
 double KineticMcFirstMpi::CalculateTime() {
   static std::uniform_real_distribution<double> uniform_distribution(0.0, 1.0);
-  return -std::log(uniform_distribution(generator_)) / total_rate_k_ / constants::kPrefactor;
+  double one_step_time = -std::log(uniform_distribution(generator_)) / total_rate_k_ / constants::kPrefactor;
+  // Every rank keeps its own clock and derives the temperature of its event from it, so all ranks have to advance
+  // by the same time step: the one drawn on rank 0.
+  MPI_Bcast(&one_step_time, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  return one_step_time;
 }
 } // mc
