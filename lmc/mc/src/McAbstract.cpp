@@ -68,14 +68,21 @@ McAbstract::McAbstract(cfg::Config config,
       thermodynamic_averaging_(thermodynamic_averaging_steps),
       generator_(MakeGenerator(seed, restart_steps)),
       unit_distribution_(0.0, 1.0),
-      ofs_(log_filename, is_restarted_ ? std::ofstream::app : std::ofstream::out)
+      ofs_()
 {
   // TODO(perf): RNG is on the hot path. Consider replacing mt19937_64 + uniform_real_distribution
   // with a faster generator (pcg/xoshiro) and a lightweight uniform_01 helper to shave per-step cost.
-  ofs_.precision(16);
-
   MPI_Comm_rank(MPI_COMM_WORLD, &world_rank_);
   MPI_Comm_size(MPI_COMM_WORLD, &world_size_);
+
+  // Only rank 0 writes the log. If every rank opened it, each of them would truncate the file again.
+  if (world_rank_ == 0) {
+    ofs_.open(log_filename, is_restarted_ ? std::ofstream::app : std::ofstream::out);
+    if (!ofs_.is_open()) {
+      throw std::runtime_error("Cannot open " + log_filename);
+    }
+    ofs_.precision(16);
+  }
 }
 McAbstract::~McAbstract() = default;
 
