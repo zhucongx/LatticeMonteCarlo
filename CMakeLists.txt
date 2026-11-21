@@ -84,8 +84,12 @@ foreach (dir ${PROJECT_INCLUDE})
     message(STATUS "Found include directory: ${dir}")
 endforeach ()
 
-add_executable(${PROJECT_NAME} ${PROJECT_NAME}/main.cpp ${PROJECT_SRC})
-target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_INCLUDE})
+# The sources are compiled once into a library, which the executable and the unit tests link to.
+set(PROJECT_CORE ${PROJECT_NAME}_core)
+add_library(${PROJECT_CORE} STATIC ${PROJECT_SRC})
+target_include_directories(${PROJECT_CORE} PUBLIC ${PROJECT_INCLUDE})
+add_executable(${PROJECT_NAME} ${PROJECT_NAME}/main.cpp)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_CORE})
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "${PROJECT_NAME}.exe")
 ###################################################### BUILD LIBS ######################################################
 if(POLICY CMP0135)
@@ -127,19 +131,19 @@ endfunction()
 #set(Boost_USE_DEBUG_LIBS OFF) # ignore debug libs and
 #set(Boost_USE_RELEASE_LIBS ON) # only find release libs
 find_package(Boost REQUIRED COMPONENTS filesystem iostreams)
-target_link_libraries_system(${PROJECT_NAME} PRIVATE Boost::boost Boost::filesystem Boost::iostreams)
+target_link_libraries_system(${PROJECT_CORE} PUBLIC Boost::boost Boost::filesystem Boost::iostreams)
 ######################################################### MPI ##########################################################
 find_package(MPI REQUIRED)
-target_link_libraries_system(${PROJECT_NAME} PRIVATE MPI::MPI_CXX)
+target_link_libraries_system(${PROJECT_CORE} PUBLIC MPI::MPI_CXX)
 ######################################################## OPENMP ########################################################
 find_package(OpenMP REQUIRED)
-target_link_libraries_system(${PROJECT_NAME} PRIVATE OpenMP::OpenMP_CXX)
+target_link_libraries_system(${PROJECT_CORE} PUBLIC OpenMP::OpenMP_CXX)
 ######################################################## EIGEN #########################################################
 find_package(MKL)
 if (MKL_FOUND)
     message(STATUS "MKL found. Using MKL BLAS/LAPACK")
     add_definitions(-DEIGEN_USE_MKL_ALL)
-    target_link_libraries_system(${PROJECT_NAME} PRIVATE MKL::MKL)
+    target_link_libraries_system(${PROJECT_CORE} PUBLIC MKL::MKL)
     set(USE_MKL ON)
 else ()
     message(STATUS "MKL not found.")
@@ -149,8 +153,8 @@ else ()
     if (BLAS_FOUND AND LAPACK_FOUND)
         message(STATUS "BLAS/LAPACK found. Using generic BLAS/LAPACK")
         add_definitions(-DEIGEN_USE_LAPACK -DEIGEN_USE_BLAS)
-        target_link_libraries_system(${PROJECT_NAME} PRIVATE BLAS::BLAS)
-        target_link_libraries_system(${PROJECT_NAME} PRIVATE LAPACK::LAPACK)
+        target_link_libraries_system(${PROJECT_CORE} PUBLIC BLAS::BLAS)
+        target_link_libraries_system(${PROJECT_CORE} PUBLIC LAPACK::LAPACK)
     else ()
         message(STATUS "BLAS/LAPACK not found. Using Eigen3 only")
     endif ()
@@ -176,18 +180,18 @@ elseif (EIGEN3_FOUND)
     message(STATUS "Eigen3 found. Using version ${EIGEN3_VERSION}")
 endif ()
 # Link to the Eigen3::Eigen target, which is now available either from the system or FetchContent.
-target_link_libraries_system(${PROJECT_NAME} PRIVATE Eigen3::Eigen)
+target_link_libraries_system(${PROJECT_CORE} PUBLIC Eigen3::Eigen)
 ###################################################### ARMADILLO #######################################################
 #find_package(ARMADILLO REQUIRED)
 #target_include_directories(${PROJECT_NAME} PRIVATE
 #        ${ARMADILLO_INCLUDE_DIRS})
-#target_link_libraries_system(${PROJECT_NAME} PRIVATE
+#target_link_libraries_system(${PROJECT_CORE} PUBLIC
 #        ${ARMADILLO_LIBRARIES})
 ###################################################### TENSORFLOW ######################################################
 #find_package(TensorFlow REQUIRED)
 #target_include_directories(${PROJECT_NAME} PRIVATE
 #        ${TensorFlow_INCLUDE_DIRS})
-#target_link_libraries_system(${PROJECT_NAME} PRIVATE
+#target_link_libraries_system(${PROJECT_CORE} PUBLIC
 #        ${TensorFlow_LIBRARIES})
 ######################################################### JSON #########################################################
 # Typically you don't care so much for a third party library's tests to be run from your own project's code.
@@ -202,9 +206,9 @@ FetchContent_Declare(
         URL https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz
 )
 FetchContent_MakeAvailable(json)
-target_link_libraries_system(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
+target_link_libraries_system(${PROJECT_CORE} PUBLIC nlohmann_json::nlohmann_json)
 # Work around libstdc++/libc++ variants that lack std::u8string_view in C++20 mode.
-target_compile_definitions(${PROJECT_NAME} PRIVATE JSON_HAS_CPP_20=0)
+target_compile_definitions(${PROJECT_CORE} PUBLIC JSON_HAS_CPP_20=0)
 ######################################################## SPGLIB ########################################################
 # message(STATUS "Downloading spglib from Github")
 # FetchContent_Declare(
@@ -228,54 +232,35 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE JSON_HAS_CPP_20=0)
 # #    FetchContent_Populate(Spglib)
 # #    add_subdirectory(${spglib_SOURCE_DIR} ${spglib_BINARY_DIR} EXCLUDE_FROM_ALL)
 # #endif ()
-# target_link_libraries_system(${PROJECT_NAME} PRIVATE Spglib::symspg)
+# target_link_libraries_system(${PROJECT_CORE} PUBLIC Spglib::symspg)
 ###################################################### GOOGLETEST ######################################################
-#set(TEST "on")
-#IF(TEST)
-#    message(STATUS "TEST mode on")
-#    include(FetchContent)
-#    FetchContent_Declare(
-#            googletest
-#            GIT_REPOSITORY https://github.com/google/googletest/
-#            GIT_TAG release-1.11.0)
-#    # For Windows: Prevent overriding the parent project's compiler/linker settings
-#    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-#    FetchContent_MakeAvailable(googletest)
-#
-#    enable_testing()
-#    include(GoogleTest)
-##    macro(package_add_test TESTNAME)
-##        add_executable(${TESTNAME} ${ARGN})
-##        target_link_libraries(${TESTNAME} gtest gmock gtest_main)
-##        gtest_discover_tests(${TESTNAME}
-##                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test
-##                PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/test"
-##                )
-##        set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
-##    endmacro()
-#
-##    macro(package_add_test_with_libraries TESTNAME FILES LIBRARIES)
-##        add_executable(${TESTNAME} ${FILES})
-##        target_link_libraries(${TESTNAME} gtest gmock gtest_main ${LIBRARIES})
-##        gtest_discover_tests(${TESTNAME}
-##                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test
-##                PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/test"
-##                )
-##        set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
-##    endmacro()
-#    set(TEST_NAME my_test)
-#    add_executable(${TEST_NAME} gtest.cpp ${PROJECT_SRC})
-#    set_target_properties(${TEST_NAME} PROPERTIES
-#            OUTPUT_NAME "${TEST_NAME}.exe")
-#    target_include_directories(${TEST_NAME} PRIVATE
-#            ${PROJECT_INCLUDE}
-#            ${Boost_INCLUDE_DIR})
-#
-#    target_link_libraries(${TEST_NAME} gtest gmock gtest_main )
-#    gtest_discover_tests(${TEST_NAME})
-#ELSE()
-#    message(STATUS "TEST mode off")
-#ENDIF()
+# cmake -DLMC_BUILD_TESTS=ON ... && cmake --build ... && ctest
+option(LMC_BUILD_TESTS "Build the unit tests (downloads GoogleTest)" OFF)
+if (LMC_BUILD_TESTS)
+    message(STATUS "Downloading GoogleTest from Github")
+    FetchContent_Declare(
+            googletest
+            URL https://github.com/google/googletest/archive/refs/tags/v1.17.0.tar.gz
+    )
+    # For Windows: Prevent overriding the parent project's compiler/linker settings
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+    set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
+    set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(googletest)
+    # GoogleTest is not meant to pass the warning flags of this project.
+    target_compile_options(gtest PRIVATE -w)
+
+    enable_testing()
+    set(PROJECT_TEST ${PROJECT_NAME}_test)
+    file(GLOB PROJECT_TEST_SRC ${PROJECT_SOURCE_DIR}/${PROJECT_NAME}/*/test/*.cpp)
+    add_executable(${PROJECT_TEST} ${PROJECT_NAME}/test_main.cpp ${PROJECT_TEST_SRC})
+    set_target_properties(${PROJECT_TEST} PROPERTIES OUTPUT_NAME "${PROJECT_TEST}.exe")
+    # Lets the tests of one module include a helper of another one, e.g. "pred/test/SyntheticModel.hpp".
+    target_include_directories(${PROJECT_TEST} PRIVATE ${PROJECT_SOURCE_DIR}/${PROJECT_NAME})
+    target_link_libraries(${PROJECT_TEST} PRIVATE ${PROJECT_CORE})
+    target_link_libraries_system(${PROJECT_TEST} PRIVATE GTest::gtest)
+    add_test(NAME ${PROJECT_TEST} COMMAND ${PROJECT_TEST})
+endif ()
 ###################################################### SANITIZER #######################################################
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
 #add_cxx_compiler_flags("-fsanitize=address -fno-omit-frame-pointer") # address
