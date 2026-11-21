@@ -2,8 +2,9 @@
 
 #include <algorithm>
 #include <fstream>
-#include <limits>
+#include <sstream>
 #include <stdexcept>
+#include <string>
 #include <utility>
 
 namespace pred {
@@ -13,14 +14,21 @@ TimeTemperatureInterpolator::TimeTemperatureInterpolator(const std::string &time
   std::ifstream ifs(time_temperature_filename, std::ifstream::in);
   if (!ifs.is_open()) {
     throw std::runtime_error("Cannot open " + time_temperature_filename);
-    return;
   }
-  double time, temperature;
-  while (ifs.peek() != '0') { ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); }
-  while (ifs >> time >> temperature) {
-    if (ifs.eof() || ifs.bad()) { break; }
+  // Every line that starts with two numbers is a (time, temperature) point. Other lines, such as a header or a
+  // comment, are skipped. Reading line by line keeps the last point of a file without a final newline.
+  std::string line;
+  while (std::getline(ifs, line)) {
+    std::istringstream line_stream(line);
+    double time, temperature;
+    if (!(line_stream >> time >> temperature)) { continue; }
+    if (temperature <= 0) {
+      throw std::runtime_error("Non-positive temperature in " + time_temperature_filename + ": " + line);
+    }
     points_.emplace_back(time, temperature);
-    ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+  }
+  if (points_.empty()) {
+    throw std::runtime_error("No (time, temperature) points found in " + time_temperature_filename);
   }
   SortPoints();
 }
