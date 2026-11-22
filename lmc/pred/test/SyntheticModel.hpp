@@ -86,6 +86,19 @@ inline nlohmann::json MakeSyntheticModel(const cfg::Config &reference_config, co
   return model;
 }
 
+// The synthetic model with all energies multiplied by `factor`. D and Ks of the jumps stay as they are, so the energy
+// change of a jump grows against the largest one the quartic form has a barrier for, Ks D^2 / 12 or about 1.7 eV:
+// a factor of 600 puts four of ten jumps of the test alloy beyond it.
+inline nlohmann::json MakeSyntheticModelWithScaledEnergies(const cfg::Config &reference_config,
+                                                           const std::set<Element> &element_set,
+                                                           const double factor) {
+  auto model = MakeSyntheticModel(reference_config, element_set);
+  for (auto &coefficient: model["Base"]["theta"]) {
+    coefficient = coefficient.get<double>() * factor;
+  }
+  return model;
+}
+
 inline std::string WriteModel(const std::filesystem::path &filename, const nlohmann::json &model) {
   std::ofstream ofs(filename);
   ofs << model.dump();
