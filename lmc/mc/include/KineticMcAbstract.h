@@ -9,7 +9,6 @@
 #include "VacancyMigrationPredictorQuarticLru.h"
 #include "VacancyMigrationPredictorE0Lru.h"
 #include "TimeTemperatureInterpolator.h"
-#include "RateCorrector.hpp"
 namespace mc {
 
 class KineticMcFirstAbstract : public McAbstract {
@@ -27,7 +26,6 @@ class KineticMcFirstAbstract : public McAbstract {
                            const std::set<Element> &element_set,
                            const std::string &json_coefficients_filename,
                            const std::string &time_temperature_filename,
-                           bool is_rate_corrector,
                            bool is_early_stop,
                            bool is_solute_disp,
                            unsigned long long int seed);
@@ -37,7 +35,6 @@ class KineticMcFirstAbstract : public McAbstract {
     void Simulate() override;
   protected:
     void UpdateTemperature();
-    double GetTimeCorrectionFactor();
     virtual void Dump() const;
     size_t SelectEvent() const;
     void Debug(double one_step_time) const;
@@ -56,8 +53,6 @@ class KineticMcFirstAbstract : public McAbstract {
     const pred::VacancyMigrationPredictorQuarticLru vacancy_migration_predictor_lru_;
     const pred::TimeTemperatureInterpolator time_temperature_interpolator_;
     const bool is_time_temperature_interpolator_;
-    const pred::RateCorrector rate_corrector_;
-    const bool is_rate_corrector_;
     size_t vacancy_lattice_id_;
     Vector_d solute_com_trajectory_{};
     const bool is_early_stop_;
@@ -89,7 +84,6 @@ class KineticMcChainAbstract : public KineticMcFirstAbstract {
                            const std::set<Element> &element_set,
                            const std::string &json_coefficients_filename,
                            const std::string &time_temperature_filename,
-                           bool is_rate_corrector,
                            bool is_early_stop,
                            bool is_solute_disp,
                            unsigned long long int seed);

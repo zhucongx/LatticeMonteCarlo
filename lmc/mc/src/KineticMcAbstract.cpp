@@ -30,7 +30,6 @@ KineticMcFirstAbstract::KineticMcFirstAbstract(cfg::Config config,
                                                const std::set<Element> &element_set,
                                                const std::string &json_coefficients_filename,
                                                const std::string &time_temperature_filename,
-                                               const bool is_rate_corrector,
                                                bool is_early_stop,
                                                bool is_solute_disp,
                                                const unsigned long long int seed)
@@ -50,8 +49,6 @@ KineticMcFirstAbstract::KineticMcFirstAbstract(cfg::Config config,
       vacancy_migration_predictor_lru_(json_coefficients_filename, config_, element_set, 100000),
       time_temperature_interpolator_(time_temperature_filename),
       is_time_temperature_interpolator_(!time_temperature_filename.empty()),
-      rate_corrector_(config_.GetVacancyConcentration(), config_.GetSoluteConcentration(Element("Al"))),
-      is_rate_corrector_(is_rate_corrector),
       vacancy_lattice_id_(config_.GetVacancyLatticeId()),
       is_early_stop_(is_early_stop),
       is_solute_disp_(is_solute_disp),
@@ -65,13 +62,6 @@ void KineticMcFirstAbstract::UpdateTemperature() {
     temperature_ = time_temperature_interpolator_.GetTemperature(time_);
     beta_ = 1.0 / constants::kBoltzmann / temperature_;
   }
-}
-
-double KineticMcFirstAbstract::GetTimeCorrectionFactor() {
-  if (is_rate_corrector_) {
-    return rate_corrector_.GetTimeCorrectionFactor(temperature_);
-  }
-  return 1.0;
 }
 
 void KineticMcFirstAbstract::Dump() const {
@@ -153,7 +143,7 @@ void KineticMcFirstAbstract::OneStepSimulation() {
   // TODO(perf): We rebuild all 12 neighbor events every step. Consider reusing the
   // previous reverse jump and only refreshing events impacted by the vacancy move
   // to reduce predictor calls and cache contention.
-  double one_step_time = CalculateTime() * GetTimeCorrectionFactor();
+  double one_step_time = CalculateTime();
   // Debug(one_step_time);
   event_k_i_ = event_k_i_list_[SelectEvent()];
   CountJumpWithoutBarrier();
@@ -283,7 +273,6 @@ KineticMcChainAbstract::KineticMcChainAbstract(cfg::Config config,
                                                const std::set<Element> &element_set,
                                                const std::string &json_coefficients_filename,
                                                const std::string &time_temperature_filename,
-                                               const bool is_rate_corrector,
                                                bool is_early_stop,
                                                bool is_solute_disp,
                                                const unsigned long long int seed)
@@ -299,7 +288,6 @@ KineticMcChainAbstract::KineticMcChainAbstract(cfg::Config config,
                              element_set,
                              json_coefficients_filename,
                              time_temperature_filename,
-                             is_rate_corrector,
                              is_early_stop,
                              is_solute_disp,
                              seed),
