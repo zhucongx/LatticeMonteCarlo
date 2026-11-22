@@ -19,12 +19,8 @@ namespace pred {
 //
 // The form has a barrier in both directions for |dE| < Ks D^2 / 12.
 [[nodiscard]] double GetQuarticModelBarrier(double dE, double D, double Ks);
-// The same barrier with a tolerance: if it is negative forward or, as barrier - dE, backward by no more than
-// kBarrierTolerance, the barrier in that direction is taken as zero.
+// The barrier the predictor returns, max(model, dE, 0).
 [[nodiscard]] double GetQuarticBarrier(double dE, double D, double Ks);
-constexpr double kBarrierTolerance = 0.01;    // eV
-// Whether a barrier is not negative forward and, as barrier - dE, backward. False for a barrier that is not a number.
-[[nodiscard]] bool IsBarrierNonNegative(double barrier, double dE);
 
 class VacancyMigrationPredictorQuartic {
   public:
@@ -37,6 +33,10 @@ class VacancyMigrationPredictorQuartic {
         const std::pair<size_t, size_t> &atom_id_jump_pair) const;
     // The barrier is GetQuarticBarrier() of the jump.
     [[nodiscard]] virtual std::pair<double, double> GetBarrierAndDiffFromLatticeIdPair(
+        const cfg::Config &config,
+        const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
+    // GetQuarticModelBarrier() of the jump, evaluated anew on every call.
+    [[nodiscard]] double GetModelBarrierFromLatticeIdPair(
         const cfg::Config &config,
         const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
   protected:
