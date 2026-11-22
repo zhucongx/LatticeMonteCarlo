@@ -8,17 +8,58 @@
 #include <stdexcept>
 #include <algorithm>
 #include <cmath>
+#include <sstream>
 
 namespace pred {
 namespace {
 const std::vector<double>
     kDeClusterCounter{256, 1536, 768, 3072, 2048, 3072, 6144, 6144, 6144, 6144, 2048};
+
+const std::string kRequiredConfiguration{"The barrier model needs a complete FCC lattice in a cubic box of at least "
+                                         "four unit cells along every edge, with the edges along x, y and z in this "
+                                         "order."};
+
+// The sites around a jump are turned into the frame of the jump by multiplying their relative positions with a
+// rotation that is made from Cartesian directions. The two only go together in a cube with its edges along x, y and z.
+// In a cube of three unit cells, sites at opposite ends of the neighbourhood are also neighbours of each other across
+// the periodic boundary, and form clusters the model does not have. Either way the clusters found in the box do not
+// fit a correct coefficient file, so the box is checked before anything is derived from it.
+const cfg::Config &RequireCubicBox(const cfg::Config &config) {
+  const auto &basis = config.GetBasis();
+  // the tolerance for perpendicular directions in cfg::Config::GetLatticePairRotationMatrix()
+  const double tolerance = kEpsilon * std::abs(basis[0][0]);
+  bool is_cube = true;
+  for (const auto i: All_Dimensions) {
+    for (const auto j: All_Dimensions) {
+      if (i != j) {
+        is_cube = is_cube && std::abs(basis[i][j]) <= tolerance && std::abs(basis[i][i] - basis[j][j]) <= tolerance;
+      }
+    }
+  }
+  // The edge of the unit cell follows from the volume per site, whatever the box looks like.
+  const double cell_edge = std::cbrt(static_cast<double>(constants::kNumAtomsPerCell) * std::abs(Determinant(basis)) /
+                                     static_cast<double>(config.GetNumAtoms()));
+  const Vector_d num_cells{ScalarLength(basis[0]) / cell_edge, ScalarLength(basis[1]) / cell_edge,
+                           ScalarLength(basis[2]) / cell_edge};
+  // The edges of a cube of FCC lattice are a whole number of unit cells long, so this means four or more.
+  if (is_cube && num_cells[0] > 3.5) {
+    return config;
+  }
+  std::ostringstream message;
+  message << "The box of this configuration has " << num_cells[0] << " x " << num_cells[1] << " x " << num_cells[2]
+          << " unit cells and the edges";
+  for (const auto &edge: basis) {
+    message << " (" << edge[0] << ' ' << edge[1] << ' ' << edge[2] << ')';
+  }
+  message << " Angstrom. " << kRequiredConfiguration;
+  throw std::runtime_error(message.str());
 }
+}    // namespace
 VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::string &predictor_filename,
                                                                    const cfg::Config &reference_config,
                                                                    std::set<Element> element_set)
     : element_set_(std::move(element_set)),
-      encoder_mmm_(element_set_, GetAverageClusterParametersMappingMMM(reference_config)),
+      encoder_mmm_(element_set_, GetAverageClusterParametersMappingMMM(RequireCubicBox(reference_config))),
       encoder_mm2_(element_set_, GetAverageClusterParametersMappingMM2(reference_config)),
       mapping_state_(FlattenClusterMapping(GetClusterParametersMappingStatePair(reference_config))),
       num_pair_slots_(reference_config.GetNumAtoms() * constants::kNumFirstNearestNeighbors),
@@ -223,9 +264,8 @@ VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic(const std::st
     }
   }
   if (!is_consistent) {
-    throw std::runtime_error("The neighbourhoods of the jumps are not arranged alike in this configuration. The "
-                             "barrier model needs a complete FCC lattice in a box of at least four unit cells along "
-                             "every direction.");
+    throw std::runtime_error("The neighbourhoods of the jumps are not arranged alike in this configuration. " +
+                             kRequiredConfiguration);
   }
 }
 VacancyMigrationPredictorQuartic::~VacancyMigrationPredictorQuartic() = default;
