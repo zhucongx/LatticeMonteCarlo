@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <sstream>
-#include <stdexcept>
 
 namespace mc {
 namespace {
@@ -157,7 +156,7 @@ void KineticMcFirstAbstract::OneStepSimulation() {
   double one_step_time = CalculateTime() * GetTimeCorrectionFactor();
   // Debug(one_step_time);
   event_k_i_ = event_k_i_list_[SelectEvent()];
-  RequireBarrierOfSelectedJump();
+  CountJumpWithoutBarrier();
 
   IsEscaped();
   Dump();
@@ -198,22 +197,45 @@ void KineticMcFirstAbstract::Simulate() {
   }
   // TODO(perf): For scaling across many cores, prefer running multiple independent trajectories
   // over intra-trajectory OMP/MPI when lock contention dominates.
+  if (num_jumps_without_forward_barrier_ + num_jumps_without_backward_barrier_ > 0) {
+    std::cerr << "Warning: in this run " << DescribeJumpsWithoutBarrier() << std::endl;
+  }
 }
 
-void KineticMcFirstAbstract::RequireBarrierOfSelectedJump() const {
-  // Every rank holds the same selected jump. Rank 0 reports, as it writes the log.
-  if (world_rank_ != 0 ||
-      pred::IsBarrierNonNegative(event_k_i_.GetForwardBarrier(), event_k_i_.GetEnergyChange())) {
+void KineticMcFirstAbstract::CountJumpWithoutBarrier() {
+  // Every rank holds the same selected event. Rank 0 keeps the count, as it writes the log.
+  if (world_rank_ != 0) {
     return;
   }
-  const auto &[vacancy_lattice_id, atom_lattice_id] = event_k_i_.GetIdJumpPair();
-  std::ostringstream message;
-  message << "step " << steps_ << ": the barrier model has no barrier for the jump of the vacancy from lattice site "
-          << vacancy_lattice_id << " to site " << atom_lattice_id << " ("
-          << config_.GetElementAtLatticeId(atom_lattice_id).GetString() << " atom): energy change "
-          << event_k_i_.GetEnergyChange() << " eV, barrier " << event_k_i_.GetForwardBarrier() << " eV forward and "
-          << event_k_i_.GetBackwardBarrier() << " eV backward";
-  throw std::runtime_error(message.str());
+  ++num_selected_jumps_;
+  // The predictor returns a barrier of zero for a jump whose start is not a minimum of the quartic form, and the
+  // energy change as the barrier of a jump whose end is not one, which leaves no barrier for the jump back.
+  const bool has_no_forward_barrier = event_k_i_.GetForwardBarrier() <= 0.0;
+  const bool has_no_backward_barrier = !has_no_forward_barrier && event_k_i_.GetBackwardBarrier() <= 0.0;
+  if (!has_no_forward_barrier && !has_no_backward_barrier) {
+    return;
+  }
+  const double model_barrier =
+      vacancy_migration_predictor_lru_.GetModelBarrierFromLatticeIdPair(config_, event_k_i_.GetIdJumpPair());
+  const double model_barrier_of_free_side =
+      has_no_forward_barrier ? model_barrier : model_barrier - event_k_i_.GetEnergyChange();
+  lowest_model_barrier_ = std::min(lowest_model_barrier_, model_barrier_of_free_side);
+  ++(has_no_forward_barrier ? num_jumps_without_forward_barrier_ : num_jumps_without_backward_barrier_);
+  if (num_jumps_without_forward_barrier_ + num_jumps_without_backward_barrier_ ==
+      next_warning_of_jumps_without_barrier_) {
+    std::cerr << "Warning: step " << steps_ << ": so far " << DescribeJumpsWithoutBarrier() << std::endl;
+    next_warning_of_jumps_without_barrier_ *= 10;
+  }
+}
+
+std::string KineticMcFirstAbstract::DescribeJumpsWithoutBarrier() const {
+  std::ostringstream description;
+  description << num_jumps_without_forward_barrier_ + num_jumps_without_backward_barrier_ << " of "
+              << num_selected_jumps_ << " jumps had no barrier in the quartic barrier model ("
+              << num_jumps_without_forward_barrier_ << " forward, " << num_jumps_without_backward_barrier_
+              << " backward) and took the barrier max(dE, 0); lowest barrier of the model " << lowest_model_barrier_
+              << " eV";
+  return description.str();
 }
 
 void KineticMcFirstAbstract::IsEscaped() {

@@ -45,8 +45,10 @@ class KineticMcFirstAbstract : public McAbstract {
     virtual double CalculateTime() = 0;
     virtual void OneStepSimulation();
     void IsEscaped();
-    // Stops the run with an error if the barrier of the selected jump is negative forward or backward.
-    void RequireBarrierOfSelectedJump() const;
+    // Counts the selected jump if it has no barrier forward or backward, and writes a warning when the count reaches
+    // 1, 10, 100 and so on.
+    void CountJumpWithoutBarrier();
+    [[nodiscard]] std::string DescribeJumpsWithoutBarrier() const;
     // constants
     static constexpr size_t kEventListSize = constants::kNumFirstNearestNeighbors;
 
@@ -65,6 +67,13 @@ class KineticMcFirstAbstract : public McAbstract {
     double total_rate_k_{0.0}; // k would be same for all
     const Element solvent_element_;
     const double total_solute_mass_;
+    // The selected jumps of this run, kept on rank 0: all of them and those without a barrier in one direction.
+    unsigned long long int num_selected_jumps_{0};
+    unsigned long long int num_jumps_without_forward_barrier_{0};
+    unsigned long long int num_jumps_without_backward_barrier_{0};
+    // The lowest barrier of the model in that direction.
+    double lowest_model_barrier_{0.0};
+    unsigned long long int next_warning_of_jumps_without_barrier_{1};
 };
 class KineticMcChainAbstract : public KineticMcFirstAbstract {
   public:
