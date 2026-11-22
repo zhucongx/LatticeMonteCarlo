@@ -168,8 +168,6 @@ void Parameter::ReadParam(const std::string &param_filename) {
       escape_temperature_ = ParseDouble(location, segs[0], segs[1]);
     } else if (segs[0] == "restart_steps") {
       restart_steps_ = ParseUnsigned(location, segs[0], segs[1]);
-    } else if (segs[0] == "rate_corrector") {
-      rate_corrector_ = ParseBool(location, segs[0], segs[1]);
     } else if (segs[0] == "early_stop") {
       early_stop_ = ParseBool(location, segs[0], segs[1]);
     } else if (segs[0] == "solute_disp") {
@@ -197,6 +195,13 @@ void Parameter::ReadParam(const std::string &param_filename) {
     } else if (segs[0] == "vacancy_trajectory") {
       // Read by earlier versions. Accepted so that their parameter files still load.
       warnings_.push_back(location + "parameter vacancy_trajectory is no longer used and is ignored");
+    } else if (segs[0] == "rate_corrector") {
+      // Earlier versions could rescale the time. A file that switched this off still gets what it asks for.
+      if (ParseBool(location, segs[0], segs[1])) {
+        throw std::invalid_argument(location + "parameter rate_corrector is no longer supported, " +
+                                    "the time is not rescaled any more");
+      }
+      warnings_.push_back(location + "parameter rate_corrector is no longer used and is ignored");
     } else {
       // A misspelled key must not fall back to the default value of the parameter it was meant to set.
       throw std::invalid_argument(location + "unknown parameter " + segs[0]);
