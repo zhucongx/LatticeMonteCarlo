@@ -146,7 +146,7 @@ void KineticMcFirstAbstract::OneStepSimulation() {
   double one_step_time = CalculateTime();
   // Debug(one_step_time);
   event_k_i_ = event_k_i_list_[SelectEvent()];
-  CountJumpWithoutBarrier();
+  CountNegativeBarrier();
 
   IsEscaped();
   Dump();
@@ -187,44 +187,38 @@ void KineticMcFirstAbstract::Simulate() {
   }
   // TODO(perf): For scaling across many cores, prefer running multiple independent trajectories
   // over intra-trajectory OMP/MPI when lock contention dominates.
-  if (num_jumps_without_forward_barrier_ + num_jumps_without_backward_barrier_ > 0) {
-    std::cerr << "Warning: in this run " << DescribeJumpsWithoutBarrier() << std::endl;
+  if (num_negative_forward_barriers_ + num_negative_backward_barriers_ > 0) {
+    std::cerr << "Warning: in this run " << DescribeNegativeBarriers() << std::endl;
   }
 }
 
-void KineticMcFirstAbstract::CountJumpWithoutBarrier() {
+void KineticMcFirstAbstract::CountNegativeBarrier() {
   // Every rank holds the same selected event. Rank 0 keeps the count, as it writes the log.
   if (world_rank_ != 0) {
     return;
   }
   ++num_selected_jumps_;
-  // The predictor returns a barrier of zero for a jump whose start is not a minimum of the quartic form, and the
-  // energy change as the barrier of a jump whose end is not one, which leaves no barrier for the jump back.
-  const bool has_no_forward_barrier = event_k_i_.GetForwardBarrier() <= 0.0;
-  const bool has_no_backward_barrier = !has_no_forward_barrier && event_k_i_.GetBackwardBarrier() <= 0.0;
-  if (!has_no_forward_barrier && !has_no_backward_barrier) {
+  const double forward_barrier = event_k_i_.GetForwardBarrier();
+  const double backward_barrier = event_k_i_.GetBackwardBarrier();
+  if (forward_barrier < 0.0) {
+    ++num_negative_forward_barriers_;
+  } else if (backward_barrier < 0.0) {
+    ++num_negative_backward_barriers_;
+  } else {
     return;
   }
-  const double model_barrier =
-      vacancy_migration_predictor_lru_.GetModelBarrierFromLatticeIdPair(config_, event_k_i_.GetIdJumpPair());
-  const double model_barrier_of_free_side =
-      has_no_forward_barrier ? model_barrier : model_barrier - event_k_i_.GetEnergyChange();
-  lowest_model_barrier_ = std::min(lowest_model_barrier_, model_barrier_of_free_side);
-  ++(has_no_forward_barrier ? num_jumps_without_forward_barrier_ : num_jumps_without_backward_barrier_);
-  if (num_jumps_without_forward_barrier_ + num_jumps_without_backward_barrier_ ==
-      next_warning_of_jumps_without_barrier_) {
-    std::cerr << "Warning: step " << steps_ << ": so far " << DescribeJumpsWithoutBarrier() << std::endl;
-    next_warning_of_jumps_without_barrier_ *= 10;
+  lowest_barrier_ = std::min({lowest_barrier_, forward_barrier, backward_barrier});
+  if (num_negative_forward_barriers_ + num_negative_backward_barriers_ == next_warning_of_negative_barriers_) {
+    std::cerr << "Warning: step " << steps_ << ": so far " << DescribeNegativeBarriers() << std::endl;
+    next_warning_of_negative_barriers_ *= 10;
   }
 }
 
-std::string KineticMcFirstAbstract::DescribeJumpsWithoutBarrier() const {
+std::string KineticMcFirstAbstract::DescribeNegativeBarriers() const {
   std::ostringstream description;
-  description << num_jumps_without_forward_barrier_ + num_jumps_without_backward_barrier_ << " of "
-              << num_selected_jumps_ << " jumps had no barrier in the quartic barrier model ("
-              << num_jumps_without_forward_barrier_ << " forward, " << num_jumps_without_backward_barrier_
-              << " backward) and took the barrier max(dE, 0); lowest barrier of the model " << lowest_model_barrier_
-              << " eV";
+  description << num_negative_forward_barriers_ + num_negative_backward_barriers_ << " of " << num_selected_jumps_
+              << " jumps had a negative barrier (" << num_negative_forward_barriers_ << " forward, "
+              << num_negative_backward_barriers_ << " only backward), the lowest one " << lowest_barrier_ << " eV";
   return description.str();
 }
 
