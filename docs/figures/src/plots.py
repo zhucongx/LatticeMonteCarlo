@@ -138,40 +138,43 @@ save_png(fig, "log_plot.png", 1600)
 SITES, T = 10976, np.linspace(250, 900, 651)
 
 
-def profile_energy(step):
-    """ the field profile_energy of all sites in a file of Ansys """
+def sites(step):
+    """ the field profile_energy of all sites in a file of Ansys, and which of the sites are in no cluster """
     with gzip.open(os.path.join(runs, "ansys", "ansys", step + ".xyz.gz"), "rt") as f:
         f.readline()
         fields = re.search(r"Properties=(\S+)", f.readline()).group(1).split(":")
-        column = sum(int(width) for name, width in zip(fields[:fields.index("profile_energy"):3], fields[2::3]))
-        return np.array([float(line.split()[column]) for line in f])
+        column = {name: sum(int(width) for width in fields[2:3 * i:3]) for i, name in enumerate(fields[::3])}
+        rows = [line.split() for line in f]
+    return np.array([float(row[column["profile_energy"]]) for row in rows]), np.array([int(row[column["cluster_id"]]) == 0 for row in rows])
+
+
+def boltzmann(energy, temp):
+    return np.exp(-energy[:, None] / (kB * np.atleast_1d(temp)))
 
 
 def c_equilibrium(energy, temp):
     """ all vacancies in equilibrium: the concentration in pure Al times the mean of exp(-E/kT) over the sites """
-    return 1.67 * np.exp(0.7 - 0.66 / (kB * temp)) * np.exp(-energy[:, None] / (kB * np.atleast_1d(temp))).mean(axis=0)
+    return 1.67 * np.exp(0.7 - 0.66 / (kB * temp)) * boltzmann(energy, temp).mean(axis=0)
 
 
-solution, clusters = profile_energy("0"), profile_energy("10000000")                         # first and last frame of the KMC run
-c, low, c_quench = 1 / SITES, T[T <= 600], c_equilibrium(solution, 800.0)[0]
-fig, (a, b) = canvas(1600, 4.24, *PANELS)
-for ax, y in ((a, lambda v: v), (b, lambda v: c / v)):
-    ax.plot(T, y(c_equilibrium(solution, T)), color=RED, lw=2.2, zorder=3, label="solid solution")
-    ax.plot(low, y(c_equilibrium(clusters, low)), color=RED, lw=2.2, ls=(0, (3.5, 1.6)), zorder=3, label="with clusters")
-    ax.plot([250, 800], [y(c_quench)] * 2, color=BLUE, lw=2.2, zorder=3)
-    ax.plot([800], [y(c_quench)], "o", color=BLUE, zorder=4, **MARK)
-    ax.axhline(y(c), color="k", lw=1.2, ls="--", zorder=2)
-a.annotate("", xy=(285, 1e-8), xytext=(285, 0.75 * c_quench), zorder=2,
-           arrowprops=dict(arrowstyle="-|>", color=BLUE, lw=1.6, shrinkA=0, shrinkB=0))
-note(a, 525, 7e-4, "after a quench from 800 K", 15, color=BLUE, ha="center", va="bottom")
-note(a, 300, 4.8e-5, "one in %d sites" % SITES, 15, va="top")
-note(a, 300, 1.7e-6, "mobile part", 15, color=BLUE, va="center")
-legend(a, loc="lower right", title="equilibrium", fontsize=14, title_fontsize=14, labelcolor=RED)
-a.get_legend().get_title().set_color(RED)
-note(b, 520, 3e4, "equilibrium", 15, color=RED, va="center")
-note(b, 300, 0.16, "after a quench", 15, color=BLUE, va="top")
-for ax, letter, label, lim in ((a, "a", "Vacancies per site", (1e-14, 1e-2)), (b, "b", r"$c/c_{\text{alloy}}$", (1e-2, 1e10))):
-    log_y(ax, 8); ax.yaxis.set_minor_locator(LogLocator(base=10.0, subs=(1,), numticks=99))  # labels at every second power of ten
-    ax.set_ylim(*lim); ax.set_xlim(250, 900); ax.set_xticks(range(300, 901, 100))
-    ax.set_xlabel(r"$T$ (K)"); ax.set_ylabel(label); grid(ax); panel_label(ax, letter)
-save_png(fig, "vacancy_concentration.png", 1600)
+(solution, _), (clusters, outside) = sites("0"), sites("10000000")                           # first and last frame of the KMC run
+low, c_quench = T[T <= 600], c_equilibrium(solution, 800.0)[0]
+mobile = boltzmann(clusters[outside], low).sum(axis=0) / boltzmann(clusters, low).sum(axis=0)   # as in profile_vacancy_concentration
+print("equilibrium at 800 K: %.2e per site, %.1f in the box; mobile share in the last frame: %.2f at 450 K, %.3f at 300 K" % (
+    c_quench, c_quench * SITES, np.interp(450, low, mobile), np.interp(300, low, mobile)))
+fig, (ax,) = canvas(1100, 4.24, (0.97, 0.72, 5.98, 3.35))
+ax.plot(T, c_equilibrium(solution, T), color=RED, lw=2.2, zorder=3, label="solid solution")
+ax.plot(low, c_equilibrium(clusters, low), color=RED, lw=2.2, ls=(0, (3.5, 1.6)), zorder=3, label="with clusters")
+ax.plot([250, 800], [c_quench] * 2, color=BLUE, lw=2.2, zorder=3)
+ax.plot([800], [c_quench], "o", color=BLUE, zorder=4, **MARK)
+ax.plot(low, c_quench * mobile, color=BLUE, lw=2.2, ls=(0, (3.5, 1.6)), zorder=3)
+ax.axhline(1 / SITES, color="k", lw=1.2, ls="--", zorder=2)
+note(ax, 525, 7e-4, "after a quench from 800 K", 15, color=BLUE, ha="center", va="bottom")
+note(ax, 880, 4.8e-5, "one in %d sites" % SITES, 15, ha="right", va="top")
+note(ax, 300, 2.2e-6, "mobile part", 15, color=BLUE, va="center")
+legend(ax, loc="lower right", title="equilibrium", fontsize=14, title_fontsize=14, labelcolor=RED)
+ax.get_legend().get_title().set_color(RED)
+log_y(ax, 8); ax.yaxis.set_minor_locator(LogLocator(base=10.0, subs=(1,), numticks=99))      # labels at every second power of ten
+ax.set_ylim(1e-14, 1e-2); ax.set_xlim(250, 900); ax.set_xticks(range(300, 901, 100))
+ax.set_xlabel(r"$T$ (K)"); ax.set_ylabel("Vacancies per site"); grid(ax)
+save_png(fig, "vacancy_concentration.png", 1100)

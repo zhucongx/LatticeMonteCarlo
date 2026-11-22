@@ -59,23 +59,31 @@ Second-order residence time algorithm. At low temperature the vacancy often jump
 
 ### Time and vacancy concentration
 
-The box holds one vacancy in $N$ sites at every temperature: its vacancy concentration is $c = 1/N$. That of an alloy is different, and its atoms move faster or slower in proportion to it. A time $t$ of the run therefore stands for the time $t c / c_{\mathrm{alloy}}$ in an alloy with $c_{\mathrm{alloy}}$ vacancies per site. Both numbers count all vacancies, free or bound: the vacancy of the run, too, spends a part of its time at solute atoms and in clusters.
+The box holds one vacancy in $N$ sites at every temperature: its vacancy concentration is $c = 1/N$. That of an alloy is different, and it sets the time scale, because solute atoms move only when a vacancy passes. The diffusivity of a solute in the matrix is
 
-The program does not convert the time, because $c_{\mathrm{alloy}}$ depends on the history of the alloy (Xi et al. 2025, see [Papers](model.md#papers)).
+$$D \propto c_{\mathrm{res}} \exp\left(-\frac{E_{\mathrm{mig}}}{k_B T}\right),$$
 
-**In equilibrium** at the temperature $T$ it is the sum of the vacancies in the matrix, next to single solute atoms, and in or next to clusters. This is about
+with the migration energy $E_{\mathrm{mig}}$ of the solute and the concentration $c_{\mathrm{res}}$ of the *residual* vacancies, those that move freely in the matrix. A vacancy that is bound to a solute atom or held by a cluster does not count (Xi et al. 2025, see [Papers](model.md#papers)).
+
+The vacancy of a run, too, spends a part of its time at solute atoms and in clusters. As long as it gets around among them, the same share of the vacancies is residual in the run and in the alloy. A time $t$ of the run then stands for the time $t c / c_{\mathrm{alloy}}$ in an alloy with $c_{\mathrm{alloy}}$ vacancies per site, where both numbers count all vacancies, free or bound. The program does not convert the time, because $c_{\mathrm{alloy}}$ depends on the history of the alloy: the times of a log and of a [time-temperature table](input-files.md#time-temperature-table) are times of the run.
+
+**In equilibrium** at the temperature $T$ the alloy holds vacancies in the undisturbed matrix, next to single solute atoms, and in or next to clusters. Together these are about
 
 $$c_{\mathrm{alloy}}(T) = c_{\mathrm{Al}}(T) \frac{1}{N} \sum_i \exp\left(-\frac{E_i}{k_B T}\right), \qquad c_{\mathrm{Al}}(T) = 1.67 \exp\left(0.7 - \frac{0.66\ \mathrm{eV}}{k_B T}\right),$$
 
 where the sum is over all sites, $E_i$ is the [`profile_energy`](analysis.md#binding-energies-of-a-site) that `Ansys` writes for a site, and $c_{\mathrm{Al}}$ is the concentration in pure aluminum.
 
-**After a quench** it stays what it was at the temperature of the solution treatment until the surplus has disappeared. At room temperature and far from grain boundaries this takes hours to days, at a higher temperature less. For that time the factor $c / c_{\mathrm{alloy}}$ is a constant. As clusters grow they trap most of these vacancies, and the mobile part, which [`Ansys`](analysis.md#vacancy-concentrations) estimates, can fall by orders of magnitude, but that is part of the simulation: its vacancy is trapped in the same way.
+**After a quench** the total stays what it was at the temperature of the solution treatment until the surplus has disappeared. At room temperature and far from grain boundaries this takes hours to days, at a higher temperature less. The residual vacancies are
 
-The times of a [time-temperature table](input-files.md#time-temperature-table) are times of the run as well. For a quench, divide those of the cooling curve by the constant factor.
+$$c_{\mathrm{res}} = c_{\mathrm{alloy}} f,$$
 
-<img src="figures/vacancy_concentration.png" width="760" alt="Two plots against the temperature with a logarithmic vertical axis. Left: the vacancy concentration of the alloy in equilibrium as a solid solution and with clusters, its constant concentration after a quench from 800 K with an arrow for the mobile part, and one vacancy in 10976 sites. Right: the factor between the concentration of the box and that of the alloy, which is 0.3 after the quench and rises to 300 at 450 K and 600000 at 300 K for the solid solution in equilibrium.">
+where $f$ is the fraction that neither solute atoms nor clusters have trapped. As clusters grow $f$ falls, in an alloy by orders of magnitude, and the solute becomes slower. This is part of the simulation, in which the vacancy is trapped in the same way, and $c / c_{\mathrm{alloy}}$ stays constant. `Ansys` estimates the fraction outside of the clusters, see [Vacancy concentrations](analysis.md#vacancy-concentrations).
 
-*Vacancy concentrations for the KMC run of [A first run](README.md#a-first-run), with 10976 sites. (a) Vacancies per site: in equilibrium, with the sites of the start configuration, a solid solution (red), and with those of the last one, in which clusters have formed (red, dashed); after a quench from 800 K (blue, about 3 × 10⁻⁴), where the mobile part falls as clusters trap vacancies (arrow, not to scale); and in the box (black, dashed). (b) The factor that turns the time of the run into the time in the alloy, in the same colors. After the quench it is about 0.3; in equilibrium at the 450 K of the run it is about 330 at the start and 220 at the end.*
+**Long times.** When the clusters hold the only vacancy, a run gets no further, but the alloy goes on aging with its residual vacancies. Xi et al. 2025 continue from there with cluster dynamics, rate equations for the number of clusters of every size, which use the diffusivity above with the $f$ of the clusters. This is not part of the program; the run delivers the clusters at the end of the quench.
+
+<img src="figures/vacancy_concentration.png" width="520" alt="Plot against the temperature with a logarithmic vertical axis: the vacancy concentration of the alloy in equilibrium as a solid solution and with clusters, its constant total after a quench from 800 K with the mobile part below it, and one vacancy in 10976 sites.">
+
+*Vacancies per site for the KMC run of [A first run](README.md#a-first-run). Red: in equilibrium, with the sites of the start configuration, a solid solution, and with those of the last one, in which clusters have formed (dashed). Blue: after a quench from 800 K, all vacancies (about 3 × 10⁻⁴ per site, 3.4 in the volume of the box) and the part that the clusters of the last configuration leave mobile (dashed). Black: the vacancy of the box.*
 
 ### Early stop
 

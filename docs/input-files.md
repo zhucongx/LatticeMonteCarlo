@@ -88,4 +88,4 @@ The sizes follow from the elements of `element_set`, in SA from `solvent_element
 - A line that does not begin with two numbers is ignored.
 - The points need not be in order. Between two points the temperature is interpolated linearly, and before the first and after the last point it is constant.
 - A temperature that is not above 0, and two points with the same time, are errors.
-- The time is that of the log. For a quench, divide the times of the cooling curve by the constant $c / c_{\mathrm{alloy}}$ of [Time and vacancy concentration](methods.md#time-and-vacancy-concentration).
+- The time is that of the log, a time of the run. For the time in an alloy see [Time and vacancy concentration](methods.md#time-and-vacancy-concentration).
