@@ -1,0 +1,43 @@
+% What does not move in the animation jump_path, 16 cm x 8 cm: page 1 with the barrier of the jump marked, page 2 with that of the jump
+% back. Page 3 is the ball that runs along the curve. See animate_jump_path.py.
+\documentclass[11pt,tikz,border=0pt]{standalone}
+\input{figstyle}
+\newcommand{\curve}[2]{% colors of the barrier of the jump and of the jump back
+\begin{tikzpicture}
+  \path[use as bounding box] (0,0) rectangle (16,8);
+  \node[lab] at (0.05,7.92) {\panel{a}};
+  \node[lab] at (8.25,7.92) {\panel{b}};
+  % legend of (a)
+  \begin{scope}[shift={(2.05,0.45)}]
+    \foreach \lx/\lc/\lt in {0/cAl/Al, 1.25/cMg/Mg} {
+      \node[atom=\lc, minimum size=10pt] at (\lx,0) {}; \node[leg] at ({\lx+0.2},0) {\lt};}
+    \vacancylegend{2.6}{0}
+  \end{scope}
+  % E(x) = 16 x^4 - 4.8 x^3 - 7.595 x^2, that is D = 1, Ks = 64 and dE = -1.2, with the transition state at (11.60 cm, 6.22 cm);
+  % 3.35 cm per unit of x and 2.45 cm per unit of E
+  \begin{scope}[shift={(11.60,6.22)}, x=3.35cm, y=2.45cm]
+    \draw[arr] (-0.78,-2.06) -- (1.28,-2.06) node[pos=0.52, below=14pt] {reaction coordinate $x$};
+    \draw[arr] (-0.78,-2.06) -- (-0.78,0.67) node[pos=0.5, above, rotate=90] {energy $E(x)$};
+    \foreach \x/\t in {-0.3875/x_{\mathrm{I}}, 0/0, 0.6125/x_{\mathrm{F}}} {
+      \draw[line width=0.6pt] (\x,-2.06) -- ++(0,-0.04); \node[anchor=base, yshift=-13pt] at (\x,-2.06) {$\t$};}
+    \draw[black!40, densely dashed, line width=0.6pt] (-0.50,0) -- (0.74,0) (-0.3875,-0.5004) -- (1.10,-0.5004) (0.6125,-1.7004) -- (1.10,-1.7004);
+    \draw[black!40, densely dotted, line width=0.6pt] (-0.3875,-0.5004) -- (-0.3875,-2.06) (0.6125,-1.7004) -- (0.6125,-2.06);
+    \draw[arr, cDark] (1.02,-0.5004) -- (1.02,-1.6904) node[midway, right, inner sep=3pt] {$\dE$};
+    \draw[arr, #1, line width=1.2pt] (-0.3875,-0.5004) -- (-0.3875,-0.01) node[above, inner sep=3.5pt] {$E_a$};
+    \draw[arr, #2, line width=1.2pt] (0.6125,-1.7004) -- (0.6125,-0.01) node[above, inner sep=3.5pt, xshift=-2pt] {$E_a-\dE$};
+    \draw[cOne, line width=1.6pt] plot[smooth, domain=-0.619:0.887, samples=160] (\x,{16*(\x)^4 - 4.8*(\x)^3 - 7.595*(\x)^2});
+    \foreach \x/\y in {-0.3875/-0.5004, 0/0, 0.6125/-1.7004} \node[circle, fill=cDark, minimum size=4.6pt, inner sep=0pt] at (\x,\y) {};
+    \node[above, inner sep=16pt] at (0,0) {transition state};
+    \node[anchor=north east, inner sep=8pt] at (-0.3875,-0.5004) {I};
+    \node[anchor=north west, inner sep=8pt] at (0.6125,-1.7004) {F};
+  \end{scope}
+\end{tikzpicture}}
+\begin{document}
+\curve{cOne}{cTwo!45}
+\curve{cOne!45}{cTwo}
+\begin{tikzpicture}
+  \path[use as bounding box] (-0.4,-0.4) rectangle (0.4,0.4);
+  \node[circle, fill=white, minimum size=16pt, inner sep=0pt] at (0,0) {};
+  \node[atom=cMg, minimum size=13.5pt] at (0,0) {};
+\end{tikzpicture}
+\end{document}

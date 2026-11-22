@@ -1,0 +1,59 @@
+% cluster_definition.png: how Ansys finds clusters, drawn on a triangular lattice. The sites come from analysis_schematics.py.
+% Make it in this folder with, for any scratch folder T:
+%   python3 analysis_schematics.py T
+%   TEXINPUTS=.:T: pdflatex -output-directory=T fig_cluster_definition.tex
+%   python3 pdf_to_png.py T/fig_cluster_definition.pdf ../cluster_definition.png
+\documentclass[11pt,tikz,border=1.5pt]{standalone}
+\input{figstyle}
+\input{cluster_definition_sites}
+\begin{document}
+\begin{tikzpicture}[x=0.56cm, y=0.56cm,
+    al/.style={atom=cAl, minimum size=11.4pt}, mg/.style={atom=cMg, minimum size=13.2pt}, zn/.style={atom=cZn, minimum size=11.4pt},
+    va/.style={vac, minimum size=11.2pt},
+    joined/.style={circle, draw=cThree, line width=1.8pt, minimum size=12pt, inner sep=0pt},
+    bond/.style={cDark, line width=2.2pt},
+    rim/.style={cTwo!75, line width=16pt}, region/.style={cTwo!20, line width=14.6pt},
+    number/.style={font=\footnotesize, inner sep=0pt},
+    pointer/.style={black!70, line width=0.6pt}]
+  \newcommand{\lines}[2]{\foreach \x/\y/\u/\v in #1 \draw[#2] (\x,\y) -- (\u,\v);}
+  \newcommand{\nodes}[2]{\foreach \x/\y in #1 \node[#2] at (\x,\y) {};}
+  \newcommand{\groups}{\lines{\bondsKept}{bond} \nodes{\sitesAl}{al} \nodes{\keptMg}{mg} \nodes{\keptZn}{zn} \nodes{\keptX}{va}}
+  \newcommand{\dropped}[1]{%
+    \begin{scope}[transparency group, opacity=#1]
+      \lines{\bondsDropped}{bond} \nodes{\droppedMg}{mg} \nodes{\droppedZn}{zn}
+    \end{scope}}
+  % ---------------- (a) connected ----------------
+  \begin{scope}
+    \groups \dropped{1}
+    \node[above lab] at (-0.45,0.62) {\panel{a}};
+  \end{scope}
+  % ---------------- (b) dropped ----------------
+  \begin{scope}[shift={(9.9,0)}]
+    \lines{\bondsKept}{rim} \lines{\bondsKept}{region}
+    \groups \dropped{0.3}
+    \node[above lab] at (-0.45,0.62) {\panel{b}};
+  \end{scope}
+  % ---------------- (c) solvent atoms ----------------
+  \begin{scope}[shift={(19.8,0)}]
+    \lines{\bondsClusters}{rim} \lines{\bondsClusters}{region}
+    \groups \dropped{0.3}
+    \nodes{\joinedAl}{joined}
+    \foreach \x/\y/\n in \counts \node[number] at (\x,\y) {\n};
+    \draw[pointer] (2.5,0.62) -- (2.5,-0.35);
+    \node[anchor=south, inner sep=1.5pt, font=\footnotesize] at (2.9,0.62) {\texttt{cluster\char95 id} 1};
+    \draw[pointer] (6,-6.70) -- (6,-5.71);
+    \node[anchor=north, inner sep=1.5pt, font=\footnotesize] at (6,-6.70) {\texttt{cluster\char95 id} 2};
+    \node[above lab] at (-0.45,0.62) {\panel{c}};
+  \end{scope}
+  % ---------------- legend ----------------
+  \begin{scope}[shift={(-0.4,-8.2)}, x=1cm, y=1cm]
+    \node[al] at (0.25,0) {}; \node[leg] at (0.5,0) {Al (solvent)};
+    \node[mg] at (2.95,0) {}; \node[leg] at (3.2,0) {Mg};
+    \node[zn] at (4.25,0) {}; \node[leg] at (4.5,0) {Zn};
+    \node[va] at (5.5,0) {}; \node[leg] at (5.75,0) {vacancy};
+    \draw[bond] (7.45,0) -- ++(0.55,0); \node[leg] at (8.1,0) {nearest neighbors};
+    \begin{scope}[transparency group, opacity=0.3] \node[mg] at (11.4,0) {}; \end{scope} \node[leg] at (11.65,0) {dropped};
+    \node[al] at (13.45,0) {}; \node[joined] at (13.45,0) {}; \node[leg] at (13.7,0) {joins the group};
+  \end{scope}
+\end{tikzpicture}
+\end{document}
