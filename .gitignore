@@ -11,3 +11,5 @@ out/
 CMakeSettings.json
 **/.DS_Store
 __pycache__/
+# The coefficient files are not part of the repository.
+*.json
