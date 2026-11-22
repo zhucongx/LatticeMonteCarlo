@@ -38,15 +38,19 @@ class VacancyMigrationPredictorQuartic {
     [[nodiscard]] size_t GetPairFlatIndex(const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
 
     const std::set<Element> element_set_;
-    const std::unordered_map<std::string, std::vector<double>> one_hot_encode_hash_map_;
-    const std::vector<std::vector<std::vector<size_t>>> mapping_mmm_;
-    const std::vector<std::vector<std::vector<size_t>>> mapping_mm2_;
-    const std::vector<std::vector<std::vector<size_t>>> mapping_state_;
+    const OneHotEncoder encoder_mmm_;
+    const OneHotEncoder encoder_mm2_;
+    const FlatClusterMapping mapping_state_;
     const size_t num_pair_slots_{};
 
+    // The sites around every pair in the order of GetSortedLatticeVectorStateOfPair(), its state list.
     std::vector<std::vector<size_t>> site_bond_cluster_state_flat_{};
-    std::vector<std::vector<size_t>> site_bond_cluster_mmm_flat_{};
-    std::vector<std::vector<size_t>> site_bond_cluster_mm2_flat_{};
+    // The mmm and mm2 lists of a pair hold the sites of its state list in another order, which is the same for every
+    // pair: entry n of such a list is entry positions[n] of the state list. `mm2_backward_positions_` is that order
+    // for the mm2 list of the reversed pair. The lists themselves are therefore not stored.
+    std::vector<size_t> mmm_positions_{};
+    std::vector<size_t> mm2_positions_{};
+    std::vector<size_t> mm2_backward_positions_{};
 
     Eigen::VectorXd base_theta_{};
     std::unordered_map<Element, ParametersQuartic, boost::hash<Element>> element_parameters_hashmap_{};

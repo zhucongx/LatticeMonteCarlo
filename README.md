@@ -78,11 +78,23 @@ The number of MPI processes is fixed by the method, and the program stops with a
 
 | `simulation_method` | MPI processes | OpenMP threads |
 |---|---|---|
-| `KineticMcFirstOmp` | 1 | yes |
+| `KineticMcFirstOmp` | 1 | at start-up only |
 | `KineticMcFirstMpi` | 12 (one per jump of the vacancy) | no |
 | `KineticMcChainOmpi` | 12 (one per jump of the vacancy) | yes |
 | `CanonicalMcSerial`, `SimulatedAnnealing` | 1 | no |
 | `CanonicalMcOmp`, `Ansys`, `Reformat` | 1 | yes |
+
+A step costs a few microseconds, which is less than it costs to start a group of threads or to exchange messages between processes. The single-process methods are therefore the fastest ones, and spare cores are better spent on independent runs. Steps per second for 10976 sites (Al with 5 % Mg and Zn) at 450 K on an Apple M3 Max:
+
+| `simulation_method` | processes × threads | steps per second |
+|---|---|---|
+| `KineticMcFirstOmp` | 1 × any | 270 000 |
+| `KineticMcFirstMpi` | 12 × 1 | 115 000 to 145 000 |
+| `KineticMcChainOmpi` | 12 × 1 | 13 000 to 18 000 |
+| `CanonicalMcSerial` | 1 × 1 | 320 000 |
+| `CanonicalMcOmp` | 1 × 12 | 130 000 |
+
+Memory grows with the number of lattice sites: the tables of the barrier model, which the KMC methods use, take about 7 kB per site, and those of the swap model of CMC and simulated annealing about 2.4 kB per site.
 
 Examples:
 
