@@ -20,7 +20,8 @@ class CanonicalMcAbstract : public McAbstract {
                       double restart_energy,
                       double temperature,
                       const std::set<Element> &element_set,
-                      const std::string &json_coefficients_filename);
+                      const std::string &json_coefficients_filename,
+                      unsigned long long int seed);
   void Simulate() override = 0;
 
  protected:

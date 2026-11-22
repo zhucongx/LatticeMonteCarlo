@@ -1,6 +1,19 @@
 #include "KineticMcAbstract.h"
 
 namespace mc {
+namespace {
+// The event list follows a single vacancy, and the barrier model has no terms for a second vacancy near a jump.
+cfg::Config RequireSingleVacancy(cfg::Config config) {
+  const auto element_count_map = config.GetElementCountMap();
+  const auto it = element_count_map.find(Element(ElementName::X));
+  const size_t num_vacancies = it == element_count_map.end() ? 0 : it->second;
+  if (num_vacancies != 1) {
+    throw std::runtime_error("Kinetic Monte Carlo needs exactly one vacancy (element X) in the configuration, but " +
+                             std::to_string(num_vacancies) + " were found");
+  }
+  return config;
+}
+}    // namespace
 
 KineticMcFirstAbstract::KineticMcFirstAbstract(cfg::Config config,
                                                const unsigned long long int log_dump_steps,
@@ -16,8 +29,9 @@ KineticMcFirstAbstract::KineticMcFirstAbstract(cfg::Config config,
                                                const std::string &time_temperature_filename,
                                                const bool is_rate_corrector,
                                                bool is_early_stop,
-                                               bool is_solute_disp)
-    : McAbstract(std::move(config),
+                                               bool is_solute_disp,
+                                               const unsigned long long int seed)
+    : McAbstract(RequireSingleVacancy(std::move(config)),
                  log_dump_steps,
                  config_dump_steps,
                  maximum_steps,
@@ -28,7 +42,8 @@ KineticMcFirstAbstract::KineticMcFirstAbstract(cfg::Config config,
                  temperature,
                  element_set,
                  json_coefficients_filename,
-                 "kmc_log.txt"),
+                 "kmc_log.txt",
+                 seed),
       vacancy_migration_predictor_lru_(json_coefficients_filename, config_, element_set, 100000),
       time_temperature_interpolator_(time_temperature_filename),
       is_time_temperature_interpolator_(!time_temperature_filename.empty()),
@@ -80,16 +95,7 @@ void KineticMcFirstAbstract::Dump() const {
   if (steps_ == maximum_steps_) {
     config_.WriteConfig("end.cfg.gz");
   }
-  unsigned long long int log_dump_steps;
-  if (steps_ > 10 * log_dump_steps_) {
-    log_dump_steps = log_dump_steps_;
-  } else {
-    log_dump_steps = static_cast<unsigned long long int>(
-        std::pow(10, static_cast<unsigned long long int>(std::log10(steps_ + 1) - 1)));
-    log_dump_steps = std::max(log_dump_steps, static_cast<unsigned long long int>(1));
-    log_dump_steps = std::min(log_dump_steps, log_dump_steps_);
-  }
-  if (steps_ % log_dump_steps == 0) {
+  if (steps_ % GetLogDumpInterval(steps_, log_dump_steps_) == 0) {
     ofs_ << steps_ << '\t' << time_ << '\t' << temperature_ << '\t' << energy_ << '\t' << event_k_i_.GetForwardBarrier()
          << '\t' << event_k_i_.GetEnergyChange()
          << '\t' << config_.GetAtomIdFromLatticeId(event_k_i_.GetIdJumpPair().second)
@@ -236,7 +242,8 @@ KineticMcChainAbstract::KineticMcChainAbstract(cfg::Config config,
                                                const std::string &time_temperature_filename,
                                                const bool is_rate_corrector,
                                                bool is_early_stop,
-                                               bool is_solute_disp)
+                                               bool is_solute_disp,
+                                               const unsigned long long int seed)
     : KineticMcFirstAbstract(std::move(config),
                              log_dump_steps,
                              config_dump_steps,
@@ -251,7 +258,8 @@ KineticMcChainAbstract::KineticMcChainAbstract(cfg::Config config,
                              time_temperature_filename,
                              is_rate_corrector,
                              is_early_stop,
-                             is_solute_disp),
+                             is_solute_disp,
+                             seed),
       previous_j_lattice_id_(config_.GetFirstNeighborsAdjacencyList()[vacancy_lattice_id_][0]) {
   MPI_Op_create(DataSum, 1, &mpi_op_);
   DefineStruct(&mpi_datatype_);

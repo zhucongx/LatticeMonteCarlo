@@ -6,7 +6,6 @@
 #include <boost/functional/hash.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
-#include <chrono>
 #include <limits>
 #include <omp.h>
 #include <random>
@@ -626,6 +625,9 @@ Config Config::ReadConfig(const std::string &filename) {
   fis.ignore(std::numeric_limits<std::streamsize>::max(), '=');
   size_t entry_count;
   fis >> entry_count;
+  if (!fis) {
+    throw std::runtime_error("Cannot read the header of " + filename);
+  }
   fis.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
   while (fis.good()) {
@@ -670,6 +672,11 @@ Config Config::ReadConfig(const std::string &filename) {
     } else {
       map_shift = {0, 0, 0};
     }
+    // Without this check a truncated file would silently repeat the last atom that could be read.
+    if (!fis) {
+      throw std::runtime_error(filename + " ends or is malformed at atom " + std::to_string(lattice_id + 1) + " of " +
+                               std::to_string(num_atoms));
+    }
     atom_vector.emplace_back(lattice_id, type);
     lattice_vector.emplace_back(lattice_id, relative_position * basis, relative_position);
     map_shift_list.push_back(map_shift);
@@ -686,6 +693,9 @@ void Config::WriteConfig(const std::string &filename) const {
 void Config::WriteExtendedConfig(const std::string &filename,
                                  const std::map<std::string, std::vector<double>> &auxiliary_lists) const {
   std::ofstream ofs(filename, std::ios_base::out | std::ios_base::binary);
+  if (!ofs) {
+    throw std::runtime_error("Cannot open " + filename);
+  }
   boost::iostreams::filtering_ostream fos;
   if (boost::filesystem::path(filename).extension() == ".gz") {
     fos.push(boost::iostreams::gzip_compressor());
@@ -722,7 +732,7 @@ void Config::WriteExtendedConfig(const std::string &filename,
         << lattice_vector_[atom_to_lattice_vector_[atom.GetId()]].GetRelativePosition()
         << ' ' << map_shift_list_[it];
     for (const auto &auxiliary_list: auxiliary_lists) {
-      ofs << ' ' << auxiliary_list.second[it];
+      fos << ' ' << auxiliary_list.second[it];
     }
     fos << std::endl;
   }
@@ -732,6 +742,9 @@ void Config::WriteExtendedXyz(const std::string &filename,
                               const std::map<std::string, VectorVariant> &auxiliary_lists,
                               const std::map<std::string, ValueVariant> &global_list) const {
   std::ofstream ofs(filename, std::ios_base::out | std::ios_base::binary);
+  if (!ofs) {
+    throw std::runtime_error("Cannot open " + filename);
+  }
   boost::iostreams::filtering_ostream fos;
   if (boost::filesystem::path(filename).extension() == ".gz") {
     fos.push(boost::iostreams::gzip_compressor());
@@ -906,6 +919,9 @@ Config Config::ReadMap(const std::string &lattice_filename,
 
 void Config::WriteLattice(const std::string &filename) const {
   std::ofstream ofs(filename, std::ofstream::out);
+  if (!ofs) {
+    throw std::runtime_error("Cannot open " + filename);
+  }
   ofs.precision(16);
   ofs << GetNumAtoms() << " positions in total" << '\n';
   ofs << basis_ << std::endl;
@@ -927,6 +943,9 @@ void Config::WriteLattice(const std::string &filename) const {
 
 void Config::WriteElement(const std::string &filename) const {
   std::ofstream ofs(filename, std::ofstream::out);
+  if (!ofs) {
+    throw std::runtime_error("Cannot open " + filename);
+  }
   ofs.precision(16);
   for (const auto &atom: atom_vector_) {
     ofs << atom.GetElementString() << std::endl;
@@ -935,6 +954,9 @@ void Config::WriteElement(const std::string &filename) const {
 
 void Config::WriteMap(const std::string &filename) const {
   std::ofstream ofs(filename, std::ofstream::out);
+  if (!ofs) {
+    throw std::runtime_error("Cannot open " + filename);
+  }
   ofs.precision(16);
   for (size_t atom_id = 0; atom_id < atom_vector_.size(); ++atom_id) {
     ofs << atom_to_lattice_vector_[atom_id] << std::endl;
@@ -981,8 +1003,11 @@ void Config::UpdateNeighbors() {
   const Factor_t num_cells{static_cast<size_t>(std::floor(ScalarLength(basis_[0]) / constants::kNearNeighborsCutoff)),
                            static_cast<size_t>(std::floor(ScalarLength(basis_[1]) / constants::kNearNeighborsCutoff)),
                            static_cast<size_t>(std::floor(ScalarLength(basis_[2]) / constants::kNearNeighborsCutoff))};
-  if (num_cells[0] == 0 || num_cells[1] == 0 || num_cells[2] == 0) {
-    throw std::runtime_error("Simulation box is smaller than neighbor cutoff");
+  // The minimum image convention used below is only valid if no site can see two periodic images of another
+  // site, i.e. if every cell vector is at least twice the cutoff.
+  if (num_cells[0] < 2 || num_cells[1] < 2 || num_cells[2] < 2) {
+    throw std::runtime_error("Simulation box is too small: every cell vector must be at least twice the neighbor "
+                             "cutoff of " + std::to_string(constants::kNearNeighborsCutoff) + " Angstrom");
   }
 
   std::vector<std::vector<size_t>> cells{num_cells[0] * num_cells[1] * num_cells[2]};
@@ -1011,7 +1036,10 @@ void Config::UpdateNeighbors() {
     const size_t i = cell_idx / (num_cells[1] * num_cells[2]);
     const size_t j = (cell_idx % (num_cells[1] * num_cells[2])) / num_cells[2];
     const size_t k = cell_idx % num_cells[2];
-    // Check neighboring cells, taking into account periodic boundaries
+    // Check neighboring cells, taking into account periodic boundaries. With only two cells along a direction
+    // the offsets -1 and +1 wrap onto the same cell, so the indices are made unique to visit every cell once.
+    std::vector<size_t> neighbor_cell_indices;
+    neighbor_cell_indices.reserve(OFFSET_LIST.size());
     for (auto [di, dj, dk]: OFFSET_LIST) {
       const size_t ni =
           (num_cells[0] + i + (di >= 0 ? static_cast<size_t>(di) : -static_cast<size_t>(-di))) % num_cells[0];
@@ -1019,7 +1047,12 @@ void Config::UpdateNeighbors() {
           (num_cells[1] + j + (dj >= 0 ? static_cast<size_t>(dj) : -static_cast<size_t>(-dj))) % num_cells[1];
       const size_t nk =
           (num_cells[2] + k + (dk >= 0 ? static_cast<size_t>(dk) : -static_cast<size_t>(-dk))) % num_cells[2];
-      const size_t neighbor_cell_idx = (ni * num_cells[1] + nj) * num_cells[2] + nk;
+      neighbor_cell_indices.push_back((ni * num_cells[1] + nj) * num_cells[2] + nk);
+    }
+    std::sort(neighbor_cell_indices.begin(), neighbor_cell_indices.end());
+    neighbor_cell_indices.erase(std::unique(neighbor_cell_indices.begin(), neighbor_cell_indices.end()),
+                                neighbor_cell_indices.end());
+    for (const size_t neighbor_cell_idx: neighbor_cell_indices) {
       auto &neighbor_cell = cells.at(neighbor_cell_idx);
       // For each point in the cell, check if it's close to any point in the neighboring cell
       for (size_t lattice_id1: cell) {
@@ -1117,15 +1150,16 @@ Config GenerateFCC(const Factor_t &factors, Element element) {
   return Config{basis, lattice_vector, atom_vector, map_shift_list, true};
 }
 
-Config GenerateSoluteConfigFromExcitingPure(Config config, const std::map<Element, size_t> &solute_atom_count) {
+Config GenerateSoluteConfigFromExcitingPure(Config config,
+                                            const std::map<Element, size_t> &solute_atom_count,
+                                            const unsigned long long int seed) {
   std::unordered_set<size_t> unavailable_position{};
   std::unordered_set<size_t> available_position {};
   for (size_t i = 0; i < config.GetNumAtoms(); ++i) {
     available_position.emplace(i);
   }
 
-  static std::mt19937_64 generator(
-      static_cast<unsigned long long int>(std::chrono::system_clock::now().time_since_epoch().count()));
+  std::mt19937_64 generator(seed);
 
   size_t selected_lattice_index{};
   for (const auto &[solute_atom, count]: solute_atom_count) {
@@ -1161,8 +1195,9 @@ Config GenerateSoluteConfigFromExcitingPure(Config config, const std::map<Elemen
 
 Config GenerateSoluteConfig(const Factor_t &factors,
                             const Element solvent_element,
-                            const std::map<Element, size_t> &solute_atom_count) {
-  return GenerateSoluteConfigFromExcitingPure(GenerateFCC(factors, solvent_element), solute_atom_count);
+                            const std::map<Element, size_t> &solute_atom_count,
+                            const unsigned long long int seed) {
+  return GenerateSoluteConfigFromExcitingPure(GenerateFCC(factors, solvent_element), solute_atom_count, seed);
 }
 
 // Config GenerateClusteredConfigFromExcitingPure(Config config,

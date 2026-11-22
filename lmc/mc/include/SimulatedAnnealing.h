@@ -18,7 +18,8 @@ class SimulatedAnnealing : public McAbstract {
                      unsigned long long int config_dump_steps,
                      unsigned long long int maximum_steps,
                      double initial_temperature,
-                     const std::string &json_coefficients_filename);
+                     const std::string &json_coefficients_filename,
+                     unsigned long long int seed);
   void Simulate() override;
  private:
   virtual void Dump() const;

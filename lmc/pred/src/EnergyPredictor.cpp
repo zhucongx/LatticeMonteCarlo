@@ -35,6 +35,7 @@ EnergyPredictor::EnergyPredictor(const std::string &predictor_filename,
       base_theta_ = JsonToEigenVector(parameters.at("theta"));
     }
   }
+  CheckModelSize(predictor_filename, "Base.theta", static_cast<size_t>(base_theta_.size()), cluster_indexer_.Size());
 }
 EnergyPredictor::~EnergyPredictor() = default;
 std::vector<double> EnergyPredictor::GetEncode(const cfg::Config &config) const {

@@ -10,7 +10,8 @@ class ThermodynamicAveraging {
   public:
     explicit ThermodynamicAveraging(size_t size);
     void AddEnergy(double value);
-    [[nodiscard]] double GetThermodynamicAverage(double beta) const;
+    // Mean energy over the last `size` recorded steps (0 when the window is disabled or still empty).
+    [[nodiscard]] double GetThermodynamicAverage() const;
   private:
     [[nodiscard]] double GetAverage() const;
     std::deque<double> energy_list_{};

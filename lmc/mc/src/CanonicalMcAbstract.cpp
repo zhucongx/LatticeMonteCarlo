@@ -22,7 +22,8 @@ CanonicalMcAbstract::CanonicalMcAbstract(cfg::Config config,
                                          const double restart_energy,
                                          const double temperature,
                                          const std::set<Element> &element_set,
-                                         const std::string &json_coefficients_filename)
+                                         const std::string &json_coefficients_filename,
+                                         const unsigned long long int seed)
     : McAbstract(std::move(config),
                  log_dump_steps,
                  config_dump_steps,
@@ -34,7 +35,8 @@ CanonicalMcAbstract::CanonicalMcAbstract(cfg::Config config,
                  temperature,
                  element_set,
                  json_coefficients_filename,
-                 "cmc_log.txt"),
+                 "cmc_log.txt",
+                 seed),
       energy_change_predictor_(json_coefficients_filename,
                                config_,
                                element_set),
@@ -67,19 +69,9 @@ void CanonicalMcAbstract::Dump() const {
   if (steps_ == maximum_steps_) {
     config_.WriteConfig("end.cfg.gz");
   }
-  unsigned long long int log_dump_steps;
-  if (steps_ > 10 * log_dump_steps_) {
-    log_dump_steps = log_dump_steps_;
-  } else {
-    log_dump_steps = static_cast<unsigned long long int>(
-        std::pow(10, static_cast<unsigned long long int>(std::log10(
-            steps_ + 1) - 1)));
-    log_dump_steps = std::max(log_dump_steps, static_cast<unsigned long long int>(1));
-    log_dump_steps = std::min(log_dump_steps, log_dump_steps_);
-  }
-  if (steps_ % log_dump_steps == 0) {
+  if (steps_ % GetLogDumpInterval(steps_, log_dump_steps_) == 0) {
     ofs_ << steps_ << '\t' << temperature_ << '\t' << energy_ << '\t'
-         << thermodynamic_averaging_.GetThermodynamicAverage(beta_) << '\t'
+         << thermodynamic_averaging_.GetThermodynamicAverage() << '\t'
          << absolute_energy_ << std::endl;
   }
 }
