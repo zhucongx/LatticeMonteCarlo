@@ -45,7 +45,7 @@ class KineticMcFirstAbstract : public McAbstract {
     virtual double CalculateTime() = 0;
     virtual void OneStepSimulation();
     void IsEscaped();
-    // Stops the run with an error if the selected jump has no barrier forward or backward.
+    // Stops the run with an error if the barrier of the selected jump is negative forward or backward.
     void RequireBarrierOfSelectedJump() const;
     // constants
     static constexpr size_t kEventListSize = constants::kNumFirstNearestNeighbors;

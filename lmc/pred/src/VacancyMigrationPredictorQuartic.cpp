@@ -336,9 +336,15 @@ double GetQuarticModelBarrier(const double dE, const double D, const double Ks) 
       / std::pow(a, 3) / 2048;
   return Ea;
 }
-bool HasBarrierForwardAndBackward(const double barrier, const double dE) {
-  // Both comparisons are false for a barrier that is not a number.
-  return barrier > 0.0 && barrier - dE > 0.0;
+double GetQuarticBarrier(const double dE, const double D, const double Ks) {
+  const double barrier = GetQuarticModelBarrier(dE, D, Ks);
+  // The lowest barrier that is not negative in either direction. The comparisons are false for a barrier that is not
+  // a number, which is returned as it is.
+  const double lowest_barrier = std::max(dE, 0.0);
+  return barrier < lowest_barrier && barrier >= lowest_barrier - kBarrierTolerance ? lowest_barrier : barrier;
+}
+bool IsBarrierNonNegative(const double barrier, const double dE) {
+  return barrier >= 0.0 && barrier - dE >= 0.0;
 }
 std::pair<double, double> VacancyMigrationPredictorQuartic::GetBarrierAndDiffFromLatticeIdPair(
     const cfg::Config &config,
@@ -362,7 +368,7 @@ std::pair<double, double> VacancyMigrationPredictorQuartic::GetBarrierAndDiffFro
   const auto dE = GetDe(config, lattice_id_jump_pair);
   const auto D = GetD(config, lattice_id_jump_pair);
   const auto Ks = GetKs(config, lattice_id_jump_pair);
-  return {GetQuarticModelBarrier(dE, D, Ks), dE};
+  return {GetQuarticBarrier(dE, D, Ks), dE};
 }
 
 size_t VacancyMigrationPredictorQuartic::GetPairFlatIndex(const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
