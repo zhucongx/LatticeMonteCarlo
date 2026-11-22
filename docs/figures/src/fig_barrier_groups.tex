@@ -1,0 +1,37 @@
+% barrier_groups.png: the four groups of jumps around a cluster, drawn on a triangular lattice. The sites and the jumps come from
+% analysis_schematics.py. Make it in this folder with, for any scratch folder T:
+%   python3 analysis_schematics.py T
+%   TEXINPUTS=.:T: pdflatex -output-directory=T fig_barrier_groups.tex
+%   python3 pdf_to_png.py T/fig_barrier_groups.pdf ../barrier_groups.png 1100
+\documentclass[11pt,tikz,border=1.5pt]{standalone}
+\input{figstyle}
+\input{barrier_groups_sites}
+\begin{document}
+\begin{tikzpicture}[x=0.92cm, y=0.92cm,
+    al/.style={atom=cAl, minimum size=13.4pt}, mg/.style={atom=cMg, minimum size=15.4pt}, zn/.style={atom=cZn, minimum size=13.4pt},
+    rim/.style={cTwo!75, line width=27.5pt}, region/.style={cTwo!20, line width=25.9pt},
+    near rim/.style={cGray!75, line width=27.5pt}, near region/.style={cGray!18, line width=25.9pt},
+    one/.style={-{Stealth[length=8pt, width=7.6pt]}, line width=2.3pt, shorten <=3pt, shorten >=1pt},
+    both/.style={{Stealth[length=8pt, width=7.6pt]}-{Stealth[length=8pt, width=7.6pt]}, line width=2.3pt, shorten <=1pt, shorten >=1pt},
+    swatch/.style={line width=0.8pt, rounded corners=3pt}]
+  \newcommand{\lines}[2]{\foreach \x/\y/\u/\v in #1 \draw[#2] (\x,\y) -- (\u,\v);}
+  \newcommand{\nodes}[2]{\foreach \x/\y in #1 \node[#2] at (\x,\y) {};}
+  \newcommand{\jumps}[3]{\lines{#1}{#2, white, line width=4.2pt} \lines{#1}{#2, #3}}
+  \lines{\bondsNear}{near rim} \lines{\bondsNear}{near region}
+  \lines{\bondsCluster}{rim} \lines{\bondsCluster}{region}
+  \nodes{\sitesAl}{al} \nodes{\clusterMg}{mg} \nodes{\clusterZn}{zn}
+  \jumps{\jumpsIn}{both}{cFour}
+  \jumps{\jumpsTo}{one}{cOne}
+  \jumps{\jumpsOn}{both}{cThree}
+  \jumps{\jumpsOff}{one}{cTwo}
+  % ---------------- legend ----------------
+  \begin{scope}[shift={(7.4,0.55)}, x=1cm, y=1cm]
+    \foreach \t/\s/\c [count=\i from 0] in {in/both/cFour, to/one/cOne, on/both/cThree, off/one/cTwo} {
+      \draw[\s, \c] (0,-0.7*\i) -- ++(0.92,0); \node[leg] at (1.15,-0.7*\i) {\texttt{\t}};}
+    \foreach \t/\c/\f [count=\i from 0] in {cluster/cTwo/20, nearest neighbors/cGray/18} {
+      \draw[swatch, \c!75, fill=\c!\f] (0.1,-3.30-0.75*\i) rectangle ++(0.72,0.46); \node[leg] at (1.15,-3.07-0.75*\i) {\t};}
+    \foreach \t [count=\i from 0] in {Al, Mg, Zn} {
+      \node[atom=c\t, minimum size=12pt] at (0.22+1.18*\i,-4.75) {}; \node[leg] at (0.46+1.18*\i,-4.75) {\t};}
+  \end{scope}
+\end{tikzpicture}
+\end{document}

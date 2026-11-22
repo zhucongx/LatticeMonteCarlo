@@ -1,0 +1,63 @@
+% files.png: the files a run reads and writes, and what Ansys and Reformat make of them.
+% Make it in this folder with, for any scratch folder T:
+%   pdflatex -output-directory=T fig_files.tex
+%   python3 pdf_to_png.py T/fig_files.pdf ../files.png
+\documentclass[11pt,tikz,border=1.5pt]{standalone}
+\input{figstyle}
+\newcommand{\file}[1]{{\footnotesize\ttfamily\detokenize{#1}}}
+\begin{document}
+\begin{tikzpicture}[
+    box/.style={draw=black!70, rounded corners=3pt, align=center, inner sep=5pt, line width=0.6pt},
+    data/.style={box, fill=black!5},
+    model/.style={box, fill=cTwo!18},
+    algo/.style={box, fill=cFour!26, minimum height=0.8cm, text width=2.0cm, text height=1.55ex, text depth=0.25ex},
+    prog/.style={draw=cFour!70!black!70, rounded corners=5pt, fill=cFour!9, line width=0.6pt},
+    group/.style={draw=black!45, densely dashed, rounded corners=5pt, line width=0.6pt},
+    note/.style={font=\footnotesize, text=black!75, align=center, inner sep=1.5pt},
+    row/.style={font=\footnotesize, anchor=west, align=left, inner sep=0pt},
+    both/.style={{Stealth[length=5pt]}-{Stealth[length=5pt]}, line width=0.8pt}]
+  % ---------------- a run and its start ----------------
+  \draw[prog] (3.3,-1.35) rectangle (15.5,-2.45);
+  \node[row] at (3.55,-1.90) {\file{lmc.exe}};
+  \node[algo] (kmc) at (7.15,-1.90) {KMC};
+  \node[algo] (cmc) at (10.03,-1.90) {CMC};
+  \node[algo] (sa) at (13.48,-1.90) {SA};
+  \node[data, text width=4.7cm] (start) at (8.59,0) {start configuration\\ \file{.cfg}, \file{.cfg.gz} or a map};
+  \node[note] at (13.48,-0.83) {SA makes its own start};
+  \draw[arr] (kmc.north |- start.south) -- (kmc.north);
+  \draw[arr] (cmc.north |- start.south) -- (cmc.north);
+  % ---------------- its files ----------------
+  \draw[group] (3.3,-3.20) rectangle (15.5,-5.10);
+  \node[row] at (3.55,-4.15) {log and\\ configurations};
+  \node[data, text width=2.3cm, minimum height=1.5cm] (fkmc) at (7.15,-4.15) {\file{kmc_log.txt}\\ \file{<step>.cfg.gz}\\ \file{end.cfg.gz}};
+  \node[data, text width=2.3cm, minimum height=1.5cm] (fcmc) at (10.03,-4.15) {\file{cmc_log.txt}\\ \file{<step>.cfg.gz}\\ \file{end.cfg.gz}};
+  \node[data, text width=3.4cm, minimum height=1.5cm] (fsa) at (13.48,-4.15) {\file{sa_log.txt}\\ \file{lowest_energy.cfg.gz}};
+  \draw[arr] (kmc) -- (fkmc);
+  \draw[arr] (cmc) -- (fcmc);
+  \draw[arr] (sa) -- (fsa);
+  % ---------------- analysis and conversion ----------------
+  \draw[prog] (3.3,-5.90) rectangle (15.5,-7.00);
+  \node[row] at (3.55,-6.45) {\file{lmc.exe}};
+  \node[algo] (ansys) at (7.80,-6.45) {\ttfamily Ansys};
+  \node[algo] (reformat) at (12.15,-6.45) {\ttfamily Reformat};
+  \draw[arr] (4.15,-5.10) -- node[note, anchor=west, pos=0.43, xshift=2pt] {log} (4.15,-5.90);
+  \draw[arr] (ansys.north |- 0,-5.10) -- node[note, anchor=west, pos=0.36, xshift=2pt] {\file{<step>.cfg.gz}} (ansys);
+  \draw[both] (reformat.north |- 0,-5.10) -- node[note, anchor=west, pos=0.36, xshift=2pt] {\file{<step>.cfg.gz}} (reformat);
+  \node[data, text width=3.65cm, minimum height=1.5cm] (fansys) at (7.80,-8.50) {\file{ansys_frame_log.txt}\\ \file{ansys_cluster_log.txt}\\ \file{ansys/<step>.xyz.gz}};
+  \node[data, text width=2.3cm, minimum height=1.5cm] (fmap) at (12.15,-8.50) {\file{map<step>.txt}\\ \file{lattice.txt}\\ \file{element.txt}};
+  \draw[arr] (ansys) -- (fansys);
+  \draw[both] (reformat) -- (fmap);
+  % ---------------- read by every method ----------------
+  \draw[group] (0,-2.40) rectangle (2.75,-5.95);
+  \node[note, anchor=north] at (1.375,-2.50) {read by\\ every method};
+  \node[data, text width=2.15cm, inner xsep=3.5pt] (param) at (1.375,-3.98) {parameter file\\ \file{-p param.txt}};
+  \node[model, text width=2.15cm, inner xsep=3.5pt] (coef) at (1.375,-5.24) {coefficient file\\ \file{.json}};
+  \draw[arr] (1.375,-2.40) |- (3.3,-1.90);
+  \draw[arr] (1.375,-5.95) |- (3.3,-6.45);
+  % ---------------- start of another run ----------------
+  \draw[arr] (fmap.east) -- (16.15,-8.50) |- (start.east);
+  \draw[line width=0.8pt] (15.5,-4.15) -- (16.15,-4.15);
+  \fill (16.15,-4.15) circle (1.5pt);
+  \node[note, anchor=south] at (13.48,0.05) {start of another run};
+\end{tikzpicture}
+\end{document}
