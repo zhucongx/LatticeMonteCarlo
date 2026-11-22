@@ -69,6 +69,30 @@ TEST_F(PredictorConsistency, SwapEnergyChangeEqualsTotalEnergyDifference) {
   EXPECT_GE(num_distant, 10u);
 }
 
+// The model has no terms for two vacancies in one cluster. Whichever of the two sites is named first, a swap of the
+// vacancy with a neighbour must not be evaluated through a state in which both sites are vacant.
+TEST_F(PredictorConsistency, SwapOfTheVacancyWithANeighbourWorksInBothOrders) {
+  const EnergyPredictor total_energy_predictor(model_filename_, TestElementSet());
+  const EnergyChangePredictorPairSite energy_change_predictor(model_filename_, config_, TestElementSet());
+  const size_t vacancy = config_.GetVacancyLatticeId();
+  const double energy = total_energy_predictor.GetEnergy(config_);
+  size_t num_neighbors = 0;
+  for (const auto *adjacency_list: {&config_.GetFirstNeighborsAdjacencyList(),
+                                    &config_.GetSecondNeighborsAdjacencyList(),
+                                    &config_.GetThirdNeighborsAdjacencyList()}) {
+    for (const auto neighbor: (*adjacency_list)[vacancy]) {
+      auto swapped_config = config_;
+      swapped_config.LatticeJump({vacancy, neighbor});
+      const double expected_change = total_energy_predictor.GetEnergy(swapped_config) - energy;
+      EXPECT_NEAR(energy_change_predictor.GetDeFromLatticeIdPair(config_, {vacancy, neighbor}), expected_change, 1e-9);
+      EXPECT_NEAR(energy_change_predictor.GetDeFromLatticeIdPair(config_, {neighbor, vacancy}), expected_change, 1e-9);
+      ++num_neighbors;
+    }
+  }
+  EXPECT_EQ(num_neighbors, constants::kNumFirstNearestNeighbors + constants::kNumSecondNearestNeighbors +
+      constants::kNumThirdNearestNeighbors);
+}
+
 TEST_F(PredictorConsistency, JumpEnergyChangeEqualsTotalEnergyDifferenceAndReverseJumpIsConsistent) {
   const EnergyPredictor total_energy_predictor(model_filename_, TestElementSet());
   const VacancyMigrationPredictorQuartic barrier_predictor(model_filename_, config_, TestElementSet());
@@ -112,6 +136,75 @@ TEST_F(PredictorConsistency, CachedPredictorReturnsTheBarriersOfThePlainPredicto
     }
     config.LatticeJump({vacancy, config.GetFirstNeighborsAdjacencyList()[vacancy][step % 12]});
   }
+}
+
+namespace {
+// Gives a test access to the two fitted quantities of the barrier model.
+class ExposedBarrierPredictor : public VacancyMigrationPredictorQuartic {
+ public:
+  using VacancyMigrationPredictorQuartic::VacancyMigrationPredictorQuartic;
+  using VacancyMigrationPredictorQuartic::GetD;
+  using VacancyMigrationPredictorQuartic::GetKs;
+};
+}    // namespace
+
+// The barrier of a jump is a function of the elements around it. Two jumps elsewhere in the lattice, in any of the
+// twelve directions, with the same elements at the same places of their neighbourhoods have to get the same barrier
+// to the last bit: the cache hands the barrier of one to the other.
+TEST_F(PredictorConsistency, JumpsWithTheSameNeighbourhoodHaveTheSameBarrierToTheLastBit) {
+  // Without the offset and the scale of the fitted quantities, which would round a difference in the last bit of the
+  // sum over the clusters away in most cases.
+  auto model = model_;
+  for (const auto &element: TestElementSet()) {
+    auto &parameters = model[element.GetString()];
+    parameters["mu_D"] = 0.0;
+    parameters["mu_Ks"] = 0.0;
+    parameters["sigma_D"] = 1.0;
+    parameters["sigma_Ks"] = 1.0;
+  }
+  const auto model_filename = WriteModel(directory_ / "model_without_output_scale.json", model);
+  const auto pure_config = cfg::GenerateFCC({8, 8, 8}, Element("Al"));
+  const ExposedBarrierPredictor barrier_predictor(model_filename, pure_config, TestElementSet());
+  const std::vector<Element> elements(TestElementSet().begin(), TestElementSet().end());
+  // The elements of the neighbourhood in the order of the state list of a pair, with the vacancy on the first site.
+  const auto decorate = [&](const std::pair<size_t, size_t> &pair, const std::vector<Element> &neighbourhood) {
+    auto config = pure_config;
+    const auto state_list = GetSortedLatticeVectorStateOfPair(pure_config, pair);
+    for (size_t k = 0; k < state_list.size(); ++k) {
+      const auto lattice_id = state_list[k].GetId();
+      config.SetAtomElementTypeAtLattice(lattice_id, lattice_id == pair.first ? Element("X") : neighbourhood[k]);
+    }
+    return config;
+  };
+  std::mt19937_64 generator(17);
+  const std::pair<size_t, size_t> reference_pair{0, pure_config.GetFirstNeighborsAdjacencyList()[0][0]};
+  size_t num_compared = 0;
+  for (int trial = 0; trial < 5; ++trial) {
+    std::vector<Element> neighbourhood;
+    for (size_t k = 0; k < constants::kNumThirdNearestSetSizeOfPair; ++k) {
+      neighbourhood.push_back(elements[generator() % elements.size()]);
+    }
+    const auto reference_config = decorate(reference_pair, neighbourhood);
+    const auto expected = barrier_predictor.GetBarrierAndDiffFromLatticeIdPair(reference_config, reference_pair);
+    const double expected_d = barrier_predictor.GetD(reference_config, reference_pair);
+    const double expected_ks = barrier_predictor.GetKs(reference_config, reference_pair);
+    ASSERT_TRUE(std::isfinite(expected.first));
+    for (const size_t first: {size_t{0}, size_t{777}, size_t{1500}}) {
+      for (const size_t second: pure_config.GetFirstNeighborsAdjacencyList()[first]) {
+        const std::pair<size_t, size_t> pair{first, second};
+        const auto config = decorate(pair, neighbourhood);
+        const auto actual = barrier_predictor.GetBarrierAndDiffFromLatticeIdPair(config, pair);
+        ASSERT_EQ(barrier_predictor.GetD(config, pair), expected_d) << "trial " << trial << ", jump " << first << " -> "
+                                                                    << second;
+        ASSERT_EQ(barrier_predictor.GetKs(config, pair), expected_ks) << "trial " << trial << ", jump " << first
+                                                                      << " -> " << second;
+        ASSERT_EQ(actual.first, expected.first) << "trial " << trial << ", jump " << first << " -> " << second;
+        ASSERT_EQ(actual.second, expected.second) << "trial " << trial << ", jump " << first << " -> " << second;
+        ++num_compared;
+      }
+    }
+  }
+  EXPECT_EQ(num_compared, 5u * 3u * constants::kNumFirstNearestNeighbors);
 }
 
 // A box that is shorter than three cutoff lengths used to get neighbour lists with repeated entries.

@@ -5,7 +5,10 @@
 #include "LatticeCluster.hpp"
 
 #include <Eigen/Dense>
+#include <array>
 #include <boost/functional/hash.hpp>
+#include <cstdint>
+#include <limits>
 #include <nlohmann/json.hpp>
 #include <set>
 #include <string>
@@ -72,6 +75,56 @@ void GetOneHotParametersFromMap(const std::vector<Element> &encode,
 // Length of the vector GetOneHotParametersFromMap produces for this cluster mapping.
 size_t GetOneHotEncodeSize(size_t num_of_elements,
                            const std::vector<std::vector<std::vector<size_t>>> &cluster_mapping);
+// The encoding GetOneHotParametersFromMap() produces, computed from element positions instead of element names.
+//
+// Every group of symmetry-equivalent clusters of the mapping contributes one block. A block has an entry for every
+// combination of elements a cluster of the group can hold, and the entry is the fraction of the clusters of the group
+// that hold this combination. The cluster mapping is that of GetAverageClusterParametersMappingMMM() or MM2().
+class OneHotEncoder {
+ public:
+  OneHotEncoder() = default;
+  OneHotEncoder(const std::set<Element> &element_set,
+                const std::vector<std::vector<std::vector<size_t>>> &cluster_mapping);
+  // Number of values Encode() writes.
+  [[nodiscard]] size_t Size() const { return encode_size_; }
+  // Position of the element in the element set, which is what Encode() expects for every site. Throws
+  // std::out_of_range for an element that is not in the set, for which the encoding has no entry.
+  [[nodiscard]] uint8_t GetElementIndex(const Element element) const {
+    const auto index = element_indices_[static_cast<uint8_t>(hash_value(element))];
+    if (index == kNoElement) {
+      ThrowElementNotFound(element);
+    }
+    return index;
+  }
+  // `element_indices` holds GetElementIndex() of the element on each site the cluster mapping refers to.
+  void Encode(const uint8_t *element_indices, double *out_encode) const;
+  // The dot product of `weights` with the encoding, without building the encoding: every cluster adds the weight of
+  // its entry divided by the number of clusters of its group. ScaleWeights() does that division once, and Dot() takes
+  // its result.
+  [[nodiscard]] std::vector<double> ScaleWeights(const Eigen::VectorXd &weights) const;
+  [[nodiscard]] double Dot(const uint8_t *element_indices, const double *scaled_weights) const;
+
+ private:
+  struct Group {
+    size_t cluster_size{};
+    bool is_symmetric{};    // the two sites of its clusters are equivalent, so their order carries no information
+    size_t num_clusters{};
+    size_t site_offset{};      // of its first site index in site_indices_
+    size_t encode_offset{};    // of its block in the encoding
+    size_t encode_length{};
+  };
+  static constexpr uint8_t kNoElement = std::numeric_limits<uint8_t>::max();
+  [[noreturn]] static void ThrowElementNotFound(Element element);
+
+  size_t num_elements_{};
+  size_t encode_size_{};
+  std::vector<Group> groups_{};
+  std::vector<uint8_t> site_indices_{};
+  // Entry of the pair of elements (i, j) with i <= j in the block of a symmetric group is symmetric_row_offsets_[i] + j.
+  std::vector<size_t> symmetric_row_offsets_{};
+  std::array<uint8_t, 256> element_indices_{};
+};
+
 // Throws if an array read from the coefficient file does not have the size the model requires. Eigen checks no
 // dimensions in release builds, so a mismatch would otherwise go on to produce meaningless energies.
 void CheckModelSize(const std::string &predictor_filename,
@@ -92,6 +145,13 @@ struct ParametersQuartic {
   double mu_y_Ks{};
   double sigma_y_D{};
   double sigma_y_Ks{};
+  // The model is linear in the encoding x: theta . (U ((x - mu_x) / sigma_x)) = weight . x - weight . mu_x with
+  // weight = (U^T theta) / sigma_x. Stored are the weights as OneHotEncoder::ScaleWeights() returns them and the
+  // constant weight . mu_x. Both are computed once, when the coefficients are loaded.
+  std::vector<double> cluster_weight_D{};
+  std::vector<double> cluster_weight_Ks{};
+  double weight_dot_mu_D{};
+  double weight_dot_mu_Ks{};
 };
 
 struct ParametersE0 {
@@ -113,6 +173,21 @@ struct ParametersDE {
   double sigma_y{};
 };
 
+// The clusters of a mapping as rows of one contiguous array, so that the loops which run on every evaluation read
+// neighbouring memory instead of following a pointer per cluster.
+struct FlatClusterMapping {
+  struct Group {
+    size_t label{};           // position of the group in the mapping, which is the label of its clusters
+    size_t cluster_size{};    // number of sites of each of its clusters
+    size_t num_clusters{};
+    size_t offset{};          // of its first site index in site_indices
+  };
+  static constexpr size_t kMaxClusterSize = 3;
+  std::vector<Group> groups{};
+  std::vector<uint8_t> site_indices{};
+};
+FlatClusterMapping FlattenClusterMapping(const std::vector<std::vector<std::vector<size_t>>> &cluster_mapping);
+
 // Helper to map clusters to contiguous indices and store per-cluster total bond counts.
 class ClusterIndexer {
  public:
@@ -121,13 +196,74 @@ class ClusterIndexer {
                  std::vector<double> cluster_total_bonds);
   [[nodiscard]] size_t Size() const { return cluster_index_to_cluster_.size(); }
   [[nodiscard]] size_t GetIndex(const cfg::ElementCluster &cluster) const;
+  // Small number that stands for the element in the GetIndex() below. Elements that are part of no cluster share one.
+  [[nodiscard]] uint8_t GetElementCode(const Element element) const {
+    return element_codes_[static_cast<uint8_t>(hash_value(element))];
+  }
+  // Index of the cluster with this label whose elements have the given codes, in any order. The result is that of
+  // GetIndex(cfg::ElementCluster(label, elements)), but it costs a table lookup instead of allocating, sorting and
+  // hashing a cluster. The energy models ask for several hundred clusters per evaluation.
+  [[nodiscard]] size_t GetIndex(const size_t label, const uint8_t *codes, const size_t size) const {
+    if (label < label_sizes_.size() && label_sizes_[label] == size) {
+      size_t combined_code = 0;
+      for (size_t i = 0; i < size; ++i) {
+        combined_code = combined_code * num_codes_ + codes[i];
+      }
+      const auto index = lookup_[label * codes_per_label_ + combined_code];
+      if (index != kNotFound) {
+        return index;
+      }
+    }
+    ThrowClusterNotFound();
+  }
   [[nodiscard]] const std::vector<cfg::ElementCluster> &GetClusters() const { return cluster_index_to_cluster_; }
   [[nodiscard]] const std::vector<double> &GetTotalBonds() const { return cluster_total_bonds_; }
  private:
+  static constexpr uint32_t kNotFound = std::numeric_limits<uint32_t>::max();
+  [[noreturn]] static void ThrowClusterNotFound();
+  void BuildLookup();
+
   std::vector<cfg::ElementCluster> cluster_index_to_cluster_{};
   std::vector<double> cluster_total_bonds_{};
   std::unordered_map<cfg::ElementCluster, size_t, boost::hash<cfg::ElementCluster>> cluster_to_index_{};
+  // Lookup by codes: lookup_[label * codes_per_label_ + combined code] is the index of the cluster or kNotFound.
+  size_t num_codes_{};
+  size_t codes_per_label_{};
+  std::vector<size_t> label_sizes_{};
+  std::array<uint8_t, 256> element_codes_{};
+  std::vector<uint32_t> lookup_{};
 };
+
+// For every cluster of the mapping, takes one from the count of the cluster its sites form with the start codes and
+// adds one to the count of the cluster they form with the end codes. The codes are ClusterIndexer::GetElementCode() of
+// the elements on the sites the mapping refers to, and `count_changes` has an entry per cluster index. Clusters that
+// contain the site with index `excluded_site_index` are left out.
+inline constexpr size_t kNoSiteIndex = std::numeric_limits<size_t>::max();
+inline void AddClusterCountChanges(const FlatClusterMapping &mapping,
+                                   const ClusterIndexer &indexer,
+                                   const std::vector<uint8_t> &start_codes,
+                                   const std::vector<uint8_t> &end_codes,
+                                   std::vector<int> &count_changes,
+                                   const size_t excluded_site_index = kNoSiteIndex) {
+  std::array<uint8_t, FlatClusterMapping::kMaxClusterSize> cluster_start{};
+  std::array<uint8_t, FlatClusterMapping::kMaxClusterSize> cluster_end{};
+  for (const auto &group: mapping.groups) {
+    const uint8_t *site_indices = mapping.site_indices.data() + group.offset;
+    for (size_t n = 0; n < group.num_clusters; ++n, site_indices += group.cluster_size) {
+      bool is_excluded = false;
+      for (size_t i = 0; i < group.cluster_size; ++i) {
+        is_excluded = is_excluded || site_indices[i] == excluded_site_index;
+        cluster_start[i] = start_codes[site_indices[i]];
+        cluster_end[i] = end_codes[site_indices[i]];
+      }
+      if (is_excluded) {
+        continue;
+      }
+      --count_changes[indexer.GetIndex(group.label, cluster_start.data(), group.cluster_size)];
+      ++count_changes[indexer.GetIndex(group.label, cluster_end.data(), group.cluster_size)];
+    }
+  }
+}
 
 // Reusable thread-local buffers to avoid hot-path allocations.
 // Each function provides a unique buffer for a specific purpose to prevent aliasing.
@@ -139,6 +275,16 @@ inline std::vector<int> &GetThreadLocalStartCountsBuffer() {
 }
 inline std::vector<int> &GetThreadLocalEndCountsBuffer() {
   thread_local std::vector<int> buffer;
+  return buffer;
+}
+
+// Element codes of the sites of a neighbourhood before and after a change.
+inline std::vector<uint8_t> &GetThreadLocalStartCodesBuffer() {
+  thread_local std::vector<uint8_t> buffer;
+  return buffer;
+}
+inline std::vector<uint8_t> &GetThreadLocalEndCodesBuffer() {
+  thread_local std::vector<uint8_t> buffer;
   return buffer;
 }
 
