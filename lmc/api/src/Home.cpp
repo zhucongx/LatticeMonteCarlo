@@ -30,7 +30,7 @@ void Print(const Parameter &parameter) {
   }
   std::cout << "Parameters" << std::endl;
   std::cout << "simulation_method: " << parameter.method << std::endl;
-  if (parameter.method == "KineticMcFirstMpi" || parameter.method == "KineticMcFirstOmp" ||
+  if (parameter.method == "KineticMcFirstMpi" || parameter.method == "KineticMcFirstSerial" ||
       parameter.method == "KineticMcChainOmp" || parameter.method == "KineticMcChainMpi" ||
       parameter.method == "KineticMcChainOmpi") {
     std::cout << "json_coefficients_filename: " << parameter.json_coefficients_filename_ << std::endl;
@@ -123,9 +123,9 @@ void Run(const Parameter &parameter) {
   if (parameter.method == "KineticMcFirstMpi") {
     auto kinetic_mc_first_mpi = api::BuildKineticMcFirstMpiFromParameter(parameter);
     kinetic_mc_first_mpi.Simulate();
-  } else if (parameter.method == "KineticMcFirstOmp") {
-    auto kinetic_mc_first_omp = api::BuildKineticMcFirstOmpFromParameter(parameter);
-    kinetic_mc_first_omp.Simulate();
+  } else if (parameter.method == "KineticMcFirstSerial") {
+    auto kinetic_mc_first_serial = api::BuildKineticMcFirstSerialFromParameter(parameter);
+    kinetic_mc_first_serial.Simulate();
   } else if (parameter.method == "KineticMcChainOmpi") {
     auto kinetic_mc_chain_ompi = api::BuildKineticMcChainOmpiFromParameter(parameter);
     kinetic_mc_chain_ompi.Simulate();
@@ -182,7 +182,7 @@ mc::KineticMcFirstMpi BuildKineticMcFirstMpiFromParameter(const Parameter &param
                                parameter.seed_};
 }
 
-mc::KineticMcFirstOmp BuildKineticMcFirstOmpFromParameter(const Parameter &parameter) {
+mc::KineticMcFirstSerial BuildKineticMcFirstSerialFromParameter(const Parameter &parameter) {
   std::set<Element> element_set;
   for (const auto &element_string: parameter.element_set_) {
     element_set.insert(Element(element_string));
@@ -197,22 +197,22 @@ mc::KineticMcFirstOmp BuildKineticMcFirstOmpFromParameter(const Parameter &param
   if (IsRoot()) {
     std::cout << "Finish config reading. Start KMC." << std::endl;
   }
-  return mc::KineticMcFirstOmp{config,
-                               parameter.log_dump_steps_,
-                               parameter.config_dump_steps_,
-                               parameter.maximum_steps_,
-                               parameter.thermodynamic_averaging_steps_,
-                               parameter.restart_steps_,
-                               parameter.restart_energy_,
-                               parameter.restart_time_,
-                               parameter.temperature_,
-                               element_set,
-                               parameter.json_coefficients_filename_,
-                               parameter.time_temperature_filename_,
-                               parameter.rate_corrector_,
-                               parameter.early_stop_,
-                               parameter.solute_disp_,
-                               parameter.seed_};
+  return mc::KineticMcFirstSerial{config,
+                                  parameter.log_dump_steps_,
+                                  parameter.config_dump_steps_,
+                                  parameter.maximum_steps_,
+                                  parameter.thermodynamic_averaging_steps_,
+                                  parameter.restart_steps_,
+                                  parameter.restart_energy_,
+                                  parameter.restart_time_,
+                                  parameter.temperature_,
+                                  element_set,
+                                  parameter.json_coefficients_filename_,
+                                  parameter.time_temperature_filename_,
+                                  parameter.rate_corrector_,
+                                  parameter.early_stop_,
+                                  parameter.solute_disp_,
+                                  parameter.seed_};
 }
 
 mc::KineticMcChainOmpi BuildKineticMcChainOmpiFromParameter(const Parameter &parameter) {
