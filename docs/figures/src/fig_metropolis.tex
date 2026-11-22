@@ -1,0 +1,31 @@
+% metropolis.png: a step of CMC or SA, the trial exchange and the probability that it is accepted (panel (b), from plot_metropolis.py).
+% Make it in this folder with, for any scratch folder T:
+%   python3 plot_metropolis.py T
+%   TEXINPUTS=.:T: pdflatex -output-directory=T fig_metropolis.tex
+%   python3 pdf_to_png.py T/fig_metropolis.pdf ../metropolis.png
+\documentclass[11pt,tikz,border=1.5pt]{standalone}
+\input{figstyle}
+\begin{document}
+\begin{tikzpicture}
+  % ---------------- (b) acceptance probability ----------------
+  \plot{b}{6.3}{0}{plot_metropolis.pdf}
+  % ---------------- (a) two sites anywhere in the box that hold different elements ----------------
+  % the axes of (b) are 2.7 in x 0.6 = 4.115 cm high and begin 0.085 cm below the upper edge of the plot
+  \path (b.north) ++(0,-4.200) coordinate (base);
+  \begin{scope}[shift={(0,0 |- base)}, x=0.5879cm, y=0.5879cm, dot/.style={atom=cAl!80, minimum size=6.4pt},
+      am/.style={atom=cMg, minimum size=11pt}, az/.style={atom=cZn, minimum size=11pt}]
+    \draw[black!70, line width=0.6pt] (0,0) rectangle (9,7);
+    \begin{scope}[shift={(0.5,0.5)}]
+      \foreach \x in {0,...,8} \foreach \y in {0,...,6} \node[dot] at (\x,\y) {};
+      \node[am] (i) at (1,4) {}; \node[az] (j) at (7,2) {};
+      \node[am] at (5,5) {}; \node[az] at (2,1) {}; \node[am] at (6,0) {}; \node[az] at (8,5) {};
+      \node[vac, minimum size=10.5pt] at (4,2) {};
+      \draw[dbl, line width=1.0pt, cOne] (i) to[bend left=42, looseness=1.25] (j);     % passes between the balls
+    \end{scope}
+  \end{scope}
+  \specieslegend{0.2}{0.3}
+  \vacancylegend{3.8}{0.3}
+  \plotlabel{b}{b}
+  \node[above lab] at ($(-0.05,0 |- b.north)+(0,0.02)$) {\panel{a}};
+\end{tikzpicture}
+\end{document}
