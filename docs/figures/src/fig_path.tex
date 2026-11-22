@@ -1,0 +1,35 @@
+% path.png: the energy along the path of a jump, E(x) = a x^4 + b x^3 + c x^2. Make it in this folder with, for any scratch folder T:
+%   pdflatex -output-directory=T fig_path.tex
+%   python3 pdf_to_png.py T/fig_path.pdf ../path.png 1100
+% Drawn for D = 1, Ks = 64 and dE = -1.2, hence a = 16, b = -4.8 and c = -7.595: minima at -0.3875 and 0.6125 with the energies -0.5004 and
+% -1.7004 and the curvatures 24.8 and 39.2. The barrier 0.5004 is Ks D^2 / 64 (1 + 3u/4)^3 (1 - u/4) with u = 16 dE / (Ks D^2) = -0.3.
+\documentclass[11pt,tikz,border=1.5pt]{standalone}
+\input{figstyle}
+\begin{document}
+\begin{tikzpicture}[x=5.2cm, y=1.5cm]
+  \draw[arr] (-0.80,-2.62) -- (1.10,-2.62) node[pos=0.5, below=17pt] {reaction coordinate $x$};
+  \draw[arr] (-0.80,-2.62) -- (-0.80,1.08) node[pos=0.45, xshift=-15pt, rotate=90, anchor=south, inner sep=2pt] {energy $E(x)$};
+  \foreach \x/\t in {-0.3875/x_{\mathrm{I}}, 0/0, 0.6125/x_{\mathrm{F}}} {
+    \draw[line width=0.6pt] (\x,-2.62) -- ++(0,-0.06); \node[anchor=base, yshift=-13pt] at (\x,-2.62) {$\t$};}
+  \draw[line width=0.6pt] (-0.80,0) -- ++(-0.017,0); \node[left, inner sep=3pt] at (-0.81,0) {$0$};
+  % levels
+  \draw[black!40, densely dashed, line width=0.6pt] (-0.80,0) -- (0.42,0) (-0.69,-0.5004) -- (1.0,-0.5004) (0.38,-1.7004) -- (1.0,-1.7004);
+  \draw[black!40, densely dotted, line width=0.6pt] (-0.3875,-0.5004) -- (-0.3875,-2.30) (0.6125,-1.7004) -- (0.6125,-2.30);
+  % parabolas with the curvatures at the two minima
+  \draw[cTwo, dashed, line width=1.1pt] plot[domain=-0.583:-0.192, samples=40] (\x,{-0.5004 + 12.40*(\x+0.3875)^2});
+  \draw[cTwo, dashed, line width=1.1pt] plot[domain=0.40:0.825, samples=40] (\x,{-1.7004 + 19.60*(\x-0.6125)^2});
+  % the path
+  \draw[cOne, line width=1.7pt] plot[smooth, domain=-0.655:0.905, samples=160] (\x,{16*(\x)^4 - 4.8*(\x)^3 - 7.595*(\x)^2});
+  % barrier, energy change, distance
+  \draw[dbl, cOne] (-0.655,-0.4904) -- (-0.655,-0.01) node[midway, left, inner sep=2pt, text=cOne!85!black] {$E_a$};
+  \draw[dbl, cDark] (0.95,-0.5104) -- (0.95,-1.6904) node[midway, right, inner sep=3pt] {$\dE$};
+  \draw[dbl, cTwo] (-0.3825,-2.20) -- (0.6075,-2.20) node[midway, fill=white, inner sep=2pt, text=cTwo!80!black] {$D$};
+  \foreach \x/\y in {-0.3875/-0.5004, 0/0, 0.6125/-1.7004} \node[circle, fill=cDark, minimum size=4.8pt, inner sep=0pt] at (\x,\y) {};
+  \node[above, inner sep=5pt] at (0,0) {transition state};
+  \node[below left, inner sep=3pt] at (-0.3875,-0.53) {I};
+  \node[below right, inner sep=3pt] at (0.6125,-1.71) {F};
+  \node[text=cTwo!80!black] at (-0.372,-0.20) {$\KI$};
+  \node[text=cTwo!80!black] at (0.605,-1.22) {$\KF$};
+  \node[text=cTwo!80!black, anchor=west] at (0.29,0.70) {$K_s = \KI + \KF$};
+\end{tikzpicture}
+\end{document}
