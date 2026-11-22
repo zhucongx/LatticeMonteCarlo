@@ -327,6 +327,22 @@ double VacancyMigrationPredictorQuartic::GetD(const cfg::Config &config,
   logD += element_parameters.mu_y_D;
   return std::exp(logD);
 }
+double GetQuarticModelBarrier(const double dE, const double D, const double Ks) {
+  const auto b = 4 * dE / (D * D * D);
+  const auto a = Ks / (4 * D * D);
+  const auto c = (9 * b * b - 16 * a * a * D * D) / (32 * a);
+  const auto delta = std::sqrt(std::abs(9 * b * b - 32 * a * c));
+  const auto Ea = (3 * b + delta) * (3 * b + delta) * (3 * b * b - 16 * a * c + b * delta)
+      / std::pow(a, 3) / 2048;
+  return Ea;
+}
+double GetQuarticBarrier(const double dE, const double D, const double Ks) {
+  const double model_barrier = GetQuarticModelBarrier(dE, D, Ks);
+  const double lowest_barrier = std::max(dE, 0.0);
+  // Written as a comparison that is false for a barrier that is not a number, so that such a barrier is returned as
+  // it is instead of being replaced by a number.
+  return model_barrier <= lowest_barrier ? lowest_barrier : model_barrier;
+}
 std::pair<double, double> VacancyMigrationPredictorQuartic::GetBarrierAndDiffFromLatticeIdPair(
     const cfg::Config &config,
     const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
@@ -349,13 +365,15 @@ std::pair<double, double> VacancyMigrationPredictorQuartic::GetBarrierAndDiffFro
   const auto dE = GetDe(config, lattice_id_jump_pair);
   const auto D = GetD(config, lattice_id_jump_pair);
   const auto Ks = GetKs(config, lattice_id_jump_pair);
-  const auto b = 4 * dE / (D * D * D);
-  const auto a = Ks / (4 * D * D);
-  const auto c = (9 * b * b - 16 * a * a * D * D) / (32 * a);
-  const auto delta = std::sqrt(std::abs(9 * b * b - 32 * a * c));
-  const auto Ea = (3 * b + delta) * (3 * b + delta) * (3 * b * b - 16 * a * c + b * delta)
-      / std::pow(a, 3) / 2048;
-  return {Ea, dE};
+  return {GetQuarticBarrier(dE, D, Ks), dE};
+}
+double VacancyMigrationPredictorQuartic::GetModelBarrierFromLatticeIdPair(
+    const cfg::Config &config,
+    const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
+  const auto dE = GetDe(config, lattice_id_jump_pair);
+  const auto D = GetD(config, lattice_id_jump_pair);
+  const auto Ks = GetKs(config, lattice_id_jump_pair);
+  return GetQuarticModelBarrier(dE, D, Ks);
 }
 
 size_t VacancyMigrationPredictorQuartic::GetPairFlatIndex(const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
