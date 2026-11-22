@@ -398,16 +398,6 @@ double Config::GetVacancyConcentration() const {
   return static_cast<double>(vacancy_count) / static_cast<double>(GetNumAtoms());
 }
 
-double Config::GetSoluteConcentration(Element solvent_element) const {
-  size_t solute_count = 0;
-  for (const auto &atom: GetAtomVector()) {
-    if (atom.GetElement() != solvent_element && atom.GetElement() != ElementName::X) {
-      solute_count++;
-    }
-  }
-  return static_cast<double>(solute_count) / static_cast<double>(GetNumAtoms());
-}
-
 std::map<Element, size_t> Config::GetLocalInfoOfLatticeId(size_t lattice_id, size_t shell_number) const {
   std::map<Element, size_t> element_count_map;
   for (const auto &element: GetElementSetWithoutVacancy()) {
