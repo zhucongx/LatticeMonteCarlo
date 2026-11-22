@@ -1,25 +1,25 @@
-#include "KineticMcFirstOmp.h"
+#include "KineticMcFirstSerial.h"
 #include <utility>
 #include <chrono>
 
 namespace mc {
 
-KineticMcFirstOmp::KineticMcFirstOmp(cfg::Config config,
-                                     const unsigned long long int log_dump_steps,
-                                     const unsigned long long int config_dump_steps,
-                                     const unsigned long long int maximum_steps,
-                                     const unsigned long long int thermodynamic_averaging_steps,
-                                     const unsigned long long int restart_steps,
-                                     const double restart_energy,
-                                     const double restart_time,
-                                     const double temperature,
-                                     const std::set<Element> &element_set,
-                                     const std::string &json_coefficients_filename,
-                                     const std::string &time_temperature_filename,
-                                     const bool is_rate_corrector,
-                                     const bool is_early_stop,
-                                     const bool is_solute_disp,
-                                     const unsigned long long int seed)
+KineticMcFirstSerial::KineticMcFirstSerial(cfg::Config config,
+                                           const unsigned long long int log_dump_steps,
+                                           const unsigned long long int config_dump_steps,
+                                           const unsigned long long int maximum_steps,
+                                           const unsigned long long int thermodynamic_averaging_steps,
+                                           const unsigned long long int restart_steps,
+                                           const double restart_energy,
+                                           const double restart_time,
+                                           const double temperature,
+                                           const std::set<Element> &element_set,
+                                           const std::string &json_coefficients_filename,
+                                           const std::string &time_temperature_filename,
+                                           const bool is_rate_corrector,
+                                           const bool is_early_stop,
+                                           const bool is_solute_disp,
+                                           const unsigned long long int seed)
     : KineticMcFirstAbstract(std::move(config),
                              log_dump_steps,
                              config_dump_steps,
@@ -38,7 +38,7 @@ KineticMcFirstOmp::KineticMcFirstOmp(cfg::Config config,
                              seed) {
   if (world_size_ != 1) {
     if (world_rank_ == 0) {
-      std::cout << "Must use 1 process for KineticMcFirstOmp. Terminating...\n" << std::endl;
+      std::cout << "Must use 1 process for KineticMcFirstSerial. Terminating...\n" << std::endl;
     }
     MPI_Abort(MPI_COMM_WORLD, 1);
   }
@@ -50,8 +50,8 @@ KineticMcFirstOmp::KineticMcFirstOmp(cfg::Config config,
     }
   }
 }
-KineticMcFirstOmp::~KineticMcFirstOmp() = default;
-void KineticMcFirstOmp::BuildEventList() {
+KineticMcFirstSerial::~KineticMcFirstSerial() = default;
+void KineticMcFirstSerial::BuildEventList() {
   total_rate_k_ = 0.0;
   const auto &neighbor_lattice_id_vector = config_.GetFirstNeighborsAdjacencyList()[vacancy_lattice_id_];
   // The twelve events are evaluated one after the other. Most barriers are read from the cache of the model and the
@@ -78,7 +78,7 @@ void KineticMcFirstOmp::BuildEventList() {
     event_it.SetCumulativeProbability(cumulative_probability);
   }
 }
-double KineticMcFirstOmp::CalculateTime() {
+double KineticMcFirstSerial::CalculateTime() {
   static std::uniform_real_distribution<double> uniform_distribution(0.0, 1.0);
   return -std::log(uniform_distribution(generator_)) / total_rate_k_ / constants::kPrefactor;
 }
