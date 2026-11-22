@@ -7,6 +7,8 @@ LatticeMC is a lattice Monte Carlo framework for multicomponent alloys. It suppo
 
 Core idea: total energy and migration barriers are predicted from JSON coefficient files (similar to cluster-expansion or ML models). Local updates and LRU caches are used to accelerate event evaluation. The project also provides extended cfg/xyz I/O (with optional gzip) and rich analysis output.
 
+The [documentation](docs/README.md) describes the methods, every key of the parameter file, the input files, every column of the output files, and the model.
+
 ### Features
 
 - Multiple simulation methods: `KineticMc*` (KMC with OMP/MPI variants), `CanonicalMc*` (CMC), and `SimulatedAnnealing`.
@@ -25,7 +27,7 @@ Core idea: total energy and migration barriers are predicted from JSON coefficie
 - Required libraries:
   - Boost (filesystem, iostreams)
   - OpenMP (enabled by most methods)
-  - MPI (required for `*Mpi/*Ompi` methods only)
+  - MPI (required to build the program; only the `*Mpi/*Ompi` methods use more than one process)
 - Auto-fetched (via FetchContent):
   - nlohmann_json
   - Eigen3 (if not found on system)
@@ -79,9 +81,9 @@ The number of MPI processes is fixed by the method, and the program stops with a
 | `simulation_method` | MPI processes | OpenMP threads |
 |---|---|---|
 | `KineticMcFirstSerial` | 1 | at start-up only |
-| `KineticMcFirstMpi` | 12 (one per jump of the vacancy) | no |
+| `KineticMcFirstMpi` | 12 (one per jump of the vacancy) | at start-up only |
 | `KineticMcChainOmpi` | 12 (one per jump of the vacancy) | yes |
-| `CanonicalMcSerial`, `SimulatedAnnealing` | 1 | no |
+| `CanonicalMcSerial`, `SimulatedAnnealing` | 1 | at start-up only |
 | `CanonicalMcOmp`, `Ansys`, `Reformat` | 1 | yes |
 
 A step costs a few microseconds, which is less than it costs to start a group of threads or to exchange messages between processes. The single-process methods are therefore the fastest ones, and spare cores are better spent on independent runs. Steps per second for 10976 sites (Al with 5 % Mg and Zn) at 450 K on an Apple M3 Max:
@@ -99,7 +101,7 @@ Memory grows with the number of lattice sites: the tables of the barrier model, 
 Examples:
 
 - KMC with the sample file, which selects `KineticMcChainOmpi`:
-  - `mpirun -np 12 bin/lmc.exe -p script/kmc_param.txt`
+  - `OMP_NUM_THREADS=1 mpirun -np 12 bin/lmc.exe -p script/kmc_param.txt`
 
 - Single-process KMC (set `simulation_method KineticMcFirstSerial` in the parameter file):
   - `bin/lmc.exe -p script/kmc_param.txt`
@@ -116,7 +118,7 @@ Examples:
 - Reformat:
   - `bin/lmc.exe -p script/format_param.txt`
 
-The program exits with status 0 only if the run completed. Any problem with the input is reported as one `Error: ...` line and a non-zero exit status.
+The program exits with status 0 only if the run completed. An error that the program finds in the input is reported as an `Error: ...` line (`[rank n] Error: ...` if there are several MPI processes) and a non-zero exit status.
 
 ### Parameter File Cheatsheet
 
@@ -151,7 +153,7 @@ Analysis/Reformat-specific:
 - `initial_steps` / `increment_steps`
 - `smallest_cluster_criteria` / `solvent_bond_criteria` / `escape_temperature`
 
-See `script/` for ready-to-use samples.
+See `script/` for samples. The input files they name are not part of the repository.
 
 ### Outputs
 
@@ -159,20 +161,21 @@ See `script/` for ready-to-use samples.
   - KMC: `kmc_log.txt`
   - CMC: `cmc_log.txt`
   - SA: `sa_log.txt`
-- Configurations: `N.cfg.gz` at dump intervals and `end.cfg.gz` at completion. Reformat supports writing/reading `lattice.txt` / `element.txt` / `mapN.txt`.
+- Configurations: KMC and CMC write `N.cfg.gz` at dump intervals and `end.cfg.gz` at completion; SA writes `lowest_energy.cfg.gz`. Reformat supports writing/reading `lattice.txt` / `element.txt` / `mapN.txt`.
 - Analysis: `ansys_frame_log.txt`, `ansys_cluster_log.txt`, and `ansys/*.xyz.gz` files for visualization/statistics.
 
 ### FAQ / Tips
 
 - MKL/BLAS: If MKL isn’t found, the build falls back to generic BLAS/LAPACK, and then to Eigen-only (lowest performance). Setting `MKLROOT` can help detection.
 - OpenMP (macOS): install `libomp` and ensure CMake finds `OpenMP::OpenMP_CXX`.
-- MPI: only required for `*Mpi/*Ompi` methods.
+- MPI: required to build the program, even if only the single-process methods are used.
 - Executable name: the output is `bin/lmc.exe` for consistency across platforms.
 - Large model files: JSON coefficient files can be large; consider hosting externally or use Git LFS.
 
 ### Repository Layout (high level)
 
 - `lmc/`: sources (`cfg`/`pred`/`mc`/`api`/`ansys`)
+- `docs/`: documentation
 - `script/`: sample parameter files and helper scripts
 - `bin/`: executable output directory
 - `lmc/<module>/test/`: unit tests
