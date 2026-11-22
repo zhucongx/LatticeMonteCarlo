@@ -45,11 +45,8 @@ class KineticMcFirstAbstract : public McAbstract {
     virtual double CalculateTime() = 0;
     virtual void OneStepSimulation();
     void IsEscaped();
-    // Counts the selected jump if the barrier model has no barrier for it, forward or backward, and writes a warning
-    // when the count reaches 1, 10, 100 and so on: a run that is stopped from outside never gets to the summary that
-    // Simulate() writes at its end. The predictor gives such a jump the barrier max(dE, 0).
-    void CountJumpWithoutBarrier();
-    [[nodiscard]] std::string DescribeJumpsWithoutBarrier() const;
+    // Stops the run with an error if the selected jump has no barrier forward or backward.
+    void RequireBarrierOfSelectedJump() const;
     // constants
     static constexpr size_t kEventListSize = constants::kNumFirstNearestNeighbors;
 
@@ -68,15 +65,6 @@ class KineticMcFirstAbstract : public McAbstract {
     double total_rate_k_{0.0}; // k would be same for all
     const Element solvent_element_;
     const double total_solute_mass_;
-    // The selected jumps of this run, kept on rank 0: all of them, those whose start is not a minimum of the quartic
-    // form of the barrier model (no barrier forward) and those whose end is not one (no barrier backward).
-    unsigned long long int num_selected_jumps_{0};
-    unsigned long long int num_jumps_without_forward_barrier_{0};
-    unsigned long long int num_jumps_without_backward_barrier_{0};
-    // The lowest barrier the model itself gave on the side without a barrier. It is zero at the edge of the range of
-    // the quartic form and the more negative the farther outside a jump was.
-    double lowest_model_barrier_{0.0};
-    unsigned long long int next_warning_of_jumps_without_barrier_{1};
 };
 class KineticMcChainAbstract : public KineticMcFirstAbstract {
   public:

@@ -336,12 +336,9 @@ double GetQuarticModelBarrier(const double dE, const double D, const double Ks) 
       / std::pow(a, 3) / 2048;
   return Ea;
 }
-double GetQuarticBarrier(const double dE, const double D, const double Ks) {
-  const double model_barrier = GetQuarticModelBarrier(dE, D, Ks);
-  const double lowest_barrier = std::max(dE, 0.0);
-  // Written as a comparison that is false for a barrier that is not a number, so that such a barrier is returned as
-  // it is instead of being replaced by a number.
-  return model_barrier <= lowest_barrier ? lowest_barrier : model_barrier;
+bool HasBarrierForwardAndBackward(const double barrier, const double dE) {
+  // Both comparisons are false for a barrier that is not a number.
+  return barrier > 0.0 && barrier - dE > 0.0;
 }
 std::pair<double, double> VacancyMigrationPredictorQuartic::GetBarrierAndDiffFromLatticeIdPair(
     const cfg::Config &config,
@@ -365,15 +362,7 @@ std::pair<double, double> VacancyMigrationPredictorQuartic::GetBarrierAndDiffFro
   const auto dE = GetDe(config, lattice_id_jump_pair);
   const auto D = GetD(config, lattice_id_jump_pair);
   const auto Ks = GetKs(config, lattice_id_jump_pair);
-  return {GetQuarticBarrier(dE, D, Ks), dE};
-}
-double VacancyMigrationPredictorQuartic::GetModelBarrierFromLatticeIdPair(
-    const cfg::Config &config,
-    const std::pair<size_t, size_t> &lattice_id_jump_pair) const {
-  const auto dE = GetDe(config, lattice_id_jump_pair);
-  const auto D = GetD(config, lattice_id_jump_pair);
-  const auto Ks = GetKs(config, lattice_id_jump_pair);
-  return GetQuarticModelBarrier(dE, D, Ks);
+  return {GetQuarticModelBarrier(dE, D, Ks), dE};
 }
 
 size_t VacancyMigrationPredictorQuartic::GetPairFlatIndex(const std::pair<size_t, size_t> &lattice_id_jump_pair) const {

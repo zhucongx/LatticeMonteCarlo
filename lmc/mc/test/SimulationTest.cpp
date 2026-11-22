@@ -1,6 +1,7 @@
 #include "CanonicalMcSerial.h"
 #include "EnergyPredictor.h"
 #include "KineticMcFirstSerial.h"
+#include "VacancyMigrationPredictorQuartic.h"
 #include "cfg/test/TemporaryPath.hpp"
 #include "pred/test/SyntheticModel.hpp"
 
@@ -175,69 +176,97 @@ TEST_F(Simulation, CanonicalMcLogsEnergyAndItsPlainAverage) {
 }
 
 // On a model whose energy changes are so large that four of ten jumps have no barrier in the quartic form, KMC has
-// to run without a negative barrier and to tell how many of the jumps it took had none.
-TEST_F(Simulation, KineticMcCountsTheJumpsWithoutABarrier) {
+// to stop before it takes the first such jump, with an error that names the step.
+TEST_F(Simulation, KineticMcStopsAtAJumpWithoutABarrier) {
   const auto model_filename =
       pred::WriteModel(directory_ / "model_with_large_energy_changes.json",
                        pred::MakeSyntheticModelWithScaledEnergies(config_, pred::TestElementSet(), 600));
-  std::string warnings;
+  std::string message;
   {
     const WorkingDirectory working_directory(directory_ / "kmc_without_barrier");
-    const CapturedErrorOutput captured;
-    // 300 steps, each of them logged, at a temperature at which the vacancy climbs about as often as it descends.
-    KineticMcFirstSerial(config_, 1, 100, 300, 0, 0, 0, 0, 20000, pred::TestElementSet(), model_filename, "", false,
-                         false, false, 41)
-        .Simulate();
-    warnings = captured.GetString();
+    try {
+      // Up to 300 steps, each of them logged.
+      KineticMcFirstSerial(config_, 1, 100, 300, 0, 0, 0, 0, 20000, pred::TestElementSet(), model_filename, "", false,
+                           false, false, 41)
+          .Simulate();
+    } catch (const std::runtime_error &error) {
+      message = error.what();
+    }
   }
-  const auto rows = ReadLog(directory_ / "kmc_without_barrier" / "kmc_log.txt");
-  ASSERT_EQ(rows.size(), 301u);    // steps 0 to 300
+  ASSERT_FALSE(message.empty()) << "the run went on although the model has no barrier for four of ten jumps";
+  // The log holds the steps before the one that is named in the message, and every jump taken in them had a barrier.
   // columns: steps, time, temperature, energy, Ea, dE, ...
-  size_t num_without_forward_barrier = 0;
-  size_t num_without_backward_barrier = 0;
-  std::string first_step;
+  const auto rows = ReadLog(directory_ / "kmc_without_barrier" / "kmc_log.txt");
+  const std::string beginning =
+      "step " + std::to_string(rows.size()) + ": the barrier model has no barrier for the jump of the vacancy";
+  EXPECT_EQ(message.rfind(beginning, 0), 0u) << message;
+  EXPECT_NE(message.find("energy change"), std::string::npos) << message;
   for (const auto &row: rows) {
     const double barrier = std::stod(row.at(4));
     const double energy_change = std::stod(row.at(5));
-    ASSERT_GE(barrier, std::max(energy_change, 0.0)) << "step " << row.at(0);
-    ASSERT_TRUE(std::isfinite(std::stod(row.at(1)))) << "step " << row.at(0);
-    if (barrier == 0.0) {
-      ++num_without_forward_barrier;
-    } else if (barrier == energy_change) {
-      ++num_without_backward_barrier;
-    } else {
-      continue;
-    }
-    if (first_step.empty()) {
-      first_step = row.at(0);
-    }
+    ASSERT_GT(barrier, std::max(energy_change, 0.0)) << "step " << row.at(0);
   }
-  EXPECT_GE(num_without_forward_barrier, 10u);
-  EXPECT_GE(num_without_backward_barrier, 10u);
-  // The first one is reported when it happens, because a long run is stopped from outside and never gets to the
-  // summary at its end.
-  ASSERT_FALSE(first_step.empty());
-  const std::string first_warning = "Warning: step " + first_step + ": so far 1 of " +
-      std::to_string(std::stoull(first_step) + 1) + " jumps had no barrier in the quartic barrier model";
-  EXPECT_EQ(warnings.rfind(first_warning, 0), 0u) << warnings;
-  const std::string summary = "Warning: in this run " +
-      std::to_string(num_without_forward_barrier + num_without_backward_barrier) +
-      " of 301 jumps had no barrier in the quartic barrier model (" + std::to_string(num_without_forward_barrier) +
-      " forward, " + std::to_string(num_without_backward_barrier) + " backward)";
-  EXPECT_NE(warnings.find(summary), std::string::npos) << warnings;
 }
 
-// The warnings are the only output about jumps without a barrier, so a run inside the range of the quartic form
-// writes what it wrote before they existed.
-TEST_F(Simulation, KineticMcWritesNoWarningWhileEveryJumpHasABarrier) {
-  std::string warnings;
+// A candidate without a barrier that is not selected does not stop the run. The vacancy is put on a site from which
+// one jump at least is beyond the range of the quartic form while the jump with the lowest barrier is inside it and
+// lower than every other one by 0.2 eV or more: at 100 K it is selected with a probability of 1 to within 1e-9.
+TEST_F(Simulation, KineticMcGoesOnPastACandidateWithoutABarrier) {
+  const auto model_filename =
+      pred::WriteModel(directory_ / "model_with_some_large_energy_changes.json",
+                       pred::MakeSyntheticModelWithScaledEnergies(config_, pred::TestElementSet(), 300));
+  const pred::VacancyMigrationPredictorQuartic predictor(model_filename, config_, pred::TestElementSet());
+  size_t num_sites = 0;
+  for (size_t site = 0; site < config_.GetNumAtoms(); ++site) {
+    auto config = config_;
+    if (site != config.GetVacancyLatticeId()) {
+      config.LatticeJump({config.GetVacancyLatticeId(), site});
+    }
+    std::vector<double> barriers;
+    size_t num_without_barrier = 0;
+    double energy_change_of_lowest = 0;
+    for (const size_t neighbor: config.GetFirstNeighborsAdjacencyList()[site]) {
+      const auto [barrier, energy_change] = predictor.GetBarrierAndDiffFromLatticeIdPair(config, {site, neighbor});
+      if (barriers.empty() || barrier < *std::min_element(barriers.begin(), barriers.end())) {
+        energy_change_of_lowest = energy_change;
+      }
+      barriers.push_back(barrier);
+      num_without_barrier += pred::HasBarrierForwardAndBackward(barrier, energy_change) ? 0 : 1;
+    }
+    std::sort(barriers.begin(), barriers.end());
+    if (num_without_barrier == 0 || barriers[1] - barriers[0] < 0.2 ||
+        !pred::HasBarrierForwardAndBackward(barriers[0], energy_change_of_lowest)) {
+      continue;
+    }
+    ++num_sites;
+    const std::string name = "kmc_candidate_without_barrier_" + std::to_string(site);
+    const WorkingDirectory working_directory(directory_ / name);
+    // A single step.
+    EXPECT_NO_THROW(KineticMcFirstSerial(config, 1, 100, 0, 0, 0, 0, 0, 100, pred::TestElementSet(), model_filename,
+                                         "", false, false, false, 41)
+                        .Simulate())
+        << "site " << site;
+    const auto rows = ReadLog(directory_ / name / "kmc_log.txt");
+    ASSERT_EQ(rows.size(), 1u) << "site " << site;
+    EXPECT_NEAR(std::stod(rows[0].at(4)), barriers[0], 1e-9) << "site " << site;
+  }
+  EXPECT_GE(num_sites, 1u);
+}
+
+// A run inside the range of the quartic form is not affected: it reaches its end and writes nothing to the standard
+// error stream.
+TEST_F(Simulation, KineticMcRunsToItsEndWhileEveryJumpHasABarrier) {
+  std::string errors;
   {
     const CapturedErrorOutput captured;
-    RunKineticMc("kmc_with_barriers", 51);
-    warnings = captured.GetString();
+    EXPECT_NO_THROW(RunKineticMc("kmc_with_barriers", 51));
+    errors = captured.GetString();
   }
-  EXPECT_EQ(warnings, "");
-  for (const auto &row: ReadLog(directory_ / "kmc_with_barriers" / "kmc_log.txt")) {
+  EXPECT_EQ(errors, "");
+  const auto rows = ReadLog(directory_ / "kmc_with_barriers" / "kmc_log.txt");
+  ASSERT_FALSE(rows.empty());
+  EXPECT_EQ(rows.back().at(0), "300");
+  for (const auto &row: rows) {
     const double barrier = std::stod(row.at(4));
     const double energy_change = std::stod(row.at(5));
     ASSERT_GT(barrier, std::max(energy_change, 0.0)) << "step " << row.at(0);
