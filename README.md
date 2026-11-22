@@ -78,7 +78,7 @@ The number of MPI processes is fixed by the method, and the program stops with a
 
 | `simulation_method` | MPI processes | OpenMP threads |
 |---|---|---|
-| `KineticMcFirstOmp` | 1 | at start-up only |
+| `KineticMcFirstSerial` | 1 | at start-up only |
 | `KineticMcFirstMpi` | 12 (one per jump of the vacancy) | no |
 | `KineticMcChainOmpi` | 12 (one per jump of the vacancy) | yes |
 | `CanonicalMcSerial`, `SimulatedAnnealing` | 1 | no |
@@ -88,7 +88,7 @@ A step costs a few microseconds, which is less than it costs to start a group of
 
 | `simulation_method` | processes × threads | steps per second |
 |---|---|---|
-| `KineticMcFirstOmp` | 1 × any | 270 000 |
+| `KineticMcFirstSerial` | 1 × any | 270 000 |
 | `KineticMcFirstMpi` | 12 × 1 | 115 000 to 145 000 |
 | `KineticMcChainOmpi` | 12 × 1 | 13 000 to 18 000 |
 | `CanonicalMcSerial` | 1 × 1 | 320 000 |
@@ -101,7 +101,7 @@ Examples:
 - KMC with the sample file, which selects `KineticMcChainOmpi`:
   - `mpirun -np 12 bin/lmc.exe -p script/kmc_param.txt`
 
-- Single-process KMC (set `simulation_method KineticMcFirstOmp` in the parameter file):
+- Single-process KMC (set `simulation_method KineticMcFirstSerial` in the parameter file):
   - `bin/lmc.exe -p script/kmc_param.txt`
 
 - CMC:
@@ -124,7 +124,7 @@ One `key value` pair per line, separated by blanks or tabs. Text after `#` is a 
 
 Common keys (only relevant ones are used by each method):
 
-- `simulation_method`: one of `KineticMcFirstOmp`, `KineticMcFirstMpi`, `KineticMcChainOmpi`, `CanonicalMcSerial`, `CanonicalMcOmp`, `SimulatedAnnealing`, `Ansys`, `Reformat`
+- `simulation_method`: one of `KineticMcFirstSerial`, `KineticMcFirstMpi`, `KineticMcChainOmpi`, `CanonicalMcSerial`, `CanonicalMcOmp`, `SimulatedAnnealing`, `Ansys`, `Reformat`
 - `json_coefficients_filename`: JSON coefficients for energy/barrier models
 - `config_filename` / `map_filename`: input configuration (.cfg) or the triplet (lattice/element/map). Choose one.
 - `element_set`: element list, e.g., `Al Mg Zn`
