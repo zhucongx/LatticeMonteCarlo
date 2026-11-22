@@ -14,7 +14,7 @@ Core idea: total energy and migration barriers are predicted from JSON coefficie
   - Total energy: `EnergyPredictor`
   - Vacancy migration barriers: `VacancyMigrationPredictor*` (LRU-backed variant included)
   - Local energy changes: `EnergyChangePredictorPairSite`
-  - Time–temperature interpolation and a rate corrector
+  - Time–temperature interpolation
 - Parallelization: OpenMP and MPI (some algorithms mix OMP + MPI)
 - I/O: `.cfg`/`.xyz` (gz supported), `lattice/element/map` triplet, logging, and analysis outputs
 
@@ -136,7 +136,6 @@ Common keys (only relevant ones are used by each method):
 KMC-specific:
 
 - `time_temperature_filename`: time-temperature table (optional). Every line that starts with two numbers is a `time temperature` point, other lines are ignored; the temperature is interpolated linearly and held constant outside the table.
-- `rate_corrector`: `true|false`
 - `early_stop`: `true|false` (stop when vacancy neighborhood becomes pure solvent)
 - `solute_disp`: `true|false` (record solute center-of-mass displacement)
 

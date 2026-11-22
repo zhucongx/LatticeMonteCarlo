@@ -99,7 +99,7 @@ class Simulation : public ::testing::Test {
   static void RunKineticMc(const std::string &name, const unsigned long long int seed) {
     const WorkingDirectory working_directory(directory_ / name);
     KineticMcFirstSerial(config_, 10, 100, 300, 0, 0, 0, 0, 600, pred::TestElementSet(), model_filename_, "", false,
-                         false, true, seed)
+                         true, seed)
         .Simulate();
   }
 
@@ -186,7 +186,7 @@ TEST_F(Simulation, KineticMcCountsTheJumpsWithoutABarrier) {
     const CapturedErrorOutput captured;
     // 300 steps, each of them logged, at a temperature at which the vacancy climbs about as often as it descends.
     KineticMcFirstSerial(config_, 1, 100, 300, 0, 0, 0, 0, 20000, pred::TestElementSet(), model_filename, "", false,
-                         false, false, 41)
+                         false, 41)
         .Simulate();
     warnings = captured.GetString();
   }
@@ -252,10 +252,10 @@ TEST_F(Simulation, KineticMcNeedsExactlyOneVacancy) {
   auto two_vacancies = config_;
   two_vacancies.SetAtomElementTypeAtLattice(100, Element("X"));
   EXPECT_THROW(KineticMcFirstSerial(no_vacancy, 10, 100, 300, 0, 0, 0, 0, 600, pred::TestElementSet(), model_filename_,
-                                    "", false, false, false, 1),
+                                    "", false, false, 1),
                std::runtime_error);
   EXPECT_THROW(KineticMcFirstSerial(two_vacancies, 10, 100, 300, 0, 0, 0, 0, 600, pred::TestElementSet(),
-                                    model_filename_, "", false, false, false, 1),
+                                    model_filename_, "", false, false, 1),
                std::runtime_error);
 }
 
@@ -267,7 +267,7 @@ TEST_F(Simulation, ElementsOutsideElementSetAreRejected) {
       CanonicalMcSerial(with_copper, 1, 1000, 2000, 50, 0, 0, 600, pred::TestElementSet(), model_filename_, 1),
       std::runtime_error);
   EXPECT_THROW(KineticMcFirstSerial(with_copper, 10, 100, 300, 0, 0, 0, 0, 600, pred::TestElementSet(),
-                                    model_filename_, "", false, false, false, 1),
+                                    model_filename_, "", false, false, 1),
                std::runtime_error);
 }
 }    // namespace mc

@@ -72,7 +72,7 @@ TEST(Parameter, ReadsAKineticMcFile) {
   EXPECT_EQ(parameter.maximum_steps_, 5000u);
   EXPECT_DOUBLE_EQ(parameter.temperature_, 450.0);
   EXPECT_EQ(parameter.element_set_, (std::vector<std::string>{"Al", "Mg", "Zn"}));
-  EXPECT_FALSE(parameter.rate_corrector_);
+  EXPECT_FALSE(parameter.early_stop_);
   EXPECT_TRUE(parameter.warnings_.empty());
 }
 
@@ -113,11 +113,11 @@ TEST(Parameter, RejectsMalformedNumbers) {
 
 // Everything except the exact word "true" used to be read as false.
 TEST(Parameter, ReadsBooleans) {
-  const auto parameter = Read(kKineticMc + "rate_corrector True\nearly_stop 0\nsolute_disp 1\n");
-  EXPECT_TRUE(parameter.rate_corrector_);
+  const auto parameter = Read(kKineticMc + "early_stop 0\nsolute_disp 1\n");
   EXPECT_FALSE(parameter.early_stop_);
   EXPECT_TRUE(parameter.solute_disp_);
-  EXPECT_THROW(Read(kKineticMc + "rate_corrector yes\n"), std::invalid_argument);
+  EXPECT_TRUE(Read(kKineticMc + "early_stop True\n").early_stop_);
+  EXPECT_THROW(Read(kKineticMc + "early_stop yes\n"), std::invalid_argument);
 }
 
 TEST(Parameter, RequiresTheParametersOfTheMethod) {
@@ -169,6 +169,15 @@ TEST(Parameter, WarnsAboutObsoleteAndRepeatedKeys) {
   ASSERT_EQ(repeated.warnings_.size(), 1u);
   EXPECT_NE(repeated.warnings_[0].find("temperature"), std::string::npos);
   EXPECT_DOUBLE_EQ(repeated.temperature_, 500.0);
+}
+
+// Earlier versions could rescale the time of a KMC run. A file that switched this off still loads, a file that
+// switched it on asks for other times than the program writes now.
+TEST(Parameter, RateCorrectorOfEarlierVersionsCanOnlyBeOff) {
+  const auto parameter = Read(kKineticMc + "rate_corrector false\n");
+  ASSERT_EQ(parameter.warnings_.size(), 1u);
+  EXPECT_NE(parameter.warnings_[0].find("rate_corrector"), std::string::npos);
+  EXPECT_THROW(Read(kKineticMc + "rate_corrector true\n"), std::invalid_argument);
 }
 
 TEST(Parameter, SeedIsTakenFromTheFile) {

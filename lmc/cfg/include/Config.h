@@ -52,7 +52,6 @@ class Config {
   [[nodiscard]] std::unordered_set<size_t> GetNeighborsAtomIdSetOfAtom(size_t atom_id) const;
   [[nodiscard]] int FindDistanceLabelBetweenLattice(size_t lattice_id1, size_t lattice_id2) const;
   [[nodiscard]] double GetVacancyConcentration() const;
-  [[nodiscard]] double GetSoluteConcentration(Element solvent_element) const;
   [[nodiscard]] std::map<Element, size_t> GetLocalInfoOfLatticeId(size_t lattice_id, size_t shell_number) const;
   [[nodiscard]] Element GetSolventElement() const;
   [[nodiscard]] double GetTotalSoluteMass() const;
