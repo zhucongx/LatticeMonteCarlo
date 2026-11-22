@@ -69,6 +69,15 @@ void GetOneHotParametersFromMap(const std::vector<Element> &encode,
                                 size_t num_of_elements,
                                 const std::vector<std::vector<std::vector<size_t>>> &cluster_mapping,
                                 std::vector<double> &out_encode);
+// Length of the vector GetOneHotParametersFromMap produces for this cluster mapping.
+size_t GetOneHotEncodeSize(size_t num_of_elements,
+                           const std::vector<std::vector<std::vector<size_t>>> &cluster_mapping);
+// Throws if an array read from the coefficient file does not have the size the model requires. Eigen checks no
+// dimensions in release builds, so a mismatch would otherwise go on to produce meaningless energies.
+void CheckModelSize(const std::string &predictor_filename,
+                    const std::string &name,
+                    size_t actual_size,
+                    size_t expected_size);
 
 struct ParametersQuartic {
   Eigen::VectorXd mu_x_mmm{};

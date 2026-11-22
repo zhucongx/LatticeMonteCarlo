@@ -2,7 +2,7 @@ build/
 bin/
 lib/
 cmake-build*/
-test/
+/test/
 out/
 .idea/
 .vs/

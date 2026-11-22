@@ -10,7 +10,8 @@ CanonicalMcOmp::CanonicalMcOmp(cfg::Config config,
                                const double restart_energy,
                                const double temperature,
                                const std::set<Element> &element_set,
-                               const std::string &json_coefficients_filename)
+                               const std::string &json_coefficients_filename,
+                               const unsigned long long int seed)
     : CanonicalMcAbstract(std::move(config),
                           log_dump_steps,
                           config_dump_steps,
@@ -20,7 +21,8 @@ CanonicalMcOmp::CanonicalMcOmp(cfg::Config config,
                           restart_energy,
                           temperature,
                           element_set,
-                          json_coefficients_filename) {
+                          json_coefficients_filename,
+                          seed) {
   if (world_size_ != 1) {
     if (world_rank_ == 0) {
       std::cout << "Must use 1 process for CanonicalMcOmp. Terminating...\n" << std::endl;

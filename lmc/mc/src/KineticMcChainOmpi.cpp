@@ -18,7 +18,8 @@ KineticMcChainOmpi::KineticMcChainOmpi(cfg::Config config,
                                        const std::string &time_temperature_filename,
                                        const bool is_rate_corrector,
                                        const bool is_early_stop,
-                                       const bool is_solute_disp)
+                                       const bool is_solute_disp,
+                                       const unsigned long long int seed)
     : KineticMcChainAbstract(std::move(config),
                              log_dump_steps,
                              config_dump_steps,
@@ -33,10 +34,11 @@ KineticMcChainOmpi::KineticMcChainOmpi(cfg::Config config,
                              time_temperature_filename,
                              is_rate_corrector,
                              is_early_stop,
-                             is_solute_disp) {
+                             is_solute_disp,
+                             seed) {
   if (world_size_ != kEventListSize) {
     if (world_rank_ == 0) {
-      std::cout << "Must use " << kEventListSize << " precesses. Terminating...\n" << std::endl;
+      std::cout << "Must use " << kEventListSize << " processes. Terminating...\n" << std::endl;
     }
     MPI_Abort(MPI_COMM_WORLD, 1);
   }

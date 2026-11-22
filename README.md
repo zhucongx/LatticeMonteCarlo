@@ -1,4 +1,4 @@
-[![CMake](https://github.com/zhucongx/LatticeMC/actions/workflows/cmake.yml/badge.svg?branch=main)](https://github.com/zhucongx/LatticeMC/actions/workflows/cmake.yml)
+[![CMake](https://github.com/zhucongx/LatticeMonteCarlo/actions/workflows/cmake.yml/badge.svg?branch=main)](https://github.com/zhucongx/LatticeMonteCarlo/actions/workflows/cmake.yml)
 
 
 # LatticeMC
@@ -52,6 +52,16 @@ Tips:
 - On macOS, installing `libomp` helps CMake locate OpenMP.
 - oneAPI + MKL: source your oneAPI environment (e.g., `source /opt/intel/oneapi/setvars.sh`) so that `MKLROOT` is visible to CMake.
 
+### Tests
+
+The unit tests are optional and need no input files. They download GoogleTest at configure time:
+
+- `cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DLMC_BUILD_TESTS=ON`
+- `cmake --build build -j`
+- `ctest --test-dir build --output-on-failure` (or run `bin/lmc_test.exe` directly)
+
+Test sources live next to the code they cover, in `lmc/<module>/test/`.
+
 ### Run
 
 The executable is `bin/lmc.exe`. Provide a parameter file via `-p <file>`.
@@ -64,13 +74,23 @@ Sample parameter files are under `script/`:
 - Analysis: `script/ansys_param.txt`
 - Reformat (batch cfg ↔ map conversion): `script/format_param.txt`
 
+The number of MPI processes is fixed by the method, and the program stops with a message if it is started with another number:
+
+| `simulation_method` | MPI processes | OpenMP threads |
+|---|---|---|
+| `KineticMcFirstOmp` | 1 | yes |
+| `KineticMcFirstMpi` | 12 (one per jump of the vacancy) | no |
+| `KineticMcChainOmpi` | 12 (one per jump of the vacancy) | yes |
+| `CanonicalMcSerial`, `SimulatedAnnealing` | 1 | no |
+| `CanonicalMcOmp`, `Ansys`, `Reformat` | 1 | yes |
+
 Examples:
 
-- Single-process KMC:
-  - `bin/lmc.exe -p script/kmc_param.txt`
+- KMC with the sample file, which selects `KineticMcChainOmpi`:
+  - `mpirun -np 12 bin/lmc.exe -p script/kmc_param.txt`
 
-- MPI-parallel KMC (4 processes):
-  - `mpirun -np 4 bin/lmc.exe -p script/kmc_param.txt`
+- Single-process KMC (set `simulation_method KineticMcFirstOmp` in the parameter file):
+  - `bin/lmc.exe -p script/kmc_param.txt`
 
 - CMC:
   - `bin/lmc.exe -p script/cmc_param.txt`
@@ -84,21 +104,26 @@ Examples:
 - Reformat:
   - `bin/lmc.exe -p script/format_param.txt`
 
+The program exits with status 0 only if the run completed. Any problem with the input is reported as one `Error: ...` line and a non-zero exit status.
+
 ### Parameter File Cheatsheet
 
-Common keys (only relevant ones are read by each method):
+One `key value` pair per line, separated by blanks or tabs. Text after `#` is a comment. A key that is not known, a value of the wrong type (integers are written with digits only, booleans as `true`/`false`) and a missing key that the chosen method needs are errors.
+
+Common keys (only relevant ones are used by each method):
 
 - `simulation_method`: one of `KineticMcFirstOmp`, `KineticMcFirstMpi`, `KineticMcChainOmpi`, `CanonicalMcSerial`, `CanonicalMcOmp`, `SimulatedAnnealing`, `Ansys`, `Reformat`
 - `json_coefficients_filename`: JSON coefficients for energy/barrier models
 - `config_filename` / `map_filename`: input configuration (.cfg) or the triplet (lattice/element/map). Choose one.
 - `element_set`: element list, e.g., `Al Mg Zn`
-- `temperature` / `initial_temperature`: in Kelvin
+- `temperature` / `initial_temperature`: in Kelvin. `temperature` may be omitted for KMC when a time-temperature table is given.
 - `log_dump_steps` / `config_dump_steps` / `maximum_steps` / `thermodynamic_averaging_steps`
 - `restart_steps` / `restart_energy` / `restart_time`
+- `seed`: seed of the random number generator (optional). Two runs with the same seed, executable and thread/process count follow the same trajectory. If the key is omitted a time-based seed is used and printed at startup, so any run can be repeated by adding `seed <value>`. A restarted run continues with a fresh random stream derived from `seed` and `restart_steps`.
 
 KMC-specific:
 
-- `time_temperature_filename`: time-temperature table (optional)
+- `time_temperature_filename`: time-temperature table (optional). Every line that starts with two numbers is a `time temperature` point, other lines are ignored; the temperature is interpolated linearly and held constant outside the table.
 - `rate_corrector`: `true|false`
 - `early_stop`: `true|false` (stop when vacancy neighborhood becomes pure solvent)
 - `solute_disp`: `true|false` (record solute center-of-mass displacement)
@@ -115,7 +140,7 @@ Analysis/Reformat-specific:
 - `initial_steps` / `increment_steps`
 - `smallest_cluster_criteria` / `solvent_bond_criteria` / `escape_temperature`
 
-See `script/` for ready-to-use samples. The `script/kmc_param.txt` file has been verified to contain proper line endings so that `solute_disp` doesn’t merge with the next key.
+See `script/` for ready-to-use samples.
 
 ### Outputs
 
@@ -139,4 +164,5 @@ See `script/` for ready-to-use samples. The `script/kmc_param.txt` file has been
 - `lmc/`: sources (`cfg`/`pred`/`mc`/`api`/`ansys`)
 - `script/`: sample parameter files and helper scripts
 - `bin/`: executable output directory
-- `test/`: example/large model files (not unit tests)
+- `lmc/<module>/test/`: unit tests
+- `test/`: local example runs and large model files (not tracked, not unit tests)

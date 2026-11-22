@@ -121,7 +121,8 @@ void Traverse::RunAnsys() const {
   // nlohmann::json ansys_info_array = nlohmann::json::array();
   frame_ofs << GetHeaderFrameString() << std::flush;
   cluster_ofs << GetHeaderClusterString() << std::flush;
-#pragma omp parallel for default(none) schedule(static, 1) shared(chemical_potential, std::cout, std::cerr, frame_ofs, cluster_ofs)
+  size_t num_failed = 0;
+#pragma omp parallel for default(none) schedule(static, 1) shared(chemical_potential, std::cout, std::cerr, frame_ofs, cluster_ofs) reduction(+: num_failed)
   for (unsigned long long i = initial_steps_; i <= final_steps_; i += increment_steps_) {
 #pragma omp critical
     {
@@ -130,108 +131,115 @@ void Traverse::RunAnsys() const {
               static_cast<double>(final_steps_ - initial_steps_ + 1) * 100
                 << "%" << std::endl;
     }
-    cfg::Config config = GetConfig(config_type_, i);
+    try {
+      cfg::Config config = GetConfig(config_type_, i);
 
-    // basic information
-    nlohmann::json frame_info = nlohmann::json::object();
-    std::map<std::string, cfg::Config::VectorVariant> auxiliary_lists{};
-    std::map<std::string, cfg::Config::ValueVariant> global_list;
+      // basic information
+      nlohmann::json frame_info = nlohmann::json::object();
+      std::map<std::string, cfg::Config::VectorVariant> auxiliary_lists{};
+      std::map<std::string, cfg::Config::ValueVariant> global_list;
 
-    frame_info["steps"] = i;
-    global_list["steps"] = i;
-    const auto time = log_map_.find("time") == log_map_.end()
-        ? nan("")
-        : std::get<std::unordered_map<unsigned long long, double>>(log_map_.at("time")).at(i);
-    frame_info["time"] = time;
-    global_list["time"] = time;
-    const auto current_temperature = std::get<std::unordered_map<unsigned long long, double>>(log_map_.at("temperature")).at(i);
-    frame_info["temperature"] = current_temperature;
-    global_list["temperature"] = current_temperature;
-    const auto energy = std::get<std::unordered_map<unsigned long long, double>>(log_map_.at("energy")).at(i);
-    frame_info["energy"] = energy;
-    global_list["energy"] = energy;
+      frame_info["steps"] = i;
+      global_list["steps"] = i;
+      const auto time = log_map_.find("time") == log_map_.end()
+          ? nan("")
+          : std::get<std::unordered_map<unsigned long long, double>>(log_map_.at("time")).at(i);
+      frame_info["time"] = time;
+      global_list["time"] = time;
+      const auto current_temperature = std::get<std::unordered_map<unsigned long long, double>>(log_map_.at("temperature")).at(i);
+      frame_info["temperature"] = current_temperature;
+      global_list["temperature"] = current_temperature;
+      const auto energy = std::get<std::unordered_map<unsigned long long, double>>(log_map_.at("energy")).at(i);
+      frame_info["energy"] = energy;
+      global_list["energy"] = energy;
 
-    // basic cluster information
-    SoluteCluster(config,
-                  solvent_element_,
-                  element_set_,
-                  smallest_cluster_criteria_,
-                  solvent_bond_criteria_,
-                  energy_predictor_,
-                  chemical_potential)
-        .GetClustersInfo(frame_info, auxiliary_lists, global_list);
+      // basic cluster information
+      SoluteCluster(config,
+                    solvent_element_,
+                    element_set_,
+                    smallest_cluster_criteria_,
+                    solvent_bond_criteria_,
+                    energy_predictor_,
+                    chemical_potential)
+          .GetClustersInfo(frame_info, auxiliary_lists, global_list);
 
-    // binding energy
-    ExitTime(config,
-             solvent_element_,
-             element_set_,
-             escape_temperature_,
-             current_temperature,
-             energy_predictor_,
-             vacancy_migration_predictor_,
-             energy_change_predictor_pair_site_,
-             chemical_potential)
-        .GetExitTimeInfo(frame_info, auxiliary_lists, global_list);
+      // binding energy
+      ExitTime(config,
+               solvent_element_,
+               element_set_,
+               escape_temperature_,
+               current_temperature,
+               energy_predictor_,
+               vacancy_migration_predictor_,
+               energy_change_predictor_pair_site_,
+               chemical_potential)
+          .GetExitTimeInfo(frame_info, auxiliary_lists, global_list);
 
-    // sro information
-    // ShortRangeOrder short_range_order(config, element_set_);
-    // const auto sro1 = short_range_order.FindWarrenCowley(1);
-    // frame_info["warren_cowley"]["first"] = sro1;
-    // for (const auto &[pair, value]: sro1) {
-    //   global_list["sro1_" + pair] = value;
-    // }
-    //
-    // const auto sro2 = short_range_order.FindWarrenCowley(2);
-    // frame_info["warren_cowley"]["second"] = sro2;
-    // for (const auto &[pair, value]: sro2) {
-    //   global_list["sro2_" + pair] = value;
-    // }
-    //
-    // const auto sro3 = short_range_order.FindWarrenCowley(3);
-    // frame_info["warren_cowley"]["third"] = sro3;
-    // for (const auto &[pair, value]: sro3) {
-    //   global_list["sro3_" + pair] = value;
-    // }
+      // sro information
+      // ShortRangeOrder short_range_order(config, element_set_);
+      // const auto sro1 = short_range_order.FindWarrenCowley(1);
+      // frame_info["warren_cowley"]["first"] = sro1;
+      // for (const auto &[pair, value]: sro1) {
+      //   global_list["sro1_" + pair] = value;
+      // }
+      //
+      // const auto sro2 = short_range_order.FindWarrenCowley(2);
+      // frame_info["warren_cowley"]["second"] = sro2;
+      // for (const auto &[pair, value]: sro2) {
+      //   global_list["sro2_" + pair] = value;
+      // }
+      //
+      // const auto sro3 = short_range_order.FindWarrenCowley(3);
+      // frame_info["warren_cowley"]["third"] = sro3;
+      // for (const auto &[pair, value]: sro3) {
+      //   global_list["sro3_" + pair] = value;
+      // }
 
-    // vacancy information
-    // auto vacancy_lattice_id = config.GetVacancyLatticeId();
-    // static auto convert = [](const std::set<Element> &element_set_base,
-    //                          const std::map<Element, size_t> &element_map) -> std::map<std::string, size_t> {
-    //   std::map<std::string, size_t> string_map;
-    //   for (const auto &element: element_set_base) {
-    //     string_map[element.GetString()] = 0;
-    //   }
-    //   for (const auto &[element, value]: element_map) {
-    //     string_map[element.GetString()] = value;
-    //   }
-    //   return string_map;
-    // };
-    // const auto vac1 = convert(element_set_, config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 1));
-    // frame_info["vacancy_local"]["first"] = vac1;
-    // for (const auto &[element, value]: vac1) {
-    //   global_list["vac1_" + element] = value;
-    // }
-    // const auto vac2 = convert(element_set_, config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 2));
-    // frame_info["vacancy_local"]["second"] = vac2;
-    // for (const auto &[element, value]: vac2) {
-    //   global_list["vac2_" + element] = value;
-    // }
-    // const auto vac3 = convert(element_set_, config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 3));
-    // frame_info["vacancy_local"]["third"] = vac3;
-    // for (const auto &[element, value]: vac3) {
-    //   global_list["vac3_" + element] = value;
-    // }
+      // vacancy information
+      // auto vacancy_lattice_id = config.GetVacancyLatticeId();
+      // static auto convert = [](const std::set<Element> &element_set_base,
+      //                          const std::map<Element, size_t> &element_map) -> std::map<std::string, size_t> {
+      //   std::map<std::string, size_t> string_map;
+      //   for (const auto &element: element_set_base) {
+      //     string_map[element.GetString()] = 0;
+      //   }
+      //   for (const auto &[element, value]: element_map) {
+      //     string_map[element.GetString()] = value;
+      //   }
+      //   return string_map;
+      // };
+      // const auto vac1 = convert(element_set_, config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 1));
+      // frame_info["vacancy_local"]["first"] = vac1;
+      // for (const auto &[element, value]: vac1) {
+      //   global_list["vac1_" + element] = value;
+      // }
+      // const auto vac2 = convert(element_set_, config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 2));
+      // frame_info["vacancy_local"]["second"] = vac2;
+      // for (const auto &[element, value]: vac2) {
+      //   global_list["vac2_" + element] = value;
+      // }
+      // const auto vac3 = convert(element_set_, config.GetLocalInfoOfLatticeId(vacancy_lattice_id, 3));
+      // frame_info["vacancy_local"]["third"] = vac3;
+      // for (const auto &[element, value]: vac3) {
+      //   global_list["vac3_" + element] = value;
+      // }
 
 
-    boost::filesystem::create_directories("ansys");
-    config.WriteExtendedXyz("ansys/" + std::to_string(i) + ".xyz.gz", auxiliary_lists, global_list);
-    const auto cluster_string = GetClusterString(frame_info);
-    const auto frame_string = GetFrameString(frame_info);
+      boost::filesystem::create_directories("ansys");
+      config.WriteExtendedXyz("ansys/" + std::to_string(i) + ".xyz.gz", auxiliary_lists, global_list);
+      const auto cluster_string = GetClusterString(frame_info);
+      const auto frame_string = GetFrameString(frame_info);
 #pragma omp critical
-    {
-      // ansys_info_array.push_back(frame_info);
-      cluster_ofs << cluster_string << std::flush;
-      frame_ofs << frame_string << std::flush;
+      {
+        // ansys_info_array.push_back(frame_info);
+        cluster_ofs << cluster_string << std::flush;
+        frame_ofs << frame_string << std::flush;
+      }
+    } catch (const std::exception &error) {
+      // An exception must not leave the parallel region. Report the frame and go on with the others.
+#pragma omp critical
+      { std::cerr << "Step " << i << " could not be analyzed: " << error.what() << std::endl; }
+      ++num_failed;
     }
   }
   // std::cout << "Finished. Sorting..." << std::endl;
@@ -244,6 +252,9 @@ void Traverse::RunAnsys() const {
   // fos.push(ofs);
   // fos.precision(16);
   // fos << ansys_info_array.dump(2) << std::endl;
+  if (num_failed != 0) {
+    throw std::runtime_error(std::to_string(num_failed) + " step(s) could not be analyzed, see the messages above");
+  }
   std::cout << "Done..." << std::endl;
 }
 
@@ -371,7 +382,8 @@ std::string Traverse::GetFrameString(const nlohmann::json &frame) const {
 }
 
 void Traverse::RunReformat() const {
-#pragma omp parallel for default(none) schedule(static, 1) shared(std::cout, std::cerr)
+  size_t num_failed = 0;
+#pragma omp parallel for default(none) schedule(static, 1) shared(std::cout, std::cerr) reduction(+: num_failed)
   for (unsigned long long i = initial_steps_; i <= final_steps_; i += increment_steps_) {
 #pragma omp critical
     {
@@ -380,7 +392,7 @@ void Traverse::RunReformat() const {
               static_cast<double>(final_steps_ - initial_steps_ + 1) * 100
                 << "%" << std::endl;
     }
-    // try {
+    try {
       if (config_type_ == "map") {
         auto config = cfg::Config::ReadMap("lattice.txt", "element.txt", "map" + std::to_string(i) + ".txt");
         config.WriteConfig(std::to_string(i) + ".cfg.gz");
@@ -395,9 +407,15 @@ void Traverse::RunReformat() const {
       } else {
         throw std::invalid_argument("Unknown config type: " + config_type_);
       }
-    // } catch (const std::exception &e) {
-    //   std::cerr << "Error when working with " + std::to_string(i) << std::endl;
-    // }
+    } catch (const std::exception &error) {
+      // An exception must not leave the parallel region. Report the step and go on with the others.
+#pragma omp critical
+      { std::cerr << "Step " << i << " could not be converted: " << error.what() << std::endl; }
+      ++num_failed;
+    }
+  }
+  if (num_failed != 0) {
+    throw std::runtime_error(std::to_string(num_failed) + " step(s) could not be converted, see the messages above");
   }
   std::cout << "Done..." << std::endl;
 }
