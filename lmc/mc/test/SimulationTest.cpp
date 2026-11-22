@@ -1,6 +1,6 @@
 #include "CanonicalMcSerial.h"
 #include "EnergyPredictor.h"
-#include "KineticMcFirstOmp.h"
+#include "KineticMcFirstSerial.h"
 #include "cfg/test/TemporaryPath.hpp"
 #include "pred/test/SyntheticModel.hpp"
 
@@ -98,8 +98,8 @@ class Simulation : public ::testing::Test {
   // 300 steps of first-order KMC at 600 K, logged every 10 steps.
   static void RunKineticMc(const std::string &name, const unsigned long long int seed) {
     const WorkingDirectory working_directory(directory_ / name);
-    KineticMcFirstOmp(config_, 10, 100, 300, 0, 0, 0, 0, 600, pred::TestElementSet(), model_filename_, "", false,
-                      false, true, seed)
+    KineticMcFirstSerial(config_, 10, 100, 300, 0, 0, 0, 0, 600, pred::TestElementSet(), model_filename_, "", false,
+                         false, true, seed)
         .Simulate();
   }
 
@@ -185,8 +185,8 @@ TEST_F(Simulation, KineticMcCountsTheJumpsWithoutABarrier) {
     const WorkingDirectory working_directory(directory_ / "kmc_without_barrier");
     const CapturedErrorOutput captured;
     // 300 steps, each of them logged, at a temperature at which the vacancy climbs about as often as it descends.
-    KineticMcFirstOmp(config_, 1, 100, 300, 0, 0, 0, 0, 20000, pred::TestElementSet(), model_filename, "", false,
-                      false, false, 41)
+    KineticMcFirstSerial(config_, 1, 100, 300, 0, 0, 0, 0, 20000, pred::TestElementSet(), model_filename, "", false,
+                         false, false, 41)
         .Simulate();
     warnings = captured.GetString();
   }
@@ -251,11 +251,11 @@ TEST_F(Simulation, KineticMcNeedsExactlyOneVacancy) {
   no_vacancy.SetAtomElementTypeAtLattice(0, Element("Al"));
   auto two_vacancies = config_;
   two_vacancies.SetAtomElementTypeAtLattice(100, Element("X"));
-  EXPECT_THROW(KineticMcFirstOmp(no_vacancy, 10, 100, 300, 0, 0, 0, 0, 600, pred::TestElementSet(), model_filename_,
-                                 "", false, false, false, 1),
+  EXPECT_THROW(KineticMcFirstSerial(no_vacancy, 10, 100, 300, 0, 0, 0, 0, 600, pred::TestElementSet(), model_filename_,
+                                    "", false, false, false, 1),
                std::runtime_error);
-  EXPECT_THROW(KineticMcFirstOmp(two_vacancies, 10, 100, 300, 0, 0, 0, 0, 600, pred::TestElementSet(),
-                                 model_filename_, "", false, false, false, 1),
+  EXPECT_THROW(KineticMcFirstSerial(two_vacancies, 10, 100, 300, 0, 0, 0, 0, 600, pred::TestElementSet(),
+                                    model_filename_, "", false, false, false, 1),
                std::runtime_error);
 }
 
@@ -266,8 +266,8 @@ TEST_F(Simulation, ElementsOutsideElementSetAreRejected) {
   EXPECT_THROW(
       CanonicalMcSerial(with_copper, 1, 1000, 2000, 50, 0, 0, 600, pred::TestElementSet(), model_filename_, 1),
       std::runtime_error);
-  EXPECT_THROW(KineticMcFirstOmp(with_copper, 10, 100, 300, 0, 0, 0, 0, 600, pred::TestElementSet(),
-                                 model_filename_, "", false, false, false, 1),
+  EXPECT_THROW(KineticMcFirstSerial(with_copper, 10, 100, 300, 0, 0, 0, 0, 600, pred::TestElementSet(),
+                                    model_filename_, "", false, false, false, 1),
                std::runtime_error);
 }
 }    // namespace mc
