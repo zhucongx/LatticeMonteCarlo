@@ -21,7 +21,7 @@ mpirun -np 12 lmc.exe -p param.txt                            # KineticMcFirstMp
 OMP_NUM_THREADS=1 mpirun -np 12 lmc.exe -p param.txt          # KineticMcChainOmpi
 ```
 
-With one process a step takes a few microseconds, which is less than it costs to start a group of threads or to exchange messages between processes. The [project README](../README.md#run) has a table of the speeds. Spare cores are usually better spent on independent runs.
+With one process a step takes a few microseconds, which is less than it costs to start a group of threads or to exchange messages between processes. Spare cores are therefore usually better spent on independent runs, see [Speed and memory](#speed-and-memory).
 
 ## Kinetic Monte Carlo
 
@@ -129,3 +129,19 @@ seed 12345
 <img src="figures/annealing.webp" width="760" alt="Animation of a simulated annealing run in which scattered solute atoms gather in one compact cluster while the temperature and the energy fall.">
 
 *The same run as an animation, slowed down while the cluster forms. The last picture is `lowest_energy.cfg.gz`. SA writes no other configuration; the ones before it come from a modified build that also writes numbered configurations.*
+
+## Speed and memory
+
+Steps per second for 10976 sites (Al with 5 % Mg and Zn) at 450 K on an Apple M3 Max:
+
+| `simulation_method` | Processes × threads | Steps per second |
+|---|---|---|
+| `KineticMcFirstSerial` | 1 × any | 270 000 |
+| `KineticMcFirstMpi` | 12 × 1 | 115 000 to 145 000 |
+| `KineticMcChainOmpi` | 12 × 1 | 13 000 to 18 000 |
+| `CanonicalMcSerial` | 1 × 1 | 320 000 |
+| `CanonicalMcOmp` | 1 × 12 | 130 000 |
+
+A step of `KineticMcChainOmpi` covers many single jumps where the vacancy is trapped, so the steps of the KMC methods cannot be compared one by one.
+
+Memory grows with the number of sites: the tables of the barrier model, which the KMC methods use, take about 7 kB per site, and those of the energy changes of CMC and SA about 2.4 kB per site.
