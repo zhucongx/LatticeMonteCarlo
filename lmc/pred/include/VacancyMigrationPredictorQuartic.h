@@ -17,16 +17,10 @@ namespace pred {
 // the energy change dE of the jump, the distance D between the two minima of the path and the sum Ks of the
 // curvatures at them. With u = 16 dE / (Ks D^2) it is (27 / 16384) Ks D^2 (u + 4/3)^3 (4 - u).
 //
-// The form has two minima only for |dE| < Ks D^2 / 12. At dE = -Ks D^2 / 12 the minimum the jump starts from merges
-// with the saddle point: the returned barrier is zero there and negative below. At dE = Ks D^2 / 12 the same happens
-// to the minimum the jump ends in: the returned barrier is dE there and smaller than dE above, so that the jump back
-// has a negative barrier.
+// The form has a barrier in both directions for |dE| < Ks D^2 / 12.
 [[nodiscard]] double GetQuarticModelBarrier(double dE, double D, double Ks);
-// The barrier the predictor returns: that of the model, but never less than the energy the jump costs and never less
-// than zero, max(model, dE, 0). The two limits take effect exactly where the model has no barrier forward or
-// backward, so a barrier the model does have is returned unchanged. The barriers of a jump and of the jump back still
-// differ by dE, which keeps the rates in detailed balance.
-[[nodiscard]] double GetQuarticBarrier(double dE, double D, double Ks);
+// Whether a barrier is positive forward and, as barrier - dE, backward. False for a barrier that is not a number.
+[[nodiscard]] bool HasBarrierForwardAndBackward(double barrier, double dE);
 
 class VacancyMigrationPredictorQuartic {
   public:
@@ -37,13 +31,8 @@ class VacancyMigrationPredictorQuartic {
     [[nodiscard]] virtual std::pair<double, double> GetBarrierAndDiffFromAtomIdPair(
         const cfg::Config &config,
         const std::pair<size_t, size_t> &atom_id_jump_pair) const;
-    // The barrier is GetQuarticBarrier() of the jump.
+    // The barrier is GetQuarticModelBarrier() of the jump.
     [[nodiscard]] virtual std::pair<double, double> GetBarrierAndDiffFromLatticeIdPair(
-        const cfg::Config &config,
-        const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
-    // GetQuarticModelBarrier() of the jump: the barrier of the model as it is, which tells how far outside the range
-    // of the quartic form a jump without a barrier lies. It is evaluated anew on every call.
-    [[nodiscard]] double GetModelBarrierFromLatticeIdPair(
         const cfg::Config &config,
         const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
   protected:

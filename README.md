@@ -163,20 +163,6 @@ See `script/` for ready-to-use samples.
 - Configurations: `N.cfg.gz` at dump intervals and `end.cfg.gz` at completion. Reformat supports writing/reading `lattice.txt` / `element.txt` / `mapN.txt`.
 - Analysis: `ansys_frame_log.txt`, `ansys_cluster_log.txt`, and `ansys/*.xyz.gz` files for visualization/statistics.
 
-### Jumps without a barrier
-
-The barrier of a jump is computed from a quartic form of the energy along its path. With the energy change `dE` of the jump, the distance `D` between the two minima of the path and the sum `Ks` of the curvatures at them, the form has a barrier in both directions only for `|dE| < Ks·D²/12`. Beyond that one end of the jump is not a minimum any more, and the jump gets the lowest barrier its energy change allows, `max(dE, 0)`: none if it lowers the energy, `dE` if it raises it. The barriers of a jump and of the jump back still differ by `dE`, so the rates stay in detailed balance.
-
-The KMC methods count the jumps of this kind that they take. They write a warning to the standard error stream when the count reaches 1, 10, 100, ... and once more at the end of the run:
-
-```
-Warning: step 31: so far 10 of 32 jumps had no barrier in the quartic barrier model (5 forward, 5 backward) and took the barrier max(dE, 0); lowest barrier of the model -1.2 eV
-```
-
-- "forward" are the jumps whose start is not a minimum; they have `Ea` 0 in `kmc_log.txt`. "backward" are those whose end is not one; their `Ea` equals `dE`.
-- The last number is the lowest barrier the quartic form itself gave on the side without a barrier, which tells how far outside its range it was used. A value just below zero is a jump at the edge of the range; NEB calculations find jumps with a barrier of zero as well. A value of tenths of an eV or more means that `dE`, `D` or `Ks` were predicted for a neighbourhood far from those the coefficients were fitted to, and the results for it deserve a check against the training data.
-- A run in which every jump has a barrier writes no warning, and its output is the same as without this treatment.
-
 ### FAQ / Tips
 
 - MKL/BLAS: If MKL isn’t found, the build falls back to generic BLAS/LAPACK, and then to Eigen-only (lowest performance). Setting `MKLROOT` can help detection.
