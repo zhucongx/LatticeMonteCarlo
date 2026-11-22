@@ -17,9 +17,8 @@ namespace pred {
 // the energy change dE of the jump, the distance D between the two minima of the path and the sum Ks of the
 // curvatures at them. With u = 16 dE / (Ks D^2) it is (27 / 16384) Ks D^2 (u + 4/3)^3 (4 - u).
 //
-// The form has a barrier in both directions for |dE| < Ks D^2 / 12.
-[[nodiscard]] double GetQuarticModelBarrier(double dE, double D, double Ks);
-// The barrier the predictor returns, max(model, dE, 0).
+// It is positive in both directions for |dE| < Ks D^2 / 12. Beyond that it is negative for the jump that lowers the
+// energy, and for |dE| > Ks D^2 / 4 in both directions.
 [[nodiscard]] double GetQuarticBarrier(double dE, double D, double Ks);
 
 class VacancyMigrationPredictorQuartic {
@@ -31,12 +30,8 @@ class VacancyMigrationPredictorQuartic {
     [[nodiscard]] virtual std::pair<double, double> GetBarrierAndDiffFromAtomIdPair(
         const cfg::Config &config,
         const std::pair<size_t, size_t> &atom_id_jump_pair) const;
-    // The barrier is GetQuarticBarrier() of the jump.
+    // The barrier is GetQuarticBarrier() of the jump, also where that is negative.
     [[nodiscard]] virtual std::pair<double, double> GetBarrierAndDiffFromLatticeIdPair(
-        const cfg::Config &config,
-        const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
-    // GetQuarticModelBarrier() of the jump, evaluated anew on every call.
-    [[nodiscard]] double GetModelBarrierFromLatticeIdPair(
         const cfg::Config &config,
         const std::pair<size_t, size_t> &lattice_id_jump_pair) const;
   protected:
