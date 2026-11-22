@@ -21,6 +21,8 @@ The [documentation](docs/README.md) describes how to use the program:
 - [Restarting](docs/restart.md): how to continue a run, and how to repeat one
 - [Model](docs/model.md): how energies and barriers are computed
 
+A [tutorial](https://github.com/zhucongx/LatticeMonteCarlo/releases/tag/tutorial) (PDF) explains how the energy is computed and how the simulations run.
+
 ## Requirements
 
 - A compiler with C++20 and OpenMP, and CMake 3.14 or later
