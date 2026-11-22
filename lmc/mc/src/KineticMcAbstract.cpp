@@ -203,7 +203,7 @@ void KineticMcFirstAbstract::Simulate() {
 void KineticMcFirstAbstract::RequireBarrierOfSelectedJump() const {
   // Every rank holds the same selected jump. Rank 0 reports, as it writes the log.
   if (world_rank_ != 0 ||
-      pred::HasBarrierForwardAndBackward(event_k_i_.GetForwardBarrier(), event_k_i_.GetEnergyChange())) {
+      pred::IsBarrierNonNegative(event_k_i_.GetForwardBarrier(), event_k_i_.GetEnergyChange())) {
     return;
   }
   const auto &[vacancy_lattice_id, atom_lattice_id] = event_k_i_.GetIdJumpPair();

@@ -15,6 +15,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace mc {
@@ -176,7 +177,7 @@ TEST_F(Simulation, CanonicalMcLogsEnergyAndItsPlainAverage) {
 }
 
 // On a model whose energy changes are so large that four of ten jumps have no barrier in the quartic form, KMC has
-// to stop before it takes the first such jump, with an error that names the step.
+// to stop before it takes the first one with a negative barrier, with an error that names the step.
 TEST_F(Simulation, KineticMcStopsAtAJumpWithoutABarrier) {
   const auto model_filename =
       pred::WriteModel(directory_ / "model_with_large_energy_changes.json",
@@ -194,7 +195,8 @@ TEST_F(Simulation, KineticMcStopsAtAJumpWithoutABarrier) {
     }
   }
   ASSERT_FALSE(message.empty()) << "the run went on although the model has no barrier for four of ten jumps";
-  // The log holds the steps before the one that is named in the message, and every jump taken in them had a barrier.
+  // The log holds the steps before the one that is named in the message, and no jump taken in them had a negative
+  // barrier forward or backward.
   // columns: steps, time, temperature, energy, Ea, dE, ...
   const auto rows = ReadLog(directory_ / "kmc_without_barrier" / "kmc_log.txt");
   const std::string beginning =
@@ -204,53 +206,68 @@ TEST_F(Simulation, KineticMcStopsAtAJumpWithoutABarrier) {
   for (const auto &row: rows) {
     const double barrier = std::stod(row.at(4));
     const double energy_change = std::stod(row.at(5));
-    ASSERT_GT(barrier, std::max(energy_change, 0.0)) << "step " << row.at(0);
+    ASSERT_GE(barrier, std::max(energy_change, 0.0)) << "step " << row.at(0);
   }
 }
 
-// A candidate without a barrier that is not selected does not stop the run. The vacancy is put on a site from which
-// one jump at least is beyond the range of the quartic form while the jump with the lowest barrier is inside it and
-// lower than every other one by 0.2 eV or more: at 100 K it is selected with a probability of 1 to within 1e-9.
-TEST_F(Simulation, KineticMcGoesOnPastACandidateWithoutABarrier) {
-  const auto model_filename =
-      pred::WriteModel(directory_ / "model_with_some_large_energy_changes.json",
-                       pred::MakeSyntheticModelWithScaledEnergies(config_, pred::TestElementSet(), 300));
-  const pred::VacancyMigrationPredictorQuartic predictor(model_filename, config_, pred::TestElementSet());
-  size_t num_sites = 0;
-  for (size_t site = 0; site < config_.GetNumAtoms(); ++site) {
-    auto config = config_;
-    if (site != config.GetVacancyLatticeId()) {
-      config.LatticeJump({config.GetVacancyLatticeId(), site});
-    }
-    std::vector<double> barriers;
-    size_t num_without_barrier = 0;
-    double energy_change_of_lowest = 0;
-    for (const size_t neighbor: config.GetFirstNeighborsAdjacencyList()[site]) {
-      const auto [barrier, energy_change] = predictor.GetBarrierAndDiffFromLatticeIdPair(config, {site, neighbor});
-      if (barriers.empty() || barrier < *std::min_element(barriers.begin(), barriers.end())) {
-        energy_change_of_lowest = energy_change;
+// One step of KMC from every site at which the jump with the lowest barrier is lower than all others by 0.2 eV or
+// more: at 100 K it is selected with a probability of 1 to within 1e-9. The run stops only if that jump has a
+// negative barrier forward or backward, not because another candidate has one, and not if the barrier is taken as
+// zero within the tolerance.
+TEST_F(Simulation, KineticMcStopsOnlyIfTheSelectedJumpHasANegativeBarrier) {
+  size_t num_past_negative_candidate = 0;
+  size_t num_within_tolerance = 0;
+  size_t num_stopped = 0;
+  for (const int factor: {200, 250, 300, 350, 400}) {
+    const auto model_filename =
+        pred::WriteModel(directory_ / ("model_with_energies_times_" + std::to_string(factor) + ".json"),
+                         pred::MakeSyntheticModelWithScaledEnergies(config_, pred::TestElementSet(), factor));
+    const pred::VacancyMigrationPredictorQuartic predictor(model_filename, config_, pred::TestElementSet());
+    for (size_t site = 0; site < config_.GetNumAtoms(); ++site) {
+      auto config = config_;
+      if (site != config.GetVacancyLatticeId()) {
+        config.LatticeJump({config.GetVacancyLatticeId(), site});
       }
-      barriers.push_back(barrier);
-      num_without_barrier += pred::HasBarrierForwardAndBackward(barrier, energy_change) ? 0 : 1;
+      std::vector<std::pair<double, double>> jumps;    // barrier and energy change
+      size_t num_negative = 0;
+      for (const size_t neighbor: config.GetFirstNeighborsAdjacencyList()[site]) {
+        jumps.push_back(predictor.GetBarrierAndDiffFromLatticeIdPair(config, {site, neighbor}));
+        num_negative += pred::IsBarrierNonNegative(jumps.back().first, jumps.back().second) ? 0 : 1;
+      }
+      std::sort(jumps.begin(), jumps.end());
+      const auto [barrier, energy_change] = jumps[0];
+      const bool is_stopped = !pred::IsBarrierNonNegative(barrier, energy_change);
+      const bool is_within_tolerance = !is_stopped && barrier == std::max(energy_change, 0.0);
+      size_t &num_runs = is_stopped ? num_stopped
+          : is_within_tolerance     ? num_within_tolerance
+                                    : num_past_negative_candidate;
+      // Of the other jumps only those are of interest that are selected past a candidate with a negative barrier, and
+      // four runs of each kind are enough.
+      if (jumps[1].first - barrier < 0.2 || (!is_stopped && !is_within_tolerance && num_negative == 0) ||
+          num_runs == 4) {
+        continue;
+      }
+      ++num_runs;
+      const std::string name = "kmc_single_step_" + std::to_string(factor) + "_" + std::to_string(site);
+      const WorkingDirectory working_directory(directory_ / name);
+      const auto run = [&]() {
+        KineticMcFirstSerial(config, 1, 100, 0, 0, 0, 0, 0, 100, pred::TestElementSet(), model_filename, "", false,
+                             false, false, 41)
+            .Simulate();
+      };
+      if (is_stopped) {
+        EXPECT_THROW(run(), std::runtime_error) << "factor " << factor << ", site " << site;
+        continue;
+      }
+      EXPECT_NO_THROW(run()) << "factor " << factor << ", site " << site;
+      const auto rows = ReadLog(directory_ / name / "kmc_log.txt");
+      ASSERT_EQ(rows.size(), 1u) << "factor " << factor << ", site " << site;
+      EXPECT_NEAR(std::stod(rows[0].at(4)), barrier, 1e-9) << "factor " << factor << ", site " << site;
     }
-    std::sort(barriers.begin(), barriers.end());
-    if (num_without_barrier == 0 || barriers[1] - barriers[0] < 0.2 ||
-        !pred::HasBarrierForwardAndBackward(barriers[0], energy_change_of_lowest)) {
-      continue;
-    }
-    ++num_sites;
-    const std::string name = "kmc_candidate_without_barrier_" + std::to_string(site);
-    const WorkingDirectory working_directory(directory_ / name);
-    // A single step.
-    EXPECT_NO_THROW(KineticMcFirstSerial(config, 1, 100, 0, 0, 0, 0, 0, 100, pred::TestElementSet(), model_filename,
-                                         "", false, false, false, 41)
-                        .Simulate())
-        << "site " << site;
-    const auto rows = ReadLog(directory_ / name / "kmc_log.txt");
-    ASSERT_EQ(rows.size(), 1u) << "site " << site;
-    EXPECT_NEAR(std::stod(rows[0].at(4)), barriers[0], 1e-9) << "site " << site;
   }
-  EXPECT_GE(num_sites, 1u);
+  EXPECT_GE(num_past_negative_candidate, 1u);
+  EXPECT_GE(num_within_tolerance, 1u);
+  EXPECT_GE(num_stopped, 1u);
 }
 
 // A run inside the range of the quartic form is not affected: it reaches its end and writes nothing to the standard
