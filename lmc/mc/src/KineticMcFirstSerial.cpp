@@ -38,7 +38,7 @@ KineticMcFirstSerial::KineticMcFirstSerial(cfg::Config config,
                              seed) {
   if (world_size_ != 1) {
     if (world_rank_ == 0) {
-      std::cout << "Must use 1 process for KineticMcFirstOmp. Terminating...\n" << std::endl;
+      std::cout << "Must use 1 process for KineticMcFirstSerial. Terminating...\n" << std::endl;
     }
     MPI_Abort(MPI_COMM_WORLD, 1);
   }

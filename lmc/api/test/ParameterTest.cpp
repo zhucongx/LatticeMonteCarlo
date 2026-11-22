@@ -8,7 +8,7 @@
 
 namespace api {
 namespace {
-const std::string kKineticMc = "simulation_method KineticMcFirstOmp\n"
+const std::string kKineticMc = "simulation_method KineticMcFirstSerial\n"
                                "json_coefficients_filename quartic_coefficients.json\n"
                                "config_filename start.cfg\n"
                                "log_dump_steps 100\n"
@@ -64,7 +64,7 @@ std::string Without(const std::string &text, const std::string &key) {
 
 TEST(Parameter, ReadsAKineticMcFile) {
   const auto parameter = Read(kKineticMc);
-  EXPECT_EQ(parameter.method, "KineticMcFirstOmp");
+  EXPECT_EQ(parameter.method, "KineticMcFirstSerial");
   EXPECT_EQ(parameter.json_coefficients_filename_, "quartic_coefficients.json");
   EXPECT_EQ(parameter.config_filename_, "start.cfg");
   EXPECT_EQ(parameter.log_dump_steps_, 100u);
@@ -83,7 +83,7 @@ TEST(Parameter, AcceptsTabsBlankLinesCommentsAndWindowsLineEndings) {
     content.replace(position, 1, "\r\n");
   }
   const auto parameter = Read(content);
-  EXPECT_EQ(parameter.method, "KineticMcFirstOmp");
+  EXPECT_EQ(parameter.method, "KineticMcFirstSerial");
   EXPECT_DOUBLE_EQ(parameter.temperature_, 450.0);
   EXPECT_EQ(parameter.element_set_, (std::vector<std::string>{"Al", "Mg", "Zn"}));
 }
@@ -155,7 +155,9 @@ TEST(Parameter, RejectsValuesTheRunCannotUse) {
   EXPECT_THROW(Read(Replace(kAnalysis, "log_type kinetic_mc", "log_type kmc")), std::invalid_argument);
   EXPECT_THROW(Read(Replace(kSimulatedAnnealing, "solute_number_set 10 12", "solute_number_set 10")),
                std::invalid_argument);
-  EXPECT_THROW(Read(Replace(kKineticMc, "KineticMcFirstOmp", "KineticMcFirst")), std::invalid_argument);
+  EXPECT_THROW(Read(Replace(kKineticMc, "KineticMcFirstSerial", "KineticMcFirst")), std::invalid_argument);
+  // The name KineticMcFirstSerial had before is not accepted any more.
+  EXPECT_THROW(Read(Replace(kKineticMc, "KineticMcFirstSerial", "KineticMcFirstOmp")), std::invalid_argument);
 }
 
 TEST(Parameter, WarnsAboutObsoleteAndRepeatedKeys) {

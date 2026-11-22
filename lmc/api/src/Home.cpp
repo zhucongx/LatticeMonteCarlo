@@ -30,7 +30,7 @@ void Print(const Parameter &parameter) {
   }
   std::cout << "Parameters" << std::endl;
   std::cout << "simulation_method: " << parameter.method << std::endl;
-  if (parameter.method == "KineticMcFirstMpi" || parameter.method == "KineticMcFirstOmp" ||
+  if (parameter.method == "KineticMcFirstMpi" || parameter.method == "KineticMcFirstSerial" ||
       parameter.method == "KineticMcChainOmp" || parameter.method == "KineticMcChainMpi" ||
       parameter.method == "KineticMcChainOmpi") {
     std::cout << "json_coefficients_filename: " << parameter.json_coefficients_filename_ << std::endl;
@@ -123,7 +123,7 @@ void Run(const Parameter &parameter) {
   if (parameter.method == "KineticMcFirstMpi") {
     auto kinetic_mc_first_mpi = api::BuildKineticMcFirstMpiFromParameter(parameter);
     kinetic_mc_first_mpi.Simulate();
-  } else if (parameter.method == "KineticMcFirstOmp") {
+  } else if (parameter.method == "KineticMcFirstSerial") {
     auto kinetic_mc_first_serial = api::BuildKineticMcFirstSerialFromParameter(parameter);
     kinetic_mc_first_serial.Simulate();
   } else if (parameter.method == "KineticMcChainOmpi") {
