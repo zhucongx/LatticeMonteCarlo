@@ -14,6 +14,8 @@ How to build the program is described in the [project README](../README.md#build
 | [Restarting](restart.md) | How to continue a run, and how to repeat one |
 | [Model](model.md) | How energies and barriers are computed |
 
+A [tutorial](https://github.com/zhucongx/LatticeMonteCarlo/releases/tag/tutorial) (PDF) explains how the energy is computed and how the simulations run.
+
 <img src="figures/files.png" width="760" alt="Diagram of the files of the program: every method reads a parameter file and a coefficient file, KMC and CMC also read a start configuration, KMC, CMC and SA write a log and configurations, and Ansys and Reformat read these and write their own files.">
 
 *The files of the program. Every method reads a parameter file and a coefficient file, KMC and CMC also a start configuration. `Ansys` and `Reformat` read the log of a run and work on its numbered configurations, and a configuration or a map can be the start of another run.*
