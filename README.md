@@ -52,7 +52,7 @@ The energy is a cluster expansion, and the barrier of a jump follows from a quar
 
 | | [`simulation_method`](docs/methods.md) | What it does |
 |---|---|---|
-| **KMC** | `KineticMcFirstSerial`, `KineticMcFirstMpi`, `KineticMcChainOmpi` | Atoms move by the jumps of a vacancy, at one temperature or along a time-temperature table, with the residence time algorithm of first or second order |
+| **KMC** | `KineticMcFirstSerial`, `KineticMcFirstMpi`, `KineticMcSecondOmpi` | Atoms move by the jumps of a vacancy, at one temperature or along a time-temperature table, with the residence time algorithm of first or second order |
 | **CMC** | `CanonicalMcSerial`, `CanonicalMcOmp` | Two atoms change places with the Metropolis probability, at a constant temperature |
 | **SA** | `SimulatedAnnealing` | The steps of CMC while the temperature falls, in search of a configuration of low energy |
 | **Analysis** | `Ansys`, `Reformat` | The clusters in the configurations of a run, the binding energies of a vacancy, and the time it needs to escape; conversion of the configurations |
