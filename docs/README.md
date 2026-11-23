@@ -2,6 +2,19 @@
 
 LatticeMC runs lattice Monte Carlo simulations of substitutional fcc alloys: kinetic Monte Carlo (KMC) of atoms that move by jumps of a vacancy, canonical Monte Carlo (CMC), and simulated annealing (SA). Two further methods work on the files of a run: `Ansys` analyzes the clusters in its configurations, and `Reformat` converts the configurations.
 
+## Papers
+
+The model and the methods of the program are described in three papers:
+
+1. Z. Xi, M. Zhang, L. G. Hector Jr., A. Misra, L. Qi, *Mechanism of local lattice distortion effects on vacancy migration barriers in fcc alloys*, Physical Review Materials **6**, 073601 (2022), [doi:10.1103/PhysRevMaterials.6.073601](https://doi.org/10.1103/PhysRevMaterials.6.073601)
+2. Z. Xi, L. G. Hector Jr., A. Misra, L. Qi, *Kinetic Monte Carlo simulations of solute clustering during quenching and aging of Al–Mg–Zn alloys*, Acta Materialia **269**, 119795 (2024), [doi:10.1016/j.actamat.2024.119795](https://doi.org/10.1016/j.actamat.2024.119795)
+3. Z. Xi, L. G. Hector Jr., A. Misra, L. Qi, *Multiscale modeling of vacancy-cluster interactions and solute clustering kinetics in multicomponent alloys*, npj Computational Materials **11**, 365 (2025), [doi:10.1038/s41524-025-01840-x](https://doi.org/10.1038/s41524-025-01840-x)
+
+> [!NOTE]
+> This documentation describes how to use the program. For the model, its derivation and its results, please refer to the papers.
+
+## Pages
+
 How to build the program is described in the [project README](../README.md#build).
 
 | Page | What it is about |
