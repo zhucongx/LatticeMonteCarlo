@@ -156,8 +156,15 @@ TEST(Parameter, RejectsValuesTheRunCannotUse) {
   EXPECT_THROW(Read(Replace(kSimulatedAnnealing, "solute_number_set 10 12", "solute_number_set 10")),
                std::invalid_argument);
   EXPECT_THROW(Read(Replace(kKineticMc, "KineticMcFirstSerial", "KineticMcFirst")), std::invalid_argument);
-  // The name KineticMcFirstSerial had before is not accepted any more.
+  // The names KineticMcFirstSerial and KineticMcSecondOmpi had before are not accepted any more.
   EXPECT_THROW(Read(Replace(kKineticMc, "KineticMcFirstSerial", "KineticMcFirstOmp")), std::invalid_argument);
+  EXPECT_THROW(Read(Replace(kKineticMc, "KineticMcFirstSerial", "KineticMcChainOmpi")), std::invalid_argument);
+}
+
+TEST(Parameter, AcceptsTheThreeKineticMcMethods) {
+  for (const std::string method: {"KineticMcFirstSerial", "KineticMcFirstMpi", "KineticMcSecondOmpi"}) {
+    EXPECT_EQ(Read(Replace(kKineticMc, "KineticMcFirstSerial", method)).method, method);
+  }
 }
 
 TEST(Parameter, WarnsAboutObsoleteAndRepeatedKeys) {

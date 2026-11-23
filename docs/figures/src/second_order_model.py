@@ -1,6 +1,6 @@
 # Model of the animation second_order: one vacancy on a triangular lattice (6 neighbor sites, a sketch of the 12 of fcc) with rates that
 # do not change with time: the vacancy exchanges places with a Mg atom on a neighbor site 100 times faster than with an Al atom.
-# first_order() does one step of KineticMcFirstSerial, second_order() is KineticMcChainOmpi::CalculateTime, with the names used there.
+# first_order() does one step of KineticMcFirstSerial, second_order() is KineticMcSecondOmpi::CalculateTime, with the names used there.
 # Compare the formulas of the second order with many first-order runs:
 #   python3 second_order_model.py [number of runs, default 100000]
 import math
