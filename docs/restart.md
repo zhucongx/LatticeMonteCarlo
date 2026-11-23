@@ -22,7 +22,7 @@ What a restart does not keep:
 - The random numbers. The restarted run draws new ones, which follow from `seed` and `restart_steps`, so it does not repeat the steps the first run made after step `N`.
 - The window of `average_energy` (CMC), which fills again from the beginning.
 - The displacement of the solutes (`solute_disp`), which starts at 0 again.
-- The site the vacancy came from (`KineticMcChainOmpi`).
+- The site the vacancy came from (`KineticMcSecondOmpi`).
 
 SA cannot be restarted.
 
