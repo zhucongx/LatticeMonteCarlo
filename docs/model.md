@@ -42,23 +42,15 @@ The energy along the path of a jump is described by a quartic polynomial $E(x) =
 - the distance $D$ between the two minima, measured along the path,
 - the sum $K_s$ of the curvatures at these minima.
 
-<img src="figures/path.png" width="520" alt="Curve of the energy along the path of a jump with two minima I and F and the transition state at x = 0 between them, with the barrier, the energy change, the distance of the minima and the curvatures marked.">
+<img src="figures/jump_path.webp" width="760" alt="Animation: a Mg atom jumps into the vacancy next to it and back, while a ball runs along the curve of the energy from the minimum I over the transition state to the minimum F and back; the curve is marked with the two barriers, the energy change, the distance of the minima and the curvatures at the minima.">
 
-*Energy along the path of a jump from I to F, with the barrier E<sub>a</sub>, the energy change ΔE (negative here) and the distance D between the two minima. The dashed parabolas have the curvatures K<sub>I</sub> and K<sub>F</sub> of the energy at the minima, and K<sub>s</sub> is the sum of the two.*
-
-<img src="figures/jump_path.webp" width="760" alt="Animation: a Mg atom jumps into the vacancy next to it and back, while a ball runs along the curve of the energy from the minimum I over the transition state to the minimum F and back.">
-
-*A Mg atom jumps into the vacancy and back. (a) The atom and the 18 first neighbors of the two sites; this is a sketch, because the program works on rigid sites and does not follow the atom on its way. (b) An example of the energy along the path, with a ball that moves with the atom: the jump from I over the transition state to F has the barrier E<sub>a</sub>, the jump back has the barrier E<sub>a</sub> − ΔE, and ΔE is negative here.*
+*A Mg atom jumps into the vacancy and back. (a) The atom and the 18 first neighbors of the two sites; this is a sketch, because the program works on rigid sites and does not follow the atom on its way. (b) An example of the energy along the path from I over the transition state to F, with a ball that moves with the atom. Dark: the three quantities that fix the curve, which are the energy change ΔE (negative here), the distance D between the two minima, and K<sub>s</sub>, the sum of the curvatures K<sub>I</sub> and K<sub>F</sub> of the energy at the minima; the dashed parabolas have these curvatures. The jump has the barrier E<sub>a</sub> (red), the jump back has the barrier E<sub>a</sub> − ΔE (blue).*
 
 The logarithms of $D$ and $K_s$ depend on the elements on the 58 other sites that lie within the third neighbor shell of one of the two sites of the jump. They are linear functions of the elements on these sites, and on pairs of these sites that are first, second or third neighbors of each other, averaged over the sites and pairs that are equivalent. Which sites are equivalent follows from the symmetry of the two sites of the jump (mmm) for $D$, and from that of the two sites with a direction (mm2) for $K_s$, where the averages seen along the jump and against it are added. Two pairs are equivalent if they belong to the same shell and the sites of one are equivalent to those of the other. The coefficients depend on the element that jumps.
 
-<img src="figures/environment.png" width="760" alt="The 58 sites around a vacancy and a jumping atom, and the 18 first neighbors of the two colored by their symmetry class under mmm and under mm2.">
+<img src="figures/environment.webp" width="760" alt="Animation: the 58 sites around a jump make a full turn in two panels, with the vacancy and the jumping atom in the middle and the 18 first neighbors around them colored by symmetry class, in four colors under mmm on the left and in seven under mm2 on the right.">
 
-*The surroundings of a jump in the barrier model. (a) The 58 sites within the third neighbor shell of the vacancy or of the jumping atom. (b, c) The 18 of them that are first neighbors of the vacancy or of the jumping atom, numbered to tell them apart: sites of the same color are equivalent, in four classes under mmm and in seven under mm2, which tells the two ends of the jump axis x apart.*
-
-<img src="figures/environment.webp" width="600" alt="Animation: the 58 sites around a jump make a full turn, with the vacancy and the jumping atom in the middle, the 18 first neighbors around them large and in four colors, and the other 40 sites small and pale.">
-
-*The 58 sites of (a) in a full turn, with the vacancy (white with a red ring) and the jumping atom (red) in the middle. The 18 first neighbors are large, in the colors of (b); the other 40 sites, which are second or third neighbors of the vacancy or of the jumping atom, are small and pale.*
+*The surroundings of a jump in the barrier model in a full turn: the 58 sites within the third neighbor shell of the vacancy (white with a red ring) or of the jumping atom (red). The 18 sites that are first neighbors of one of the two are large, and sites of the same color are equivalent: (a) in four classes under mmm, which is used for D, (b) in seven classes under mm2, which is used for K<sub>s</sub> and tells the two ends of the jump axis x apart; there the classes on the side of the vacancy are pale. The other 40 sites, second or third neighbors of the vacancy or of the jumping atom, are small and pale.*
 
 The barrier follows from the three quantities as
 
