@@ -96,7 +96,7 @@ These keys are accepted, so that older parameter files can still be read, but no
 
 | Method | Required besides `simulation_method` and `json_coefficients_filename` |
 |---|---|
-| `KineticMcFirstSerial`, `KineticMcFirstMpi`, `KineticMcChainOmpi` | `config_filename` or `map_filename`, `element_set`, `log_dump_steps`, `config_dump_steps`, `maximum_steps`, and `temperature` or `time_temperature_filename` |
+| `KineticMcFirstSerial`, `KineticMcFirstMpi`, `KineticMcSecondOmpi` | `config_filename` or `map_filename`, `element_set`, `log_dump_steps`, `config_dump_steps`, `maximum_steps`, and `temperature` or `time_temperature_filename` |
 | `CanonicalMcSerial`, `CanonicalMcOmp` | `config_filename` or `map_filename`, `element_set`, `log_dump_steps`, `config_dump_steps`, `maximum_steps`, `temperature` |
 | `SimulatedAnnealing` | `factor`, `solvent_element`, `solute_element_set`, `solute_number_set`, `log_dump_steps`, `maximum_steps`, `initial_temperature` |
 | `Ansys` | `log_type`, `config_type`, `solvent_element`, `element_set`, `increment_steps`, `smallest_cluster_criteria`, `solvent_bond_criteria`, `escape_temperature` |
