@@ -255,21 +255,21 @@ void KineticMcFirstAbstract::IsEscaped() {
   }
 }
 
-KineticMcChainAbstract::KineticMcChainAbstract(cfg::Config config,
-                                               const unsigned long long int log_dump_steps,
-                                               const unsigned long long int config_dump_steps,
-                                               const unsigned long long int maximum_steps,
-                                               const unsigned long long int thermodynamic_averaging_steps,
-                                               const unsigned long long int restart_steps,
-                                               const double restart_energy,
-                                               const double restart_time,
-                                               const double temperature,
-                                               const std::set<Element> &element_set,
-                                               const std::string &json_coefficients_filename,
-                                               const std::string &time_temperature_filename,
-                                               bool is_early_stop,
-                                               bool is_solute_disp,
-                                               const unsigned long long int seed)
+KineticMcSecondAbstract::KineticMcSecondAbstract(cfg::Config config,
+                                                 const unsigned long long int log_dump_steps,
+                                                 const unsigned long long int config_dump_steps,
+                                                 const unsigned long long int maximum_steps,
+                                                 const unsigned long long int thermodynamic_averaging_steps,
+                                                 const unsigned long long int restart_steps,
+                                                 const double restart_energy,
+                                                 const double restart_time,
+                                                 const double temperature,
+                                                 const std::set<Element> &element_set,
+                                                 const std::string &json_coefficients_filename,
+                                                 const std::string &time_temperature_filename,
+                                                 bool is_early_stop,
+                                                 bool is_solute_disp,
+                                                 const unsigned long long int seed)
     : KineticMcFirstAbstract(std::move(config),
                              log_dump_steps,
                              config_dump_steps,
@@ -290,12 +290,12 @@ KineticMcChainAbstract::KineticMcChainAbstract(cfg::Config config,
   DefineStruct(&mpi_datatype_);
 }
 
-void KineticMcChainAbstract::OneStepSimulation() {
+void KineticMcSecondAbstract::OneStepSimulation() {
   KineticMcFirstAbstract::OneStepSimulation();
   previous_j_lattice_id_ = event_k_i_.GetIdJumpPair().first;
 }
 
-KineticMcChainAbstract::~KineticMcChainAbstract() {
+KineticMcSecondAbstract::~KineticMcSecondAbstract() {
   MPI_Op_free(&mpi_op_);
   MPI_Type_free(&mpi_datatype_);
 }
