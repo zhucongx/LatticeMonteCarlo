@@ -75,15 +75,15 @@ The sizes follow from the elements of `element_set`, in SA from `solvent_element
 
 ```
 # quench and aging
-0    750
-10   300
-40   300
-60   400
+0      800
+0.001  300
+0.003  300
+0.004  400
 ```
 
-<img src="figures/time_temperature.png" width="520" alt="Temperature against time for the sample table: a straight line falls from 750 K at 0 s to 300 K at 10 s, stays at 300 K until 40 s, rises to 400 K at 60 s, and stays constant after that.">
+<img src="figures/quench.webp" width="760" alt="Animation of a KMC run that follows the sample table: while the temperature falls from 800 K to 300 K in the first millisecond of the run, the scattered Mg and Zn atoms gather in eight clusters and the energy falls by 11.6 eV, nothing changes during two milliseconds at 300 K, and when the temperature rises to 400 K and stays there the clusters grow and the energy falls to −16.6 eV.">
 
-*Temperature that this table gives; the labels at the points are the lines of the file. Between two points it is interpolated linearly, and after the last point it stays constant (dashed).*
+*A KMC run that follows this table. It starts from the last configuration of the CMC run of [A first run](README.md#a-first-run) and makes 90 000 000 steps with `seed 12345`. Upper plot: the temperature that the table gives against the `time` of the run; the labels at the points are the lines of the file. Between two points the temperature is interpolated linearly, and after the last point it stays constant (dashed). Lower plot: `energy` from `kmc_log.txt`. In both, the dot is at the time of the picture, and the part that the run has passed is in full color. Left: the box at that time, drawn as in the animation of [A first run](README.md#a-first-run): solute atoms in clusters at full size (Mg orange, Zn blue), all others small and pale, the solvent hidden, the red ring marks the vacancy. The upper axis and t give the time in an alloy that keeps the vacancies of 800 K after the quench, 0.29 times the time of the run (see [Time and vacancy concentration](methods.md#time-and-vacancy-concentration)). The pictures are equally spaced in time. During the quench, the first millisecond of the run, clusters form and the energy falls to −11.6 eV. In the two milliseconds at 300 K hardly anything happens. When the temperature rises, the energy falls again, to −16.6 eV at the end of the run, at 6.13 ms.*
 
 - A line that does not begin with two numbers is ignored.
 - The points need not be in order. Between two points the temperature is interpolated linearly, and before the first and after the last point it is constant.
