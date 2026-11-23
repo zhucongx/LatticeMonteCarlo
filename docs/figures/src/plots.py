@@ -3,9 +3,7 @@
 # The run folder holds cmc/cmc_log.txt and kmc/kmc_log.txt, the logs of the two runs on the page README.md, and in ansys/ansys the files
 # 0.xyz.gz and 10000000.xyz.gz of Ansys for the KMC run. Rows of the KMC log after step 10 000 000 are not used. Needs LaTeX, Ghostscript,
 # pandas and Pillow besides the modules and the matplotlib style of style.py.
-import gzip
 import os
-import re
 import subprocess
 import sys
 import tempfile
@@ -13,6 +11,7 @@ from bisect import bisect_left
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import pandas as pd
+from alloy_time import boltzmann, c_equilibrium, fields
 from matplotlib.collections import LineCollection
 from PIL import Image
 from style import *
@@ -140,21 +139,8 @@ SITES, T = 10976, np.linspace(250, 900, 651)
 
 def sites(step):
     """ the field profile_energy of all sites in a file of Ansys, and which of the sites are in no cluster """
-    with gzip.open(os.path.join(runs, "ansys", "ansys", step + ".xyz.gz"), "rt") as f:
-        f.readline()
-        fields = re.search(r"Properties=(\S+)", f.readline()).group(1).split(":")
-        column = {name: sum(int(width) for width in fields[2:3 * i:3]) for i, name in enumerate(fields[::3])}
-        rows = [line.split() for line in f]
-    return np.array([float(row[column["profile_energy"]]) for row in rows]), np.array([int(row[column["cluster_id"]]) == 0 for row in rows])
-
-
-def boltzmann(energy, temp):
-    return np.exp(-energy[:, None] / (kB * np.atleast_1d(temp)))
-
-
-def c_equilibrium(energy, temp):
-    """ all vacancies in equilibrium: the concentration in pure Al times the mean of exp(-E/kT) over the sites """
-    return 1.67 * np.exp(0.7 - 0.66 / (kB * temp)) * boltzmann(energy, temp).mean(axis=0)
+    energy, cluster = fields(os.path.join(runs, "ansys", "ansys", step + ".xyz.gz"), "profile_energy", "cluster_id")
+    return energy.astype(float), cluster.astype(int) == 0
 
 
 (solution, _), (clusters, outside) = sites("0"), sites("10000000")                           # first and last frame of the KMC run
