@@ -1,6 +1,8 @@
 # vacancy_jumps.webp and vacancy_jumps.mp4: some single steps of a KMC run around the vacancy, with the barrier and the time of each.
 #   python3 animate_vacancy_jumps.py <run folder> <folder of the pictures of render_vacancy_jumps.py> <folder for the frames> <output folder>
-# Frames that exist already are kept. Needs LaTeX, img2webp, ffmpeg and Pillow.
+#                                    <file of Ansys for the start of the KMC example>
+# The time is that of an alloy which keeps the vacancies that the solid solution has in equilibrium at the temperature of the run: the
+# time of the run times the factor of alloy_time.py. Frames that exist already are kept. Needs LaTeX, img2webp, ffmpeg and Pillow.
 import io
 import os
 import subprocess
@@ -9,15 +11,17 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from style import *
 import vacancy_jumps_data as data
+from alloy_time import factor
 from matplotlib.collections import LineCollection
 from PIL import Image
 
-run, pictures, frames, out = sys.argv[1:5]
+run, pictures, frames, out, frame = sys.argv[1:6]
 os.makedirs(frames, exist_ok=True)
 FIRST, STEPS, SUB = data.FIRST, data.STEPS, data.SUB
 LAST = STEPS * SUB                                         # number of the last picture
 d = data.load(run)
-step, time, barrier = d["step"], d["time"] * 1e9, d["barrier"]
+step, barrier = d["step"], d["barrier"]
+time = d["time"] * factor(frame, d["temperature"]) * 1e6   # in the alloy, in microseconds
 element = [d["species"][i] for i in d["selected"][:STEPS]]  # what jumps in every step
 COLOR = {**SPECIES, "Al": GRAY}                            # the gray of the marked Al atom in the pictures
 
@@ -39,7 +43,9 @@ dots = [ax.plot([], [], "o", zorder=5, clip_on=False, **{**MARK, "markersize": 1
 jump = top.text(0.97, 0.91, "", transform=top.transAxes, ha="right", va="top", fontsize=18, color=DARK)
 now = low.text(0.03, 0.91, "", transform=low.transAxes, ha="left", va="top", fontsize=18, color=DARK)
 top.set_ylabel(r"\texttt{Ea} (eV)"); top.set_ylim(0.27, 0.67); top.tick_params(labelbottom=False)
-low.set_ylabel(r"\texttt{time} (ns)"); low.set_ylim(1750, 1905); low.set_xlabel(r"\texttt{steps}")
+span = time[-1] - time[0]
+low.set_ylabel(r"time in the alloy (\textmu s)"); low.set_ylim(time[0] - 0.09 * span, time[-1] + 0.10 * span)
+low.set_xlabel(r"\texttt{steps}")
 for ax in (top, low):
     ax.set_xlim(FIRST - 1, FIRST + STEPS + 1); grid(ax)
 fig.align_ylabels([top, low])
@@ -73,7 +79,7 @@ def layer(n):
         marks.set_data(step[k], barrier[k])
     past.set_segments(rise[:n]); past.set_color([COLOR[e] for e in element[:n]] or ["k"])
     caption.set_text(rf"step ${step[n]}$")
-    now.set_text(rf"${time[n]:.2f}$ ns")
+    now.set_text(rf"${time[n]:.2f}$ \textmu s")
     dots[1].set_data([step[n]], [time[n]])
     color = COLOR[element[n]] if n < STEPS else DARK
     dots[0].set_data([step[n]], [barrier[n]]) if n < STEPS else dots[0].set_data([], [])       # none after the last jump
