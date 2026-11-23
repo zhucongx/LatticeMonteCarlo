@@ -25,9 +25,9 @@ SA writes no numbered configurations. To work on its result, copy `lowest_energy
 
 The clusters of a frame are numbered from the largest to the smallest, with the vacancy counted.
 
-<img src="figures/cluster_definition.png" width="760" alt="Three drawings of the same triangular lattice with Al, Mg and Zn atoms and a vacancy: connected nearest neighbors, the groups that are left when the small ones are dropped, and the solvent atoms that join them.">
+<img src="figures/cluster_definition.webp" width="760" alt="Animation of a triangular lattice of Al, Mg and Zn atoms with a vacancy: bonds connect the solute atoms and the vacancy that are nearest neighbors, the two small groups fade, numbers on the solvent atoms around the other two groups count their solute neighbors, three solvent atoms get a ring and join, and the two clusters get their numbers.">
 
-*How `Ansys` finds clusters, drawn in two dimensions on a triangular lattice, where a site has 6 nearest neighbors instead of 12, with `smallest_cluster_criteria 4` and `solvent_bond_criteria 2`. (a) Solute atoms and vacancies that are nearest neighbors are connected; (b) groups of fewer than 4 of them are dropped; (c) a solvent atom joins a group if more than 2 of its nearest neighbors are solute atoms or vacancies of the group. The numbers count these neighbors.*
+*How `Ansys` finds clusters, drawn in two dimensions on a triangular lattice, where a site has 6 nearest neighbors instead of 12, with `smallest_cluster_criteria 4` and `solvent_bond_criteria 2`. The three rules are applied one after the other: solute atoms and vacancies that are nearest neighbors are connected; the groups of fewer than 4 of them are dropped (pale); a solvent atom joins a group if more than 2 of its nearest neighbors are solute atoms or vacancies of the group (green ring). The numbers count these neighbors. At the end the two clusters have their `cluster_id`: cluster 1 has 9 sites with its vacancy, cluster 2 has 5.*
 
 ### ansys_frame_log.txt
 
@@ -120,9 +120,9 @@ The barrier of a jump is taken as $E_a - \Delta E/2$, which is the same for the 
 | `on` | between two sites outside that are both nearest neighbors of the cluster |
 | `off` | from such a site to one that is not a nearest neighbor of the cluster |
 
-<img src="figures/barrier_groups.png" width="520" alt="A cluster, the shaded sites that are its nearest neighbors, and arrows in four colors for the jumps of the groups in, to, on and off.">
+<img src="figures/barrier_groups.webp" width="760" alt="Animation of a cluster and the shaded sites that are its nearest neighbors: a vacancy makes two jumps of each of the groups in, to, on and off, and every jump leaves an arrow in the color of its group.">
 
-*The four groups of jumps, drawn in two dimensions around cluster 1 of the drawing that shows how clusters are found; its vacancy is replaced by a solvent atom first. An arrow is a jump of the vacancy from the tail to the head of the arrow, and a double arrow stands for both directions.*
+*The four groups of jumps, drawn in two dimensions around cluster 1 of the animation that shows how clusters are found; its vacancy is replaced by a solvent atom first. For every jump `Ansys` puts a vacancy on the first site in place of the atom there; the animation shows two such jumps of each group and puts the atoms back after each. An arrow is a jump of the vacancy from the tail to the head of the arrow, and a double arrow stands for both directions.*
 
 ### ansys/&lt;step&gt;.xyz.gz
 

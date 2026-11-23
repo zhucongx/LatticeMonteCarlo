@@ -30,7 +30,7 @@ where $n_\alpha$ is the number of clusters of kind $\alpha$ in the box, $N_\alph
 
 CMC, SA and KMC do not need the energy itself but its change when two sites exchange their atoms, $\Delta E$, which only depends on the clusters around these two sites.
 
-<img src="figures/energy_change.png" width="760" alt="Two drawings of a lattice with circles around two sites i and j that exchange their atoms: clusters with exactly one of the two sites are marked as changed, those with none or both of them as unchanged.">
+<img src="figures/energy_change.webp" width="760" alt="Animation in two panels of a lattice with circles around two sites i and j: the two sites exchange their atoms, then clusters with exactly one of the two sites are marked as changed and clusters with none or both of them as unchanged, first for two distant sites and then for a jump of the vacancy to a neighbor site.">
 
 *Which clusters of the cluster expansion change when the sites i and j exchange their atoms, drawn on a triangular lattice: only those that hold exactly one of the two sites (green), and these lie within the third neighbor shell of this site (circles). (a) Two distant sites; (b) a jump of the vacancy to a nearest neighbor site. Clusters that hold both sites have the same elements after the exchange and do not change.*
 

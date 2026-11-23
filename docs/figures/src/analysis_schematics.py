@@ -1,16 +1,11 @@
-"""The sites of cluster_definition.png and barrier_groups.png, on a triangular lattice with 6 nearest neighbors instead of 12.
+"""The sites of the animations cluster_definition and barrier_groups, on a triangular lattice with 6 nearest neighbors instead of 12.
+Imported by animate_cluster_definition.py and animate_barrier_groups.py; not started on its own.
 
-    python3 analysis_schematics.py <folder>
-
-writes to <folder>
-    cluster_definition_sites.tex   read by fig_cluster_definition.tex. What is connected, dropped and added follows the rules
-                                   of SoluteCluster::FindAtomListOfClusters (lmc/ansys/src/SoluteCluster.cpp).
-    barrier_groups_sites.tex       read by fig_barrier_groups.tex: cluster 1 of the first drawing, its nearest neighbor sites,
-                                   and some jumps. Their groups are checked by the rules of ExitTime::GetAverageBarriers
-                                   (lmc/ansys/src/ExitTime.cpp).
+    cluster_definition()   what is connected, dropped and added, by the rules of SoluteCluster::FindAtomListOfClusters
+                           (lmc/ansys/src/SoluteCluster.cpp)
+    barrier_groups()       cluster 1 of the first animation, its nearest neighbor sites, and some jumps. Their groups are checked by
+                           the rules of ExitTime::GetAverageBarriers (lmc/ansys/src/ExitTime.cpp).
 """
-import os
-import sys
 
 # The atoms: "." solvent (Al), M Mg, Z Zn, X vacancy. Every other row is moved to the right by half a site.
 ROWS = """
@@ -153,9 +148,3 @@ def barrier_groups():
     text += species("cluster", cluster, {"M": "Mg", "Z": "Zn"})
     # GetAverageBarriers first puts a solvent atom on the site of the vacancy
     return text + command("sitesAl", [point(s) for s in sorted(patch) if s not in cluster or element(s) in (SOLVENT, "X")])
-
-
-if __name__ == "__main__":
-    for name, make in (("cluster_definition_sites.tex", cluster_definition), ("barrier_groups_sites.tex", barrier_groups)):
-        with open(os.path.join(sys.argv[1], name), "w") as f:
-            f.write("% made by analysis_schematics.py\n" + make())
