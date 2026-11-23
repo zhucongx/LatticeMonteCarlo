@@ -45,4 +45,4 @@ def load(run):
         site[[vacancy, selected[n]]] = site[[selected[n], vacancy]]
     w = slice(FIRST, FIRST + STEPS + 1)
     return dict(species=species, period=period, site=start, vacancy=vacancy, path=path[w], selected=selected[w], step=column["steps"][w].astype(int),
-                time=column["time"][w], barrier=column["Ea"][w])
+                time=column["time"][w], barrier=column["Ea"][w], temperature=column["temperature"][FIRST])

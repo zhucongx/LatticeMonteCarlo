@@ -65,9 +65,9 @@ maximum_steps 10000000
 seed 12345
 ```
 
-<img src="figures/clustering.webp" width="760" alt="Animation of a KMC run at 450 K: in a periodic box of an Al-Mg-Zn alloy, nearly half of the scattered Mg and Zn atoms gather in seven clusters while the energy of the box falls by 27 eV within 3.5 ms.">
+<img src="figures/clustering.webp" width="760" alt="Animation of a KMC run at 450 K: in a periodic box of an Al-Mg-Zn alloy, nearly half of the scattered Mg and Zn atoms gather in seven clusters while the energy of the box falls by 27 eV within 1.1 s.">
 
-*This KMC run, continued to 130 000 000 steps; the number of steps between two pictures grows from 18 000 to almost 8 000 000. Solute atoms in clusters, as [`Ansys`](analysis.md#what-a-cluster-is) finds them with `smallest_cluster_criteria 10`, have their full size (Mg orange, Zn blue), all others are small and pale; the solvent is hidden, and the red ring marks the vacancy, even behind atoms. A cluster that crosses a face of the periodic box continues on the opposite side. The plot shows `energy` against `time` from `kmc_log.txt`.*
+*This KMC run, continued to 130 000 000 steps; the number of steps between two pictures grows from 18 000 to almost 8 000 000. Solute atoms in clusters, as [`Ansys`](analysis.md#what-a-cluster-is) finds them with `smallest_cluster_criteria 10`, have their full size (Mg orange, Zn blue), all others are small and pale; the solvent is hidden, and the red ring marks the vacancy, even behind atoms. A cluster that crosses a face of the periodic box continues on the opposite side. The plot shows `energy` from `kmc_log.txt` against the time in an alloy which keeps the vacancies that its solid solution has in equilibrium at 450 K: the 3.5 ms of the run, with one vacancy in 10 976 sites, stand for 1.1 s there (see [Time and vacancy concentration](methods.md#time-and-vacancy-concentration)).*
 
 Start each run in a directory of its own: the names of the output files are fixed, and a new run overwrites the files of the one before.
 

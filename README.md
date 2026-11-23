@@ -6,9 +6,9 @@ LatticeMC runs lattice Monte Carlo simulations of substitutional fcc alloys: kin
 
 The energy is a cluster expansion, and the barrier of a jump follows from a quartic polynomial for the energy along its path. The coefficients of both come from a JSON file.
 
-<img src="docs/figures/clustering.webp" width="760" alt="Animation of a KMC run at 450 K: in a periodic box of an Al-Mg-Zn alloy, nearly half of the scattered Mg and Zn atoms gather in seven clusters while the energy of the box falls by 27 eV within 3.5 ms.">
+<img src="docs/figures/clustering.webp" width="760" alt="Animation of a KMC run at 450 K: in a periodic box of an Al-Mg-Zn alloy, nearly half of the scattered Mg and Zn atoms gather in seven clusters while the energy of the box falls by 27 eV within 1.1 s.">
 
-*Clusters form in a KMC run of an Al-Mg-Zn alloy at 450 K (Mg orange, Zn blue, Al not shown). [A first run](docs/README.md#a-first-run) shows how it is done.*
+*Clusters form in a KMC run of an Al-Mg-Zn alloy at 450 K (Mg orange, Zn blue, Al not shown); the time is that of an alloy which keeps the [vacancies](docs/methods.md#time-and-vacancy-concentration) of its solid solution in equilibrium. [A first run](docs/README.md#a-first-run) shows how it is done.*
 
 ## Documentation
 
