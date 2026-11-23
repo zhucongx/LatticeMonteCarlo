@@ -126,8 +126,8 @@ void Run(const Parameter &parameter) {
     auto kinetic_mc_first_serial = api::BuildKineticMcFirstSerialFromParameter(parameter);
     kinetic_mc_first_serial.Simulate();
   } else if (parameter.method == "KineticMcChainOmpi") {
-    auto kinetic_mc_chain_ompi = api::BuildKineticMcChainOmpiFromParameter(parameter);
-    kinetic_mc_chain_ompi.Simulate();
+    auto kinetic_mc_second_ompi = api::BuildKineticMcSecondOmpiFromParameter(parameter);
+    kinetic_mc_second_ompi.Simulate();
   } else if (parameter.method == "Ansys") {
     auto iterator = api::BuildIteratorFromParameter(parameter);
     iterator.RunAnsys();
@@ -212,7 +212,7 @@ mc::KineticMcFirstSerial BuildKineticMcFirstSerialFromParameter(const Parameter 
                                   parameter.seed_};
 }
 
-mc::KineticMcChainOmpi BuildKineticMcChainOmpiFromParameter(const Parameter &parameter) {
+mc::KineticMcSecondOmpi BuildKineticMcSecondOmpiFromParameter(const Parameter &parameter) {
   std::set<Element> element_set;
   for (const auto &element_string: parameter.element_set_) {
     element_set.insert(Element(element_string));
@@ -227,21 +227,21 @@ mc::KineticMcChainOmpi BuildKineticMcChainOmpiFromParameter(const Parameter &par
   if (IsRoot()) {
     std::cout << "Finish config reading. Start KMC." << std::endl;
   }
-  return mc::KineticMcChainOmpi{config,
-                                parameter.log_dump_steps_,
-                                parameter.config_dump_steps_,
-                                parameter.maximum_steps_,
-                                parameter.thermodynamic_averaging_steps_,
-                                parameter.restart_steps_,
-                                parameter.restart_energy_,
-                                parameter.restart_time_,
-                                parameter.temperature_,
-                                element_set,
-                                parameter.json_coefficients_filename_,
-                                parameter.time_temperature_filename_,
-                                parameter.early_stop_,
-                                parameter.solute_disp_,
-                                parameter.seed_};
+  return mc::KineticMcSecondOmpi{config,
+                                 parameter.log_dump_steps_,
+                                 parameter.config_dump_steps_,
+                                 parameter.maximum_steps_,
+                                 parameter.thermodynamic_averaging_steps_,
+                                 parameter.restart_steps_,
+                                 parameter.restart_energy_,
+                                 parameter.restart_time_,
+                                 parameter.temperature_,
+                                 element_set,
+                                 parameter.json_coefficients_filename_,
+                                 parameter.time_temperature_filename_,
+                                 parameter.early_stop_,
+                                 parameter.solute_disp_,
+                                 parameter.seed_};
 }
 
 mc::SimulatedAnnealing BuildSimulatedAnnealingFromParameter(const Parameter &parameter) {
