@@ -142,9 +142,9 @@ One file for every frame in the extended XYZ format, which OVITO reads. The comm
 
 The other fields of a cluster are `nan` for an atom that is in none. A frame without any cluster has none of the fields of a cluster except `cluster_<element>`.
 
-<img src="figures/frame_fields.png" width="760" alt="Three views of one analyzed frame: the solute atoms in the box, the seven clusters in different colors, and the largest cluster with its atoms colored by the binding energy of a vacancy.">
+<img src="figures/frame_fields.webp" width="760" alt="Animation of one analyzed frame in a full turn: the seven clusters in the periodic box, at the left each in its own color, at the right with the atoms colored by the binding energy of a vacancy, and a red ring around the vacancy.">
 
-*One frame of `Ansys` with `smallest_cluster_criteria 10` and `solvent_bond_criteria 3`, step 10 000 000 of the KMC run of [A first run](README.md#a-first-run): (a) the solute atoms, small and pale if they are in no cluster, with the vacancy inside cluster 4; (b) the seven clusters, their solvent atoms drawn smaller; (c) cluster 1 alone, seen from higher up. A site with a negative `binding_energy` (blue) attracts a vacancy, one with a positive value (red) repels it. A cluster that crosses a boundary of the periodic box is drawn in one piece.*
+*One frame of `Ansys` with `smallest_cluster_criteria 10` and `solvent_bond_criteria 3` in a full turn: step 10 000 000 of the KMC run of [A first run](README.md#a-first-run). Both panels show the atoms of the seven clusters, the solvent atoms that joined them drawn smaller: (a) in the color of their `cluster_id`, with `cluster_size` below it; (b) colored by `binding_energy`: a site with a negative value (blue) attracts a vacancy, one with a positive value (red) repels it. The red ring marks the vacancy, which is inside cluster 4, even behind atoms. Atoms that are in no cluster are not drawn, neither the other 437 solute atoms nor the solvent around them. The periodic box is shifted so that no cluster is cut by a face.*
 
 ## Reformat
 
