@@ -8,8 +8,9 @@ Every figure of the documentation can be made again from the files in this direc
 | `log_rows`, `log_plot`, `vacancy_concentration` | `plots.py` |
 | `kmc_step`, `kmc_second_order`, `second_order`, `metropolis`, `cluster_definition`, `barrier_groups`, `energy_change`, `restart` | `animate_<name>.py`, which draws every frame as a line drawing |
 | `clustering`, `quench`, `vacancy_jumps`, `trapped_vacancy`, `annealing`, `jump_path`, `environment`, `lattice`, `cluster_shapes`, `frame_fields` | renderings of the `render_*.py` scripts, put together by `animate_<name>.py` |
+| `banner` and the six `tile_<name>`, which are in the README of the repository | `banner.py`, and `tiles.py`, which cuts the tiles out of the animations of the same names |
 
-The figures of the first two rows are stills. All others are animations: a WebP file for the pages and an MP4 file of the same content, which is not part of the repository.
+The figures of the first two rows are stills. All others are animations: a WebP file for the pages and an MP4 file of the same content, which is not part of the repository. The banner is a vector drawing that moves by itself, and the tiles have no MP4 file.
 
 Shared files:
 
