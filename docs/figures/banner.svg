@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 128" width="760" height="128" role="img">
+<title>A vacancy jumps through a close-packed layer of Al, Mg and Zn atoms</title>
+<defs>
+<radialGradient id="Al" cx="0.36" cy="0.30" r="0.74"><stop offset="0" stop-color="#F3F4F6"/><stop offset="0.42" stop-color="#AEB3BA"/><stop offset="1" stop-color="#6C737D"/></radialGradient>
+<radialGradient id="Mg" cx="0.36" cy="0.30" r="0.74"><stop offset="0" stop-color="#FBE6CF"/><stop offset="0.42" stop-color="#DE8D3A"/><stop offset="1" stop-color="#A25B17"/></radialGradient>
+<radialGradient id="Zn" cx="0.36" cy="0.30" r="0.74"><stop offset="0" stop-color="#D3E3F5"/><stop offset="0.42" stop-color="#3F78B5"/><stop offset="1" stop-color="#234A78"/></radialGradient>
+<linearGradient id="ends" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="0.16" stop-color="#fff"/><stop offset="0.84" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<mask id="fade"><rect width="760" height="128" fill="url(#ends)"/></mask>
+</defs>
+<g mask="url(#fade)">
+<circle cx="218.0" cy="63.9" r="13.7" fill="#fff" stroke="#C8423B" stroke-width="2.8"><animateTransform attributeName="transform" type="translate" dur="12s" repeatCount="indefinite" values="0 0;0.0 0.0;38.0 0.0;38.0 0.0;76.0 0.0;76.0 0.0;57.0 32.9;57.0 32.9;76.0 0.0;76.0 0.0;57.0 32.9;57.0 32.9;76.0 0.0;76.0 0.0;114.0 0.0;114.0 0.0;152.0 0.0;152.0 0.0;171.0 -32.9;171.0 -32.9;133.0 -32.9;133.0 -32.9;95.0 -32.9;95.0 -32.9;57.0 -32.9;57.0 -32.9;19.0 -32.9;19.0 -32.9;-19.0 -32.9;-19.0 -32.9;19.0 -32.9;19.0 -32.9;0.0 0.0;0.0 0.0" keyTimes="0.0000;0.0375;0.0625;0.1000;0.1250;0.1625;0.1875;0.2250;0.2500;0.2875;0.3125;0.3500;0.3750;0.4125;0.4375;0.4750;0.5000;0.5375;0.5625;0.6000;0.6250;0.6625;0.6875;0.7250;0.7500;0.7875;0.8125;0.8500;0.8750;0.9125;0.9375;0.9750;1.0000;1.0000"/></circle>
+<circle cx="9.0" cy="31.0" r="15.6" fill="url(#Mg)"/>
+<circle cx="47.0" cy="31.0" r="15.6" fill="url(#Al)"/>
+<circle cx="85.0" cy="31.0" r="15.6" fill="url(#Zn)"/>
+<circle cx="123.0" cy="31.0" r="15.6" fill="url(#Al)"/>
+<circle cx="161.0" cy="31.0" r="15.6" fill="url(#Al)"/>
+<circle cx="427.0" cy="31.0" r="15.6" fill="url(#Al)"/>
+<circle cx="465.0" cy="31.0" r="15.6" fill="url(#Mg)"/>
+<circle cx="503.0" cy="31.0" r="15.6" fill="url(#Al)"/>
+<circle cx="541.0" cy="31.0" r="15.6" fill="url(#Al)"/>
+<circle cx="579.0" cy="31.0" r="15.6" fill="url(#Mg)"/>
+<circle cx="617.0" cy="31.0" r="15.6" fill="url(#Zn)"/>
+<circle cx="655.0" cy="31.0" r="15.6" fill="url(#Al)"/>
+<circle cx="693.0" cy="31.0" r="15.6" fill="url(#Al)"/>
+<circle cx="731.0" cy="31.0" r="15.6" fill="url(#Al)"/>
+<circle cx="28.0" cy="63.9" r="15.6" fill="url(#Al)"/>
+<circle cx="66.0" cy="63.9" r="15.6" fill="url(#Al)"/>
+<circle cx="104.0" cy="63.9" r="15.6" fill="url(#Mg)"/>
+<circle cx="142.0" cy="63.9" r="15.6" fill="url(#Zn)"/>
+<circle cx="180.0" cy="63.9" r="15.6" fill="url(#Al)"/>
+<circle cx="408.0" cy="63.9" r="15.6" fill="url(#Al)"/>
+<circle cx="446.0" cy="63.9" r="15.6" fill="url(#Al)"/>
+<circle cx="484.0" cy="63.9" r="15.6" fill="url(#Al)"/>
+<circle cx="522.0" cy="63.9" r="15.6" fill="url(#Al)"/>
+<circle cx="560.0" cy="63.9" r="15.6" fill="url(#Zn)"/>
+<circle cx="598.0" cy="63.9" r="15.6" fill="url(#Zn)"/>
+<circle cx="636.0" cy="63.9" r="15.6" fill="url(#Al)"/>
+<circle cx="674.0" cy="63.9" r="15.6" fill="url(#Al)"/>
+<circle cx="712.0" cy="63.9" r="15.6" fill="url(#Al)"/>
+<circle cx="750.0" cy="63.9" r="15.6" fill="url(#Al)"/>
+<circle cx="9.0" cy="96.8" r="15.6" fill="url(#Al)"/>
+<circle cx="47.0" cy="96.8" r="15.6" fill="url(#Al)"/>
+<circle cx="85.0" cy="96.8" r="15.6" fill="url(#Mg)"/>
+<circle cx="123.0" cy="96.8" r="15.6" fill="url(#Zn)"/>
+<circle cx="161.0" cy="96.8" r="15.6" fill="url(#Al)"/>
+<circle cx="199.0" cy="96.8" r="15.6" fill="url(#Al)"/>
+<circle cx="237.0" cy="96.8" r="15.6" fill="url(#Al)"/>
+<circle cx="313.0" cy="96.8" r="15.6" fill="url(#Al)"/>
+<circle cx="351.0" cy="96.8" r="15.6" fill="url(#Al)"/>
+<circle cx="389.0" cy="96.8" r="15.6" fill="url(#Al)"/>
+<circle cx="427.0" cy="96.8" r="15.6" fill="url(#Mg)"/>
+<circle cx="465.0" cy="96.8" r="15.6" fill="url(#Al)"/>
+<circle cx="503.0" cy="96.8" r="15.6" fill="url(#Al)"/>
+<circle cx="541.0" cy="96.8" r="15.6" fill="url(#Al)"/>
+<circle cx="579.0" cy="96.8" r="15.6" fill="url(#Mg)"/>
+<circle cx="617.0" cy="96.8" r="15.6" fill="url(#Al)"/>
+<circle cx="655.0" cy="96.8" r="15.6" fill="url(#Al)"/>
+<circle cx="693.0" cy="96.8" r="15.6" fill="url(#Zn)"/>
+<circle cx="731.0" cy="96.8" r="15.6" fill="url(#Al)"/>
+<circle cx="237.0" cy="31.0" r="15.6" fill="url(#Al)"><animateTransform attributeName="transform" type="translate" dur="12s" repeatCount="indefinite" values="0 0;0.0 0.0;38.0 0.0;38.0 0.0" keyTimes="0.0000;0.7875;0.8125;1.0000"/></circle>
+<circle cx="275.0" cy="31.0" r="15.6" fill="url(#Al)"><animateTransform attributeName="transform" type="translate" dur="12s" repeatCount="indefinite" values="0 0;0.0 0.0;38.0 0.0;38.0 0.0" keyTimes="0.0000;0.7250;0.7500;1.0000"/></circle>
+<circle cx="313.0" cy="31.0" r="15.6" fill="url(#Al)"><animateTransform attributeName="transform" type="translate" dur="12s" repeatCount="indefinite" values="0 0;0.0 0.0;38.0 0.0;38.0 0.0" keyTimes="0.0000;0.6625;0.6875;1.0000"/></circle>
+<circle cx="351.0" cy="31.0" r="15.6" fill="url(#Al)"><animateTransform attributeName="transform" type="translate" dur="12s" repeatCount="indefinite" values="0 0;0.0 0.0;38.0 0.0;38.0 0.0" keyTimes="0.0000;0.6000;0.6250;1.0000"/></circle>
+<circle cx="389.0" cy="31.0" r="15.6" fill="url(#Al)"><animateTransform attributeName="transform" type="translate" dur="12s" repeatCount="indefinite" values="0 0;0.0 0.0;-19.0 32.9;-19.0 32.9" keyTimes="0.0000;0.5375;0.5625;1.0000"/></circle>
+<circle cx="294.0" cy="63.9" r="15.6" fill="url(#Al)"><animateTransform attributeName="transform" type="translate" dur="12s" repeatCount="indefinite" values="0 0;0.0 0.0;-38.0 0.0;-38.0 0.0" keyTimes="0.0000;0.1000;0.1250;1.0000"/></circle>
+<circle cx="332.0" cy="63.9" r="15.6" fill="url(#Al)"><animateTransform attributeName="transform" type="translate" dur="12s" repeatCount="indefinite" values="0 0;0.0 0.0;-38.0 0.0;-38.0 0.0" keyTimes="0.0000;0.4125;0.4375;1.0000"/></circle>
+<circle cx="370.0" cy="63.9" r="15.6" fill="url(#Al)"><animateTransform attributeName="transform" type="translate" dur="12s" repeatCount="indefinite" values="0 0;0.0 0.0;-38.0 0.0;-38.0 0.0" keyTimes="0.0000;0.4750;0.5000;1.0000"/></circle>
+<circle cx="199.0" cy="31.0" r="15.6" fill="url(#Mg)"><animateTransform attributeName="transform" type="translate" dur="12s" repeatCount="indefinite" values="0 0;0.0 0.0;38.0 0.0;38.0 0.0;0.0 0.0;0.0 0.0" keyTimes="0.0000;0.8500;0.8750;0.9125;0.9375;1.0000"/></circle>
+<circle cx="256.0" cy="63.9" r="15.6" fill="url(#Al)"><animateTransform attributeName="transform" type="translate" dur="12s" repeatCount="indefinite" values="0 0;0.0 0.0;-38.0 0.0;-38.0 0.0;-19.0 -32.9;-19.0 -32.9" keyTimes="0.0000;0.0375;0.0625;0.9750;1.0000;1.0000"/></circle>
+<circle cx="275.0" cy="96.8" r="15.6" fill="url(#Zn)"><animateTransform attributeName="transform" type="translate" dur="12s" repeatCount="indefinite" values="0 0;0.0 0.0;19.0 -32.9;19.0 -32.9;0.0 0.0;0.0 0.0;19.0 -32.9;19.0 -32.9;0.0 0.0;0.0 0.0" keyTimes="0.0000;0.1625;0.1875;0.2250;0.2500;0.2875;0.3125;0.3500;0.3750;1.0000"/></circle>
+</g>
+</svg>

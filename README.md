@@ -1,14 +1,87 @@
-[![CMake](https://github.com/zhucongx/LatticeMonteCarlo/actions/workflows/cmake.yml/badge.svg?branch=main)](https://github.com/zhucongx/LatticeMonteCarlo/actions/workflows/cmake.yml)
+<p align="center">
+  <img src="docs/figures/banner.svg" width="760" alt="A vacancy jumps through a close-packed layer of Al, Mg and Zn atoms.">
+</p>
 
-# LatticeMC
+<h1 align="center">LatticeMC</h1>
+
+<p align="center">
+  <b>Lattice Monte Carlo simulations of substitutional fcc alloys</b><br>
+  kinetic Monte Carlo · canonical Monte Carlo · simulated annealing · cluster analysis
+</p>
+
+<p align="center">
+  <a href="https://github.com/zhucongx/LatticeMonteCarlo/actions/workflows/cmake.yml"><img src="https://github.com/zhucongx/LatticeMonteCarlo/actions/workflows/cmake.yml/badge.svg?branch=main" alt="CMake"></a>
+  <img src="https://img.shields.io/badge/C%2B%2B-20-3F78B5" alt="C++20">
+  <img src="https://img.shields.io/badge/parallel-MPI%20and%20OpenMP-DE8D3A" alt="Parallel: MPI and OpenMP">
+  <a href="docs/README.md"><img src="https://img.shields.io/badge/documentation-8%20pages-7E858F" alt="Documentation: 8 pages"></a>
+  <a href="https://github.com/zhucongx/LatticeMonteCarlo/releases/tag/tutorial"><img src="https://img.shields.io/badge/tutorial-PDF-C8423B" alt="Tutorial: PDF"></a>
+</p>
+
+<p align="center">
+  <a href="docs/README.md#a-first-run">A first run</a> ·
+  <a href="docs/README.md">Documentation</a> ·
+  <a href="https://github.com/zhucongx/LatticeMonteCarlo/releases/tag/tutorial">Tutorial</a> ·
+  <a href="#build">Build</a> ·
+  <a href="#papers">Papers</a>
+</p>
+
+<p align="center">
+  <img src="docs/figures/clustering.webp" width="760" alt="Animation of a KMC run at 450 K: in a periodic box of an Al-Mg-Zn alloy, nearly half of the scattered Mg and Zn atoms gather in seven clusters while the energy of the box falls by 27 eV within 1.1 s.">
+</p>
+
+<p align="center">
+  <i>Clusters form in a KMC run of an Al-Mg-Zn alloy at 450 K (Mg orange, Zn blue, Al not shown); the time is that of an alloy which keeps the <a href="docs/methods.md#time-and-vacancy-concentration">vacancies</a> of its solid solution in equilibrium. <a href="docs/README.md#a-first-run">A first run</a> shows how it is done.</i>
+</p>
+
+## What it does
 
 LatticeMC runs lattice Monte Carlo simulations of substitutional fcc alloys: kinetic Monte Carlo (KMC) of atoms that move by jumps of a vacancy, canonical Monte Carlo (CMC), and simulated annealing (SA). Two further methods work on the files of a run: `Ansys` analyzes the clusters in its configurations, and `Reformat` converts the configurations.
 
 The energy is a cluster expansion, and the barrier of a jump follows from a quartic polynomial for the energy along its path. The coefficients of both come from a JSON file.
 
-<img src="docs/figures/clustering.webp" width="760" alt="Animation of a KMC run at 450 K: in a periodic box of an Al-Mg-Zn alloy, nearly half of the scattered Mg and Zn atoms gather in seven clusters while the energy of the box falls by 27 eV within 1.1 s.">
+| | [`simulation_method`](docs/methods.md) | What it does |
+|---|---|---|
+| **KMC** | `KineticMcFirstSerial`, `KineticMcFirstMpi`, `KineticMcChainOmpi` | Atoms move by the jumps of a vacancy, at one temperature or along a time-temperature table, with the residence time algorithm of first or second order |
+| **CMC** | `CanonicalMcSerial`, `CanonicalMcOmp` | Two atoms change places with the Metropolis probability, at a constant temperature |
+| **SA** | `SimulatedAnnealing` | The steps of CMC while the temperature falls, in search of a configuration of low energy |
+| **Analysis** | `Ansys`, `Reformat` | The clusters in the configurations of a run, the binding energies of a vacancy, and the time it needs to escape; conversion of the configurations |
 
-*Clusters form in a KMC run of an Al-Mg-Zn alloy at 450 K (Mg orange, Zn blue, Al not shown); the time is that of an alloy which keeps the [vacancies](docs/methods.md#time-and-vacancy-concentration) of its solid solution in equilibrium. [A first run](docs/README.md#a-first-run) shows how it is done.*
+<table align="center">
+  <tr>
+    <td align="center" width="33%">
+      <a href="docs/input-files.md#time-temperature-table"><img src="docs/figures/tile_quench.webp" width="240" alt="Animation of a box of Mg and Zn atoms in which clusters form during a quench."></a><br>
+      <b>Quench and aging</b><br>
+      <sub>KMC along a <a href="docs/input-files.md#time-temperature-table">time-temperature table</a></sub>
+    </td>
+    <td align="center" width="33%">
+      <a href="docs/methods.md#kinetic-monte-carlo"><img src="docs/figures/tile_vacancy_jumps.webp" width="240" alt="Animation of single jumps: Al, Mg and Zn atoms jump into the vacancy one after the other."></a><br>
+      <b>One jump at a time</b><br>
+      <sub>a step of <a href="docs/methods.md#kinetic-monte-carlo">KMC</a> is a jump of the vacancy</sub>
+    </td>
+    <td align="center" width="33%">
+      <a href="docs/analysis.md#escape-of-a-vacancy"><img src="docs/figures/tile_trapped_vacancy.webp" width="240" alt="Animation of a vacancy that moves among clusters; a red line shows its path."></a><br>
+      <b>A vacancy among clusters</b><br>
+      <sub>where they <a href="docs/analysis.md#escape-of-a-vacancy">hold it</a>, and for how long</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="docs/analysis.md#what-a-cluster-is"><img src="docs/figures/tile_frame_fields.webp" width="240" alt="Animation of seven clusters in a box that turns, each cluster in its own color."></a><br>
+      <b>Clusters</b><br>
+      <sub>found and measured by <a href="docs/analysis.md#what-a-cluster-is"><code>Ansys</code></a></sub>
+    </td>
+    <td align="center">
+      <a href="docs/methods.md#simulatedannealing"><img src="docs/figures/tile_annealing.webp" width="240" alt="Animation of scattered Mg and Zn atoms that gather into one compact cluster."></a><br>
+      <b>Simulated annealing</b><br>
+      <sub>the <a href="docs/methods.md#simulatedannealing">arrangement</a> of lowest energy</sub>
+    </td>
+    <td align="center">
+      <a href="docs/model.md#barrier"><img src="docs/figures/tile_jump_path.webp" width="240" alt="Animation of a Mg atom that jumps into a vacancy and back, among their Al neighbors."></a><br>
+      <b>Barriers</b><br>
+      <sub>of every jump, from the atoms <a href="docs/model.md#barrier">around it</a></sub>
+    </td>
+  </tr>
+</table>
 
 ## Documentation
 
