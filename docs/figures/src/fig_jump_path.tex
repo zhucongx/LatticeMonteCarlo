@@ -14,14 +14,25 @@
     \vacancylegend{2.6}{0}
   \end{scope}
   % E(x) = 16 x^4 - 4.8 x^3 - 7.595 x^2, that is D = 1, Ks = 64 and dE = -1.2, with the transition state at (11.60 cm, 6.22 cm);
-  % 3.35 cm per unit of x and 2.45 cm per unit of E
+  % 3.35 cm per unit of x and 2.45 cm per unit of E. The minima are at -0.3875 and 0.6125 with the energies -0.5004 and -1.7004 and
+  % the curvatures 24.8 and 39.2. The barrier 0.5004 is Ks D^2 / 64 (1 + 3u/4)^3 (1 - u/4) with u = 16 dE / (Ks D^2) = -0.3.
   \begin{scope}[shift={(11.60,6.22)}, x=3.35cm, y=2.45cm]
     \draw[arr] (-0.78,-2.06) -- (1.28,-2.06) node[pos=0.52, below=14pt] {reaction coordinate $x$};
     \draw[arr] (-0.78,-2.06) -- (-0.78,0.67) node[pos=0.5, above, rotate=90] {energy $E(x)$};
     \foreach \x/\t in {-0.3875/x_{\mathrm{I}}, 0/0, 0.6125/x_{\mathrm{F}}} {
       \draw[line width=0.6pt] (\x,-2.06) -- ++(0,-0.04); \node[anchor=base, yshift=-13pt] at (\x,-2.06) {$\t$};}
-    \draw[black!40, densely dashed, line width=0.6pt] (-0.50,0) -- (0.74,0) (-0.3875,-0.5004) -- (1.10,-0.5004) (0.6125,-1.7004) -- (1.10,-1.7004);
+    \draw[line width=0.6pt] (-0.78,0) -- ++(-0.027,0); \node[left, inner sep=3pt] at (-0.80,0) {$0$};
+    \draw[black!40, densely dashed, line width=0.6pt] (-0.78,0) -- (0.74,0) (-0.3875,-0.5004) -- (1.10,-0.5004)
+      (0.6125,-1.7004) -- (1.10,-1.7004);
     \draw[black!40, densely dotted, line width=0.6pt] (-0.3875,-0.5004) -- (-0.3875,-2.06) (0.6125,-1.7004) -- (0.6125,-2.06);
+    % what fixes the curve, dark: the parabolas with the curvatures KI and KF of the energy at the two minima, which add up to Ks,
+    % the distance D of the minima and the energy change
+    \draw[cDark, dashed, line width=1.0pt] plot[domain=-0.5675:-0.2075, samples=40] (\x,{-0.5004 + 12.40*(\x+0.3875)^2});
+    \draw[cDark, dashed, line width=1.0pt] plot[domain=0.4225:0.8025, samples=40] (\x,{-1.7004 + 19.60*(\x-0.6125)^2});
+    \node[text=cDark] at (-0.645,-0.33) {$\KI$};
+    \node[text=cDark] at (0.89,-1.30) {$\KF$};
+    \node[text=cDark] at (0.005,-1.60) {$K_s = \KI + \KF$};
+    \draw[dbl, cDark] (-0.3825,-1.90) -- (0.6075,-1.90) node[midway, fill=white, inner sep=2pt] {$D$};
     \draw[arr, cDark] (1.02,-0.5004) -- (1.02,-1.6904) node[midway, right, inner sep=3pt] {$\dE$};
     \draw[arr, #1, line width=1.2pt] (-0.3875,-0.5004) -- (-0.3875,-0.01) node[above, inner sep=3.5pt] {$E_a$};
     \draw[arr, #2, line width=1.2pt] (0.6125,-1.7004) -- (0.6125,-0.01) node[above, inner sep=3.5pt, xshift=-2pt] {$E_a-\dE$};

@@ -41,17 +41,17 @@ First-order residence time algorithm. In every step one of the twelve jumps is d
 
 `KineticMcFirstMpi` does the same with twelve processes, one for each jump.
 
-<img src="figures/kmc_step.png" width="760" alt="A vacancy with arrows of different widths to its twelve neighbors, and a bar of the twelve jump probabilities in which the random number 0.62 falls into the segment of jump 8.">
+<img src="figures/kmc_step.webp" width="760" alt="Animation of three steps of first-order KMC: arrows for the twelve rates appear around the vacancy, the jump probabilities fill a bar from 0 to 1, a first random number gives the time step and a second one picks a jump, the clock advances, and the atom and the vacancy change places; in the last step the random number 0.62 falls into the segment of jump 8.">
 
-*One step of first-order KMC. (a) The vacancy and its twelve jumps, drawn in a ring; the width of an arrow is proportional to the rate rᵢ of the jump. (b) The probabilities pᵢ = rᵢ / Σ rᵢ of the jumps fill the interval from 0 to 1, and the jump whose segment contains a random number is made, here jump 8 (the numbers are an example).*
+*Three steps of first-order KMC in the order of the program; the rates and the random numbers are an example. (a) The vacancy and its twelve jumps, drawn in a ring; the width of an arrow is proportional to the rate rᵢ of the jump. (b) The probabilities pᵢ = rᵢ / Σ rᵢ of the jumps fill the interval from 0 to 1, and the jump whose segment contains the second random number of the step is made. (c) The first random number u gives the time step −ln(u) / Σ rᵢ, which is added to the time before the atom and the vacancy change places. After that the vacancy has other neighbors and other rates; in the ring the atom that has just jumped lies opposite to its jump. The animation ends when jump 8 is selected in the third step.*
 
 ### KineticMcChainOmpi
 
 Second-order residence time algorithm. At low temperature the vacancy often jumps back and forth between two sites. This method treats such returns analytically. It takes the rates of the twelve jumps of the vacancy and of the twelve jumps that can follow each of them. From these it finds, for every neighbor site, the probability that the vacancy ends up there after its immediate returns. The time advances by the mean time until then, taken over all these sites, without a random number. One step therefore covers many single jumps where the vacancy is trapped, and it takes longer to compute, because it needs 144 barriers instead of 12. The first jump of a step does not lead back to the site the vacancy came from, because the step before has already counted such returns.
 
-<img src="figures/kmc_second_order.png" width="760" alt="Drawing of a vacancy that came from site j and can jump to a neighbor site i and return at once, and a flow chart of the paths with any number of returns that one step sums over.">
+<img src="figures/kmc_second_order.webp" width="760" alt="Animation of one step of second-order KMC: a vacancy that came from site j jumps to a neighbor site i and returns or goes on, while a small vacancy follows the same path through a flow chart, first a path without a return and then one with two returns, and at the end the sum over all paths is highlighted.">
 
-*One step of second-order KMC. (a) The probabilities pᵢ of a jump to the neighbor site i and qᵢ of an immediate return from there. (b) The paths the vacancy can take. The site where the step ends is drawn with the probabilities summed over all paths, and the time advances by the mean time of the step.*
+*One step of second-order KMC. (a) The probabilities pᵢ of a jump to the neighbor site i and qᵢ of an immediate return from there. (b) The paths the vacancy can take. The animation follows two of them: on the first the vacancy jumps to i and does not return; on the second it returns from i, jumps to j, which only the first attempt of a step leaves out, returns again, and then ends at i. The program does not follow single paths: it sums over all of them in closed form, draws the site where the step ends with these summed probabilities, and advances the time by the mean time of the step, without a random number.*
 
 <img src="figures/second_order.webp" width="760" alt="Animation in two panels: in first-order KMC the vacancy jumps back and forth between two sites in 21 steps before it moves on, in second-order KMC a single step covers these jumps.">
 
@@ -79,7 +79,7 @@ $$c_{\mathrm{res}} = c_{\mathrm{alloy}} f,$$
 
 where $f$ is the fraction that neither solute atoms nor clusters have trapped. As clusters grow $f$ falls, in an alloy by orders of magnitude, and the solute becomes slower. This is part of the simulation, in which the vacancy is trapped in the same way, and $c / c_{\mathrm{alloy}}$ stays constant. `Ansys` estimates the fraction outside of the clusters, see [Vacancy concentrations](analysis.md#vacancy-concentrations).
 
-**In the animations** of this documentation the time is that of an alloy: the time of the run times $c / c_{\mathrm{alloy}}$. The alloy keeps the number of its vacancies while clusters form, as the box keeps its one, so the factor is the same for the whole run. A run at one temperature is shown for an alloy that starts with the vacancies of equilibrium: $c_{\mathrm{alloy}}$ is the $c_{\mathrm{alloy}}(T)$ above for the start configuration, a solid solution, at the temperature of the run. For the KMC run of [A first run](README.md#a-first-run), at 450 K, the time in the alloy is 326 times the time of the run. The logs, and the plots of their columns, hold the time of the run.
+**In the animations** of this documentation the time is that of an alloy: the time of the run times $c / c_{\mathrm{alloy}}$. The alloy keeps the number of its vacancies while clusters form, as the box keeps its one, so the factor is the same for the whole run. A run at one temperature is shown for an alloy that starts with the vacancies of equilibrium: $c_{\mathrm{alloy}}$ is the $c_{\mathrm{alloy}}(T)$ above for the start configuration, a solid solution, at the temperature of the run. For the KMC run of [A first run](README.md#a-first-run), at 450 K, the time in the alloy is 326 times the time of the run. The [quench](input-files.md#time-temperature-table) is shown for an alloy that keeps the vacancies of 800 K: 0.29 times the time of the run. The logs, and the plots of their columns, hold the time of the run.
 
 **Long times.** When the clusters hold the only vacancy, a run gets no further, but the alloy goes on aging with its residual vacancies. Xi et al. 2025 continue from there with cluster dynamics, rate equations for the number of clusters of every size, which use the diffusivity above with the $f$ of the clusters. This is not part of the program; the run delivers the clusters at the end of the quench.
 
@@ -101,9 +101,9 @@ With `solute_disp true` the log gets three more columns: the displacement of the
 
 Metropolis algorithm at a constant temperature and composition. A step draws two sites of the whole box that hold different elements, one of which may be the vacancy, and exchanges them if that lowers the energy, or else with the probability $\exp(-\Delta E / k_B T)$. Both methods write [`cmc_log.txt`](output-files.md#cmc_logtxt) and [configurations](output-files.md#configurations).
 
-<img src="figures/metropolis.png" width="760" alt="A box of atoms with a double arrow between two sites that hold different elements, and a plot of the acceptance probability against the energy change divided by kT.">
+<img src="figures/metropolis.webp" width="760" alt="Animation of five trial exchanges of the Metropolis algorithm: two sites of a box of atoms that hold different elements light up, the energy change of the trial appears as a point on the curve of the acceptance probability, a random number is compared with it, and the two atoms change places or stay.">
 
-*One step of CMC, or of SA at its current temperature. (a) Two sites anywhere in the box that hold different elements are drawn for an exchange; one of them may be the vacancy. (b) The exchange is made if it lowers the energy, or else with the probability exp(−ΔE/k<sub>B</sub>T).*
+*Five steps of CMC, or of SA at its current temperature; the sites, energy changes and random numbers are an example. (a) Two sites anywhere in the box that hold different elements are drawn for an exchange; one of them may be the vacancy (trial 3). Two sites with the same element are drawn again and do not count as a step. (b) The exchange is made if it lowers the energy (trials 1 and 4, no random number is drawn), or else with the probability exp(−ΔE/k<sub>B</sub>T): a random number between 0 and 1 is drawn, and the exchange is made if it is smaller than this probability (trials 3 and 5) and not made otherwise (trial 2). The table lists the trials.*
 
 `CanonicalMcOmp` evaluates several pairs at a time, one per thread. No site of a pair may be within the third neighbor shell of a site of another pair, so the energy changes do not depend on each other. The run depends on the number of threads. With $n$ threads it may go up to $n - 1$ steps beyond `maximum_steps`.
 
@@ -132,13 +132,9 @@ initial_temperature 800
 seed 12345
 ```
 
-<img src="figures/annealing.png" width="760" alt="Temperature and energy of a simulated annealing run against the number of steps, and the box with its solute atoms scattered at the start and gathered in one compact cluster in lowest_energy.cfg.gz.">
+<img src="figures/annealing.webp" width="760" alt="Animation of a simulated annealing run: scattered solute atoms gather in one compact cluster while plots of the temperature and of the energy against the number of steps are traced.">
 
-*Simulated annealing with this file. (a) The temperature was multiplied by 0.99 every 5000 steps up to step 365 000, where more than 50 % of the steps were accepted (shaded), and by 1.10 five times later (triangles); the dashed line is the schedule without these factors. (b) The columns `energy` and `lowest_energy` of `sa_log.txt`; 0 eV stands for a solid solution of single solute atoms, like the start. (c) The start, which the method makes itself and does not write to a file, and (d) `lowest_energy.cfg.gz`, found at step 1 443 971, both without the Al atoms; in (d) the vacancy is hidden inside the cluster.*
-
-<img src="figures/annealing.webp" width="760" alt="Animation of a simulated annealing run in which scattered solute atoms gather in one compact cluster while the temperature and the energy fall.">
-
-*The same run as an animation, slowed down while the cluster forms. The last picture is `lowest_energy.cfg.gz`. SA writes no other configuration; the ones before it come from a modified build that also writes numbered configurations.*
+*Simulated annealing with this file, slowed down while the cluster forms; what the run has not reached yet is pale. Left: the solute atoms and the vacancy, without the Al atoms. The first picture is the start, which the method makes itself and does not write to a file, and the last one is `lowest_energy.cfg.gz`, found at step 1 443 971, with the vacancy hidden inside the cluster. SA writes no other configuration; the ones in between come from a modified build that also writes numbered configurations. Upper plot: the temperature was multiplied by 0.99 every 5000 steps up to step 365 000, where more than 50 % of the steps were accepted (shaded), and by 1.10 five times later (triangles); the dashed line is the schedule without these factors. Lower plot: the columns `energy` and `lowest_energy` of `sa_log.txt`; 0 eV stands for a solid solution of single solute atoms, like the start.*
 
 ## Speed and memory
 

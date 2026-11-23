@@ -11,9 +11,9 @@ KMC and CMC runs can go on from any configuration they wrote. Pick a step `N` fo
 | `restart_energy` | `energy` of this row |
 | `restart_time` | `time` of this row (KMC) |
 
-<img src="figures/restart.png" width="760" alt="Time line of a run that stops after the configuration of step N, and of its restart, which goes on from there to maximum_steps.">
+<img src="figures/restart.webp" width="760" alt="Animation of a time line: a first run writes rows of its log and configurations and stops after the configuration of step N, the rows after N are removed, the keys of the restart appear, and the restart goes on from N to maximum_steps and writes end.cfg.gz.">
 
-*A KMC run that stopped, and its restart from step `N`, the last one with a configuration and a row in the log. The first rows of a run, which are closer together, are left out of the drawing.*
+*A KMC run that stopped, and its restart from step `N`, the last one with a configuration and a row in the log. The first rows of a run, which are closer together, are left out of the drawing. The rows that the first run wrote after step `N` turn pale when they are removed.*
 
 Remove the rows after step `N` from the log before the run is started again: the new rows are added at the end of the file. The log has to be there, because a restart does not write the header line. The row of step `N` itself is not written a second time. `maximum_steps` still counts from step 0.
 
