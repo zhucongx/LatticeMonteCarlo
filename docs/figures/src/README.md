@@ -4,13 +4,20 @@ Every figure of the documentation can be made again from the files in this direc
 
 | Figures | Made with |
 |---|---|
-| `files`, `kmc_step`, `kmc_second_order`, `metropolis`, `cluster_definition`, `barrier_groups`, `energy_change`, `path`, `restart` | `fig_<name>.tex` |
-| `lattice`, `cluster_shapes`, `environment`, `frame_fields`, `annealing` | renderings (`render_*.py`), put together in `fig_<name>.tex` |
-| `time_temperature`, `log_rows`, `log_plot`, `vacancy_concentration` | `plots.py` |
-| `clustering`, `vacancy_jumps`, `second_order`, `annealing`, `jump_path`, `environment` (animations) | `animate_<name>.py`, most of them from renderings |
+| `files` | `fig_files.tex`, then `pdf_to_png.py` |
+| `log_rows`, `log_plot`, `vacancy_concentration` | `plots.py` |
+| `kmc_step`, `kmc_second_order`, `second_order`, `metropolis`, `cluster_definition`, `barrier_groups`, `energy_change`, `restart` | `animate_<name>.py`, which draws every frame as a line drawing |
+| `clustering`, `quench`, `vacancy_jumps`, `trapped_vacancy`, `annealing`, `jump_path`, `environment`, `lattice`, `cluster_shapes`, `frame_fields` | renderings of the `render_*.py` scripts, put together by `animate_<name>.py` |
 
-`figstyle.tex`, `style.py` and `scene.py` hold the look that the line drawings, the plots and the renderings share. `pdf_to_png.py` and `pdf_to_png_dithered.py` make the PNG of a still from its PDF. `alloy_time.py` gives the factor between the time of a KMC run and the [time in an alloy](../../methods.md#time-and-vacancy-concentration), for the animations and for `plots.py`.
+The figures of the first two rows are stills. All others are animations: a WebP file for the pages and an MP4 file of the same content, which is not part of the repository.
 
-Needed: LaTeX, Ghostscript, Python with matplotlib, seaborn, pandas, SciPy, scikit-learn and Pillow, the matplotlib style `xzc_sans` (not part of the repository), Blender, the WebP tools (`img2webp`, `cwebp`, `webpmux`), and `ffmpeg` for the videos.
+Shared files:
 
-The data come from the runs of the [first example](../../README.md#a-first-run), from an `Ansys` run on its KMC part, and from the simulated annealing run on the page [Methods](../../methods.md#simulatedannealing). For the animations these runs were repeated with more output, or continued; the comments at the top of the scripts say how. The start configuration and the coefficient file are not part of the repository.
+- `figstyle.tex`, `style.py` and `scene.py` hold the look of the line drawings, the plots and the renderings.
+- `tikz_film.py` and `tikz_frames.py` make an animation of line drawings, and `turn_film.py` one of renderings that turn.
+- `solute_box.py` draws the box of a KMC run with its solute atoms.
+- `alloy_time.py` gives the factor between the time of a KMC run and the [time in an alloy](../../methods.md#time-and-vacancy-concentration), for the animations and for `plots.py`.
+
+Needed: LaTeX, Ghostscript, Python with matplotlib, seaborn, pandas, SciPy and Pillow, the matplotlib style `xzc_sans` (not part of the repository), Blender, the WebP tools (`img2webp`, `cwebp`, `webpmux`), and `ffmpeg`.
+
+The data come from the runs of the [first example](../../README.md#a-first-run), from `Ansys` runs on its KMC part, from the run with the [time-temperature table](../../input-files.md#time-temperature-table), and from the simulated annealing run on the page [Methods](../../methods.md#simulatedannealing). For the animations these runs were repeated with more output, or continued; the comments at the top of the scripts say how. The start configuration and the coefficient file are not part of the repository.

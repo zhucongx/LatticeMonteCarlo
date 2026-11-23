@@ -25,9 +25,9 @@ SA writes no numbered configurations. To work on its result, copy `lowest_energy
 
 The clusters of a frame are numbered from the largest to the smallest, with the vacancy counted.
 
-<img src="figures/cluster_definition.png" width="760" alt="Three drawings of the same triangular lattice with Al, Mg and Zn atoms and a vacancy: connected nearest neighbors, the groups that are left when the small ones are dropped, and the solvent atoms that join them.">
+<img src="figures/cluster_definition.webp" width="760" alt="Animation of a triangular lattice of Al, Mg and Zn atoms with a vacancy: bonds connect the solute atoms and the vacancy that are nearest neighbors, the two small groups fade, numbers on the solvent atoms around the other two groups count their solute neighbors, three solvent atoms get a ring and join, and the two clusters get their numbers.">
 
-*How `Ansys` finds clusters, drawn in two dimensions on a triangular lattice, where a site has 6 nearest neighbors instead of 12, with `smallest_cluster_criteria 4` and `solvent_bond_criteria 2`. (a) Solute atoms and vacancies that are nearest neighbors are connected; (b) groups of fewer than 4 of them are dropped; (c) a solvent atom joins a group if more than 2 of its nearest neighbors are solute atoms or vacancies of the group. The numbers count these neighbors.*
+*How `Ansys` finds clusters, drawn in two dimensions on a triangular lattice, where a site has 6 nearest neighbors instead of 12, with `smallest_cluster_criteria 4` and `solvent_bond_criteria 2`. The three rules are applied one after the other: solute atoms and vacancies that are nearest neighbors are connected; the groups of fewer than 4 of them are dropped (pale); a solvent atom joins a group if more than 2 of its nearest neighbors are solute atoms or vacancies of the group (green ring). The numbers count these neighbors. At the end the two clusters have their `cluster_id`: cluster 1 has 9 sites with its vacancy, cluster 2 has 5.*
 
 ### ansys_frame_log.txt
 
@@ -105,6 +105,10 @@ with $E_{\mathrm{off}}$ from the column `barrier_mean_off`.
 
 The time comes from the inverse of a matrix, and its last digits depend on the order of the sums. If you compare two analyses of the same frame, allow a relative difference of 10⁻⁴ in `markov_escape_time`, `effective_binding_energy` and `effective_binding_simp_vacancy_concentration` at an `escape_temperature` of 300 K or more. At lower temperatures more digits are lost, and at 200 K and below the time can be wrong, or even negative.
 
+<img src="figures/trapped_vacancy.webp" width="760" alt="Animation of a KMC run at 450 K in a box with clusters of Mg and Zn atoms: the vacancy makes hundreds of thousands of steps at one of four numbered clusters, crosses the matrix in far fewer steps that take about as much time, and is caught by another cluster, while two panels show where it is and how the number of steps rises with time.">
+
+*A KMC run at 450 K with `log_dump_steps 1` that starts from the last configuration of the KMC run of [A first run](README.md#a-first-run): 3 000 000 steps. Left: solute atoms in clusters at full size (Mg orange, Zn blue), all others small and pale, the solvent hidden; the white disk with the red ring is the vacancy, and the red line its path during the last five pictures. Right: where the vacancy is, and the column `steps` of `kmc_log.txt` against the time, in the color of that place. The vacancy is at a cluster while it is on a site of the cluster or on a nearest neighbor site of one, the sites that `markov_escape_time` refers to; everywhere else it is in the matrix. The clusters are found in the configuration of every step, as [`Ansys`](#what-a-cluster-is) finds them with `smallest_cluster_criteria 10` and `solvent_bond_criteria 3`; the four largest keep the `cluster_id` and the color of the [frame below](#ansysstepxyzgz), which is the start of this run, and the smaller ones share the row "other". The vacancy makes 96.7 % of its steps at clusters, in 52 % of the time; the 3.3 % of the steps in the matrix take the other 48 %. Times are those of an alloy which keeps the vacancies that its solid solution has in equilibrium at 450 K, as in the animation of [A first run](README.md#a-first-run): the 77 µs of the run, with one vacancy in 10 976 sites, stand for 25 ms (see [Time and vacancy concentration](methods.md#time-and-vacancy-concentration)). The pictures are equally spaced in the time of the run.*
+
 ### Barriers around a cluster
 
 The barrier of a jump is taken as $E_a - \Delta E/2$, which is the same for the jump back. The four groups of jumps are:
@@ -116,9 +120,9 @@ The barrier of a jump is taken as $E_a - \Delta E/2$, which is the same for the 
 | `on` | between two sites outside that are both nearest neighbors of the cluster |
 | `off` | from such a site to one that is not a nearest neighbor of the cluster |
 
-<img src="figures/barrier_groups.png" width="520" alt="A cluster, the shaded sites that are its nearest neighbors, and arrows in four colors for the jumps of the groups in, to, on and off.">
+<img src="figures/barrier_groups.webp" width="760" alt="Animation of a cluster and the shaded sites that are its nearest neighbors: a vacancy makes two jumps of each of the groups in, to, on and off, and every jump leaves an arrow in the color of its group.">
 
-*The four groups of jumps, drawn in two dimensions around cluster 1 of the drawing that shows how clusters are found; its vacancy is replaced by a solvent atom first. An arrow is a jump of the vacancy from the tail to the head of the arrow, and a double arrow stands for both directions.*
+*The four groups of jumps, drawn in two dimensions around cluster 1 of the animation that shows how clusters are found; its vacancy is replaced by a solvent atom first. For every jump `Ansys` puts a vacancy on the first site in place of the atom there; the animation shows two such jumps of each group and puts the atoms back after each. An arrow is a jump of the vacancy from the tail to the head of the arrow, and a double arrow stands for both directions.*
 
 ### ansys/&lt;step&gt;.xyz.gz
 
@@ -138,9 +142,9 @@ One file for every frame in the extended XYZ format, which OVITO reads. The comm
 
 The other fields of a cluster are `nan` for an atom that is in none. A frame without any cluster has none of the fields of a cluster except `cluster_<element>`.
 
-<img src="figures/frame_fields.png" width="760" alt="Three views of one analyzed frame: the solute atoms in the box, the seven clusters in different colors, and the largest cluster with its atoms colored by the binding energy of a vacancy.">
+<img src="figures/frame_fields.webp" width="760" alt="Animation of one analyzed frame in a full turn: the seven clusters in the periodic box, at the left each in its own color, at the right with the atoms colored by the binding energy of a vacancy, and a red ring around the vacancy.">
 
-*One frame of `Ansys` with `smallest_cluster_criteria 10` and `solvent_bond_criteria 3`, step 10 000 000 of the KMC run of [A first run](README.md#a-first-run): (a) the solute atoms, small and pale if they are in no cluster, with the vacancy inside cluster 4; (b) the seven clusters, their solvent atoms drawn smaller; (c) cluster 1 alone, seen from higher up. A site with a negative `binding_energy` (blue) attracts a vacancy, one with a positive value (red) repels it. A cluster that crosses a boundary of the periodic box is drawn in one piece.*
+*One frame of `Ansys` with `smallest_cluster_criteria 10` and `solvent_bond_criteria 3` in a full turn: step 10 000 000 of the KMC run of [A first run](README.md#a-first-run). Both panels show the atoms of the seven clusters, the solvent atoms that joined them drawn smaller: (a) in the color of their `cluster_id`, with `cluster_size` below it; (b) colored by `binding_energy`: a site with a negative value (blue) attracts a vacancy, one with a positive value (red) repels it. The red ring marks the vacancy, which is inside cluster 4, even behind atoms. Atoms that are in no cluster are not drawn, neither the other 437 solute atoms nor the solvent around them. The periodic box is shifted so that no cluster is cut by a face.*
 
 ## Reformat
 

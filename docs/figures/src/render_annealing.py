@@ -1,4 +1,4 @@
-# Pictures of a simulated annealing run for annealing.png and annealing.webp: the box with the solute atoms and the vacancy, without
+# Pictures of a simulated annealing run for annealing.webp: the box with the solute atoms and the vacancy, without
 # the solvent. All pictures are shifted in the periodic box by the same vector, such that the solutes of the reference configuration
 # are in the middle. A picture is named after its configuration; pictures that exist already are kept, so that a run can be continued.
 #   blender -b -P render_annealing.py -- <output folder> <size in pixels> <samples> <reference configuration> <configuration> ...

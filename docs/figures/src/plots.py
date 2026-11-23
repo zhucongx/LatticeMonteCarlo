@@ -1,4 +1,4 @@
-# Data plots of the documentation: time_temperature.png, log_rows.png, log_plot.png and vacancy_concentration.png.
+# Data plots of the documentation: log_rows.png, log_plot.png and vacancy_concentration.png.
 #   python3 plots.py <run folder> <output folder>
 # The run folder holds cmc/cmc_log.txt and kmc/kmc_log.txt, the logs of the two runs on the page README.md, and in ansys/ansys the files
 # 0.xyz.gz and 10000000.xyz.gz of Ansys for the KMC run. Rows of the KMC log after step 10 000 000 are not used. Needs LaTeX, Ghostscript,
@@ -7,12 +7,10 @@ import os
 import subprocess
 import sys
 import tempfile
-from bisect import bisect_left
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import pandas as pd
 from alloy_time import boltzmann, c_equilibrium, fields
-from matplotlib.collections import LineCollection
 from PIL import Image
 from style import *
 
@@ -50,43 +48,6 @@ def save_png(fig, name, width):
     path = os.path.join(out, name)
     im.quantize(colors=256, method=Image.Quantize.MAXCOVERAGE, kmeans=4).save(path, optimize=True)
     print(name, im.size, os.path.getsize(path) // 1024, "kB")
-
-
-# --------------------------------------------------------------------------------- time-temperature table (input-files.md)
-TABLE = ((0, 750), (10, 300), (40, 300), (60, 400))
-
-
-def temperature(time, table=TABLE):
-    """ TimeTemperatureInterpolator::GetTemperature """
-    i = bisect_left([point[0] for point in table], time)
-    if i == len(table):
-        return table[-1][1]
-    if i == 0:
-        return table[0][1]
-    (t0, T0), (t1, T1) = table[i - 1], table[i]
-    return T0 + (time - t0) / (t1 - t0) * (T1 - T0)
-
-
-def color(T):
-    return TEMP(TNORM(T))
-
-
-fig, (ax,) = canvas(1100, 3.86, (0.85, 0.71, 6.25, 3.02))
-t = np.unique(np.concatenate([np.linspace(t0, t1, 101 if T0 != T1 else 2) for (t0, T0), (t1, T1) in zip(TABLE, TABLE[1:])]))
-p = np.array([(x, temperature(x)) for x in t])                                               # short pieces, colored by the temperature
-ax.add_collection(LineCollection(np.stack([p[:-1], p[1:]], axis=1), colors=color(0.5 * (p[1:, 1] + p[:-1, 1])), lw=2.2, capstyle="round",
-                                 zorder=2))
-p = np.array([(x, temperature(x)) for x in (TABLE[-1][0], 90)])
-ax.plot(*p.T, color=color(p[-1, 1]), lw=2.2, ls=(0, (3.5, 1.6)), zorder=2)
-ax.scatter(*zip(*TABLE), c=color([point[1] for point in TABLE]), edgecolor="k", linewidth=.5, s=75, zorder=3)
-PLACES = ((9, 0, "left", "center"), (-4, -8, "right", "top"), (4, -8, "left", "top"), (-4, 8, "right", "bottom"))
-for (x, y), (dx, dy, ha, va) in zip(TABLE, PLACES):                                          # the lines of the file
-    ax.annotate(r"\texttt{%d %d}" % (x, y), (x, y), (dx, dy), textcoords="offset points", fontsize=15, ha=ha, va=va)
-note(ax, 7, 540, "linear between\ntwo points", ha="left", va="center")
-note(ax, 71.5, 418, "constant after\nthe last point", ha="center", va="bottom")
-ax.set_xlim(-3, 83); ax.set_ylim(230, 800); ax.set_xticks(range(0, 81, 10)); ax.set_yticks(range(300, 801, 100))
-ax.set_xlabel("Time (s)"); ax.set_ylabel("Temperature (K)"); grid(ax)
-save_png(fig, "time_temperature.png", 1100)
 
 
 # --------------------------------------------------------------------------------- rows of a log (output-files.md)
