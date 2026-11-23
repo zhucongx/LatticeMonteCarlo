@@ -132,13 +132,9 @@ initial_temperature 800
 seed 12345
 ```
 
-<img src="figures/annealing.png" width="760" alt="Temperature and energy of a simulated annealing run against the number of steps, and the box with its solute atoms scattered at the start and gathered in one compact cluster in lowest_energy.cfg.gz.">
+<img src="figures/annealing.webp" width="760" alt="Animation of a simulated annealing run: scattered solute atoms gather in one compact cluster while plots of the temperature and of the energy against the number of steps are traced.">
 
-*Simulated annealing with this file. (a) The temperature was multiplied by 0.99 every 5000 steps up to step 365 000, where more than 50 % of the steps were accepted (shaded), and by 1.10 five times later (triangles); the dashed line is the schedule without these factors. (b) The columns `energy` and `lowest_energy` of `sa_log.txt`; 0 eV stands for a solid solution of single solute atoms, like the start. (c) The start, which the method makes itself and does not write to a file, and (d) `lowest_energy.cfg.gz`, found at step 1 443 971, both without the Al atoms; in (d) the vacancy is hidden inside the cluster.*
-
-<img src="figures/annealing.webp" width="760" alt="Animation of a simulated annealing run in which scattered solute atoms gather in one compact cluster while the temperature and the energy fall.">
-
-*The same run as an animation, slowed down while the cluster forms. The last picture is `lowest_energy.cfg.gz`. SA writes no other configuration; the ones before it come from a modified build that also writes numbered configurations.*
+*Simulated annealing with this file, slowed down while the cluster forms; what the run has not reached yet is pale. Left: the solute atoms and the vacancy, without the Al atoms. The first picture is the start, which the method makes itself and does not write to a file, and the last one is `lowest_energy.cfg.gz`, found at step 1 443 971, with the vacancy hidden inside the cluster. SA writes no other configuration; the ones in between come from a modified build that also writes numbered configurations. Upper plot: the temperature was multiplied by 0.99 every 5000 steps up to step 365 000, where more than 50 % of the steps were accepted (shaded), and by 1.10 five times later (triangles); the dashed line is the schedule without these factors. Lower plot: the columns `energy` and `lowest_energy` of `sa_log.txt`; 0 eV stands for a solid solution of single solute atoms, like the start.*
 
 ## Speed and memory
 

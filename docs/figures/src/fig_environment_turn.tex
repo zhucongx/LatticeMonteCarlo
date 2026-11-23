@@ -1,0 +1,25 @@
+% What does not move in the animation environment, 16 cm x 9 cm: the labels of the two panels and the legend. The pictures of the turn
+% are put behind it by animate_environment.py, see there.
+\documentclass[11pt,tikz,border=0pt]{standalone}
+\input{figstyle}
+% the colors of three of the classes in render_environment_turn.py
+\definecolor{cRing}{HTML}{4A80BD}
+\definecolor{cPlane}{HTML}{4FA06B}
+\definecolor{cWindow}{HTML}{DFA83A}
+\begin{document}
+\begin{tikzpicture}
+  \path[use as bounding box] (0,0) rectangle (16,9);
+  \node[lab] at (0.05,8.92) {\panel{a}};
+  \node[lab] at (8.05,8.92) {\panel{b}};
+  \node[capt] at (4,1.98) {classes under $mmm$, for $D$};
+  \node[capt] at (12,1.98) {classes under $mm2$, for $K_s$};
+  \begin{scope}[shift={(0.72,0.98)}]
+    \node[vac, minimum size=10pt] at (0,0) {}; \node[leg] at (0.2,0) {vacancy};
+    \node[atom=cOne, minimum size=10.5pt] at (1.9,0) {}; \node[leg] at (2.1,0) {jumping atom};
+    \foreach \c [count=\i from 0] in {cRing, cPlane, cWindow} \node[atom=\c, minimum size=10.5pt] at ({4.85+0.24*\i},0) {};
+    \node[leg] at (5.53,0) {18 first neighbors of either};
+    \node[atom=cAl!45, minimum size=5.5pt] at (10.2,0) {}; \node[leg] at (10.35,0) {40 second and third neighbors};
+  \end{scope}
+  \node[anchor=base, inner sep=2pt, yshift=-3.2pt] at (8,0.38) {jump axis $x$: from the vacancy to the jumping atom};
+\end{tikzpicture}
+\end{document}
