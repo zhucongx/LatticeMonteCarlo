@@ -31,8 +31,7 @@ void Print(const Parameter &parameter) {
   std::cout << "Parameters" << std::endl;
   std::cout << "simulation_method: " << parameter.method << std::endl;
   if (parameter.method == "KineticMcFirstMpi" || parameter.method == "KineticMcFirstSerial" ||
-      parameter.method == "KineticMcChainOmp" || parameter.method == "KineticMcChainMpi" ||
-      parameter.method == "KineticMcChainOmpi") {
+      parameter.method == "KineticMcSecondOmpi") {
     std::cout << "json_coefficients_filename: " << parameter.json_coefficients_filename_ << std::endl;
     std::cout << "config_filename: " << parameter.config_filename_ << std::endl;
     std::cout << "map_filename: " << parameter.map_filename_ << std::endl;
@@ -114,7 +113,7 @@ void Print(const Parameter &parameter) {
 void Run(const Parameter &parameter) {
   // The two MPI variants evaluate one of the twelve jumps of the vacancy on each rank. Everything else runs one
   // trajectory, or one analysis, in a single process.
-  if (parameter.method == "KineticMcFirstMpi" || parameter.method == "KineticMcChainOmpi") {
+  if (parameter.method == "KineticMcFirstMpi" || parameter.method == "KineticMcSecondOmpi") {
     RequireNumProcesses(parameter.method, static_cast<int>(constants::kNumFirstNearestNeighbors));
   } else {
     RequireNumProcesses(parameter.method, 1);
@@ -125,7 +124,7 @@ void Run(const Parameter &parameter) {
   } else if (parameter.method == "KineticMcFirstSerial") {
     auto kinetic_mc_first_serial = api::BuildKineticMcFirstSerialFromParameter(parameter);
     kinetic_mc_first_serial.Simulate();
-  } else if (parameter.method == "KineticMcChainOmpi") {
+  } else if (parameter.method == "KineticMcSecondOmpi") {
     auto kinetic_mc_second_ompi = api::BuildKineticMcSecondOmpiFromParameter(parameter);
     kinetic_mc_second_ompi.Simulate();
   } else if (parameter.method == "Ansys") {
