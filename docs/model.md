@@ -6,9 +6,9 @@ This page is a short description of the model the program evaluates. The papers 
 
 Atoms and vacancies sit on the sites of an fcc lattice. A site has 12 first, 6 second and 24 third neighbors, found by the cutoff distances 3.5, 4.8 and 5.3 Å. The boundaries are periodic. Sites do not move: the relaxation of the atoms is part of the coefficients.
 
-<img src="figures/lattice.png" width="760" alt="The conventional fcc cell with a vacancy and an arrow for a jump of a neighboring atom into it, next to the shells of 12 first, 6 second and 24 third neighbors of a site.">
+<img src="figures/lattice.webp" width="760" alt="Animation: the conventional fcc cell, in which an atom jumps into a vacancy and back, and the shells of 12 first, 6 second and 24 third neighbors of a site make a full turn.">
 
-*The fcc lattice. (a) The conventional cell with the lattice constant a, a vacancy (white with a red ring) and one of the twelve jumps that can fill it. (b) to (d) The first, second and third neighbors of the dark site in the middle; the black boxes are two lattice constants wide.*
+*The fcc lattice in a full turn. (a) The conventional cell with the lattice constant a and a vacancy (white with a red ring). One of the twelve jumps that can fill it is shown: the atom in the middle of the upper face jumps into the vacancy and, half a turn later, back. (b) to (d) The first, second and third neighbors of the dark site in the middle; the black boxes are two lattice constants wide.*
 
 ## Energy
 
@@ -24,9 +24,9 @@ where $n_\alpha$ is the number of clusters of kind $\alpha$ in the box, $N_\alph
 | Pairs | first, second or third neighbors |
 | Triplets | 1-1-1, 1-1-2, 1-1-3 and 1-2-3: the shells of the three distances |
 
-<img src="figures/cluster_shapes.png" width="760" alt="The eight cluster shapes of the energy model drawn in a conventional fcc cell: a single site, three pairs and four triplets, each with its number per lattice site.">
+<img src="figures/cluster_shapes.webp" width="760" alt="Animation: the eight cluster shapes of the energy model, a single site, three pairs and four triplets, each drawn in a conventional fcc cell that makes a full turn, with its number per lattice site.">
 
-*The eight cluster shapes of the energy model. The digits in a name are the neighbor shells of the distances between its sites, which the colors show as well. The number below a name says how many such clusters there are per site of the crystal; 256 times this number is N<sub>α</sub>.*
+*The eight cluster shapes of the energy model, each in a conventional cell that makes a full turn. The digits in a name are the neighbor shells of the distances between its sites, which the colors show as well. The number below a name says how many such clusters there are per site of the crystal; 256 times this number is N<sub>α</sub>.*
 
 CMC, SA and KMC do not need the energy itself but its change when two sites exchange their atoms, $\Delta E$, which only depends on the clusters around these two sites.
 
