@@ -31,9 +31,9 @@ $$r = \nu \exp\left(-\frac{E_a}{k_B T}\right), \qquad \nu = 10^{13}\ \mathrm{s}^
 
 with the barrier $E_a$ of the [model](model.md). The three methods write [`kmc_log.txt`](output-files.md#kmc_logtxt) and [configurations](output-files.md#configurations).
 
-<img src="figures/vacancy_jumps.webp" width="760" alt="Animation of 26 single KMC steps: one after the other, Al, Mg and Zn atoms jump into the vacancy, while two panels show the barrier of each jump and the time of the run.">
+<img src="figures/vacancy_jumps.webp" width="760" alt="Animation of 26 single KMC steps: one after the other, Al, Mg and Zn atoms jump into the vacancy, while two panels show the barrier of each jump and the time in the alloy.">
 
-*Steps 1446 to 1471 of the KMC run of [A first run](README.md#a-first-run), repeated with `log_dump_steps 1` to get a row of the log for every step, and seen close to the vacancy. Al atoms are drawn small, and the one that jumps is marked dark gray. Thin red lines join the vacancy with its twelve nearest neighbors, and the thick red line is its path over the last seven jumps. The panels show the columns `Ea` and `time` of `kmc_log.txt`, colored by the element that jumps: the last six jumps, back and forth with a Zn atom, take only 1 % of the 131 ns.*
+*Steps 1446 to 1471 of the KMC run of [A first run](README.md#a-first-run), repeated with `log_dump_steps 1` to get a row of the log for every step, and seen close to the vacancy. Al atoms are drawn small, and the one that jumps is marked dark gray. Thin red lines join the vacancy with its twelve nearest neighbors, and the thick red line is its path over the last seven jumps. The panels show the column `Ea` of `kmc_log.txt` and the time, colored by the element that jumps. The time is that of an alloy which keeps the vacancies that its solid solution has in equilibrium at 450 K: 326 times the column `time` (see [Time and vacancy concentration](#time-and-vacancy-concentration)); the last six jumps, back and forth with a Zn atom, take only 1 % of the 43 µs.*
 
 ### KineticMcFirstSerial and KineticMcFirstMpi
 
@@ -78,6 +78,8 @@ where the sum is over all sites, $E_i$ is the [`profile_energy`](analysis.md#bin
 $$c_{\mathrm{res}} = c_{\mathrm{alloy}} f,$$
 
 where $f$ is the fraction that neither solute atoms nor clusters have trapped. As clusters grow $f$ falls, in an alloy by orders of magnitude, and the solute becomes slower. This is part of the simulation, in which the vacancy is trapped in the same way, and $c / c_{\mathrm{alloy}}$ stays constant. `Ansys` estimates the fraction outside of the clusters, see [Vacancy concentrations](analysis.md#vacancy-concentrations).
+
+**In the animations** of this documentation the time is that of an alloy: the time of the run times $c / c_{\mathrm{alloy}}$. The alloy keeps the number of its vacancies while clusters form, as the box keeps its one, so the factor is the same for the whole run. A run at one temperature is shown for an alloy that starts with the vacancies of equilibrium: $c_{\mathrm{alloy}}$ is the $c_{\mathrm{alloy}}(T)$ above for the start configuration, a solid solution, at the temperature of the run. For the KMC run of [A first run](README.md#a-first-run), at 450 K, the time in the alloy is 326 times the time of the run. The logs, and the plots of their columns, hold the time of the run.
 
 **Long times.** When the clusters hold the only vacancy, a run gets no further, but the alloy goes on aging with its residual vacancies. Xi et al. 2025 continue from there with cluster dynamics, rate equations for the number of clusters of every size, which use the diffusivity above with the $f$ of the clusters. This is not part of the program; the run delivers the clusters at the end of the quench.
 
