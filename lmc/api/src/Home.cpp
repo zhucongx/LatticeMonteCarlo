@@ -31,7 +31,7 @@ void Print(const Parameter &parameter) {
   std::cout << "Parameters" << std::endl;
   std::cout << "simulation_method: " << parameter.method << std::endl;
   if (parameter.method == "KineticMcFirstMpi" || parameter.method == "KineticMcFirstSerial" ||
-      parameter.method == "KineticMcSecondOmpi") {
+      parameter.method == "KineticMcSecondMpi" || parameter.method == "KineticMcSecondOmpi") {
     std::cout << "json_coefficients_filename: " << parameter.json_coefficients_filename_ << std::endl;
     std::cout << "config_filename: " << parameter.config_filename_ << std::endl;
     std::cout << "map_filename: " << parameter.map_filename_ << std::endl;
@@ -111,9 +111,10 @@ void Print(const Parameter &parameter) {
 }
 
 void Run(const Parameter &parameter) {
-  // The two MPI variants evaluate one of the twelve jumps of the vacancy on each rank. Everything else runs one
+  // The MPI variants evaluate one of the twelve jumps of the vacancy on each rank. Everything else runs one
   // trajectory, or one analysis, in a single process.
-  if (parameter.method == "KineticMcFirstMpi" || parameter.method == "KineticMcSecondOmpi") {
+  if (parameter.method == "KineticMcFirstMpi" || parameter.method == "KineticMcSecondMpi" ||
+      parameter.method == "KineticMcSecondOmpi") {
     RequireNumProcesses(parameter.method, static_cast<int>(constants::kNumFirstNearestNeighbors));
   } else {
     RequireNumProcesses(parameter.method, 1);
@@ -124,6 +125,9 @@ void Run(const Parameter &parameter) {
   } else if (parameter.method == "KineticMcFirstSerial") {
     auto kinetic_mc_first_serial = api::BuildKineticMcFirstSerialFromParameter(parameter);
     kinetic_mc_first_serial.Simulate();
+  } else if (parameter.method == "KineticMcSecondMpi") {
+    auto kinetic_mc_second_mpi = api::BuildKineticMcSecondMpiFromParameter(parameter);
+    kinetic_mc_second_mpi.Simulate();
   } else if (parameter.method == "KineticMcSecondOmpi") {
     auto kinetic_mc_second_ompi = api::BuildKineticMcSecondOmpiFromParameter(parameter);
     kinetic_mc_second_ompi.Simulate();
@@ -209,6 +213,38 @@ mc::KineticMcFirstSerial BuildKineticMcFirstSerialFromParameter(const Parameter 
                                   parameter.early_stop_,
                                   parameter.solute_disp_,
                                   parameter.seed_};
+}
+
+mc::KineticMcSecondMpi BuildKineticMcSecondMpiFromParameter(const Parameter &parameter) {
+  std::set<Element> element_set;
+  for (const auto &element_string: parameter.element_set_) {
+    element_set.insert(Element(element_string));
+  }
+  cfg::Config config;
+  if (parameter.map_filename_.empty()) {
+    config = cfg::Config::ReadConfig(parameter.config_filename_);
+    config.ReassignLatticeVector();
+  } else {
+    config = cfg::Config::ReadMap("lattice.txt", "element.txt", parameter.map_filename_);
+  }
+  if (IsRoot()) {
+    std::cout << "Finish config reading. Start KMC." << std::endl;
+  }
+  return mc::KineticMcSecondMpi{config,
+                                parameter.log_dump_steps_,
+                                parameter.config_dump_steps_,
+                                parameter.maximum_steps_,
+                                parameter.thermodynamic_averaging_steps_,
+                                parameter.restart_steps_,
+                                parameter.restart_energy_,
+                                parameter.restart_time_,
+                                parameter.temperature_,
+                                element_set,
+                                parameter.json_coefficients_filename_,
+                                parameter.time_temperature_filename_,
+                                parameter.early_stop_,
+                                parameter.solute_disp_,
+                                parameter.seed_};
 }
 
 mc::KineticMcSecondOmpi BuildKineticMcSecondOmpiFromParameter(const Parameter &parameter) {
