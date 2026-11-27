@@ -71,6 +71,21 @@ class KineticMcFirstAbstract : public McAbstract {
     double lowest_barrier_{0.0};
     unsigned long long int next_warning_of_negative_barriers_{1};
 };
+//  j -> k -> i -> l
+//       |
+// current position
+// The sums over the twelve first jumps k -> i that a second-order step is made of. j is the site the vacancy came from.
+struct SecondOrderSums {
+  double beta_bar_k{0.0};
+  double beta_k{0.0};
+  double gamma_bar_k_j{0.0};
+  double gamma_k_j{0.0};
+  double beta_k_j{0.0};
+  double alpha_k_j{0.0};
+  double ts_numerator{0.0};
+  double ts_j_numerator{0.0};
+  SecondOrderSums &operator+=(const SecondOrderSums &summands);
+};
 class KineticMcSecondAbstract : public KineticMcFirstAbstract {
   public:
     KineticMcSecondAbstract(cfg::Config config,
@@ -93,62 +108,18 @@ class KineticMcSecondAbstract : public KineticMcFirstAbstract {
     void operator=(const mc::KineticMcSecondAbstract &) = delete;
   protected:
     void OneStepSimulation() override;
+    // What the first jump k -> i of event_k_i adds to the sums of a step. total_rate_i is the sum of the rates of the
+    // twelve jumps i -> l that can follow it.
+    [[nodiscard]] SecondOrderSums GetSecondOrderSummands(const JumpEvent &event_k_i, double total_rate_i) const;
+    // The probability that the step ends on site i, from the summands of the jump k -> i and the sums over all twelve.
+    [[nodiscard]] double GetSecondOrderProbability(const JumpEvent &event_k_i,
+                                                   const SecondOrderSums &summands,
+                                                   const SecondOrderSums &sums) const;
+    // The mean time of the step.
+    [[nodiscard]] double GetSecondOrderTime(const SecondOrderSums &sums) const;
     // helpful properties
     size_t previous_j_lattice_id_;
-    double total_rate_i_{0.0}; // i would be different
-    std::array<size_t, kEventListSize> l_lattice_id_list_{};
-
-    MPI_Op mpi_op_{};
-    MPI_Datatype mpi_datatype_{};
 };
-struct MpiData {
-  double beta_bar_k{0.0};
-  double beta_k{0.0};
-  double gamma_bar_k_j{0.0};
-  double gamma_k_j{0.0};
-  double beta_k_j{0.0};
-  double alpha_k_j{0.0};
-  double ts_numerator{0.0};
-  double ts_j_numerator{0.0};
-};
-inline void DataSum(void *input_buffer,
-                    void *output_buffer,
-                    int *len,
-                    [[maybe_unused]] MPI_Datatype *datatype) {
-  auto *input = static_cast<MpiData *>(input_buffer);
-  auto *output = static_cast<MpiData *>(output_buffer);
-  for (int i = 0; i < *len; ++i) {
-    output[i].beta_bar_k += input[i].beta_bar_k;
-    output[i].beta_k += input[i].beta_k;
-    output[i].gamma_bar_k_j += input[i].gamma_bar_k_j;
-    output[i].gamma_k_j += input[i].gamma_k_j;
-    output[i].beta_k_j += input[i].beta_k_j;
-    output[i].alpha_k_j += input[i].alpha_k_j;
-    output[i].ts_numerator += input[i].ts_numerator;
-    output[i].ts_j_numerator += input[i].ts_j_numerator;
-  }
-}
-inline void DefineStruct(MPI_Datatype *datatype) {
-  const int count = 8;
-  int block_lens[count];
-  MPI_Datatype types[count];
-  MPI_Aint displacements[count];
-
-  for (int i = 0; i < count; i++) {
-    types[i] = MPI_DOUBLE;
-    block_lens[i] = 1;
-  }
-  displacements[0] = offsetof(MpiData, beta_bar_k);
-  displacements[1] = offsetof(MpiData, beta_k);
-  displacements[2] = offsetof(MpiData, gamma_bar_k_j);
-  displacements[3] = offsetof(MpiData, gamma_k_j);
-  displacements[4] = offsetof(MpiData, beta_k_j);
-  displacements[5] = offsetof(MpiData, alpha_k_j);
-  displacements[6] = offsetof(MpiData, ts_numerator);
-  displacements[7] = offsetof(MpiData, ts_j_numerator);
-  MPI_Type_create_struct(count, block_lens, displacements, types, datatype);
-  MPI_Type_commit(datatype);
-}
 } // mc
 
 #endif //LMC_LMC_MC_INCLUDE_KINETICMCABSTRACT_H_
