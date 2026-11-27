@@ -6,7 +6,9 @@ The key `simulation_method` of the [parameter file](parameters.md) selects what 
 |---|---|---|---|
 | [`KineticMcFirstSerial`](#kineticmcfirstserial-and-kineticmcfirstmpi) | KMC, first order | 1 | at start-up only |
 | [`KineticMcFirstMpi`](#kineticmcfirstserial-and-kineticmcfirstmpi) | KMC, first order | 12 | at start-up only |
-| [`KineticMcSecondOmpi`](#kineticmcsecondompi) | KMC, second order | 12 | yes |
+| [`KineticMcSecondSerial`](#kineticmcsecondserial-kineticmcsecondmpi-and-kineticmcsecondompi) | KMC, second order | 1 | at start-up only |
+| [`KineticMcSecondMpi`](#kineticmcsecondserial-kineticmcsecondmpi-and-kineticmcsecondompi) | KMC, second order | 12 | at start-up only |
+| [`KineticMcSecondOmpi`](#kineticmcsecondserial-kineticmcsecondmpi-and-kineticmcsecondompi) | KMC, second order | 12 | yes |
 | [`CanonicalMcSerial`](#canonicalmcserial-and-canonicalmcomp) | CMC | 1 | at start-up only |
 | [`CanonicalMcOmp`](#canonicalmcserial-and-canonicalmcomp) | CMC | 1 | yes |
 | [`SimulatedAnnealing`](#simulatedannealing) | SA | 1 | at start-up only |
@@ -17,11 +19,11 @@ A method that is started with another number of MPI processes stops with a messa
 
 ```
 lmc.exe -p param.txt                                          # the methods with one process
-mpirun -np 12 lmc.exe -p param.txt                            # KineticMcFirstMpi
+mpirun -np 12 lmc.exe -p param.txt                            # KineticMcFirstMpi, KineticMcSecondMpi
 OMP_NUM_THREADS=1 mpirun -np 12 lmc.exe -p param.txt          # KineticMcSecondOmpi
 ```
 
-With one process a step takes a few microseconds, which is less than it costs to start a group of threads or to exchange messages between processes. Spare cores are therefore usually better spent on independent runs, see [Speed and memory](#speed-and-memory).
+In one process a first-order step takes a few microseconds, which is less than it costs to start a group of threads or to exchange messages between processes. Spare cores are therefore usually better spent on independent runs, see [Speed and memory](#speed-and-memory).
 
 ## Kinetic Monte Carlo
 
@@ -29,7 +31,7 @@ The configuration must hold exactly one vacancy, the element `X`. Atoms move by 
 
 $$r = \nu \exp\left(-\frac{E_a}{k_B T}\right), \qquad \nu = 10^{13}\ \mathrm{s}^{-1},$$
 
-with the barrier $E_a$ of the [model](model.md). The three methods write [`kmc_log.txt`](output-files.md#kmc_logtxt) and [configurations](output-files.md#configurations).
+with the barrier $E_a$ of the [model](model.md). All KMC methods write [`kmc_log.txt`](output-files.md#kmc_logtxt) and [configurations](output-files.md#configurations).
 
 <img src="figures/vacancy_jumps.webp" width="760" alt="Animation of 26 single KMC steps: one after the other, Al, Mg and Zn atoms jump into the vacancy, while two panels show the barrier of each jump and the time in the alloy.">
 
@@ -45,9 +47,17 @@ First-order residence time algorithm. In every step one of the twelve jumps is d
 
 *Three steps of first-order KMC in the order of the program; the rates and the random numbers are an example. (a) The vacancy and its twelve jumps, drawn in a ring; the width of an arrow is proportional to the rate rᵢ of the jump. (b) The probabilities pᵢ = rᵢ / Σ rᵢ of the jumps fill the interval from 0 to 1, and the jump whose segment contains the second random number of the step is made. (c) The first random number u gives the time step −ln(u) / Σ rᵢ, which is added to the time before the atom and the vacancy change places. After that the vacancy has other neighbors and other rates; in the ring the atom that has just jumped lies opposite to its jump. The animation ends when jump 8 is selected in the third step.*
 
-### KineticMcSecondOmpi
+### KineticMcSecondSerial, KineticMcSecondMpi and KineticMcSecondOmpi
 
-Second-order residence time algorithm. At low temperature the vacancy often jumps back and forth between two sites. This method treats such returns analytically. It takes the rates of the twelve jumps of the vacancy and of the twelve jumps that can follow each of them. From these it finds, for every neighbor site, the probability that the vacancy ends up there after its immediate returns. The time advances by the mean time until then, taken over all these sites, without a random number. One step therefore covers many single jumps where the vacancy is trapped, and it takes longer to compute, because it needs 144 barriers instead of 12. The first jump of a step does not lead back to the site the vacancy came from, because the step before has already counted such returns.
+Second-order residence time algorithm. At low temperature the vacancy often jumps back and forth between two sites. These methods treat such returns analytically. A step takes the rates of the twelve jumps of the vacancy and of the twelve jumps that can follow each of them. From these it finds, for every neighbor site, the probability that the vacancy ends up there after its immediate returns. The time advances by the mean time until then, taken over all these sites, without a random number. One step therefore covers many single jumps where the vacancy is trapped, and it takes longer to compute, because it needs 144 barriers instead of 12. The first jump of a step does not lead back to the site the vacancy came from, because the step before has already counted such returns.
+
+The three methods make the same calculation and differ in where the 144 barriers of a step are evaluated:
+
+- `KineticMcSecondSerial` evaluates them one after the other in one process.
+- `KineticMcSecondMpi` runs twelve processes, one for each jump of the vacancy. Every process evaluates the twelve jumps that can follow its jump, one after the other.
+- `KineticMcSecondOmpi` does the same, and every process spreads its twelve jumps over its OpenMP threads.
+
+With the same seed the three methods follow the same trajectory, apart from rounding: `KineticMcSecondSerial` adds up the terms of a step in another order than twelve processes do, so its times can differ from theirs in the last digits.
 
 <img src="figures/kmc_second_order.webp" width="760" alt="Animation of one step of second-order KMC: a vacancy that came from site j jumps to a neighbor site i and returns or goes on, while a small vacancy follows the same path through a flow chart, first a path without a return and then one with two returns, and at the end the sum over all paths is highlighted.">
 
@@ -144,10 +154,12 @@ Steps per second for 10976 sites (Al with 5 % Mg and Zn) at 450 K on an Apple M3
 |---|---|---|
 | `KineticMcFirstSerial` | 1 × any | 270 000 |
 | `KineticMcFirstMpi` | 12 × 1 | 115 000 to 145 000 |
+| `KineticMcSecondSerial` | 1 × any | 6 400 |
+| `KineticMcSecondMpi` | 12 × 1 | 13 000 to 16 000 |
 | `KineticMcSecondOmpi` | 12 × 1 | 13 000 to 18 000 |
 | `CanonicalMcSerial` | 1 × 1 | 320 000 |
 | `CanonicalMcOmp` | 1 × 12 | 130 000 |
 
-A step of `KineticMcSecondOmpi` covers many single jumps where the vacancy is trapped, so the steps of the KMC methods cannot be compared one by one.
+A step of second-order KMC covers many single jumps where the vacancy is trapped, so the steps of the KMC methods cannot be compared one by one. In one process it makes a bit less than half the steps per second that it makes on twelve.
 
-Memory grows with the number of sites: the tables of the barrier model, which the KMC methods use, take about 7 kB per site, and those of the energy changes of CMC and SA about 2.4 kB per site.
+Memory grows with the number of sites: the tables of the barrier model, which the KMC methods use, take about 7 kB per site, and those of the energy changes of CMC and SA about 2.4 kB per site. With twelve processes every process holds these tables.

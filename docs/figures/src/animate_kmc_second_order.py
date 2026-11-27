@@ -1,6 +1,7 @@
-# kmc_second_order.webp and kmc_second_order.mp4: one step of second-order KMC (KineticMcSecondOmpi). A small vacancy runs through the
-# chart of the paths along two of them, one without and one with two returns, while panel (a) shows what these paths do to the vacancy;
-# then the sum over all paths lights up, which is what the program computes (KineticMcSecondOmpi::CalculateTime). Drawn with TikZ.
+# kmc_second_order.webp and kmc_second_order.mp4: one step of second-order KMC (KineticMcSecondSerial, Mpi and Ompi). A small vacancy runs
+# through the chart of the paths along two of them, one without and one with two returns, while panel (a) shows what these paths do to the
+# vacancy; then the sum over all paths lights up, which is what the program computes (the GetSecondOrder functions of
+# KineticMcSecondAbstract). Drawn with TikZ.
 #   python3 animate_kmc_second_order.py <folder for the frames> <output folder> [numbers of single frames: draw only these, for a look]
 import sys
 from collections import namedtuple

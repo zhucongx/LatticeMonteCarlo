@@ -251,14 +251,15 @@ void Parameter::Validate(const std::string &param_filename) const {
     fail("parameter simulation_method is missing");
   }
   const bool is_kinetic = method == "KineticMcFirstMpi" || method == "KineticMcFirstSerial" ||
-      method == "KineticMcSecondOmpi";
+      method == "KineticMcSecondMpi" || method == "KineticMcSecondOmpi" || method == "KineticMcSecondSerial";
   const bool is_canonical = method == "CanonicalMcSerial" || method == "CanonicalMcOmp";
   const bool is_annealing = method == "SimulatedAnnealing";
   const bool is_analysis = method == "Ansys";
   const bool is_reformat = method == "Reformat";
   if (!is_kinetic && !is_canonical && !is_annealing && !is_analysis && !is_reformat) {
     fail("unknown simulation_method " + method + ", expected KineticMcFirstMpi, KineticMcFirstSerial, " +
-         "KineticMcSecondOmpi, CanonicalMcSerial, CanonicalMcOmp, SimulatedAnnealing, Ansys or Reformat");
+         "KineticMcSecondMpi, KineticMcSecondOmpi, KineticMcSecondSerial, CanonicalMcSerial, CanonicalMcOmp, " +
+         "SimulatedAnnealing, Ansys or Reformat");
   }
 
   require("json_coefficients_filename");

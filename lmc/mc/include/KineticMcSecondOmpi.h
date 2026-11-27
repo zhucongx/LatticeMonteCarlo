@@ -1,17 +1,14 @@
 #ifndef LMC_LMC_MC_INCLUDE_KINETICMCSECONDOMPI_H_
 #define LMC_LMC_MC_INCLUDE_KINETICMCSECONDOMPI_H_
-#include <random>
 #include <omp.h>
-#include <mpi.h>
-#include "VacancyMigrationPredictorQuarticLru.h"
-#include "JumpEvent.h"
-#include "KineticMcAbstract.h"
+#include "KineticMcSecondMpi.h"
 namespace mc {
 //  j -> k -> i -> l
 //       |
 // current position
 
-class KineticMcSecondOmpi : public KineticMcSecondAbstract {
+// KineticMcSecondMpi with the twelve jumps i -> l of a process spread over its OpenMP threads.
+class KineticMcSecondOmpi : public KineticMcSecondMpi {
   public:
     KineticMcSecondOmpi(cfg::Config config,
                         unsigned long long int log_dump_steps,
@@ -29,8 +26,7 @@ class KineticMcSecondOmpi : public KineticMcSecondAbstract {
                         bool is_solute_disp,
                         unsigned long long int seed);
   protected:
-    void BuildEventList() override;
-    double CalculateTime() override;
+    void EvaluateSecondJumps(size_t k_lattice_id, size_t i_lattice_id) override;
 };
 
 } // mc
