@@ -1,0 +1,4 @@
+# Both submodules point to private repositories. The program is built and run without them.
+[submodule "experimental"]
+	path = experimental
+	url = ../lmc-experimental.git
