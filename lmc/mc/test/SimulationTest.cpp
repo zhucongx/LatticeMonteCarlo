@@ -1,10 +1,13 @@
 #include "CanonicalMcSerial.h"
 #include "EnergyPredictor.h"
 #include "KineticMcFirstSerial.h"
+#include "KineticMcSecondSerial.h"
+#include "VacancyMigrationPredictorQuartic.h"
 #include "cfg/test/TemporaryPath.hpp"
 #include "pred/test/SyntheticModel.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <fstream>
 #include <gtest/gtest.h>
@@ -78,6 +81,38 @@ std::vector<std::vector<std::string>> ReadLog(const std::filesystem::path &filen
   }
   return rows;
 }
+
+// Lets a test look at single steps of KineticMcSecondSerial.
+class SecondOrderStepper : public KineticMcSecondSerial {
+ public:
+  using KineticMcSecondSerial::KineticMcSecondSerial;
+  // Evaluates the next step without making it and returns the time it takes.
+  double EvaluateStep() {
+    BuildEventList();
+    return CalculateTime();
+  }
+  // The probabilities that the evaluated step ends on each of the twelve neighbor sites of the vacancy.
+  [[nodiscard]] std::array<double, kEventListSize> GetStepProbabilities() const {
+    std::array<double, kEventListSize> probabilities{};
+    for (size_t i = 0; i < kEventListSize; ++i) {
+      probabilities[i] = event_k_i_list_[i].GetProbability();
+    }
+    return probabilities;
+  }
+  void MakeStep() {
+    OneStepSimulation();
+  }
+  [[nodiscard]] const cfg::Config &GetConfig() const {
+    return config_;
+  }
+  [[nodiscard]] size_t GetVacancyLatticeId() const {
+    return vacancy_lattice_id_;
+  }
+  // The site the vacancy came from.
+  [[nodiscard]] size_t GetPreviousLatticeId() const {
+    return previous_j_lattice_id_;
+  }
+};
 }    // namespace
 
 class Simulation : public ::testing::Test {
@@ -100,6 +135,14 @@ class Simulation : public ::testing::Test {
     const WorkingDirectory working_directory(directory_ / name);
     KineticMcFirstSerial(config_, 10, 100, 300, 0, 0, 0, 0, 600, pred::TestElementSet(), model_filename_, "", false,
                          true, seed)
+        .Simulate();
+  }
+
+  // 300 steps of second-order KMC at 600 K, logged every 10 steps.
+  static void RunKineticMcSecond(const std::string &name, const unsigned long long int seed) {
+    const WorkingDirectory working_directory(directory_ / name);
+    KineticMcSecondSerial(config_, 10, 100, 300, 0, 0, 0, 0, 600, pred::TestElementSet(), model_filename_, "", false,
+                          true, seed)
         .Simulate();
   }
 
@@ -140,6 +183,123 @@ TEST_F(Simulation, KineticMcEnergyColumnFollowsTheTotalEnergy) {
   for (const auto &row: rows) {
     ASSERT_TRUE(std::isfinite(std::stod(row.at(1)))) << "step " << row.at(0);
     ASSERT_TRUE(std::isfinite(std::stod(row.at(3)))) << "step " << row.at(0);
+  }
+}
+
+TEST_F(Simulation, KineticMcSecondSerialIsReproducibleForAGivenSeed) {
+  RunKineticMcSecond("kmc_second_seed_11", 11);
+  RunKineticMcSecond("kmc_second_seed_11_again", 11);
+  RunKineticMcSecond("kmc_second_seed_12", 12);
+  const auto log = ReadFile(directory_ / "kmc_second_seed_11" / "kmc_log.txt");
+  EXPECT_GT(ReadLog(directory_ / "kmc_second_seed_11" / "kmc_log.txt").size(), 30u);
+  EXPECT_EQ(log, ReadFile(directory_ / "kmc_second_seed_11_again" / "kmc_log.txt"));
+  EXPECT_NE(log, ReadFile(directory_ / "kmc_second_seed_12" / "kmc_log.txt"));
+}
+
+TEST_F(Simulation, KineticMcSecondSerialEnergyColumnFollowsTheTotalEnergy) {
+  RunKineticMcSecond("kmc_second_energy", 21);
+  const auto rows = ReadLog(directory_ / "kmc_second_energy" / "kmc_log.txt");
+  ASSERT_FALSE(rows.empty());
+  ASSERT_EQ(rows.back().at(0), "300");
+  const pred::EnergyPredictor total_energy_predictor(model_filename_, pred::TestElementSet());
+  const auto final_config = cfg::Config::ReadConfig((directory_ / "kmc_second_energy" / "end.cfg.gz").string());
+  EXPECT_NEAR(std::stod(rows.back().at(3)),
+              total_energy_predictor.GetEnergy(final_config) - total_energy_predictor.GetEnergy(config_), 1e-8);
+  // The time never decreases, and time and energy of every row are finite numbers.
+  double previous_time = 0.0;
+  for (const auto &row: rows) {
+    const double time = std::stod(row.at(1));
+    ASSERT_TRUE(std::isfinite(time)) << "step " << row.at(0);
+    ASSERT_TRUE(std::isfinite(std::stod(row.at(3)))) << "step " << row.at(0);
+    ASSERT_GE(time, previous_time) << "step " << row.at(0);
+    previous_time = time;
+  }
+}
+
+// In a second-order step the vacancy on site k jumps to a neighbor site i and back as often as it happens to, and the
+// step ends on the first site i from which it does not return at once. Only the first jump of the step cannot lead to
+// j, the site the vacancy came from. The method has closed formulas for the probability that the step ends on a site
+// and for its mean time. This test follows the same process attempt by attempt, with the barriers taken straight from
+// the model, and compares.
+TEST_F(Simulation, KineticMcSecondSerialStepAgreesWithTheSumOverItsPaths) {
+  const WorkingDirectory working_directory(directory_ / "kmc_second_paths");
+  const double temperature = 600;
+  const double beta = 1.0 / constants::kBoltzmann / temperature;
+  const size_t num_neighbors = constants::kNumFirstNearestNeighbors;
+  SecondOrderStepper kinetic_mc(config_, 1, 100, 100, 0, 0, 0, 0, temperature, pred::TestElementSet(), model_filename_,
+                                "", false, false, 61);
+  const pred::VacancyMigrationPredictorQuartic predictor(model_filename_, config_, pred::TestElementSet());
+  const auto get_rate = [&](const cfg::Config &config, const size_t from, const size_t to) {
+    return std::exp(-predictor.GetBarrierAndDiffFromLatticeIdPair(config, {from, to}).first * beta);
+  };
+  for (size_t step = 0; step < 40; ++step) {
+    const double step_time = kinetic_mc.EvaluateStep();
+    const auto step_probabilities = kinetic_mc.GetStepProbabilities();
+
+    auto config = kinetic_mc.GetConfig();
+    const size_t k = kinetic_mc.GetVacancyLatticeId();
+    const size_t j = kinetic_mc.GetPreviousLatticeId();
+    const auto neighbors_of_k = config.GetFirstNeighborsAdjacencyList()[k];
+    // jump_probability: of the jump k -> i among the twelve jumps of the vacancy on k,
+    // return_probability: of the jump i -> k among the twelve jumps of the vacancy on i,
+    // residence_time: the mean time the vacancy stays on i.
+    std::vector<double> jump_probability(num_neighbors), return_probability(num_neighbors);
+    std::vector<double> residence_time(num_neighbors);
+    double total_rate_k = 0.0;
+    double jump_probability_to_j = 0.0;
+    for (size_t i = 0; i < num_neighbors; ++i) {
+      jump_probability[i] = get_rate(config, k, neighbors_of_k[i]);
+      total_rate_k += jump_probability[i];
+    }
+    for (size_t i = 0; i < num_neighbors; ++i) {
+      const size_t site_i = neighbors_of_k[i];
+      jump_probability[i] /= total_rate_k;
+      if (site_i == j) {
+        jump_probability_to_j = jump_probability[i];
+      }
+      config.LatticeJump({k, site_i});
+      double total_rate_i = 0.0;
+      for (const auto l: config.GetFirstNeighborsAdjacencyList()[site_i]) {
+        total_rate_i += get_rate(config, site_i, l);
+      }
+      return_probability[i] = get_rate(config, site_i, k) / total_rate_i;
+      residence_time[i] = 1.0 / total_rate_i / constants::kPrefactor;
+      config.LatticeJump({site_i, k});
+    }
+    const double residence_time_k = 1.0 / total_rate_k / constants::kPrefactor;
+
+    // `weight` is the probability that the vacancy is on k for the given attempt, that is, that it has returned from
+    // every jump of the step so far.
+    std::vector<double> expected_probabilities(num_neighbors, 0.0);
+    double expected_time = 0.0;
+    double weight = 1.0;
+    for (size_t attempt = 0; attempt < 100000 && weight > 1e-18; ++attempt) {
+      expected_time += weight * residence_time_k;
+      double weight_of_returns = 0.0;
+      for (size_t i = 0; i < num_neighbors; ++i) {
+        double probability = jump_probability[i];
+        if (attempt == 0) {
+          probability = neighbors_of_k[i] == j ? 0.0 : jump_probability[i] / (1.0 - jump_probability_to_j);
+        }
+        expected_probabilities[i] += weight * probability * (1.0 - return_probability[i]);
+        expected_time += weight * probability * return_probability[i] * residence_time[i];
+        weight_of_returns += weight * probability * return_probability[i];
+      }
+      weight = weight_of_returns;
+    }
+    ASSERT_LT(weight, 1e-12) << "step " << step;
+
+    EXPECT_NEAR(step_time, expected_time, 1e-9 * expected_time) << "step " << step;
+    double sum_of_probabilities = 0.0;
+    for (size_t i = 0; i < num_neighbors; ++i) {
+      EXPECT_NEAR(step_probabilities[i], expected_probabilities[i], 1e-9) << "step " << step << ", neighbor " << i;
+      sum_of_probabilities += step_probabilities[i];
+    }
+    EXPECT_NEAR(sum_of_probabilities, 1.0, 1e-12) << "step " << step;
+    // A step takes at least as long as the first jump away from k.
+    EXPECT_GE(step_time, residence_time_k * (1.0 - 1e-12)) << "step " << step;
+
+    kinetic_mc.MakeStep();
   }
 }
 
@@ -251,6 +411,9 @@ TEST_F(Simulation, KineticMcNeedsExactlyOneVacancy) {
                std::runtime_error);
   EXPECT_THROW(KineticMcFirstSerial(two_vacancies, 10, 100, 300, 0, 0, 0, 0, 600, pred::TestElementSet(),
                                     model_filename_, "", false, false, 1),
+               std::runtime_error);
+  EXPECT_THROW(KineticMcSecondSerial(two_vacancies, 10, 100, 300, 0, 0, 0, 0, 600, pred::TestElementSet(),
+                                     model_filename_, "", false, false, 1),
                std::runtime_error);
 }
 
