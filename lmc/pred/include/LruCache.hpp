@@ -2,7 +2,6 @@
 #define LMC_LMC_PRED_INCLUDE_LRUCACHE_HPP
 #include <thread>
 #include <mutex>
-#include <shared_mutex>
 #include <list>
 #include <unordered_map>
 template<typename K, class V, class Hash = std::hash<K>>
@@ -10,7 +9,7 @@ class LruCache {
 public:
   explicit LruCache(size_t capacity) : capacity_(capacity) {}
   void Add(const K &key, const V &value) {
-    std::unique_lock<std::shared_mutex> lock(mu_);
+    std::lock_guard<std::mutex> lock(mu_);
     auto it = cache_hashmap_.find(key);
     if (it != cache_hashmap_.end()) {
       cache_list_.erase(it->second);
@@ -31,7 +30,7 @@ public:
   // Note: Profiling shows LRU tweaks (shared lock / FIFO) only gave ~2.5% gain,
   // so we keep the simple write-lock path unless cache contention grows.
   [[nodiscard]] bool Get(const K &key, V &value) {
-    std::unique_lock<std::shared_mutex> lock(mu_);
+    std::lock_guard<std::mutex> lock(mu_);
     auto it = cache_hashmap_.find(key);
     if (it == cache_hashmap_.end()) {
       return false;
@@ -46,6 +45,8 @@ private:
   std::list<std::pair<K, V> > cache_list_{};
   // hashmap of key and iterator of cache list
   std::unordered_map<K, decltype(cache_list_.begin()), Hash> cache_hashmap_{};
-  std::shared_mutex mu_{};
+  // Get() moves the entry it finds to the front of the list, so reads change the cache as well and every access is
+  // exclusive. A plain mutex does that with less work per lock than a shared mutex.
+  std::mutex mu_{};
 };
 #endif //LMC_LMC_PRED_INCLUDE_LRUCACHE_HPP
