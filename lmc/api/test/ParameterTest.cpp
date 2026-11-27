@@ -162,8 +162,8 @@ TEST(Parameter, RejectsValuesTheRunCannotUse) {
 }
 
 TEST(Parameter, AcceptsTheKineticMcMethods) {
-  for (const std::string method:
-       {"KineticMcFirstSerial", "KineticMcFirstMpi", "KineticMcSecondMpi", "KineticMcSecondOmpi"}) {
+  for (const std::string method: {"KineticMcFirstSerial", "KineticMcFirstMpi", "KineticMcSecondMpi",
+                                  "KineticMcSecondOmpi", "KineticMcSecondSerial"}) {
     EXPECT_EQ(Read(Replace(kKineticMc, "KineticMcFirstSerial", method)).method, method);
   }
 }

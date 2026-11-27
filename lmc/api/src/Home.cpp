@@ -31,7 +31,8 @@ void Print(const Parameter &parameter) {
   std::cout << "Parameters" << std::endl;
   std::cout << "simulation_method: " << parameter.method << std::endl;
   if (parameter.method == "KineticMcFirstMpi" || parameter.method == "KineticMcFirstSerial" ||
-      parameter.method == "KineticMcSecondMpi" || parameter.method == "KineticMcSecondOmpi") {
+      parameter.method == "KineticMcSecondMpi" || parameter.method == "KineticMcSecondOmpi" ||
+      parameter.method == "KineticMcSecondSerial") {
     std::cout << "json_coefficients_filename: " << parameter.json_coefficients_filename_ << std::endl;
     std::cout << "config_filename: " << parameter.config_filename_ << std::endl;
     std::cout << "map_filename: " << parameter.map_filename_ << std::endl;
@@ -131,6 +132,9 @@ void Run(const Parameter &parameter) {
   } else if (parameter.method == "KineticMcSecondOmpi") {
     auto kinetic_mc_second_ompi = api::BuildKineticMcSecondOmpiFromParameter(parameter);
     kinetic_mc_second_ompi.Simulate();
+  } else if (parameter.method == "KineticMcSecondSerial") {
+    auto kinetic_mc_second_serial = api::BuildKineticMcSecondSerialFromParameter(parameter);
+    kinetic_mc_second_serial.Simulate();
   } else if (parameter.method == "Ansys") {
     auto iterator = api::BuildIteratorFromParameter(parameter);
     iterator.RunAnsys();
@@ -277,6 +281,38 @@ mc::KineticMcSecondOmpi BuildKineticMcSecondOmpiFromParameter(const Parameter &p
                                  parameter.early_stop_,
                                  parameter.solute_disp_,
                                  parameter.seed_};
+}
+
+mc::KineticMcSecondSerial BuildKineticMcSecondSerialFromParameter(const Parameter &parameter) {
+  std::set<Element> element_set;
+  for (const auto &element_string: parameter.element_set_) {
+    element_set.insert(Element(element_string));
+  }
+  cfg::Config config;
+  if (parameter.map_filename_.empty()) {
+    config = cfg::Config::ReadConfig(parameter.config_filename_);
+    config.ReassignLatticeVector();
+  } else {
+    config = cfg::Config::ReadMap("lattice.txt", "element.txt", parameter.map_filename_);
+  }
+  if (IsRoot()) {
+    std::cout << "Finish config reading. Start KMC." << std::endl;
+  }
+  return mc::KineticMcSecondSerial{config,
+                                   parameter.log_dump_steps_,
+                                   parameter.config_dump_steps_,
+                                   parameter.maximum_steps_,
+                                   parameter.thermodynamic_averaging_steps_,
+                                   parameter.restart_steps_,
+                                   parameter.restart_energy_,
+                                   parameter.restart_time_,
+                                   parameter.temperature_,
+                                   element_set,
+                                   parameter.json_coefficients_filename_,
+                                   parameter.time_temperature_filename_,
+                                   parameter.early_stop_,
+                                   parameter.solute_disp_,
+                                   parameter.seed_};
 }
 
 mc::SimulatedAnnealing BuildSimulatedAnnealingFromParameter(const Parameter &parameter) {

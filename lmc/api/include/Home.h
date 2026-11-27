@@ -5,6 +5,7 @@
 #include "KineticMcFirstSerial.h"
 #include "KineticMcSecondMpi.h"
 #include "KineticMcSecondOmpi.h"
+#include "KineticMcSecondSerial.h"
 #include "SimulatedAnnealing.h"
 #include "CanonicalMcSerial.h"
 #include "CanonicalMcOmp.h"
@@ -17,6 +18,7 @@ mc::KineticMcFirstMpi BuildKineticMcFirstMpiFromParameter(const Parameter &param
 mc::KineticMcFirstSerial BuildKineticMcFirstSerialFromParameter(const Parameter &parameter);
 mc::KineticMcSecondMpi BuildKineticMcSecondMpiFromParameter(const Parameter &parameter);
 mc::KineticMcSecondOmpi BuildKineticMcSecondOmpiFromParameter(const Parameter &parameter);
+mc::KineticMcSecondSerial BuildKineticMcSecondSerialFromParameter(const Parameter &parameter);
 mc::SimulatedAnnealing BuildSimulatedAnnealingFromParameter(const Parameter &parameter);
 mc::CanonicalMcSerial BuildCanonicalMcSerialFromParameter(const Parameter &parameter);
 mc::CanonicalMcOmp BuildCanonicalMcOmpFromParameter(const Parameter &parameter);
