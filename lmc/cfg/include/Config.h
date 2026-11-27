@@ -35,7 +35,10 @@ class Config {
   [[nodiscard]] size_t GetAtomIdFromLatticeId(size_t lattice_id) const;
   [[nodiscard]] size_t GetLatticeIdFromAtomId(size_t atom_id) const;
   [[nodiscard]] Element GetElementAtAtomId(size_t atom_id) const;
-  [[nodiscard]] Element GetElementAtLatticeId(size_t lattice_id) const;
+  // Defined here so that it can be inlined: the barrier cache reads the elements of about 60 sites for every jump.
+  [[nodiscard]] Element GetElementAtLatticeId(const size_t lattice_id) const {
+    return atom_vector_[lattice_to_atom_vector_[lattice_id]].GetElement();
+  }
   [[nodiscard]] std::set<Element> GetElementSetWithoutVacancy() const;
   [[nodiscard]] std::map<Element, std::vector<size_t>> GetElementAtomIdVectorMap() const;
   [[nodiscard]] std::map<Element, size_t> GetElementCountMap() const;

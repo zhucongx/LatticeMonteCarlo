@@ -147,11 +147,6 @@ Element Config::GetElementAtAtomId(const size_t atom_id) const {
   return atom_vector_[atom_id].GetElement();
 }
 
-Element Config::GetElementAtLatticeId(const size_t lattice_id) const {
-  const auto atom_id = lattice_to_atom_vector_[lattice_id];
-  return atom_vector_[atom_id].GetElement();
-}
-
 std::set<Element> Config::GetElementSetWithoutVacancy() const {
   std::set<Element> res;
   for (const auto &atom: atom_vector_) {
