@@ -158,7 +158,10 @@ A run reads a parameter file and the files it names. `script/` has a sample para
 | Directory | Content |
 |---|---|
 | `lmc/` | The sources: configurations (`cfg`), energies and barriers (`pred`), the simulation methods (`mc`), the analysis (`ansys`), and the parameter file and the start of a run (`api`). The unit tests are in `lmc/<module>/test/` |
-| `docs/` | The documentation |
+| `docs/` | The documentation. `docs/tutorial/` has the sources of the [tutorial](https://github.com/zhucongx/LatticeMonteCarlo/releases/tag/tutorial); it is a submodule that points to a private repository |
 | `script/` | Sample parameter files, and `restart.py`, which prepares the restart of a KMC run |
 | `cmake/` | CMake modules |
+| `experimental/` | Programs that try out methods which are not part of `lmc.exe`; a submodule that points to a private repository |
 | `deprecated/` | Old code that is not built |
+
+The two submodules are not needed to build or run the program, and a clone leaves their folders empty. Where `experimental/` is checked out, its programs are built together with `lmc.exe`.
