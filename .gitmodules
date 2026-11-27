@@ -2,3 +2,6 @@
 [submodule "experimental"]
 	path = experimental
 	url = ../lmc-experimental.git
+[submodule "docs/tutorial"]
+	path = docs/tutorial
+	url = ../lmc-tutorial.git
