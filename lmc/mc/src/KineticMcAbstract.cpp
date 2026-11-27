@@ -285,19 +285,71 @@ KineticMcSecondAbstract::KineticMcSecondAbstract(cfg::Config config,
                              is_early_stop,
                              is_solute_disp,
                              seed),
-      previous_j_lattice_id_(config_.GetFirstNeighborsAdjacencyList()[vacancy_lattice_id_][0]) {
-  MPI_Op_create(DataSum, 1, &mpi_op_);
-  DefineStruct(&mpi_datatype_);
-}
+      previous_j_lattice_id_(config_.GetFirstNeighborsAdjacencyList()[vacancy_lattice_id_][0]) {}
 
 void KineticMcSecondAbstract::OneStepSimulation() {
   KineticMcFirstAbstract::OneStepSimulation();
   previous_j_lattice_id_ = event_k_i_.GetIdJumpPair().first;
 }
 
-KineticMcSecondAbstract::~KineticMcSecondAbstract() {
-  MPI_Op_free(&mpi_op_);
-  MPI_Type_free(&mpi_datatype_);
+KineticMcSecondAbstract::~KineticMcSecondAbstract() = default;
+
+SecondOrderSums &SecondOrderSums::operator+=(const SecondOrderSums &summands) {
+  beta_bar_k += summands.beta_bar_k;
+  beta_k += summands.beta_k;
+  gamma_bar_k_j += summands.gamma_bar_k_j;
+  gamma_k_j += summands.gamma_k_j;
+  beta_k_j += summands.beta_k_j;
+  alpha_k_j += summands.alpha_k_j;
+  ts_numerator += summands.ts_numerator;
+  ts_j_numerator += summands.ts_j_numerator;
+  return *this;
+}
+
+SecondOrderSums KineticMcSecondAbstract::GetSecondOrderSummands(const JumpEvent &event_k_i,
+                                                                const double total_rate_i) const {
+  const auto probability_k_i = event_k_i.GetProbability();
+  const auto probability_i_k = event_k_i.GetBackwardRate() / total_rate_i;
+  const double beta_bar_k_i = probability_k_i * probability_i_k;
+  const double beta_k_i = probability_k_i * (1 - probability_i_k);
+  const bool is_previous_event = event_k_i.GetIdJumpPair().second == previous_j_lattice_id_;
+
+  // Time in first order Kmc, same for all
+  const double t_1 = 1 / total_rate_k_ / constants::kPrefactor;
+  // Time in neighbors, different for each first jump
+  const double t_i = 1 / total_rate_i / constants::kPrefactor;
+  return {beta_bar_k_i,
+          beta_k_i,
+          is_previous_event ? 0.0 : beta_bar_k_i,
+          is_previous_event ? 0.0 : beta_k_i,
+          is_previous_event ? beta_k_i : 0.0,
+          is_previous_event ? probability_k_i : 0.0,
+          (t_1 + t_i) * beta_bar_k_i,
+          is_previous_event ? 0.0 : (t_1 + t_i) * beta_bar_k_i};
+}
+
+double KineticMcSecondAbstract::GetSecondOrderProbability(const JumpEvent &event_k_i,
+                                                          const SecondOrderSums &summands,
+                                                          const SecondOrderSums &sums) const {
+  const double one_over_one_minus_a_j = 1 / (1 - sums.alpha_k_j);
+  if (event_k_i.GetIdJumpPair().second == previous_j_lattice_id_) {
+    return one_over_one_minus_a_j * (sums.gamma_bar_k_j / sums.beta_k) * sums.beta_k_j;
+  }
+  return one_over_one_minus_a_j * (1 + sums.gamma_bar_k_j / sums.beta_k) * summands.beta_k;
+}
+
+double KineticMcSecondAbstract::GetSecondOrderTime(const SecondOrderSums &sums) const {
+  const auto beta_bar_k = sums.beta_bar_k;
+  const auto beta_k = sums.beta_k;
+  const auto gamma_bar_k_j = sums.gamma_bar_k_j;
+  const auto gamma_k_j = sums.gamma_k_j;
+  const auto alpha_k_j = sums.alpha_k_j;
+  const auto ts = sums.ts_numerator / beta_bar_k;
+  const auto ts_j = sums.ts_j_numerator / gamma_bar_k_j;
+
+  const double t_1 = 1 / total_rate_k_ / constants::kPrefactor;
+  const double one_over_one_minus_a_j = 1 / (1 - alpha_k_j);
+  return one_over_one_minus_a_j * (gamma_k_j * t_1 + gamma_bar_k_j * (ts_j + t_1 + beta_bar_k / beta_k * ts));
 }
 
 }    // namespace mc

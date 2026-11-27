@@ -1,6 +1,39 @@
 #include "KineticMcSecondOmpi.h"
 #include "EnergyPredictor.h"
 namespace mc {
+namespace {
+void DataSum(void *input_buffer,
+             void *output_buffer,
+             int *len,
+             [[maybe_unused]] MPI_Datatype *datatype) {
+  auto *input = static_cast<SecondOrderSums *>(input_buffer);
+  auto *output = static_cast<SecondOrderSums *>(output_buffer);
+  for (int i = 0; i < *len; ++i) {
+    output[i] += input[i];
+  }
+}
+void DefineStruct(MPI_Datatype *datatype) {
+  const int count = 8;
+  int block_lens[count];
+  MPI_Datatype types[count];
+  MPI_Aint displacements[count];
+
+  for (int i = 0; i < count; i++) {
+    types[i] = MPI_DOUBLE;
+    block_lens[i] = 1;
+  }
+  displacements[0] = offsetof(SecondOrderSums, beta_bar_k);
+  displacements[1] = offsetof(SecondOrderSums, beta_k);
+  displacements[2] = offsetof(SecondOrderSums, gamma_bar_k_j);
+  displacements[3] = offsetof(SecondOrderSums, gamma_k_j);
+  displacements[4] = offsetof(SecondOrderSums, beta_k_j);
+  displacements[5] = offsetof(SecondOrderSums, alpha_k_j);
+  displacements[6] = offsetof(SecondOrderSums, ts_numerator);
+  displacements[7] = offsetof(SecondOrderSums, ts_j_numerator);
+  MPI_Type_create_struct(count, block_lens, displacements, types, datatype);
+  MPI_Type_commit(datatype);
+}
+}    // namespace
 //  j -> k -> i ->l
 //       |
 // current position
@@ -50,6 +83,13 @@ KineticMcSecondOmpi::KineticMcSecondOmpi(cfg::Config config,
       }
     }
   }
+  MPI_Op_create(DataSum, 1, &mpi_op_);
+  DefineStruct(&mpi_datatype_);
+}
+
+KineticMcSecondOmpi::~KineticMcSecondOmpi() {
+  MPI_Op_free(&mpi_op_);
+  MPI_Type_free(&mpi_datatype_);
 }
 
 // update  first_event_ki and l_index_list for each process
@@ -57,21 +97,17 @@ void KineticMcSecondOmpi::BuildEventList() {
   const auto k_lattice_id = vacancy_lattice_id_;
   const auto i_lattice_id =
       config_.GetFirstNeighborsAdjacencyList()[k_lattice_id][static_cast<size_t>(world_rank_)];
-  size_t it = 0;
-  for (auto l_lattice_id : config_.GetFirstNeighborsAdjacencyList()[i_lattice_id]) {
-    l_lattice_id_list_[it] = l_lattice_id;
-    ++it;
-  }
+  const auto &l_lattice_id_list = config_.GetFirstNeighborsAdjacencyList()[i_lattice_id];
 
   total_rate_k_ = 0.0;
   total_rate_i_ = 0.0;
 
   config_.LatticeJump({k_lattice_id, i_lattice_id});
-#pragma omp parallel default(none) shared(i_lattice_id, k_lattice_id) reduction(+:total_rate_i_)
+#pragma omp parallel default(none) shared(i_lattice_id, k_lattice_id, l_lattice_id_list) reduction(+:total_rate_i_)
   {
 #pragma omp for
     for (size_t ii = 0; ii < kEventListSize; ++ii) {
-      const auto l_lattice_id = l_lattice_id_list_[ii];
+      const auto l_lattice_id = l_lattice_id_list[ii];
       JumpEvent event_i_l({i_lattice_id, l_lattice_id},
                           vacancy_migration_predictor_lru_.GetBarrierAndDiffFromLatticeIdPair(
                               config_, {i_lattice_id, l_lattice_id}),
@@ -91,49 +127,11 @@ void KineticMcSecondOmpi::BuildEventList() {
 }
 
 double KineticMcSecondOmpi::CalculateTime() {
-  const auto probability_k_i = event_k_i_.GetProbability();
-  const auto probability_i_k = event_k_i_.GetBackwardRate() / total_rate_i_;
-  const double beta_bar_k_i = probability_k_i * probability_i_k;
-  const double beta_k_i = probability_k_i * (1 - probability_i_k);
-  bool is_previous_event = event_k_i_.GetIdJumpPair().second == previous_j_lattice_id_;
+  const auto summands = GetSecondOrderSummands(event_k_i_, total_rate_i_);
+  SecondOrderSums sums{};
+  MPI_Allreduce(&summands, &sums, 1, mpi_datatype_, mpi_op_, MPI_COMM_WORLD);
 
-  // Time in first order Kmc, same for all
-  const double t_1 = 1 / total_rate_k_ / constants::kPrefactor;
-  // Time in neighbors, different for each process
-  const double t_i = 1 / total_rate_i_ / constants::kPrefactor;
-  MpiData mpi_data_helper{
-      beta_bar_k_i,
-      beta_k_i,
-      is_previous_event ? 0.0 : beta_bar_k_i,
-      is_previous_event ? 0.0 : beta_k_i,
-      is_previous_event ? beta_k_i : 0.0,
-      is_previous_event ? probability_k_i : 0.0,
-      (t_1 + t_i) * beta_bar_k_i,
-      is_previous_event ? 0.0 : (t_1 + t_i) * beta_bar_k_i
-  };
-  MpiData mpi_data{};
-  MPI_Allreduce(&mpi_data_helper, &mpi_data, 1, mpi_datatype_, mpi_op_, MPI_COMM_WORLD);
-
-  const auto beta_bar_k = mpi_data.beta_bar_k;
-  const auto beta_k = mpi_data.beta_k;
-  const auto gamma_bar_k_j = mpi_data.gamma_bar_k_j;
-  const auto gamma_k_j = mpi_data.gamma_k_j;
-  const auto beta_k_j = mpi_data.beta_k_j;
-  const auto alpha_k_j = mpi_data.alpha_k_j;
-  const auto ts = mpi_data.ts_numerator / beta_bar_k;
-  const auto ts_j = mpi_data.ts_j_numerator / gamma_bar_k_j;
-
-  const double one_over_one_minus_a_j = 1 / (1 - alpha_k_j);
-  const double t_2 = one_over_one_minus_a_j
-      * (gamma_k_j * t_1 + gamma_bar_k_j * (ts_j + t_1 + beta_bar_k / beta_k * ts));
-
-  double second_order_probability;
-  if (is_previous_event) {
-    second_order_probability = one_over_one_minus_a_j * (gamma_bar_k_j / beta_k) * beta_k_j;
-  } else {
-    second_order_probability = one_over_one_minus_a_j * (1 + gamma_bar_k_j / beta_k) * beta_k_i;
-  }
-  event_k_i_.SetProbability(second_order_probability);
+  event_k_i_.SetProbability(GetSecondOrderProbability(event_k_i_, summands, sums));
   MPI_Allgather(&event_k_i_,
                 sizeof(JumpEvent),
                 MPI_BYTE,
@@ -148,6 +146,6 @@ double KineticMcSecondOmpi::CalculateTime() {
     cumulative_probability += event.GetProbability();
     event.SetCumulativeProbability(cumulative_probability);
   }
-  return t_2;
+  return GetSecondOrderTime(sums);
 }
 } // mc
