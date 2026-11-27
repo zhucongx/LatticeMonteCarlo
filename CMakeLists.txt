@@ -261,6 +261,11 @@ if (LMC_BUILD_TESTS)
     target_link_libraries_system(${PROJECT_TEST} PRIVATE GTest::gtest)
     add_test(NAME ${PROJECT_TEST} COMMAND ${PROJECT_TEST})
 endif ()
+##################################################### EXPERIMENTAL #####################################################
+# experimental/ is a submodule that points to a private repository. Its programs are built where it is checked out.
+if (EXISTS ${PROJECT_SOURCE_DIR}/experimental/CMakeLists.txt)
+    add_subdirectory(experimental)
+endif ()
 ###################################################### SANITIZER #######################################################
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
 #add_cxx_compiler_flags("-fsanitize=address -fno-omit-frame-pointer") # address
