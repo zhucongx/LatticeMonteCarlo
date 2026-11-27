@@ -22,7 +22,7 @@ What a restart does not keep:
 - The random numbers. The restarted run draws new ones, which follow from `seed` and `restart_steps`, so it does not repeat the steps the first run made after step `N`.
 - The window of `average_energy` (CMC), which fills again from the beginning.
 - The displacement of the solutes (`solute_disp`), which starts at 0 again.
-- The site the vacancy came from (`KineticMcSecondOmpi`).
+- The site the vacancy came from (second-order KMC).
 
 SA cannot be restarted.
 
@@ -39,4 +39,4 @@ The old parameter file has to give `simulation_method`, `json_coefficients_filen
 
 Two runs with the same parameter file, input files, executable and numbers of processes and threads follow the same trajectory if the seed is the same. Without the key `seed` the program takes one from the clock and prints it at the start, so any run can be repeated by adding `seed <number>` to its parameter file.
 
-`KineticMcFirstSerial`, `CanonicalMcSerial` and `SimulatedAnnealing` do not depend on the number of threads. `CanonicalMcOmp` does.
+`KineticMcFirstSerial`, `KineticMcSecondSerial`, `KineticMcSecondMpi`, `CanonicalMcSerial` and `SimulatedAnnealing` do not depend on the number of threads. `CanonicalMcOmp` does.
